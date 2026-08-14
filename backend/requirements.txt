@@ -5,22 +5,29 @@
 # ──────────────────────────────────────────────────────────────────────────────
 # Web framework & server
 # ──────────────────────────────────────────────────────────────────────────────
-fastapi==0.115.9
+fastapi==0.141.1
 uvicorn[standard]==0.34.0
+# Explicit floor to avoid resolved starlette versions vulnerable to
+# PYSEC-2026-161/249/248/1942/1941/2281/2280 (fix: >=1.3.1).
+# Managed transitively by fastapi; direct pin removed to avoid conflicts with
+# prometheus-fastapi-instrumentator which requires starlette>=1.0.0,<2.0.0.
+starlette>=1.3.1,<2.0.0
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Data validation & settings
 # ──────────────────────────────────────────────────────────────────────────────
 pydantic==2.9.2
 pydantic-settings==2.5.2
+email-validator==2.2.0
+typing_extensions>=4.8.0
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Database (SQLAlchemy + PostgreSQL drivers + migrations)
 # ──────────────────────────────────────────────────────────────────────────────
 sqlalchemy==2.0.35
-alembic==1.13.3
+alembic==1.14.1
 asyncpg==0.29.0
-psycopg2-binary==2.9.9
+psycopg2-binary==2.9.12
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Caching & message brokering
@@ -31,21 +38,32 @@ celery==5.4.0
 # ──────────────────────────────────────────────────────────────────────────────
 # Authentication & security
 # ──────────────────────────────────────────────────────────────────────────────
-python-jose[cryptography]==3.4.0
+# Replaced python-jose (abandoned; drags in ecdsa PYSEC-2026-1325 with no fix,
+# and rsa which caps pyasn1<0.5 blocking the pyasn1 security upgrade).
+# PyJWT has no pyasn1/ecdsa/rsa transitive deps.
+# CVE-2026-32597 — unknown `crit` header extensions accepted instead of rejected
+#   (RFC 7515 §4.1.11 MUST violation); fix: >=2.12.0
+# CVE-2026-48526 — Auth bypass due to forged JWTs; fix: >=2.13.0
+PyJWT[crypto]==2.13.0
 passlib[bcrypt]==1.7.4
 bcrypt==4.2.0
-cryptography==43.0.1
+# PYSEC-2026-35/1284/2141/3553/3554, GHSA-537c-gmf6-5ccf — fix: >=49.0.0
+# CVE-2026-69247 — High severity vulnerability; fix: >=50.0.0
+cryptography==50.0.0
 
 # ──────────────────────────────────────────────────────────────────────────────
 # HTTP client & multipart uploads
 # ──────────────────────────────────────────────────────────────────────────────
 httpx==0.27.2
-python-multipart==0.0.20
+# PYSEC-2026-1852/3038/3037/3036/3040/3039 — fix: >=0.0.31
+python-multipart==0.0.31
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Vector store
 # ──────────────────────────────────────────────────────────────────────────────
-chromadb==1.0.0
+# PYSEC-2026-311 — no published fix version yet; upgrading to latest available
+# (1.5.9) as the best available mitigation. Re-audit when a fix is published.
+chromadb==1.5.9
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Object storage
@@ -67,21 +85,28 @@ firebase-admin==6.5.0
 # ──────────────────────────────────────────────────────────────────────────────
 # Observability
 # ──────────────────────────────────────────────────────────────────────────────
-prometheus-fastapi-instrumentator==7.0.0
+# 8.0.0 ported to Starlette v1 (starlette>=1.0.0,<2.0.0), resolving the
+# conflict with fastapi 0.141.1 and starlette>=1.3.1.
+prometheus-fastapi-instrumentator==8.1.0
 python-logging-loki==0.3.1
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Environment & file utilities
 # ──────────────────────────────────────────────────────────────────────────────
-python-dotenv==1.0.1
+# PYSEC-2026-2270 — fix: >=1.2.2
+python-dotenv==1.2.2
 aiofiles==24.1.0
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Document processing (RAG ingestion pipeline)
 # ──────────────────────────────────────────────────────────────────────────────
-Pillow==10.4.0
+# PYSEC-2026-165/2249/2250/2252/2253/2254/2255/2256/2257/2874/3451/3453/3454/
+#   3493/3494/3495/3496 — fix: >=12.3.0
+Pillow==12.3.0
 pytesseract==0.3.13
-pypdf==5.0.1
+# PYSEC-2026-1827/1828/1829/1830/1831/1832/1833/3004-3027/3610-3613/3655/3656,
+#   GHSA-jm82-fx9c-mx94 — fix: >=6.15.0
+pypdf==6.15.0
 python-docx==1.1.2
 pdf2image==1.17.0
 
@@ -89,7 +114,14 @@ pdf2image==1.17.0
 # Tokenisation & embeddings
 # ──────────────────────────────────────────────────────────────────────────────
 tiktoken==0.8.0
-sentence-transformers[cpu]==3.1.1
+# transformers is a transitive dep of sentence-transformers.
+# PYSEC-2025-217, PYSEC-2026-2288/2289/2290 — fix: >=5.3.0
+# CVE-2026-5241 — trust_remote_code bypass / arbitrary code execution; fix: >=5.5.0
+# Pin explicitly to ensure no vulnerable version is resolved.
+transformers==5.5.0
+# sentence-transformers 3.x pre-dates transformers 5.x; 5.x line adds explicit
+# transformers v5 compatibility and ships its own security fixes.
+sentence-transformers[cpu]==5.6.1
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Google OAuth2
@@ -102,7 +134,13 @@ google-auth-oauthlib==1.2.1
 # Testing
 # ──────────────────────────────────────────────────────────────────────────────
 hypothesis==6.115.3
-pytest==8.3.3
-pytest-asyncio==0.24.0
+# PYSEC-2026-1845 — fix: >=9.0.3
+# Note: pytest 9.x removes some deprecated APIs; review pytest.ini / conftest.py
+# if test collection errors appear after the upgrade.
+pytest==9.0.3
+# 0.24.0 requires pytest<9; 1.3.0 added pytest 9 support; 1.0.0 removed the
+# deprecated event_loop fixture — use pytest_asyncio.fixture with a loop_scope
+# argument if any fixture previously relied on event_loop.
+pytest-asyncio==1.4.0
 pytest-cov==5.0.0
 anyio==4.6.2
