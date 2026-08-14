@@ -105,7 +105,8 @@ data class DocumentUploadResponseDto(
 data class JobStatusDto(
     @SerialName("job_id") val jobId: String,
     @SerialName("document_id") val documentId: String? = null,
-    @SerialName("status") val status: String, // "pending" | "processing" | "ready" | "failed"
+    /** "pending" | "processing" | "ready" | "failed" */
+    @SerialName("status") val status: String,
     @SerialName("error_message") val errorMessage: String? = null
 )
 
