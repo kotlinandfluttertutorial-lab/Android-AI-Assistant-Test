@@ -1,7 +1,7 @@
 """JWT issuance and verification for the Android AI Assistant backend.
 
 This module is the **single authoritative place** for all JWT operations.
-No other module should call ``python-jose`` directly — always go through the
+No other module should call ``PyJWT`` directly — always go through the
 functions defined here.
 
 Access token (JWT)
@@ -32,7 +32,8 @@ import uuid
 from datetime import datetime, timedelta, timezone
 from typing import Any
 
-from jose import JWTError, jwt
+import jwt
+from jwt.exceptions import PyJWTError as JWTError
 from pydantic import BaseModel
 
 from app.security.exceptions import InvalidTokenError
@@ -144,7 +145,7 @@ def verify_access_token(token: str) -> TokenPayload:
     except JWTError as exc:
         raise InvalidTokenError(f"JWT validation failed: {exc}") from exc
 
-    # Manually verify required claims (python-jose's 'require' option may
+    # Manually verify required claims (PyJWT's 'require' option may
     # not enforce missing claims in all versions).
     required_claims = {"sub", "role", "jti", "iat", "exp"}
     missing = required_claims - set(raw_payload.keys())

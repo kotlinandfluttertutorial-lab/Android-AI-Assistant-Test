@@ -17,7 +17,7 @@ import uuid
 from datetime import datetime, timedelta, timezone
 
 import pytest
-from jose import jwt
+import jwt
 
 # ---------------------------------------------------------------------------
 # Provide required env vars before any app import so pydantic-settings doesn't
