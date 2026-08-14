@@ -1,0 +1,12 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <!--
+      Baseline generated for the Android AI Assistant project.
+      Issues listed here are acknowledged pre-existing findings that are
+      tracked separately and do not block the CI build.
+      New issues introduced after this baseline was created WILL fail the build.
+    -->
+  </CurrentIssues>
+</SmellBaseline>
