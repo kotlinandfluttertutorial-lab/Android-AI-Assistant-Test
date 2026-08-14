@@ -26,15 +26,16 @@ regex       = '''AES_ENCRYPTION_KEY\s*=\s*[A-Za-z0-9+/]{43}='''
 tags        = ["key", "aes", "encryption"]
 
 [allowlist]
-description = "Global allowlist"
-paths = [
-    '''.env\.example''',
-    '''\.gitleaks\.toml''',
-    '''backend/tests/''',
+description = "Historical commits where GCP API keys were exposed before rotation. Keys have been revoked and replaced with placeholders. These fingerprints are suppressed to prevent noise on new PRs."
+# Format: commit SHA of historical commits with revoked keys
+commits = [
+    "14bacc6365685d8bd06fb391cde6bc85c10582b1",
+    "71f353df7dfa91352b1983050728a8d29313c9cc",
 ]
+
 regexes = [
     '''your[_-].*key[_-]here''',
     '''changeme''',
     '''replace.with''',
-    '''<PLACEHOLDER>''',
+    '''PLACEHOLDER''',
 ]

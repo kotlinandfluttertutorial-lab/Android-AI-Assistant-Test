@@ -76,7 +76,7 @@ class SettingsViewModelTest :
         val mockThemePreferences = mockk<ThemePreferences>(relaxed = true)
         val mockSettingsPreferences = mockk<SettingsPreferences>(relaxed = true)
         val mockRemoteConfig = mockk<FirebaseRemoteConfig>(relaxed = true)
-        val mockOnDeviceCapabilityChecker = mockk<OnDeviceCapabilityProvider>(relaxed = true)
+        val mockOnDeviceCapabilityProvider = mockk<OnDeviceCapabilityProvider>(relaxed = true)
 
         fun buildViewModel() = SettingsViewModel(
             userRepository = mockUserRepository,
@@ -85,7 +85,7 @@ class SettingsViewModelTest :
             settingsPreferences = mockSettingsPreferences,
             remoteConfig = mockRemoteConfig,
             dispatchers = testDispatcherProvider,
-            onDeviceCapabilityChecker = mockOnDeviceCapabilityChecker
+            onDeviceCapabilityProvider = mockOnDeviceCapabilityProvider
         )
 
         beforeSpec {
@@ -103,7 +103,7 @@ class SettingsViewModelTest :
                 mockThemePreferences,
                 mockSettingsPreferences,
                 mockRemoteConfig,
-                mockOnDeviceCapabilityChecker
+                mockOnDeviceCapabilityProvider
             )
 
             // Default stubs — happy path
@@ -117,7 +117,7 @@ class SettingsViewModelTest :
             // Default auth stubs
             coEvery { mockAuthRepository.isGoogleAccountLinked() } returns ApiResult.Success(false)
             // Default on-device capability: not supported
-            coEvery { mockOnDeviceCapabilityChecker.evaluate() } returns OnDeviceCapabilityState.NotSupported
+            coEvery { mockOnDeviceCapabilityProvider.evaluate() } returns OnDeviceCapabilityState.NotSupported
         }
 
         // ─── Initial state loading ────────────────────────────────────────────────
@@ -736,7 +736,7 @@ class SettingsViewModelTest :
             it("ON_DEVICE provider is NOT in availableProviders when device does not meet NPU/GPU threshold") {
                 // Requirement 31.1: device without NPU/GPU must not see on-device as a selectable option.
                 runTest(testDispatcher) {
-                    coEvery { mockOnDeviceCapabilityChecker.evaluate() } returns
+                    coEvery { mockOnDeviceCapabilityProvider.evaluate() } returns
                         OnDeviceCapabilityState.NotSupported
 
                     val vm = buildViewModel()
@@ -749,7 +749,7 @@ class SettingsViewModelTest :
             it("ON_DEVICE provider IS in availableProviders when device is SupportedAndReady") {
                 // Requirement 31.1: device that meets NPU/GPU threshold with model ready shows on-device.
                 runTest(testDispatcher) {
-                    coEvery { mockOnDeviceCapabilityChecker.evaluate() } returns
+                    coEvery { mockOnDeviceCapabilityProvider.evaluate() } returns
                         OnDeviceCapabilityState.SupportedAndReady("Llama 3 INT4")
 
                     val vm = buildViewModel()
@@ -762,7 +762,7 @@ class SettingsViewModelTest :
             it("ON_DEVICE provider is NOT in availableProviders when model is absent (SupportedButModelNotReady)") {
                 // Requirement 31.1: hardware qualifies but model file is missing — provider must not appear.
                 runTest(testDispatcher) {
-                    coEvery { mockOnDeviceCapabilityChecker.evaluate() } returns
+                    coEvery { mockOnDeviceCapabilityProvider.evaluate() } returns
                         OnDeviceCapabilityState.SupportedButModelNotReady
 
                     val vm = buildViewModel()
@@ -776,7 +776,7 @@ class SettingsViewModelTest :
             it("onDeviceCapability.isAvailable is false by default when capability check is not yet evaluated") {
                 // Default state: NotSupported → isAvailable must be false → ON_DEVICE hidden.
                 runTest(testDispatcher) {
-                    coEvery { mockOnDeviceCapabilityChecker.evaluate() } returns
+                    coEvery { mockOnDeviceCapabilityProvider.evaluate() } returns
                         OnDeviceCapabilityState.NotSupported
 
                     val vm = buildViewModel()
@@ -789,7 +789,7 @@ class SettingsViewModelTest :
             it("onDeviceCapability.isAvailable is true and modelDisplayName is set when SupportedAndReady") {
                 // Requirement 31.1: model display name is surfaced to the UI when device is capable.
                 runTest(testDispatcher) {
-                    coEvery { mockOnDeviceCapabilityChecker.evaluate() } returns
+                    coEvery { mockOnDeviceCapabilityProvider.evaluate() } returns
                         OnDeviceCapabilityState.SupportedAndReady("Mistral 7B INT4")
 
                     val vm = buildViewModel()
@@ -803,7 +803,7 @@ class SettingsViewModelTest :
             it("all non-ON_DEVICE providers are always in availableProviders regardless of NPU capability") {
                 // Cloud providers must always be visible.
                 runTest(testDispatcher) {
-                    coEvery { mockOnDeviceCapabilityChecker.evaluate() } returns
+                    coEvery { mockOnDeviceCapabilityProvider.evaluate() } returns
                         OnDeviceCapabilityState.NotSupported
 
                     val vm = buildViewModel()

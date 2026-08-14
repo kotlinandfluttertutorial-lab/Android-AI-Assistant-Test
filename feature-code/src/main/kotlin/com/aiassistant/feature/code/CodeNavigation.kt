@@ -109,7 +109,7 @@ fun NavGraphBuilder.codeNavGraph(
         // â”€â”€ Code Editor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         composable(route = CodeRoute.Editor) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(CodeRoute.Graph)
+                navController.getBackStackEntry(CodeRoute.GRAPH)
             }
             val viewModel: CodeViewModel = hiltViewModel(parentEntry)
             val uiState by viewModel.uiState.collectAsState()
@@ -131,9 +131,9 @@ fun NavGraphBuilder.codeNavGraph(
         }
 
         // â”€â”€ Code Analysis â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        composable(route = CodeRoute.Analysis) { backStackEntry ->
+        composable(route = CodeRoute.ANALYSIS) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(CodeRoute.Graph)
+                navController.getBackStackEntry(CodeRoute.GRAPH)
             }
             val viewModel: CodeViewModel = hiltViewModel(parentEntry)
             val uiState by viewModel.uiState.collectAsState()
@@ -149,7 +149,7 @@ fun NavGraphBuilder.codeNavGraph(
                 uiState = analysisState,
                 onBackToEditor = {
                     viewModel.backToEditor()
-                    navController.popBackStack(CodeRoute.Editor, inclusive = false)
+                    navController.popBackStack(CodeRoute.EDITOR, inclusive = false)
                 }
             )
         }
