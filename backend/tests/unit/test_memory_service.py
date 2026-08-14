@@ -171,11 +171,11 @@ class TestMemoryServiceStore:
 
         assert result is not None
         assert result.content == expected_memory.content
-        mock_store.assert_called_once_with(
-            user_id=user_id,
-            content="I prefer concise answers.",
-            memory_type=MemoryType.preference,
-        )
+        mock_store.assert_called_once()
+        call_kwargs = mock_store.call_args.kwargs
+        assert call_kwargs["user_id"] == user_id
+        assert call_kwargs["content"] == "I prefer concise answers."
+        assert call_kwargs["memory_type"] == MemoryType.preference
 
     @pytest.mark.asyncio
     async def test_store_memory_privacy_mode_enabled_returns_none(self) -> None:

@@ -144,3 +144,7 @@ pytest==9.0.3
 pytest-asyncio==1.4.0
 pytest-cov==5.0.0
 anyio==4.6.2
+# pyasn1 is a transitive dep (via firebase-admin → google-auth → pyasn1).
+# PYSEC-2026-2263/3455/3456/3457 — fix: >=0.6.4
+# Pin explicitly until parent packages declare the updated floor.
+pyasn1==0.6.4
