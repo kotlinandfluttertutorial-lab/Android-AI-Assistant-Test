@@ -42,7 +42,7 @@
  *
  * Purpose: Navigation graph for the code feature, exposing CodeEditor and CodeAnalysis
  *          screens backed by a single shared CodeViewModel scoped to the nav graph.
- * Architecture: feature-code â€” Navigation layer; consumed by the app module's root NavHost.
+ * Architecture: feature-code — Navigation layer; consumed by the app module's root NavHost.
  * Dependencies: feature-code screens, CodeViewModel (Hilt),
  *               AndroidX Navigation Compose.
  *
@@ -53,7 +53,7 @@
  * - A single [CodeViewModel] instance is scoped to the code navigation graph so state
  *   (in-progress analysis, results) is shared between editor and analysis screens without
  *   being leaked to the app scope.
- * - Navigation from Editor â†’ Analysis happens on submit; Analysis â†’ Editor on back.
+ * - Navigation from Editor → Analysis happens on submit; Analysis → Editor on back.
  *
  * Requirements: 12.1, 12.2, 12.3, 12.4, 12.5, 12.6
  */
@@ -73,13 +73,13 @@ import androidx.navigation.navigation
  */
 object CodeRoute {
     /** Code root navigation graph route. */
-    const val Graph = "code"
+    const val GRAPH = "code"
 
-    /** Code editor screen route â€” entry point for the code feature. */
-    const val Editor = "code/editor"
+    /** Code editor screen route — entry point for the code feature. */
+    const val EDITOR = "code/editor"
 
-    /** Code analysis result screen route â€” shown after AI analysis completes. */
-    const val Analysis = "code/analysis"
+    /** Code analysis result screen route — shown after AI analysis completes. */
+    const val ANALYSIS = "code/analysis"
 }
 
 /**
@@ -103,11 +103,11 @@ fun NavGraphBuilder.codeNavGraph(
     onNavigateUp: () -> Unit = { navController.popBackStack() }
 ) {
     navigation(
-        startDestination = CodeRoute.Editor,
-        route = CodeRoute.Graph
+        startDestination = CodeRoute.EDITOR,
+        route = CodeRoute.GRAPH
     ) {
-        // â”€â”€ Code Editor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        composable(route = CodeRoute.Editor) { backStackEntry ->
+        // ── Code Editor ───────────────────────────────────────────────────────────
+        composable(route = CodeRoute.EDITOR) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
                 navController.getBackStackEntry(CodeRoute.GRAPH)
             }
@@ -116,7 +116,7 @@ fun NavGraphBuilder.codeNavGraph(
 
             // Auto-navigate to analysis when result is ready
             if (uiState is CodeUiState.AnalysisResult) {
-                navController.navigate(CodeRoute.Analysis) {
+                navController.navigate(CodeRoute.ANALYSIS) {
                     launchSingleTop = true
                 }
             }
@@ -130,7 +130,7 @@ fun NavGraphBuilder.codeNavGraph(
             )
         }
 
-        // â”€â”€ Code Analysis â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── Code Analysis ─────────────────────────────────────────────────────────
         composable(route = CodeRoute.ANALYSIS) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
                 navController.getBackStackEntry(CodeRoute.GRAPH)
@@ -141,7 +141,7 @@ fun NavGraphBuilder.codeNavGraph(
             // Guard: only render when we have a result; otherwise go back to editor
             val analysisState = uiState as? CodeUiState.AnalysisResult
             if (analysisState == null) {
-                navController.popBackStack(CodeRoute.Editor, inclusive = false)
+                navController.popBackStack(CodeRoute.EDITOR, inclusive = false)
                 return@composable
             }
 
