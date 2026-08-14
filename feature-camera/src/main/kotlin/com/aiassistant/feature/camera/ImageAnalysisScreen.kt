@@ -259,8 +259,7 @@ fun ImageAnalysisScreen(
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "The current provider '${state.activeProvider}' " +
-                                    "does not support image analysis.",
+                                text = "The current provider '${state.activeProvider}' does not support image analysis.",
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = MaterialTheme.colorScheme.onErrorContainer
                             )
