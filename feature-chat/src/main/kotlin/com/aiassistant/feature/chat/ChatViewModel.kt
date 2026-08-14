@@ -63,6 +63,7 @@ import androidx.paging.cachedIn
 import com.aiassistant.core.common.ApiResult
 import com.aiassistant.core.network.ConnectivityObserver
 import com.aiassistant.domain.model.Conversation
+import com.aiassistant.domain.model.GroupedConversations
 import com.aiassistant.domain.usecase.conversation.GetConversationsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -71,7 +72,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
 import javax.inject.Inject
 
@@ -95,26 +96,10 @@ class ChatViewModel @Inject constructor(
 
     /** Tracks real-time network connectivity. */
     private val isOffline = connectivityObserver.isConnectedFlow
-        .map { !it }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000L),
             initialValue = false
-        )
-
-    /** Map of grouped conversations (e.g., Today, Yesterday, Older). */
-    private val conversations = getConversationsUseCase()
-        .map { result ->
-            if (result is ApiResult.Success) {
-                result.data.groupBy { it.group }
-            } else {
-                emptyMap()
-            }
-        }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000L),
-            initialValue = emptyMap()
         )
 
     /** Internal flow of the latest [GroupedConversations] for use in paging. */
@@ -156,7 +141,7 @@ class ChatViewModel @Inject constructor(
         .flatMapLatest { result ->
             when (result) {
                 is ApiResult.Success -> result.data.toFlatList()
-                else -> kotlinx.coroutines.flow.flowOf(PagingData.empty())
+                else -> flowOf(PagingData.empty())
             }
         }
         .cachedIn(viewModelScope)
@@ -164,14 +149,30 @@ class ChatViewModel @Inject constructor(
     // ── Private helpers ───────────────────────────────────────────────────────
 
     /**
-     * Converts a flat list of [Conversation]s into a paged list of [ChatListItem]s.
-     * This logic is kept internal to the ViewModel as it's UI-representation specific.
+     * Converts a [GroupedConversations] instance into a paged list of [ChatListItem]s.
+     * Inserts section headers for each non-empty group (Today, Yesterday, etc.).
      */
-    private fun List<Conversation>.toFlatList(): Flow<PagingData<ChatListItem>> {
-        // In a real app, this would use a Pager + PagingSource.
-        // For this implementation, we simulate a paged flow from the list.
-        val items = this.map { ChatListItem.Entry(it) }
-        return kotlinx.coroutines.flow.flowOf(PagingData.from(items))
+    private fun GroupedConversations.toFlatList(): Flow<PagingData<ChatListItem>> {
+        val items = mutableListOf<ChatListItem>()
+
+        if (today.isNotEmpty()) {
+            items.add(ChatListItem.Header("Today"))
+            items.addAll(today.map { ChatListItem.Entry(it) })
+        }
+        if (yesterday.isNotEmpty()) {
+            items.add(ChatListItem.Header("Yesterday"))
+            items.addAll(yesterday.map { ChatListItem.Entry(it) })
+        }
+        if (last7Days.isNotEmpty()) {
+            items.add(ChatListItem.Header("Last 7 Days"))
+            items.addAll(last7Days.map { ChatListItem.Entry(it) })
+        }
+        if (older.isNotEmpty()) {
+            items.add(ChatListItem.Header("Older"))
+            items.addAll(older.map { ChatListItem.Entry(it) })
+        }
+
+        return flowOf(PagingData.from(items))
     }
 }
 
@@ -191,6 +192,6 @@ sealed class ChatListItem {
  */
 sealed class ChatListUiState {
     object Loading : ChatListUiState()
-    data class Success(val conversations: List<Conversation>, val isOffline: Boolean) : ChatListUiState()
+    data class Success(val conversations: GroupedConversations, val isOffline: Boolean) : ChatListUiState()
     data class Error(val error: Any?) : ChatListUiState()
 }
