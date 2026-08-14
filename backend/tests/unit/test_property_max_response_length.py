@@ -195,7 +195,7 @@ def _make_orchestrator(
     orch._provider_cache[provider] = mock_client
 
     # Stub _build_prompt to return a context with controlled estimated_tokens
-    async def _fake_build_prompt(conversation_id, user_id, message):
+    async def _fake_build_prompt(conversation_id, user_id, message, **kwargs):
         return PromptContext(
             messages=[PromptMessage(role="system", content="sys")],
             estimated_tokens=input_tokens,

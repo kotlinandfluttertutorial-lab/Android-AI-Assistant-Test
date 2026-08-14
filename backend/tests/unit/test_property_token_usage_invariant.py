@@ -239,7 +239,7 @@ def _make_orchestrator_with_capture(
     # We patch _build_prompt to return a context with our desired estimated_tokens.
     desired_input = input_tokens
 
-    async def _fake_build_prompt(conversation_id, user_id, message):
+    async def _fake_build_prompt(conversation_id, user_id, message, **kwargs):
         return PromptContext(
             messages=[PromptMessage(role="system", content="sys")],
             estimated_tokens=desired_input,
