@@ -1,1 +1,39 @@
-/venv/
+# Android / Gradle
+*.iml
+.gradle/
+local.properties
+.idea/
+.DS_Store
+build/
+**/build/
+captures/
+.externalNativeBuild/
+.cxx/
+*.apk
+*.aab
+*.ap_
+
+# Kotlin
+*.class
+
+# Python / Backend
+backend/venv/
+backend/venv311/
+backend/July30/
+backend/**/__pycache__/
+backend/__pycache__/
+backend/.env
+backend/.pytest_cache/
+backend/.ruff_cache/
+backend/.hypothesis/
+backend/.coverage
+backend/coverage.json
+backend/*.pyc
+backend/**/*.pyc
+
+# Environment secrets
+.env
+*.env.local
+
+# OS
+Thumbs.db
