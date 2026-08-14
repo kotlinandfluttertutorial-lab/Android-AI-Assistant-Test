@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AI Assistant Home</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<style>
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+    .active-nav-pill {
+      font-variation-settings: 'FILL' 1;
+    }
+    /* Smooth scroll for the conversation list */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+<script id="tailwind-config">tailwind.config = {darkMode: "class", theme: {extend: {colors: {"tertiary-fixed": "#ffdf93", "on-secondary": "#ffffff", "surface-dark": "#0F0F0F", "secondary-container": "#e4ddea", "on-primary-fixed-variant": "#4f378a", "on-surface": "#1c1b1f", "surface-container-high": "#ebe7ec", outline: "#7a7582", "primary-fixed-dim": "#cfbcff", "on-secondary-container": "#65616b", "on-surface-variant": "#494551", "surface-bright": "#fdf8fd", "secondary-fixed": "#e7e0ec", error: "#ba1a1a", tertiary: "#765b00", "surface-dim": "#ddd9de", "inverse-surface": "#313034", "on-primary": "#ffffff", "on-secondary-fixed": "#1d1a23", "surface-container-lowest": "#ffffff", background: "#fdf8fd", "inverse-primary": "#cfbcff", "primary-fixed": "#e9ddff", "on-error": "#ffffff", "surface-container-low": "#f7f2f8", "on-tertiary-container": "#503d00", "surface-container": "#f1ecf2", "on-secondary-fixed-variant": "#49454f", secondary: "#615c67", "on-tertiary": "#ffffff", "on-tertiary-fixed": "#241a00", "tertiary-fixed-dim": "#e7c365", "on-error-container": "#93000a", "secondary-fixed-dim": "#cbc4d0", "primary-container": "#6750a4", "tertiary-container": "#c9a74d", "outline-variant": "#cbc4d2", "error-container": "#ffdad6", primary: "#4f378a", surface: "#fdf8fd", "on-primary-container": "#e0d2ff", "on-background": "#1c1b1f", "surface-variant": "#e5e1e7", "on-tertiary-fixed-variant": "#594400", "surface-tint": "#6750a4", "inverse-on-surface": "#f4eff5", "surface-light": "#FFFBFD", "surface-container-highest": "#e5e1e7", "on-primary-fixed": "#22005d"}, borderRadius: {DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px"}, spacing: {sm: "8px", xs: "4px", "margin-desktop": "24px", md: "16px", gutter: "16px", base: "8px", xl: "32px", lg: "24px", "margin-mobile": "16px"}, fontFamily: {"headline-lg": ["Inter"], "title-lg": ["Inter"], "body-md": ["Inter"], "display-lg": ["Inter"], "label-lg": ["Inter"], "headline-lg-mobile": ["Inter"], "body-lg": ["Inter"], "label-md": ["Inter"], headline: ["Inter"], display: ["Inter"], body: ["Inter"], label: ["Inter"]}, fontSize: {"headline-lg": ["32px", {lineHeight: "40px", fontWeight: "600"}], "title-lg": ["22px", {lineHeight: "28px", fontWeight: "500"}], "body-md": ["14px", {lineHeight: "20px", letterSpacing: "0.25px", fontWeight: "400"}], "display-lg": ["57px", {lineHeight: "64px", letterSpacing: "-0.25px", fontWeight: "400"}], "label-lg": ["14px", {lineHeight: "20px", letterSpacing: "0.1px", fontWeight: "500"}], "headline-lg-mobile": ["28px", {lineHeight: "36px", fontWeight: "600"}], "body-lg": ["16px", {lineHeight: "24px", letterSpacing: "0.5px", fontWeight: "400"}], "label-md": ["12px", {lineHeight: "16px", letterSpacing: "0.5px", fontWeight: "500"}]}}}};</script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md min-h-screen selection:bg-primary-fixed selection:text-on-primary-fixed">
+<!-- Shared TopAppBar -->
+<header class="w-full top-0 sticky bg-surface dark:bg-surface-dark z-40 transition-shadow">
+<div class="flex justify-between items-center h-16 px-margin-mobile w-full">
+<div class="flex items-center gap-4">
+<button class="p-2 rounded-full hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors active:scale-95 duration-100">
+<span class="material-symbols-outlined text-primary dark:text-primary-fixed-dim">menu</span>
+</button>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-primary dark:text-primary-fixed-dim tracking-tight">AI Assistant</h1>
+</div>
+<button class="p-2 rounded-full hover:bg-surface-container-high dark:hover:bg-surface-container-highest transition-colors active:scale-95 duration-100">
+<span class="material-symbols-outlined text-primary dark:text-primary-fixed-dim">account_circle</span>
+</button>
+</div>
+</header>
+<main class="max-w-7xl mx-auto px-margin-mobile pt-lg pb-32">
+<!-- Greeting Section -->
+<section class="mb-lg">
+<h2 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface mb-2">Hello, Firoj 👋</h2>
+<p class="text-on-surface-variant font-body-lg">How can I help you today?</p>
+</section>
+<!-- Search Bar -->
+<section class="mb-xl">
+<div class="relative group">
+<div class="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-on-surface-variant">search</span>
+</div>
+<input class="w-full h-14 pl-12 pr-4 bg-surface-container-low rounded-full border-none focus:ring-2 focus:ring-primary text-body-lg placeholder:text-on-surface-variant transition-all shadow-sm group-hover:bg-surface-container" placeholder="Search chats, tools, or ask anything..." type="text"/>
+</div>
+</section>
+<!-- Recent Conversations (Horizontal Scroll) -->
+<section class="mb-xl">
+<div class="flex justify-between items-center mb-md">
+<h3 class="font-title-lg text-title-lg text-on-surface">Recent Conversations</h3>
+<button class="text-primary font-label-lg hover:underline">View all</button>
+</div>
+<div class="flex gap-4 overflow-x-auto no-scrollbar pb-2">
+<!-- Chat Card 1 -->
+<div class="min-w-[200px] bg-surface-container p-md rounded-xl hover:bg-surface-container-high transition-colors cursor-pointer group active:scale-95 duration-200">
+<div class="w-10 h-10 bg-primary-container rounded-full flex items-center justify-center mb-3">
+<span class="material-symbols-outlined text-on-primary-container">chat</span>
+</div>
+<p class="font-label-lg text-on-surface line-clamp-1 mb-1">React Design Patterns</p>
+<p class="text-label-md text-on-surface-variant">2 hours ago</p>
+</div>
+<!-- Chat Card 2 -->
+<div class="min-w-[200px] bg-surface-container p-md rounded-xl hover:bg-surface-container-high transition-colors cursor-pointer group active:scale-95 duration-200">
+<div class="w-10 h-10 bg-secondary-container rounded-full flex items-center justify-center mb-3">
+<span class="material-symbols-outlined text-on-secondary-container">summarize</span>
+</div>
+<p class="font-label-lg text-on-surface line-clamp-1 mb-1">PDF Summary: Project Alpha</p>
+<p class="text-label-md text-on-surface-variant">Yesterday</p>
+</div>
+<!-- Chat Card 3 -->
+<div class="min-w-[200px] bg-surface-container p-md rounded-xl hover:bg-surface-container-high transition-colors cursor-pointer group active:scale-95 duration-200">
+<div class="w-10 h-10 bg-tertiary-container rounded-full flex items-center justify-center mb-3">
+<span class="material-symbols-outlined text-on-tertiary-container">translate</span>
+</div>
+<p class="font-label-lg text-on-surface line-clamp-1 mb-1">English to Spanish</p>
+<p class="text-label-md text-on-surface-variant">3 days ago</p>
+</div>
+<!-- Chat Card 4 -->
+<div class="min-w-[200px] bg-surface-container p-md rounded-xl hover:bg-surface-container-high transition-colors cursor-pointer group active:scale-95 duration-200">
+<div class="w-10 h-10 bg-primary-container rounded-full flex items-center justify-center mb-3">
+<span class="material-symbols-outlined text-on-primary-container">code</span>
+</div>
+<p class="font-label-lg text-on-surface line-clamp-1 mb-1">Python API Fix</p>
+<p class="text-label-md text-on-surface-variant">4 days ago</p>
+</div>
+</div>
+</section>
+<!-- Quick Action Cards Grid (Bento Style) -->
+<section>
+<h3 class="font-title-lg text-title-lg text-on-surface mb-md">Quick Actions</h3>
+<div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+<!-- Chat Card -->
+<div class="bg-surface-container-low p-lg rounded-[28px] border border-outline/10 hover:border-primary/20 hover:bg-surface-container transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-3 h-40 group shadow-sm">
+<div class="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary">chat</span>
+</div>
+<span class="font-label-lg text-on-surface">Chat</span>
+</div>
+<!-- Voice Card -->
+<div class="bg-surface-container-low p-lg rounded-[28px] border border-outline/10 hover:border-primary/20 hover:bg-surface-container transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-3 h-40 group shadow-sm">
+<div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-secondary">mic</span>
+</div>
+<span class="font-label-lg text-on-surface">Voice</span>
+</div>
+<!-- PDF Card -->
+<div class="bg-surface-container-low p-lg rounded-[28px] border border-outline/10 hover:border-primary/20 hover:bg-surface-container transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-3 h-40 group shadow-sm">
+<div class="w-12 h-12 rounded-full bg-tertiary-container flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-tertiary">picture_as_pdf</span>
+</div>
+<span class="font-label-lg text-on-surface">PDF</span>
+</div>
+<!-- Camera Card -->
+<div class="bg-surface-container-low p-lg rounded-[28px] border border-outline/10 hover:border-primary/20 hover:bg-surface-container transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-3 h-40 group shadow-sm">
+<div class="w-12 h-12 rounded-full bg-primary-fixed flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary">photo_camera</span>
+</div>
+<span class="font-label-lg text-on-surface">Camera</span>
+</div>
+<!-- Image Card -->
+<div class="bg-surface-container-low p-lg rounded-[28px] border border-outline/10 hover:border-primary/20 hover:bg-surface-container transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-3 h-40 group shadow-sm">
+<div class="w-12 h-12 rounded-full bg-tertiary-fixed flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-tertiary">image</span>
+</div>
+<span class="font-label-lg text-on-surface">Image</span>
+</div>
+<!-- Translate Card -->
+<div class="bg-surface-container-low p-lg rounded-[28px] border border-outline/10 hover:border-primary/20 hover:bg-surface-container transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-3 h-40 group shadow-sm">
+<div class="w-12 h-12 rounded-full bg-secondary-fixed flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-secondary">translate</span>
+</div>
+<span class="font-label-lg text-on-surface">Translate</span>
+</div>
+<!-- Code Assistant Card -->
+<div class="bg-surface-container-low p-lg rounded-[28px] border border-outline/10 hover:border-primary/20 hover:bg-surface-container transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-3 h-40 group shadow-sm">
+<div class="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-primary">code</span>
+</div>
+<span class="font-label-lg text-on-surface">Code Assistant</span>
+</div>
+<!-- Notes Card -->
+<div class="bg-surface-container-low p-lg rounded-[28px] border border-outline/10 hover:border-primary/20 hover:bg-surface-container transition-all cursor-pointer flex flex-col items-center justify-center text-center gap-3 h-40 group shadow-sm">
+<div class="w-12 h-12 rounded-full bg-tertiary-container flex items-center justify-center group-hover:scale-110 transition-transform">
+<span class="material-symbols-outlined text-tertiary">edit_note</span>
+</div>
+<span class="font-label-lg text-on-surface">Notes</span>
+</div>
+</div>
+</section>
+<!-- Promotional AI Suggestion Card -->
+<section class="mt-xl">
+<div class="relative overflow-hidden bg-primary-container text-on-primary-container p-lg rounded-[32px] flex flex-col md:flex-row items-center gap-lg">
+<!-- Floating abstract shapes logic -->
+<div class="absolute -top-10 -right-10 w-40 h-40 bg-white/10 rounded-full blur-3xl"></div>
+<div class="absolute -bottom-10 -left-10 w-40 h-40 bg-primary/20 rounded-full blur-3xl"></div>
+<div class="flex-1 z-10">
+<h4 class="font-headline-lg-mobile text-headline-lg-mobile mb-2">Master your workflow</h4>
+<p class="font-body-lg mb-6 opacity-90">Try our new multi-modal AI that can analyze documents and generate images in a single thread.</p>
+<button class="bg-on-primary-container text-primary-container px-lg py-sm rounded-full font-label-lg hover:bg-white transition-colors active:scale-95">Get Started</button>
+</div>
+<div class="w-full md:w-1/3 aspect-video rounded-2xl overflow-hidden relative z-10 shadow-lg">
+<img class="w-full h-full object-cover" data-alt="A modern, sleek digital art piece showcasing an abstract AI brain composed of interconnected glowing neural filaments and vibrant purple and gold particles. The visual style is premium and minimalist, set against a dark, sophisticated backdrop that emphasizes the intelligent energy of the AI. Soft studio lighting creates professional-grade highlights on the intricate fibers." src="https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg"/>
+</div>
+</div>
+</section>
+</main>
+<!-- Shared BottomNavBar -->
+<nav class="fixed bottom-0 w-full z-50 h-20 bg-surface-container dark:bg-surface-container-low flex justify-around items-center px-4 pb-2">
+<!-- Home Tab (Active) -->
+<a class="flex flex-col items-center justify-center bg-secondary-container dark:bg-secondary text-on-secondary-container dark:text-on-secondary rounded-full px-4 py-1 transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined active-nav-pill">home</span>
+<span class="font-label-md text-label-md">Home</span>
+</a>
+<!-- Chats Tab -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-4 py-1 hover:bg-surface-variant dark:hover:bg-surface-container-high transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined">chat</span>
+<span class="font-label-md text-label-md">Chats</span>
+</a>
+<!-- AI Tools Tab -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-4 py-1 hover:bg-surface-variant dark:hover:bg-surface-container-high transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined">smart_toy</span>
+<span class="font-label-md text-label-md">AI Tools</span>
+</a>
+<!-- Profile Tab -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-4 py-1 hover:bg-surface-variant dark:hover:bg-surface-container-high transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-md text-label-md">Profile</span>
+</a>
+</nav>
+<!-- Floating Action Button (Contextual) -->
+<button class="fixed bottom-24 right-6 w-14 h-14 bg-primary-container text-on-primary-container rounded-2xl flex items-center justify-center shadow-lg hover:shadow-xl active:scale-95 transition-all z-40 group">
+<span class="material-symbols-outlined text-[28px] group-hover:rotate-12 transition-transform">add</span>
+</button>
+<script>
+    // Micro-interactions and atmospheric logic
+    document.addEventListener('DOMContentLoaded', () => {
+      // Logic for sticky header shadow on scroll
+      const header = document.querySelector('header');
+      window.addEventListener('scroll', () => {
+        if (window.scrollY > 10) {
+          header.classList.add('shadow-md', 'bg-surface/95', 'backdrop-blur-md');
+        } else {
+          header.classList.remove('shadow-md', 'bg-surface/95', 'backdrop-blur-md');
+        }
+      });
+
+      // Quick action cards click feedback
+      const cards = document.querySelectorAll('.grid > div');
+      cards.forEach(card => {
+        card.addEventListener('mousedown', () => {
+          card.style.transform = 'scale(0.96)';
+        });
+        card.addEventListener('mouseup', () => {
+          card.style.transform = 'scale(1)';
+        });
+        card.addEventListener('mouseleave', () => {
+          card.style.transform = 'scale(1)';
+        });
+      });
+    });
+  </script>
+</body></html>

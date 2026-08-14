@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AI Assistant - Login</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">tailwind.config = {darkMode: "class", theme: {extend: {colors: {"tertiary-fixed": "#ffdf93", "on-secondary": "#ffffff", "surface-dark": "#0F0F0F", "secondary-container": "#e4ddea", "on-primary-fixed-variant": "#4f378a", "on-surface": "#1c1b1f", "surface-container-high": "#ebe7ec", outline: "#7a7582", "primary-fixed-dim": "#cfbcff", "on-secondary-container": "#65616b", "on-surface-variant": "#494551", "surface-bright": "#fdf8fd", "secondary-fixed": "#e7e0ec", error: "#ba1a1a", tertiary: "#765b00", "surface-dim": "#ddd9de", "inverse-surface": "#313034", "on-primary": "#ffffff", "on-secondary-fixed": "#1d1a23", "surface-container-lowest": "#ffffff", background: "#fdf8fd", "inverse-primary": "#cfbcff", "primary-fixed": "#e9ddff", "on-error": "#ffffff", "surface-container-low": "#f7f2f8", "on-tertiary-container": "#503d00", "surface-container": "#f1ecf2", "on-secondary-fixed-variant": "#49454f", secondary: "#615c67", "on-tertiary": "#ffffff", "on-tertiary-fixed": "#241a00", "tertiary-fixed-dim": "#e7c365", "on-error-container": "#93000a", "secondary-fixed-dim": "#cbc4d0", "primary-container": "#6750a4", "tertiary-container": "#c9a74d", "outline-variant": "#cbc4d2", "error-container": "#ffdad6", primary: "#4f378a", surface: "#fdf8fd", "on-primary-container": "#e0d2ff", "on-background": "#1c1b1f", "surface-variant": "#e5e1e7", "on-tertiary-fixed-variant": "#594400", "surface-tint": "#6750a4", "inverse-on-surface": "#f4eff5", "surface-light": "#FFFBFD", "surface-container-highest": "#e5e1e7", "on-primary-fixed": "#22005d"}, borderRadius: {DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px"}, spacing: {sm: "8px", xs: "4px", "margin-desktop": "24px", md: "16px", gutter: "16px", base: "8px", xl: "32px", lg: "24px", "margin-mobile": "16px"}, fontFamily: {"headline-lg": ["Inter"], "title-lg": ["Inter"], "body-md": ["Inter"], "display-lg": ["Inter"], "label-lg": ["Inter"], "headline-lg-mobile": ["Inter"], "body-lg": ["Inter"], "label-md": ["Inter"], headline: ["Inter"], display: ["Inter"], body: ["Inter"], label: ["Inter"]}, fontSize: {"headline-lg": ["32px", {lineHeight: "40px", fontWeight: "600"}], "title-lg": ["22px", {lineHeight: "28px", fontWeight: "500"}], "body-md": ["14px", {lineHeight: "20px", letterSpacing: "0.25px", fontWeight: "400"}], "display-lg": ["57px", {lineHeight: "64px", letterSpacing: "-0.25px", fontWeight: "400"}], "label-lg": ["14px", {lineHeight: "20px", letterSpacing: "0.1px", fontWeight: "500"}], "headline-lg-mobile": ["28px", {lineHeight: "36px", fontWeight: "600"}], "body-lg": ["16px", {lineHeight: "24px", letterSpacing: "0.5px", fontWeight: "400"}], "label-md": ["12px", {lineHeight: "16px", letterSpacing: "0.5px", fontWeight: "500"}]}}}};</script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fdf8fd;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-effect {
+            background: rgba(253, 248, 253, 0.8);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .auth-card {
+            box-shadow: 0px 4px 20px rgba(0,0,0,0.04);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen flex flex-col justify-center items-center bg-background text-on-background p-margin-mobile md:p-margin-desktop overflow-x-hidden">
+<!-- Atmospheric Background Decoration -->
+<div class="fixed inset-0 -z-10 overflow-hidden">
+<div class="absolute -top-[10%] -left-[10%] w-[40%] h-[40%] rounded-full bg-primary-fixed opacity-20 blur-[100px]"></div>
+<div class="absolute top-[60%] -right-[5%] w-[30%] h-[30%] rounded-full bg-secondary-fixed opacity-20 blur-[80px]"></div>
+</div>
+<!-- Login Container -->
+<main class="w-full max-w-[440px] flex flex-col items-center animate-fade-in">
+<!-- Brand Identity / Header -->
+<header class="mb-xl text-center">
+<div class="inline-flex items-center justify-center p-md bg-primary-fixed text-on-primary-fixed rounded-[24px] mb-lg transition-transform hover:scale-105 duration-300">
+<span class="material-symbols-outlined !text-[32px]">smart_toy</span>
+</div>
+<h1 class="font-headline-lg-mobile md:font-headline-lg text-headline-lg-mobile md:text-headline-lg text-on-surface tracking-tight">Welcome Back</h1>
+<p class="font-body-md text-body-md text-on-surface-variant mt-sm">Intelligence at your fingertips.</p>
+</header>
+<!-- Auth Card -->
+<section class="w-full bg-surface-container-low rounded-[32px] p-lg md:p-xl auth-card border border-outline-variant/30">
+<!-- Google Sign-In (Prominent) -->
+<button class="w-full h-14 flex items-center justify-center gap-md bg-surface-container-lowest border border-outline-variant rounded-full font-label-lg text-label-lg text-on-surface hover:bg-surface-container-high transition-all active:scale-95 duration-150 mb-xl">
+<svg class="w-6 h-6" viewbox="0 0 48 48">
+<path d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z" fill="#EA4335"></path>
+<path d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z" fill="#4285F4"></path>
+<path d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z" fill="#FBBC05"></path>
+<path d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z" fill="#34A853"></path>
+<path d="M0 0h48v48H0z" fill="none"></path>
+</svg>
+                Continue with Google
+            </button>
+<div class="relative flex items-center justify-center mb-xl">
+<div class="w-full h-[1px] bg-outline-variant/50"></div>
+<span class="absolute px-md bg-surface-container-low font-label-md text-label-md text-on-surface-variant">or use email</span>
+</div>
+<!-- Credentials Form -->
+<form class="space-y-lg" onsubmit="event.preventDefault();">
+<div class="space-y-xs">
+<label class="block ml-md font-label-md text-label-md text-on-surface-variant" for="email">Email Address</label>
+<div class="relative">
+<input class="w-full h-14 pl-12 pr-md bg-surface-container-high border-none rounded-full font-body-md text-body-md text-on-surface focus:ring-2 focus:ring-primary transition-shadow" id="email" placeholder="name@company.com" type="email"/>
+<span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant">mail</span>
+</div>
+</div>
+<div class="space-y-xs">
+<div class="flex justify-between items-center px-md">
+<label class="font-label-md text-label-md text-on-surface-variant" for="password">Password</label>
+<a class="font-label-md text-label-md text-primary hover:underline transition-colors" href="#">Forgot Password?</a>
+</div>
+<div class="relative">
+<input class="w-full h-14 pl-12 pr-12 bg-surface-container-high border-none rounded-full font-body-md text-body-md text-on-surface focus:ring-2 focus:ring-primary transition-shadow" id="password" placeholder="••••••••" type="password"/>
+<span class="material-symbols-outlined absolute left-md top-1/2 -translate-y-1/2 text-on-surface-variant">lock</span>
+<button class="absolute right-md top-1/2 -translate-y-1/2 text-on-surface-variant hover:text-on-surface" type="button">
+<span class="material-symbols-outlined">visibility</span>
+</button>
+</div>
+</div>
+<button class="w-full h-14 bg-primary text-on-primary rounded-full font-label-lg text-label-lg shadow-sm hover:shadow-md hover:brightness-110 active:scale-95 transition-all duration-200 mt-md">
+                    Sign In
+                </button>
+</form>
+</section>
+<!-- Footer / Redirect -->
+<footer class="mt-xl text-center">
+<p class="font-body-md text-body-md text-on-surface-variant">
+                Don't have an account? 
+                <a class="font-label-lg text-label-lg text-primary ml-xs hover:underline decoration-2 underline-offset-4" href="#">Create Account</a>
+</p>
+</footer>
+</main>
+<!-- Side Imagery (Visual Context for Desktop) -->
+<div class="hidden lg:block fixed right-xl bottom-xl">
+<div class="relative w-[320px] aspect-square rounded-[40px] overflow-hidden border border-outline-variant/20 shadow-2xl animate-float">
+<div class="absolute inset-0 bg-primary opacity-10"></div>
+<img class="w-full h-full object-cover" data-alt="A serene, minimalist digital art piece depicting a soft, ethereal orb of light floating in a clean, vast white architectural space. The aesthetic is high-end light-mode, using a palette of soft purples and clean whites consistent with an AI assistant brand identity. The lighting is diffused and atmospheric, creating a sense of calm, high-intelligence technology." src="https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg"/>
+<div class="absolute inset-x-0 bottom-0 p-lg glass-effect border-t border-white/20">
+<p class="font-label-md text-label-md text-primary-container mb-xs">Featured Tool</p>
+<h3 class="font-title-lg text-title-lg text-on-surface">Neural Insights 2.0</h3>
+</div>
+</div>
+</div>
+<script>
+        // Micro-interactions and effects
+        document.addEventListener('DOMContentLoaded', () => {
+            const inputs = document.querySelectorAll('input');
+            
+            inputs.forEach(input => {
+                input.addEventListener('focus', () => {
+                    input.parentElement.parentElement.classList.add('scale-[1.01]');
+                    input.parentElement.parentElement.style.transition = 'transform 0.2s ease-out';
+                });
+                
+                input.addEventListener('blur', () => {
+                    input.parentElement.parentElement.classList.remove('scale-[1.01]');
+                });
+            });
+        });
+
+        // Toggle Password Visibility
+        const togglePass = document.querySelector('button span[data-icon="visibility"]');
+        if (togglePass) {
+            let visible = false;
+            togglePass.parentElement.addEventListener('click', () => {
+                const passInput = document.getElementById('password');
+                visible = !visible;
+                passInput.type = visible ? 'text' : 'password';
+                togglePass.textContent = visible ? 'visibility_off' : 'visibility';
+            });
+        }
+    </script>
+<style>
+        @keyframes fade-in {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-15px); }
+        }
+        .animate-fade-in {
+            animation: fade-in 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+        }
+        .animate-float {
+            animation: float 6s ease-in-out infinite;
+        }
+    </style>
+</body></html>
