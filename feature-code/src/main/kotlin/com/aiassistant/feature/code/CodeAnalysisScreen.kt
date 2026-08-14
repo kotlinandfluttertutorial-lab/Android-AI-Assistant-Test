@@ -111,11 +111,7 @@ import com.aiassistant.domain.model.SupportedLanguage
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun CodeAnalysisScreen(
-    uiState: CodeUiState.AnalysisResult,
-    onBackToEditor: () -> Unit,
-    modifier: Modifier = Modifier
-) {
+fun CodeAnalysisScreen(uiState: CodeUiState.AnalysisResult, onBackToEditor: () -> Unit, modifier: Modifier = Modifier) {
     val clipboardManager = LocalClipboardManager.current
     val result = uiState.result
     val action = uiState.request.action
