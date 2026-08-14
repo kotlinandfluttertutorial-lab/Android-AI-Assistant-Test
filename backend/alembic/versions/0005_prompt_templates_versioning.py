@@ -27,8 +27,8 @@ from alembic import op
 # Revision identifiers, used by Alembic.
 # ---------------------------------------------------------------------------
 
-revision: str = "0005_prompt_templates_versioning"
-down_revision: str | None = "0004_add_data_export_support"
+revision: str = "0005_prompt_versioning"
+down_revision: str | None = "0004_data_export"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

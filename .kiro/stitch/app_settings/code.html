@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AI Assistant - Settings</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">tailwind.config = {darkMode: "class", theme: {extend: {colors: {"tertiary-fixed": "#ffdf93", "on-secondary": "#ffffff", "surface-dark": "#0F0F0F", "secondary-container": "#e4ddea", "on-primary-fixed-variant": "#4f378a", "on-surface": "#1c1b1f", "surface-container-high": "#ebe7ec", outline: "#7a7582", "primary-fixed-dim": "#cfbcff", "on-secondary-container": "#65616b", "on-surface-variant": "#494551", "surface-bright": "#fdf8fd", "secondary-fixed": "#e7e0ec", error: "#ba1a1a", tertiary: "#765b00", "surface-dim": "#ddd9de", "inverse-surface": "#313034", "on-primary": "#ffffff", "on-secondary-fixed": "#1d1a23", "surface-container-lowest": "#ffffff", background: "#fdf8fd", "inverse-primary": "#cfbcff", "primary-fixed": "#e9ddff", "on-error": "#ffffff", "surface-container-low": "#f7f2f8", "on-tertiary-container": "#503d00", "surface-container": "#f1ecf2", "on-secondary-fixed-variant": "#49454f", secondary: "#615c67", "on-tertiary": "#ffffff", "on-tertiary-fixed": "#241a00", "tertiary-fixed-dim": "#e7c365", "on-error-container": "#93000a", "secondary-fixed-dim": "#cbc4d0", "primary-container": "#6750a4", "tertiary-container": "#c9a74d", "outline-variant": "#cbc4d2", "error-container": "#ffdad6", primary: "#4f378a", surface: "#fdf8fd", "on-primary-container": "#e0d2ff", "on-background": "#1c1b1f", "surface-variant": "#e5e1e7", "on-tertiary-fixed-variant": "#594400", "surface-tint": "#6750a4", "inverse-on-surface": "#f4eff5", "surface-light": "#FFFBFD", "surface-container-highest": "#e5e1e7", "on-primary-fixed": "#22005d"}, borderRadius: {DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px"}, spacing: {sm: "8px", xs: "4px", "margin-desktop": "24px", md: "16px", gutter: "16px", base: "8px", xl: "32px", lg: "24px", "margin-mobile": "16px"}, fontFamily: {"headline-lg": ["Inter"], "title-lg": ["Inter"], "body-md": ["Inter"], "display-lg": ["Inter"], "label-lg": ["Inter"], "headline-lg-mobile": ["Inter"], "body-lg": ["Inter"], "label-md": ["Inter"], headline: ["Inter"], display: ["Inter"], body: ["Inter"], label: ["Inter"]}, fontSize: {"headline-lg": ["32px", {lineHeight: "40px", fontWeight: "600"}], "title-lg": ["22px", {lineHeight: "28px", fontWeight: "500"}], "body-md": ["14px", {lineHeight: "20px", letterSpacing: "0.25px", fontWeight: "400"}], "display-lg": ["57px", {lineHeight: "64px", letterSpacing: "-0.25px", fontWeight: "400"}], "label-lg": ["14px", {lineHeight: "20px", letterSpacing: "0.1px", fontWeight: "500"}], "headline-lg-mobile": ["28px", {lineHeight: "36px", fontWeight: "600"}], "body-lg": ["16px", {lineHeight: "24px", letterSpacing: "0.5px", fontWeight: "400"}], "label-md": ["12px", {lineHeight: "16px", letterSpacing: "0.5px", fontWeight: "500"}]}}}};</script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fdf8fd;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        /* Custom MD3 Switch Styling */
+        .switch-input:checked + .switch-track {
+            background-color: #4f378a;
+        }
+        .switch-input:checked + .switch-track .switch-thumb {
+            transform: translateX(20px);
+            background-color: #ffffff;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface">
+<!-- Top AppBar (from JSON) -->
+<header class="w-full top-0 sticky bg-surface z-40">
+<div class="flex justify-between items-center h-16 px-margin-mobile w-full">
+<button class="material-symbols-outlined text-primary hover:bg-surface-container-high transition-colors p-2 rounded-full active:scale-95 duration-100">
+                menu
+            </button>
+<h1 class="font-title-lg text-title-lg text-primary">Settings</h1>
+<button class="material-symbols-outlined text-primary hover:bg-surface-container-high transition-colors p-2 rounded-full active:scale-95 duration-100">
+                account_circle
+            </button>
+</div>
+</header>
+<main class="max-w-screen-md mx-auto px-margin-mobile pb-32 pt-4">
+<!-- Profile Bento Summary -->
+<section class="mb-lg">
+<div class="bg-surface-container-low rounded-xl p-md flex items-center gap-md border border-outline-variant/10">
+<div class="w-16 h-16 rounded-full overflow-hidden bg-primary-container flex items-center justify-center">
+<img class="w-full h-full object-cover" data-alt="A professional studio portrait of a friendly tech-savvy person with soft ambient lighting. The background is a clean, minimalist gradients of lavender and deep purple, matching a high-fidelity AI assistant interface aesthetic. The individual looks confident and approachable, wearing modern professional attire." src="https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg"/>
+</div>
+<div>
+<h2 class="font-title-lg text-title-lg">Alex Rivera</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">Pro Plan Subscriber</p>
+</div>
+<button class="ml-auto material-symbols-outlined text-primary p-2">edit</button>
+</div>
+</section>
+<!-- General Section -->
+<section class="mb-lg">
+<h3 class="font-label-lg text-label-lg text-primary px-base py-sm">General</h3>
+<div class="flex flex-col gap-xs">
+<!-- Theme Option -->
+<div class="flex items-center justify-between p-md bg-surface-container-lowest rounded-xl hover:bg-surface-container transition-colors cursor-pointer group">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">palette</span>
+<div>
+<p class="font-body-lg text-body-lg">Theme</p>
+<p class="font-body-md text-body-md text-on-surface-variant">System default</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline">chevron_right</span>
+</div>
+<!-- Language Option -->
+<div class="flex items-center justify-between p-md bg-surface-container-lowest rounded-xl hover:bg-surface-container transition-colors cursor-pointer group">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">translate</span>
+<div>
+<p class="font-body-lg text-body-lg">Language</p>
+<p class="font-body-md text-body-md text-on-surface-variant">English (US)</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline">chevron_right</span>
+</div>
+<!-- Notifications Switch -->
+<div class="flex items-center justify-between p-md bg-surface-container-lowest rounded-xl group">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">notifications</span>
+<div>
+<p class="font-body-lg text-body-lg">Notifications</p>
+<p class="font-body-md text-body-md text-on-surface-variant">Smart alerts and updates</p>
+</div>
+</div>
+<label class="relative inline-flex items-center cursor-pointer">
+<input checked="" class="sr-only peer switch-input" type="checkbox"/>
+<div class="w-12 h-7 bg-surface-variant rounded-full switch-track transition-colors duration-200">
+<div class="absolute top-1 left-1 bg-on-surface-variant w-5 h-5 rounded-full switch-thumb transition-transform duration-200 shadow-sm"></div>
+</div>
+</label>
+</div>
+</div>
+</section>
+<!-- AI Preferences Section -->
+<section class="mb-lg">
+<h3 class="font-label-lg text-label-lg text-primary px-base py-sm">AI Preferences</h3>
+<div class="flex flex-col gap-xs">
+<!-- Voice Settings -->
+<div class="p-md bg-surface-container-lowest rounded-xl">
+<div class="flex items-center gap-md mb-md">
+<span class="material-symbols-outlined text-on-surface-variant">record_voice_over</span>
+<p class="font-body-lg text-body-lg">Voice Output</p>
+</div>
+<div class="grid grid-cols-2 gap-sm mb-md">
+<button class="flex flex-col items-center justify-center p-md rounded-lg border border-primary bg-primary-fixed text-on-primary-fixed-variant">
+<span class="font-label-md text-label-md">Model A</span>
+<span class="text-[10px] uppercase tracking-wider opacity-70">Warm &amp; Calm</span>
+</button>
+<button class="flex flex-col items-center justify-center p-md rounded-lg border border-outline-variant hover:bg-surface-variant transition-colors">
+<span class="font-label-md text-label-md">Model B</span>
+<span class="text-[10px] uppercase tracking-wider opacity-70">Professional</span>
+</button>
+</div>
+<div class="space-y-2">
+<div class="flex justify-between font-label-md text-label-md text-on-surface-variant">
+<span>Speech Speed</span>
+<span>1.0x</span>
+</div>
+<input class="w-full h-1 bg-surface-variant rounded-lg appearance-none cursor-pointer accent-primary" max="2.0" min="0.5" step="0.1" type="range" value="1.0"/>
+</div>
+</div>
+<!-- API Key Input -->
+<div class="p-md bg-surface-container-lowest rounded-xl">
+<div class="flex items-center gap-md mb-sm">
+<span class="material-symbols-outlined text-on-surface-variant">key</span>
+<p class="font-body-lg text-body-lg">API Configuration</p>
+</div>
+<div class="relative">
+<input class="w-full bg-surface-container-low border-b-2 border-outline focus:border-primary outline-none px-md py-sm font-body-md text-body-md transition-all rounded-t-lg" placeholder="Enter your API Key" type="password" value="••••••••••••••••"/>
+<button class="absolute right-md top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant text-body-lg">visibility_off</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Account Section -->
+<section class="mb-lg">
+<h3 class="font-label-lg text-label-lg text-primary px-base py-sm">Account</h3>
+<div class="flex flex-col gap-xs">
+<!-- Privacy -->
+<div class="flex items-center justify-between p-md bg-surface-container-lowest rounded-xl hover:bg-surface-container transition-colors cursor-pointer group">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary transition-colors">security</span>
+<div>
+<p class="font-body-lg text-body-lg">Privacy &amp; Security</p>
+<p class="font-body-md text-body-md text-on-surface-variant">Manage data and permissions</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-outline">chevron_right</span>
+</div>
+<!-- Danger Zone -->
+<div class="flex items-center justify-between p-md bg-error-container/10 border border-error/10 rounded-xl hover:bg-error-container/20 transition-colors cursor-pointer group">
+<div class="flex items-center gap-md">
+<span class="material-symbols-outlined text-error">logout</span>
+<p class="font-body-lg text-body-lg text-error">Sign Out</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar (from JSON) -->
+<nav class="fixed bottom-0 w-full z-50 h-20 bg-surface-container">
+<div class="fixed bottom-0 left-0 w-full flex justify-around items-center px-4 pb-2 h-20">
+<!-- Home -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-variant transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-md text-label-md">Home</span>
+</a>
+<!-- Chats -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-variant transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined">chat</span>
+<span class="font-label-md text-label-md">Chats</span>
+</a>
+<!-- AI Tools -->
+<a class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-variant transition-all active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined">smart_toy</span>
+<span class="font-label-md text-label-md">AI Tools</span>
+</a>
+<!-- Profile (Active) -->
+<a class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-full px-4 py-1 active:scale-90 duration-200" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">person</span>
+<span class="font-label-md text-label-md">Profile</span>
+</a>
+</div>
+</nav>
+<script>
+        // Micro-interactions for switches
+        document.querySelectorAll('.switch-input').forEach(sw => {
+            sw.addEventListener('change', (e) => {
+                const track = e.target.nextElementSibling;
+                const thumb = track.querySelector('.switch-thumb');
+                if(e.target.checked) {
+                    thumb.style.transform = 'translateX(20px)';
+                    thumb.style.backgroundColor = '#ffffff';
+                    track.style.backgroundColor = '#4f378a';
+                } else {
+                    thumb.style.transform = 'translateX(0)';
+                    thumb.style.backgroundColor = '#49454F';
+                    track.style.backgroundColor = '#e5e1e7';
+                }
+            });
+            // Init state
+            if(!sw.checked) {
+                const track = sw.nextElementSibling;
+                const thumb = track.querySelector('.switch-thumb');
+                thumb.style.transform = 'translateX(0)';
+                thumb.style.backgroundColor = '#49454F';
+                track.style.backgroundColor = '#e5e1e7';
+            }
+        });
+
+        // Simple visibility toggle for API Key
+        const toggleBtn = document.querySelector('input[type="password"] + button');
+        const apiInput = document.querySelector('input[type="password"]');
+        toggleBtn.addEventListener('click', () => {
+            if(apiInput.type === 'password') {
+                apiInput.type = 'text';
+                toggleBtn.textContent = 'visibility';
+            } else {
+                apiInput.type = 'password';
+                toggleBtn.textContent = 'visibility_off';
+            }
+        });
+    </script>
+</body></html>

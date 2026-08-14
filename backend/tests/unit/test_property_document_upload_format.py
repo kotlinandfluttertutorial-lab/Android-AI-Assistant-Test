@@ -102,7 +102,8 @@ MAX_SIZE_BYTES = 50 * 1024 * 1024
 
 def _make_auth_token(role: str = "user") -> str:
     """Create a signed JWT for use in test requests."""
-    return create_access_token(user_id=uuid.uuid4(), role=role)
+    token, _expiry = create_access_token(user_id=uuid.uuid4(), role=role)
+    return token
 
 
 def _make_file_bytes(size_bytes: int) -> bytes:

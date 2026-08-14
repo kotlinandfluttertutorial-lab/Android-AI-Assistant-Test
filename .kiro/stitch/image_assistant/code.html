@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AI Image Assistant</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">tailwind.config = {darkMode: "class", theme: {extend: {colors: {"tertiary-fixed": "#ffdf93", "on-secondary": "#ffffff", "surface-dark": "#0F0F0F", "secondary-container": "#e4ddea", "on-primary-fixed-variant": "#4f378a", "on-surface": "#1c1b1f", "surface-container-high": "#ebe7ec", outline: "#7a7582", "primary-fixed-dim": "#cfbcff", "on-secondary-container": "#65616b", "on-surface-variant": "#494551", "surface-bright": "#fdf8fd", "secondary-fixed": "#e7e0ec", error: "#ba1a1a", tertiary: "#765b00", "surface-dim": "#ddd9de", "inverse-surface": "#313034", "on-primary": "#ffffff", "on-secondary-fixed": "#1d1a23", "surface-container-lowest": "#ffffff", background: "#fdf8fd", "inverse-primary": "#cfbcff", "primary-fixed": "#e9ddff", "on-error": "#ffffff", "surface-container-low": "#f7f2f8", "on-tertiary-container": "#503d00", "surface-container": "#f1ecf2", "on-secondary-fixed-variant": "#49454f", secondary: "#615c67", "on-tertiary": "#ffffff", "on-tertiary-fixed": "#241a00", "tertiary-fixed-dim": "#e7c365", "on-error-container": "#93000a", "secondary-fixed-dim": "#cbc4d0", "primary-container": "#6750a4", "tertiary-container": "#c9a74d", "outline-variant": "#cbc4d2", "error-container": "#ffdad6", primary: "#4f378a", surface: "#fdf8fd", "on-primary-container": "#e0d2ff", "on-background": "#1c1b1f", "surface-variant": "#e5e1e7", "on-tertiary-fixed-variant": "#594400", "surface-tint": "#6750a4", "inverse-on-surface": "#f4eff5", "surface-light": "#FFFBFD", "surface-container-highest": "#e5e1e7", "on-primary-fixed": "#22005d"}, borderRadius: {DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px"}, spacing: {sm: "8px", xs: "4px", "margin-desktop": "24px", md: "16px", gutter: "16px", base: "8px", xl: "32px", lg: "24px", "margin-mobile": "16px"}, fontFamily: {"headline-lg": ["Inter"], "title-lg": ["Inter"], "body-md": ["Inter"], "display-lg": ["Inter"], "label-lg": ["Inter"], "headline-lg-mobile": ["Inter"], "body-lg": ["Inter"], "label-md": ["Inter"], headline: ["Inter"], display: ["Inter"], body: ["Inter"], label: ["Inter"]}, fontSize: {"headline-lg": ["32px", {lineHeight: "40px", fontWeight: "600"}], "title-lg": ["22px", {lineHeight: "28px", fontWeight: "500"}], "body-md": ["14px", {lineHeight: "20px", letterSpacing: "0.25px", fontWeight: "400"}], "display-lg": ["57px", {lineHeight: "64px", letterSpacing: "-0.25px", fontWeight: "400"}], "label-lg": ["14px", {lineHeight: "20px", letterSpacing: "0.1px", fontWeight: "500"}], "headline-lg-mobile": ["28px", {lineHeight: "36px", fontWeight: "600"}], "body-lg": ["16px", {lineHeight: "24px", letterSpacing: "0.5px", fontWeight: "400"}], "label-md": ["12px", {lineHeight: "16px", letterSpacing: "0.5px", fontWeight: "500"}]}}}};</script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        
+        .scan-line {
+            position: absolute;
+            width: 100%;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, #4f378a, transparent);
+            box-shadow: 0 0 15px #4f378a;
+            top: 0;
+            animation: scan 3s linear infinite;
+            z-index: 10;
+        }
+
+        @keyframes scan {
+            0% { top: 0; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+
+        .shimmer {
+            background: linear-gradient(90deg, rgba(255,255,255,0) 0%, rgba(255,255,255,0.4) 50%, rgba(255,255,255,0) 100%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+
+        .analysis-step {
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .active-step {
+            color: #4f378a;
+            transform: translateX(8px);
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbc4d2;
+            border-radius: 10px;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface min-h-screen font-body-md overflow-x-hidden">
+<!-- Top App Bar -->
+<header class="w-full top-0 sticky bg-surface z-40 flex justify-between items-center h-16 px-margin-mobile">
+<div class="flex items-center gap-4">
+<button class="hover:bg-surface-container-high transition-colors p-2 rounded-full active:scale-95 duration-100">
+<span class="material-symbols-outlined text-primary">menu</span>
+</button>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-primary">AI Assistant</h1>
+</div>
+<button class="hover:bg-surface-container-high transition-colors p-2 rounded-full active:scale-95 duration-100">
+<span class="material-symbols-outlined text-primary">account_circle</span>
+</button>
+</header>
+<main class="max-w-7xl mx-auto px-4 md:px-margin-desktop py-8 pb-32">
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
+<!-- Left Column: Image Preview & Analysis -->
+<div class="lg:col-span-7 space-y-6">
+<!-- Main Preview Area -->
+<div class="relative aspect-[4/3] w-full rounded-3xl overflow-hidden bg-surface-container-high border border-outline-variant shadow-sm group">
+<!-- The Animation Component Placeholder (if it were interactive, we'd use webgl-shader here) -->
+<!-- We'll simulate the "scanning" state visually -->
+<div class="absolute inset-0 w-full h-full flex items-center justify-center" id="preview-image-container">
+<img class="w-full h-full object-cover" data-alt="A high-resolution, modern photograph of a dense urban cityscape during the golden hour. The architecture is a mix of futuristic glass skyscrapers and classical stone buildings, with long shadows stretching across wide streets. The lighting is warm and cinematic, featuring long sunbeams and a clear sky, maintaining a professional and clean minimalist aesthetic." id="main-preview" src="https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg"/>
+<!-- Analysis Overlay -->
+<div class="absolute inset-0 bg-primary/10 backdrop-blur-[2px] hidden" id="analysis-overlay">
+<div class="scan-line"></div>
+<div class="absolute inset-0 flex items-center justify-center">
+<div class="bg-surface/90 px-6 py-3 rounded-full shadow-lg border border-primary/20 flex items-center gap-3">
+<div class="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+<span class="font-label-lg text-primary tracking-wide">ANALYZING SCENE...</span>
+</div>
+</div>
+<!-- Detected Objects Boxes (Simulated) -->
+<div class="absolute top-[20%] left-[30%] w-[15%] h-[20%] border-2 border-primary rounded-lg opacity-60">
+<span class="absolute -top-6 left-0 bg-primary text-white text-[10px] px-1 rounded">BUILDING 98%</span>
+</div>
+<div class="absolute top-[60%] left-[50%] w-[10%] h-[10%] border-2 border-tertiary-container rounded-lg opacity-60">
+<span class="absolute -top-6 left-0 bg-tertiary-container text-on-tertiary-container text-[10px] px-1 rounded">VEHICLE 92%</span>
+</div>
+</div>
+</div>
+<!-- Floating Action Buttons over Image -->
+<div class="absolute bottom-4 right-4 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+<button class="bg-surface/80 backdrop-blur-md p-3 rounded-2xl shadow-md text-on-surface hover:bg-surface active:scale-95 transition-all">
+<span class="material-symbols-outlined">zoom_in</span>
+</button>
+<button class="bg-surface/80 backdrop-blur-md p-3 rounded-2xl shadow-md text-on-surface hover:bg-surface active:scale-95 transition-all">
+<span class="material-symbols-outlined">crop</span>
+</button>
+</div>
+</div>
+<!-- Gallery Picker / Sample Images -->
+<div class="space-y-3">
+<div class="flex items-center justify-between px-2">
+<h2 class="font-title-lg text-title-lg text-on-surface">Gallery Picker</h2>
+<button class="text-primary font-label-lg hover:underline transition-all">View All</button>
+</div>
+<div class="flex gap-4 overflow-x-auto pb-4 custom-scrollbar snap-x">
+<!-- Add Button -->
+<button class="flex-shrink-0 w-24 h-24 rounded-2xl border-2 border-dashed border-outline-variant flex flex-col items-center justify-center gap-1 text-outline hover:border-primary hover:text-primary transition-all active:scale-95">
+<span class="material-symbols-outlined text-3xl">add_photo_alternate</span>
+<span class="text-[10px] font-bold">UPLOAD</span>
+</button>
+<!-- Sample 1 -->
+<div class="flex-shrink-0 w-24 h-24 rounded-2xl overflow-hidden cursor-pointer snap-start border-2 border-transparent hover:border-primary transition-all active:scale-95" onclick="startAnalysis(0)">
+<img class="w-full h-full object-cover" data-alt="A close-up high-definition shot of a sleek modern smartphone resting on a minimalist marble table. The phone screen reflects a soft, ambient purple glow. In the background, there is a blurry succulent plant in a ceramic pot, bathed in soft daylight. The aesthetic is clean, professional, and very high-end product photography." src="https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg"/>
+</div>
+<!-- Sample 2 -->
+<div class="flex-shrink-0 w-24 h-24 rounded-2xl overflow-hidden cursor-pointer snap-start border-2 border-transparent hover:border-primary transition-all active:scale-95" onclick="startAnalysis(1)">
+<img class="w-full h-full object-cover" data-alt="A minimalist architectural interior shot of a spiral concrete staircase in a sun-drenched museum hall. The lighting creates strong, clean geometric shadows. The palette consists of various shades of gray and white, with a single warm wooden handrail providing a focal point. The mood is tranquil, sophisticated, and artistic." src="https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg"/>
+</div>
+<!-- Sample 3 -->
+<div class="flex-shrink-0 w-24 h-24 rounded-2xl overflow-hidden cursor-pointer snap-start border-2 border-transparent hover:border-primary transition-all active:scale-95" onclick="startAnalysis(2)">
+<img class="w-full h-full object-cover" data-alt="A lush, vibrant macro photograph of a tropical leaf covered in perfectly spherical morning dewdrops. Each drop refracts the green forest background. The colors are deep emerald and bright lime, with soft, diffused sunlight filtering through the canopy. The image has a calm, natural, and highly detailed visual quality." src="https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg"/>
+</div>
+<!-- Sample 4 -->
+<div class="flex-shrink-0 w-24 h-24 rounded-2xl overflow-hidden cursor-pointer snap-start border-2 border-transparent hover:border-primary transition-all active:scale-95" onclick="startAnalysis(3)">
+<img class="w-full h-full object-cover" data-alt="An elegant tabletop flat-lay of a boutique workspace. A gold fountain pen rests on a thick cream-colored notebook beside a steaming cup of coffee in a charcoal ceramic mug. The lighting is moody and warm, coming from a side lamp that creates long, soft shadows. The overall feel is one of quiet productivity and premium quality." src="https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg"/>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Column: Results & Tools -->
+<div class="lg:col-span-5 space-y-6">
+<!-- Analysis Status Card -->
+<div class="bg-surface-container-low rounded-3xl p-6 border border-outline-variant">
+<div class="flex items-center gap-3 mb-6">
+<div class="w-10 h-10 bg-primary-container rounded-full flex items-center justify-center text-on-primary-container">
+<span class="material-symbols-outlined">analytics</span>
+</div>
+<div>
+<h3 class="font-title-lg text-title-lg">Process Workflow</h3>
+<p class="text-on-surface-variant font-label-md">Visual Intelligent Processing</p>
+</div>
+</div>
+<div class="space-y-4">
+<div class="analysis-step flex items-center gap-4 text-on-surface-variant" id="step-1">
+<span class="material-symbols-outlined" id="icon-1">check_circle</span>
+<span class="font-label-lg">Image normalization &amp; enhancement</span>
+</div>
+<div class="analysis-step flex items-center gap-4 text-on-surface-variant" id="step-2">
+<span class="material-symbols-outlined" id="icon-2">pending</span>
+<span class="font-label-lg">Object &amp; scene detection (YOLOv8)</span>
+</div>
+<div class="analysis-step flex items-center gap-4 text-on-surface-variant" id="step-3">
+<span class="material-symbols-outlined" id="icon-3">radio_button_unchecked</span>
+<span class="font-label-lg">Optical Character Recognition (OCR)</span>
+</div>
+<div class="analysis-step flex items-center gap-4 text-on-surface-variant" id="step-4">
+<span class="material-symbols-outlined" id="icon-4">radio_button_unchecked</span>
+<span class="font-label-lg">Semantic description generation</span>
+</div>
+</div>
+</div>
+<!-- Results Panel -->
+<div class="bg-surface-container-highest rounded-3xl p-6 border border-outline-variant shadow-sm min-h-[400px] flex flex-col">
+<div class="flex items-center justify-between mb-4">
+<h3 class="font-title-lg text-title-lg">AI Insights</h3>
+<div class="flex gap-1">
+<button class="p-2 hover:bg-surface-variant rounded-full transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">content_copy</span>
+</button>
+<button class="p-2 hover:bg-surface-variant rounded-full transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">share</span>
+</button>
+</div>
+</div>
+<div class="space-y-6 flex-grow" id="results-content">
+<!-- AI Description -->
+<div class="space-y-2">
+<span class="font-label-md text-primary uppercase tracking-widest">Description</span>
+<div class="bg-surface/50 p-4 rounded-2xl text-body-md border border-outline-variant/30 leading-relaxed">
+                                This image captures a serene urban landscape during late afternoon. The central focus is a modern glass-clad skyscraper reflecting the warm orange hues of the setting sun. The composition uses leading lines from the street below to create depth, while the high contrast between the shadows and the light-drenched facades adds a dramatic, premium atmosphere.
+                            </div>
+</div>
+<!-- Extracted Text -->
+<div class="space-y-2">
+<span class="font-label-md text-primary uppercase tracking-widest">Extracted Entities</span>
+<div class="flex flex-wrap gap-2">
+<div class="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full font-label-md flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">location_city</span> Architecture
+                                </div>
+<div class="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full font-label-md flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">wb_sunny</span> Golden Hour
+                                </div>
+<div class="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full font-label-md flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">apartment</span> Modernism
+                                </div>
+<div class="bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full font-label-md flex items-center gap-1">
+<span class="material-symbols-outlined text-[14px]">straighten</span> Perspective
+                                </div>
+</div>
+</div>
+<!-- Action Chips -->
+<div class="pt-4 border-t border-outline-variant/20 space-y-3">
+<p class="font-label-md text-on-surface-variant italic">Suggested next steps:</p>
+<div class="flex flex-wrap gap-2">
+<button class="border border-primary text-primary px-4 py-2 rounded-full font-label-lg hover:bg-primary/5 transition-colors active:scale-95 flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">palette</span> Extract Colors
+                                </button>
+<button class="border border-primary text-primary px-4 py-2 rounded-full font-label-lg hover:bg-primary/5 transition-colors active:scale-95 flex items-center gap-2">
+<span class="material-symbols-outlined text-[18px]">auto_fix</span> Upscale 4x
+                                </button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 h-20 bg-surface-container dark:bg-surface-container-low flex justify-around items-center px-4 pb-2">
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-4 py-1 hover:bg-surface-variant dark:hover:bg-surface-container-high transition-all active:scale-90 duration-200">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-md text-label-md">Home</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-4 py-1 hover:bg-surface-variant dark:hover:bg-surface-container-high transition-all active:scale-90 duration-200">
+<span class="material-symbols-outlined">chat</span>
+<span class="font-label-md text-label-md">Chats</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-secondary-container dark:bg-secondary text-on-secondary-container dark:text-on-secondary rounded-full px-6 py-1 transition-all active:scale-90 duration-200">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+<span class="font-label-md text-label-md">AI Tools</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant dark:text-on-surface-variant px-4 py-1 hover:bg-surface-variant dark:hover:bg-surface-container-high transition-all active:scale-90 duration-200">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-md text-label-md">Profile</span>
+</button>
+</nav>
+<script>
+        function startAnalysis(index) {
+            const overlay = document.getElementById('analysis-overlay');
+            const steps = [
+                document.getElementById('step-1'),
+                document.getElementById('step-2'),
+                document.getElementById('step-3'),
+                document.getElementById('step-4')
+            ];
+            const icons = [
+                document.getElementById('icon-1'),
+                document.getElementById('icon-2'),
+                document.getElementById('icon-3'),
+                document.getElementById('icon-4')
+            ];
+
+            // Show scanning overlay
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+
+            // Reset steps
+            steps.forEach(s => s.classList.remove('active-step', 'text-primary'));
+            icons.forEach(i => {
+                i.innerText = 'radio_button_unchecked';
+                i.classList.remove('text-primary');
+            });
+
+            // Sequence of steps
+            let current = 0;
+            const interval = setInterval(() => {
+                if(current > 0) {
+                    icons[current-1].innerText = 'check_circle';
+                    icons[current-1].classList.add('text-primary');
+                    steps[current-1].classList.remove('active-step');
+                }
+
+                if(current < steps.length) {
+                    steps[current].classList.add('active-step', 'text-primary');
+                    icons[current].innerText = 'pending';
+                    current++;
+                } else {
+                    clearInterval(interval);
+                    setTimeout(() => {
+                        overlay.classList.add('hidden');
+                        overlay.classList.remove('flex');
+                        // Simulation completion toast or result refresh
+                    }, 500);
+                }
+            }, 800);
+        }
+
+        // Initialize first state
+        window.onload = () => {
+            // Optional initial animations
+        };
+    </script>
+</body></html>

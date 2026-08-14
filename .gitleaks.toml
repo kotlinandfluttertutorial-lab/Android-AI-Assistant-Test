@@ -1,0 +1,41 @@
+# Gitleaks configuration for the Android AI Assistant project.
+# https://github.com/gitleaks/gitleaks
+
+title = "Android AI Assistant — Gitleaks Config"
+
+[extend]
+# Extend the default gitleaks ruleset
+useDefault = true
+
+[[rules]]
+id          = "gemini-api-key"
+description = "Google Gemini / GCP API Key"
+regex       = '''AIza[0-9A-Za-z\-_]{35}'''
+tags        = ["key", "google", "gemini", "gcp"]
+
+[[rules]]
+id          = "google-oauth-client-secret"
+description = "Google OAuth2 Client Secret"
+regex       = '''GOCSPX-[0-9A-Za-z\-_]{28}'''
+tags        = ["key", "google", "oauth"]
+
+[[rules]]
+id          = "aes-base64-key"
+description = "Base64-encoded AES encryption key (32 bytes)"
+regex       = '''AES_ENCRYPTION_KEY\s*=\s*[A-Za-z0-9+/]{43}='''
+tags        = ["key", "aes", "encryption"]
+
+[allowlist]
+description = "Historical commits where GCP API keys were exposed before rotation. Keys have been revoked and replaced with placeholders. These fingerprints are suppressed to prevent noise on new PRs."
+# Format: commit SHA of historical commits with revoked keys
+commits = [
+    "14bacc6365685d8bd06fb391cde6bc85c10582b1",
+    "71f353df7dfa91352b1983050728a8d29313c9cc",
+]
+
+regexes = [
+    '''your[_-].*key[_-]here''',
+    '''changeme''',
+    '''replace.with''',
+    '''PLACEHOLDER''',
+]

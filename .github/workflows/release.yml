@@ -1,0 +1,677 @@
+# ============================================================================
+# Release Pipeline — Production Grade
+# ============================================================================
+#
+# Triggered when a version tag is pushed (e.g. v1.2.3) or manually dispatched.
+# Orchestrates a complete production release:
+#
+#   1. validate-tag        — enforce semver tag format
+#   2. create-release      — create GitHub Release with auto-generated notes
+#   3. android-release     — build + sign AAB + APK, attach to release,
+#                            distribute APK via Firebase App Distribution,
+#                            upload AAB to Google Play Store internal track
+#                            (Firebase account: kotlinfiroj@gmail.com)
+#   4. backend-release     — build local image, Trivy CRITICAL scan,
+#                            push multi-arch Docker image tagged with semver
+#   5. deploy-staging      — auto-deploy to staging after build (optional)
+#   6. smoke-test-staging  — verify staging /health before production gate
+#   7. deploy-production   — rolling deploy via SSH (requires approval)
+#   8. post-release-smoke  — verify production health endpoint
+#   9. notify              — Slack release announcement
+#
+# Required Secrets (repository / production environment):
+#   KEYSTORE_BASE64            — release keystore (base64)
+#   KEY_ALIAS, KEY_PASSWORD, KEYSTORE_PASSWORD
+#   GOOGLE_SERVICES_JSON       — google-services.json (base64)
+#   FIREBASE_APP_ID            — Firebase App ID (format: 1:xxxx:android:xxxx)
+#   FIREBASE_SERVICE_ACCOUNT   — Firebase service account JSON with
+#                                roles/firebaseappdistro.admin (base64 or raw)
+#   FIREBASE_TESTER_GROUPS     — comma-separated tester group aliases
+#   GOOGLE_PLAY_SERVICE_ACCOUNT_JSON — Google Play service account JSON (base64)
+#                                      if set, AAB is uploaded to Play Store
+#   STAGING_SSH_HOST, STAGING_SSH_USER, STAGING_SSH_KEY  — staging server (optional)
+#   PROD_SSH_HOST, PROD_SSH_USER, PROD_SSH_KEY
+#   SLACK_WEBHOOK_URL          — Slack webhook (optional)
+#
+# Required Variables:
+#   PROD_COMPOSE_PATH     — docker-compose.yml path on production server
+#   STAGING_COMPOSE_PATH  — docker-compose.yml path on staging server (optional)
+#   GOOGLE_PLAY_TRACK     — Play Store track (default: internal)
+# ============================================================================
+
+name: Release
+
+on:
+  push:
+    tags:
+      - "v[0-9]+.[0-9]+.[0-9]+"           # v1.2.3
+      - "v[0-9]+.[0-9]+.[0-9]+-rc.[0-9]+" # v1.2.3-rc.1
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Version tag to release (e.g. v1.2.3)"
+        required: true
+      firebase_tester_groups:
+        description: "Firebase tester group aliases (comma-separated) — overrides secret default"
+        required: false
+        default: ""
+      skip_firebase:
+        description: "Skip Firebase App Distribution: true | false"
+        required: false
+        default: "false"
+
+env:
+  JAVA_VERSION: "17"
+  JAVA_DISTRIBUTION: "temurin"
+  IMAGE_NAME: ghcr.io/${{ github.repository }}/backend
+
+jobs:
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 1. Validate Tag Format
+  # ──────────────────────────────────────────────────────────────────────────
+  validate-tag:
+    name: Validate Release Tag
+    runs-on: ubuntu-latest
+
+    outputs:
+      version: ${{ steps.parse.outputs.version }}
+      is_prerelease: ${{ steps.parse.outputs.is_prerelease }}
+
+    steps:
+      - name: Parse and validate tag
+        id: parse
+        run: |
+          TAG="${{ github.ref_name || github.event.inputs.tag }}"
+          echo "Processing tag: $TAG"
+
+          # Strip leading 'v'
+          VERSION="${TAG#v}"
+
+          # Validate semver with optional pre-release
+          if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-rc\.[0-9]+)?$ ]]; then
+            echo "::error::Tag '$TAG' does not match semver pattern v<major>.<minor>.<patch>[-rc.<n>]"
+            exit 1
+          fi
+
+          IS_PRERELEASE="false"
+
+          if [[ "$TAG" == *"-rc."* ]]; then
+            IS_PRERELEASE="true"
+          fi
+
+          echo "version=$VERSION"             >> "$GITHUB_OUTPUT"
+          echo "is_prerelease=$IS_PRERELEASE" >> "$GITHUB_OUTPUT"
+
+          echo "✅ Tag: $TAG | Version: $VERSION | Pre-release: $IS_PRERELEASE"
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 2. Create GitHub Release
+  # ──────────────────────────────────────────────────────────────────────────
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: validate-tag
+    permissions:
+      contents: write
+
+    outputs:
+      release_id: ${{ steps.create.outputs.id }}
+      upload_url: ${{ steps.create.outputs.upload_url }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Generate changelog since last tag
+        id: changelog
+        run: |
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+          if [[ -n "$PREVIOUS_TAG" ]]; then
+            CHANGES=$(git log "${PREVIOUS_TAG}..HEAD" \
+              --pretty=format:"- %s (%an)" \
+              --no-merges \
+              | head -50)
+          else
+            CHANGES="Initial release"
+          fi
+          echo "changelog<<CLEOF" >> "$GITHUB_OUTPUT"
+          echo "$CHANGES"         >> "$GITHUB_OUTPUT"
+          echo "CLEOF"            >> "$GITHUB_OUTPUT"
+
+      - name: Create GitHub Release
+        id: create
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { data: release } = await github.rest.repos.createRelease({
+              owner: context.repo.owner,
+              repo:  context.repo.repo,
+              tag_name:    "${{ github.ref_name || github.event.inputs.tag }}",
+              name:        "Android AI Assistant ${{ needs.validate-tag.outputs.version }}",
+              body:        `## What's Changed\n\n${{ steps.changelog.outputs.changelog }}\n\n---\n_Released by GitHub Actions · commit \`${context.sha.substring(0,7)}\`_`,
+              draft:       false,
+              prerelease:  ${{ needs.validate-tag.outputs.is_prerelease }},
+              make_latest: "${{ needs.validate-tag.outputs.is_prerelease == 'false' }}"
+            });
+            core.setOutput('id', release.id);
+            core.setOutput('upload_url', release.upload_url);
+            console.log(`Created release #${release.id}: ${release.html_url}`);
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 3. Build & Sign Android Release Artifacts
+  # ──────────────────────────────────────────────────────────────────────────
+  android-release:
+    name: Build Android Release (${{ needs.validate-tag.outputs.version }})
+    runs-on: ubuntu-latest
+    needs:
+      - validate-tag
+      - create-release
+    environment: production
+
+    outputs:
+      aab_artifact: ${{ steps.names.outputs.aab_artifact }}
+      apk_artifact: ${{ steps.names.outputs.apk_artifact }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+
+      - uses: gradle/actions/setup-gradle@v3
+
+      - name: Ensure gradlew is executable
+        run: chmod +x gradlew
+
+      - name: Set artifact names
+        id: names
+        run: |
+          VERSION="${{ needs.validate-tag.outputs.version }}"
+          echo "aab_artifact=android-ai-assistant-${VERSION}.aab" >> "$GITHUB_OUTPUT"
+          echo "apk_artifact=android-ai-assistant-${VERSION}.apk" >> "$GITHUB_OUTPUT"
+
+      - name: Decode google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            echo "$GOOGLE_SERVICES_JSON" | base64 --decode > app/google-services.json
+            echo "Using google-services.json from secret"
+          else
+            echo "GOOGLE_SERVICES_JSON secret not set — using committed placeholder"
+          fi
+
+      - name: Decode release keystore
+        id: keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 --decode > app/release.keystore
+            echo "has_keystore=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "KEYSTORE_BASE64 not set — generating temporary keystore for CI"
+            keytool -genkeypair -v \
+              -keystore app/release.keystore \
+              -alias androiddebugkey \
+              -keyalg RSA -keysize 2048 -validity 1 \
+              -storepass android -keypass android \
+              -dname "CN=Android Debug,O=Android,C=US" \
+              -storetype PKCS12
+            echo "has_keystore=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Compute version code from tag
+        id: version_code
+        run: |
+          # Convert vMAJOR.MINOR.PATCH → MAJOR*10000 + MINOR*100 + PATCH
+          VERSION="${{ needs.validate-tag.outputs.version }}"
+          IFS='.' read -r MAJOR MINOR PATCH <<< "${VERSION%%-*}"
+          VERSION_CODE=$(( MAJOR * 10000 + MINOR * 100 + PATCH ))
+          echo "version_code=$VERSION_CODE" >> "$GITHUB_OUTPUT"
+          echo "Version: $VERSION | Code: $VERSION_CODE"
+
+      - name: Build + sign release AAB
+        env:
+          KEY_ALIAS: ${{ steps.keystore.outputs.has_keystore == 'true' && secrets.KEY_ALIAS || 'androiddebugkey' }}
+          KEY_PASSWORD: ${{ steps.keystore.outputs.has_keystore == 'true' && secrets.KEY_PASSWORD || 'android' }}
+          KEYSTORE_PASSWORD: ${{ steps.keystore.outputs.has_keystore == 'true' && secrets.KEYSTORE_PASSWORD || 'android' }}
+        run: |
+          ./gradlew :app:bundleRelease \
+            -PversionCode="${{ steps.version_code.outputs.version_code }}" \
+            -PversionName="${{ needs.validate-tag.outputs.version }}" \
+            -Pandroid.injected.signing.store.file="$GITHUB_WORKSPACE/app/release.keystore" \
+            -Pandroid.injected.signing.store.password="$KEYSTORE_PASSWORD" \
+            -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
+            -Pandroid.injected.signing.key.password="$KEY_PASSWORD" \
+            --stacktrace
+
+      - name: Build + sign release APK
+        env:
+          KEY_ALIAS: ${{ steps.keystore.outputs.has_keystore == 'true' && secrets.KEY_ALIAS || 'androiddebugkey' }}
+          KEY_PASSWORD: ${{ steps.keystore.outputs.has_keystore == 'true' && secrets.KEY_PASSWORD || 'android' }}
+          KEYSTORE_PASSWORD: ${{ steps.keystore.outputs.has_keystore == 'true' && secrets.KEYSTORE_PASSWORD || 'android' }}
+        run: |
+          ./gradlew :app:assembleRelease \
+            -PversionCode="${{ steps.version_code.outputs.version_code }}" \
+            -PversionName="${{ needs.validate-tag.outputs.version }}" \
+            -Pandroid.injected.signing.store.file="$GITHUB_WORKSPACE/app/release.keystore" \
+            -Pandroid.injected.signing.store.password="$KEYSTORE_PASSWORD" \
+            -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
+            -Pandroid.injected.signing.key.password="$KEY_PASSWORD" \
+            --stacktrace
+
+      - name: Rename artifacts
+        run: |
+          AAB=$(find app/build/outputs/bundle/release -name "*.aab" | head -1)
+          APK=$(find app/build/outputs/apk/release -name "*.apk" | head -1)
+          cp "$AAB" "${{ steps.names.outputs.aab_artifact }}"
+          cp "$APK" "${{ steps.names.outputs.apk_artifact }}"
+
+      - name: Upload AAB to GitHub Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ${{ steps.names.outputs.aab_artifact }}
+          asset_name: ${{ steps.names.outputs.aab_artifact }}
+          asset_content_type: application/octet-stream
+
+      - name: Upload APK to GitHub Release
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create-release.outputs.upload_url }}
+          asset_path: ${{ steps.names.outputs.apk_artifact }}
+          asset_name: ${{ steps.names.outputs.apk_artifact }}
+          asset_content_type: application/vnd.android.package-archive
+
+      - name: Upload AAB as workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.names.outputs.aab_artifact }}
+          path: ${{ steps.names.outputs.aab_artifact }}
+          retention-days: 90
+
+      - name: Build release notes for Firebase
+        id: release_notes
+        run: |
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 HEAD~1 2>/dev/null || echo "")
+          if [[ -n "$PREVIOUS_TAG" ]]; then
+            NOTES=$(git log "${PREVIOUS_TAG}..HEAD" \
+              --pretty=format:"• %s" \
+              --no-merges | head -20)
+          else
+            NOTES="• Initial release"
+          fi
+          FULL_NOTES="v${{ needs.validate-tag.outputs.version }}"$'\n\n'"$NOTES"
+          echo "$FULL_NOTES" > firebase-release-notes.txt
+          echo "Release notes:"
+          cat firebase-release-notes.txt
+
+      - name: Distribute APK via Firebase App Distribution
+        if: github.event.inputs.skip_firebase != 'true'
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: ${{ secrets.FIREBASE_APP_ID }}
+          serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          groups: ${{ github.event.inputs.firebase_tester_groups || secrets.FIREBASE_TESTER_GROUPS }}
+          file: ${{ steps.names.outputs.apk_artifact }}
+          releaseNotesFile: firebase-release-notes.txt
+
+      - name: Upload AAB to Google Play Store (internal track)
+        if: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON != '' }}
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON }}
+          packageName: com.aiassistant.app
+          releaseFiles: ${{ steps.names.outputs.aab_artifact }}
+          track: ${{ vars.GOOGLE_PLAY_TRACK || 'internal' }}
+          status: completed
+
+      - name: Skip Google Play upload (secret not configured)
+        if: ${{ secrets.GOOGLE_PLAY_SERVICE_ACCOUNT_JSON == '' }}
+        run: echo "GOOGLE_PLAY_SERVICE_ACCOUNT_JSON secret not set — skipping Google Play Store upload."
+
+      - name: Firebase distribution summary
+        run: |
+          echo "### 🔥 Firebase App Distribution — v${{ needs.validate-tag.outputs.version }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|-------|-------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Firebase Account | kotlinfiroj@gmail.com |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| APK | \`${{ steps.names.outputs.apk_artifact }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Tester Groups | \`${{ secrets.FIREBASE_TESTER_GROUPS }}\` |" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Clean up keystore
+        if: always()
+        run: rm -f app/release.keystore
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 4. Build & Push Backend Docker Image with semver tag
+  # ──────────────────────────────────────────────────────────────────────────
+  backend-release:
+    name: Build Backend Release Image (${{ needs.validate-tag.outputs.version }})
+    runs-on: ubuntu-latest
+    needs: validate-tag
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+
+    outputs:
+      image_digest: ${{ steps.build.outputs.digest }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-qemu-action@v3
+        with:
+          platforms: linux/amd64,linux/arm64
+
+      - uses: docker/setup-buildx-action@v3
+        with:
+          platforms: linux/amd64,linux/arm64
+
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.IMAGE_NAME }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=raw,value=latest,enable=${{ needs.validate-tag.outputs.is_prerelease == 'false' }}
+
+      - name: Build release image (single-arch, local load for Trivy scan)
+        id: build-local
+        uses: docker/build-push-action@v6
+        with:
+          context: backend
+          file: backend/Dockerfile
+          target: production
+          platforms: linux/amd64
+          push: false
+          load: true
+          tags: ${{ env.IMAGE_NAME }}:scan-${{ needs.validate-tag.outputs.version }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache
+          build-args: |
+            VERSION=${{ needs.validate-tag.outputs.version }}
+
+      - name: Run Trivy CRITICAL vulnerability scan
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ env.IMAGE_NAME }}:scan-${{ needs.validate-tag.outputs.version }}
+          format: table
+          exit-code: '1'
+          ignore-unfixed: false
+          severity: 'CRITICAL'
+
+      - name: Build and push multi-arch release image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: backend
+          file: backend/Dockerfile
+          target: production
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache
+          cache-to: type=registry,ref=${{ env.IMAGE_NAME }}:buildcache,mode=max
+          build-args: |
+            VERSION=${{ needs.validate-tag.outputs.version }}
+          provenance: true
+          sbom: true
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Sign release image (keyless)
+        env:
+          COSIGN_EXPERIMENTAL: "1"
+        run: |
+          cosign sign --yes \
+            "${{ env.IMAGE_NAME }}@${{ steps.build.outputs.digest }}"
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 5. Auto-Deploy to Staging + Smoke Test
+  # ──────────────────────────────────────────────────────────────────────────
+  deploy-staging:
+    name: Deploy v${{ needs.validate-tag.outputs.version }} to Staging
+    runs-on: ubuntu-latest
+    needs:
+      - validate-tag
+      - android-release
+      - backend-release
+    environment:
+      name: staging
+      url: https://api.handsonandroid.com
+
+    steps:
+      - name: Skip if SSH secrets not configured
+        id: check
+        env:
+          STAGING_SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
+        run: |
+          if [ -z "$STAGING_SSH_HOST" ]; then
+            echo "STAGING_SSH_HOST secret not set — skipping staging deploy"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Deploy to staging via SSH
+        if: steps.check.outputs.skip != 'true'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.STAGING_SSH_HOST }}
+          username: ${{ secrets.STAGING_SSH_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            cd "${{ vars.STAGING_COMPOSE_PATH }}"
+            docker compose pull backend celery_worker
+            docker compose up -d --no-deps --remove-orphans backend celery_worker
+            docker image prune -f
+            echo "✅ Staging deploy complete — v${{ needs.validate-tag.outputs.version }}"
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 6. Staging Smoke Test
+  # ──────────────────────────────────────────────────────────────────────────
+  smoke-test-staging:
+    name: Smoke Test — Staging (v${{ needs.validate-tag.outputs.version }})
+    runs-on: ubuntu-latest
+    needs:
+      - validate-tag
+      - deploy-staging
+    environment:
+      name: staging
+
+    steps:
+      - name: Wait for service to be healthy
+        run: sleep 30
+
+      - name: Health check — staging
+        run: |
+          HTTP_STATUS=$(curl -sSo /dev/null -w "%{http_code}" \
+            --retry 5 --retry-delay 10 --retry-connrefused \
+            "https://api.handsonandroid.com/health")
+          echo "Health endpoint returned: $HTTP_STATUS"
+          if [[ "$HTTP_STATUS" != "200" ]]; then
+            echo "::error::Staging smoke test failed — /health returned $HTTP_STATUS"
+            exit 1
+          fi
+          echo "✅ Staging smoke test passed"
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 7. Deploy to Production (requires manual approval)
+  # ──────────────────────────────────────────────────────────────────────────
+  deploy-production:
+    name: Deploy v${{ needs.validate-tag.outputs.version }} to Production
+    runs-on: ubuntu-latest
+    needs:
+      - validate-tag
+      - android-release
+      - backend-release
+      - smoke-test-staging
+    environment:
+      name: production
+      url: https://api.handsonandroid.com
+    # Configure "Required reviewers" on the production environment in
+    # Settings → Environments → production for the approval gate.
+
+    steps:
+      - name: Deploy backend to production
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_SSH_HOST }}
+          username: ${{ secrets.PROD_SSH_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            cd "${{ vars.PROD_COMPOSE_PATH }}"
+
+            echo "Deploying version ${{ needs.validate-tag.outputs.version }}"
+            echo "Image digest: ${{ needs.backend-release.outputs.image_digest }}"
+
+            # Pin to the exact digest for immutable deploys
+            export BACKEND_IMAGE="${{ env.IMAGE_NAME }}@${{ needs.backend-release.outputs.image_digest }}"
+
+            # Pull the new image
+            docker pull "$BACKEND_IMAGE"
+
+            # Tag it as the version being deployed
+            docker tag "$BACKEND_IMAGE" \
+              "ghcr.io/${{ github.repository }}/backend:${{ needs.validate-tag.outputs.version }}"
+
+            # Rolling restart
+            docker compose up -d --no-deps --remove-orphans backend celery_worker
+
+            # Remove dangling images; keep last 3 release tags
+            docker image prune -f
+
+            echo "✅ Production deploy complete — v${{ needs.validate-tag.outputs.version }}"
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 8. Post-Release Smoke Test
+  # ──────────────────────────────────────────────────────────────────────────
+  post-release-smoke:
+    name: Post-Release Smoke Test
+    runs-on: ubuntu-latest
+    needs:
+      - validate-tag
+      - deploy-production
+    environment:
+      name: production
+
+    steps:
+      - name: Wait for service to stabilise
+        run: sleep 45
+
+      - name: Health endpoint check
+        run: |
+          for i in {1..5}; do
+            HTTP=$(curl -sSo /dev/null -w "%{http_code}" \
+              --max-time 10 \
+              "https://api.handsonandroid.com/health")
+            echo "Attempt $i: /health → $HTTP"
+            [[ "$HTTP" == "200" ]] && break
+            [[ "$i" -eq 5 ]] && { echo "::error::Smoke test failed after 5 attempts"; exit 1; }
+            sleep 15
+          done
+          echo "✅ Health check passed"
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 9. Release Announcement
+  # ──────────────────────────────────────────────────────────────────────────
+  notify:
+    name: Release Announcement
+    runs-on: ubuntu-latest
+    needs:
+      - validate-tag
+      - android-release
+      - backend-release
+      - deploy-staging
+      - smoke-test-staging
+      - deploy-production
+      - post-release-smoke
+    if: always()
+
+    steps:
+      - name: Write release summary
+        run: |
+          STATUS="${{ needs.post-release-smoke.result == 'success' && '✅ Release successful' || '⚠️ Release completed with issues' }}"
+          echo "## $STATUS — v${{ needs.validate-tag.outputs.version }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Component | Status |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|-----------|--------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Android Build | ${{ needs.android-release.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Firebase Distribution | ${{ needs.android-release.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Backend Image | ${{ needs.backend-release.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Production Deploy | ${{ needs.deploy-production.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Smoke Test | ${{ needs.post-release-smoke.result }} |" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Slack release announcement
+        if: vars.SLACK_WEBHOOK_URL != ''
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          payload: |
+            {
+              "text": "${{ needs.post-release-smoke.result == 'success' && format('🚀 Android AI Assistant v{0} shipped!', needs.validate-tag.outputs.version) || format('⚠️ Release v{0} completed with issues', needs.validate-tag.outputs.version) }}",
+              "blocks": [
+                {
+                  "type": "header",
+                  "text": {
+                    "type": "plain_text",
+                    "text": "${{ needs.post-release-smoke.result == 'success' && '🚀 New Release!' || '⚠️ Release (with issues)' }}"
+                  }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    { "type": "mrkdwn", "text": "*Version:*\n`v${{ needs.validate-tag.outputs.version }}`" },
+                    { "type": "mrkdwn", "text": "*Firebase Account:*\nkotlinfiroj@gmail.com" },
+                    { "type": "mrkdwn", "text": "*Android Build:*\n${{ needs.android-release.result }}" },
+                    { "type": "mrkdwn", "text": "*Backend:*\n${{ needs.backend-release.result }}" },
+                    { "type": "mrkdwn", "text": "*Deploy:*\n${{ needs.deploy-production.result }}" },
+                    { "type": "mrkdwn", "text": "*Smoke Test:*\n${{ needs.post-release-smoke.result }}" }
+                  ]
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": { "type": "plain_text", "text": "View Release" },
+                      "url": "${{ github.server_url }}/${{ github.repository }}/releases/tag/${{ github.ref_name }}"
+                    },
+                    {
+                      "type": "button",
+                      "text": { "type": "plain_text", "text": "Firebase Console" },
+                      "url": "https://console.firebase.google.com"
+                    }
+                  ]
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK

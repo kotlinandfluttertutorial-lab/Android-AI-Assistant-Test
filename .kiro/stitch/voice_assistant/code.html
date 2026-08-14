@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AI Assistant - Voice Session</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        @keyframes pulse-ring {
+            0% { transform: scale(0.8); opacity: 0.5; }
+            100% { transform: scale(2.2); opacity: 0; }
+        }
+        .pulse-layer {
+            animation: pulse-ring 3s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+        }
+        .pulse-layer-2 {
+            animation: pulse-ring 3s cubic-bezier(0.4, 0, 0.2, 1) infinite 1s;
+        }
+        .pulse-layer-3 {
+            animation: pulse-ring 3s cubic-bezier(0.4, 0, 0.2, 1) infinite 2s;
+        }
+        .wave-bar {
+            transition: height 0.1s ease-in-out;
+        }
+        .glass-blur {
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+    </style>
+<script id="tailwind-config">tailwind.config = {darkMode: "class", theme: {extend: {colors: {"tertiary-fixed": "#ffdf93", "on-secondary": "#ffffff", "surface-dark": "#0F0F0F", "secondary-container": "#e4ddea", "on-primary-fixed-variant": "#4f378a", "on-surface": "#1c1b1f", "surface-container-high": "#ebe7ec", outline: "#7a7582", "primary-fixed-dim": "#cfbcff", "on-secondary-container": "#65616b", "on-surface-variant": "#494551", "surface-bright": "#fdf8fd", "secondary-fixed": "#e7e0ec", error: "#ba1a1a", tertiary: "#765b00", "surface-dim": "#ddd9de", "inverse-surface": "#313034", "on-primary": "#ffffff", "on-secondary-fixed": "#1d1a23", "surface-container-lowest": "#ffffff", background: "#fdf8fd", "inverse-primary": "#cfbcff", "primary-fixed": "#e9ddff", "on-error": "#ffffff", "surface-container-low": "#f7f2f8", "on-tertiary-container": "#503d00", "surface-container": "#f1ecf2", "on-secondary-fixed-variant": "#49454f", secondary: "#615c67", "on-tertiary": "#ffffff", "on-tertiary-fixed": "#241a00", "tertiary-fixed-dim": "#e7c365", "on-error-container": "#93000a", "secondary-fixed-dim": "#cbc4d0", "primary-container": "#6750a4", "tertiary-container": "#c9a74d", "outline-variant": "#cbc4d2", "error-container": "#ffdad6", primary: "#4f378a", surface: "#fdf8fd", "on-primary-container": "#e0d2ff", "on-background": "#1c1b1f", "surface-variant": "#e5e1e7", "on-tertiary-fixed-variant": "#594400", "surface-tint": "#6750a4", "inverse-on-surface": "#f4eff5", "surface-light": "#FFFBFD", "surface-container-highest": "#e5e1e7", "on-primary-fixed": "#22005d"}, borderRadius: {DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px"}, spacing: {sm: "8px", xs: "4px", "margin-desktop": "24px", md: "16px", gutter: "16px", base: "8px", xl: "32px", lg: "24px", "margin-mobile": "16px"}, fontFamily: {"headline-lg": ["Inter"], "title-lg": ["Inter"], "body-md": ["Inter"], "display-lg": ["Inter"], "label-lg": ["Inter"], "headline-lg-mobile": ["Inter"], "body-lg": ["Inter"], "label-md": ["Inter"], headline: ["Inter"], display: ["Inter"], body: ["Inter"], label: ["Inter"]}, fontSize: {"headline-lg": ["32px", {lineHeight: "40px", fontWeight: "600"}], "title-lg": ["22px", {lineHeight: "28px", fontWeight: "500"}], "body-md": ["14px", {lineHeight: "20px", letterSpacing: "0.25px", fontWeight: "400"}], "display-lg": ["57px", {lineHeight: "64px", letterSpacing: "-0.25px", fontWeight: "400"}], "label-lg": ["14px", {lineHeight: "20px", letterSpacing: "0.1px", fontWeight: "500"}], "headline-lg-mobile": ["28px", {lineHeight: "36px", fontWeight: "600"}], "body-lg": ["16px", {lineHeight: "24px", letterSpacing: "0.5px", fontWeight: "400"}], "label-md": ["12px", {lineHeight: "16px", letterSpacing: "0.5px", fontWeight: "500"}]}}}};</script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md min-h-screen flex flex-col overflow-hidden">
+<!-- Top App Bar (Suppressing shared nav for focus) -->
+<header class="w-full top-0 sticky bg-surface dark:bg-surface-dark flex justify-between items-center h-16 px-margin-mobile w-full z-40">
+<button class="w-10 h-10 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container-high transition-colors active:scale-95 duration-100">
+<span class="material-symbols-outlined">close</span>
+</button>
+<h1 class="font-title-lg text-title-lg text-primary dark:text-primary-fixed-dim">AI Listening</h1>
+<button class="w-10 h-10 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-surface-container-high transition-colors active:scale-95 duration-100">
+<span class="material-symbols-outlined">settings</span>
+</button>
+</header>
+<main class="flex-grow flex flex-col items-center justify-center relative px-margin-mobile">
+<!-- Background Animation Overlay -->
+<div class="absolute inset-0 z-0 pointer-events-none opacity-40">
+</div>
+<!-- Central Microphone & Pulse Area -->
+<div class="relative z-10 flex flex-col items-center">
+<!-- Pulse Rings -->
+<div class="absolute w-48 h-48 rounded-full bg-primary/20 pulse-layer"></div>
+<div class="absolute w-48 h-48 rounded-full bg-primary/10 pulse-layer-2"></div>
+<div class="absolute w-48 h-48 rounded-full bg-primary/5 pulse-layer-3"></div>
+<!-- Microphone Button -->
+<div class="w-32 h-32 rounded-full bg-primary text-on-primary flex items-center justify-center shadow-lg relative z-20 active:scale-90 transition-transform duration-200 cursor-pointer">
+<span class="material-symbols-outlined text-[48px]" style="font-variation-settings: 'FILL' 1;">mic</span>
+</div>
+<p class="mt-12 font-title-lg text-title-lg text-primary text-center animate-pulse">
+                Listening...
+            </p>
+</div>
+<!-- Transcript Text Display -->
+<section class="mt-12 max-w-md w-full z-10">
+<div class="bg-surface-container-low/80 glass-blur rounded-[24px] p-6 min-h-[120px] shadow-sm border border-outline/10">
+<p class="font-body-lg text-body-lg text-on-surface leading-relaxed transition-all duration-300" id="transcript">
+                    "I'm looking for a quick recipe for dinner tonight using chicken and spinach, something that takes less than thirty minutes..."
+                </p>
+<div class="inline-block w-2 h-6 bg-primary ml-1 align-middle animate-pulse" id="cursor"></div>
+</div>
+</section>
+<!-- Sound Wave Visualization -->
+<div class="mt-auto mb-12 w-full max-w-lg h-16 flex items-end justify-center gap-1 z-10" id="wave-container">
+<!-- Generated by JS -->
+</div>
+</main>
+<!-- Controls Footer -->
+<footer class="p-8 flex items-center justify-center gap-8 z-20">
+<button class="flex flex-col items-center gap-2 text-on-surface-variant hover:text-error transition-colors group">
+<div class="w-14 h-14 rounded-full border border-outline/30 flex items-center justify-center group-hover:bg-error-container group-hover:border-error/20 active:scale-95 duration-100">
+<span class="material-symbols-outlined">cancel</span>
+</div>
+<span class="font-label-md text-label-md">Cancel</span>
+</button>
+<button class="flex flex-col items-center gap-2 text-on-surface-variant hover:text-primary transition-colors group">
+<div class="w-20 h-20 rounded-full bg-secondary-container text-on-secondary-container flex items-center justify-center group-hover:bg-primary-container group-hover:text-on-primary-container shadow-sm active:scale-95 duration-200">
+<span class="material-symbols-outlined text-[32px]" style="font-variation-settings: 'FILL' 1;">stop</span>
+</div>
+<span class="font-label-lg text-label-lg font-bold">Stop</span>
+</button>
+<button class="flex flex-col items-center gap-2 text-on-surface-variant hover:text-primary transition-colors group">
+<div class="w-14 h-14 rounded-full border border-outline/30 flex items-center justify-center group-hover:bg-primary-container group-hover:border-primary/20 active:scale-95 duration-100">
+<span class="material-symbols-outlined">keyboard</span>
+</div>
+<span class="font-label-md text-label-md">Type</span>
+</button>
+</footer>
+<script>
+        // Generate Sound Wave Bars
+        const waveContainer = document.getElementById('wave-container');
+        const barCount = 40;
+        const bars = [];
+
+        for (let i = 0; i < barCount; i++) {
+            const bar = document.createElement('div');
+            bar.className = 'wave-bar w-1.5 bg-primary/40 rounded-full';
+            bar.style.height = '10%';
+            waveContainer.appendChild(bar);
+            bars.push(bar);
+        }
+
+        // Simulate Animation of Sound Wave
+        function animateWave() {
+            bars.forEach((bar, index) => {
+                // Create a wave pattern with some randomness
+                const frequency = Date.now() / 200;
+                const baseHeight = Math.sin(frequency + (index * 0.2)) * 30 + 40;
+                const randomOffset = Math.random() * 20;
+                const finalHeight = Math.max(10, baseHeight + randomOffset);
+                bar.style.height = `${finalHeight}%`;
+                
+                // Color shift based on height
+                if (finalHeight > 60) {
+                    bar.style.backgroundColor = 'var(--primary)';
+                    bar.style.opacity = '0.9';
+                } else {
+                    bar.style.backgroundColor = '#6750a4'; // Using primary hex as fallback
+                    bar.style.opacity = '0.4';
+                }
+            });
+            requestAnimationFrame(animateWave);
+        }
+
+        animateWave();
+
+        // Simulate Dynamic Transcript
+        const transcriptEl = document.getElementById('transcript');
+        const phrases = [
+            "I'm looking for a quick recipe...",
+            "Something with chicken and spinach...",
+            "Under thirty minutes total...",
+            "Maybe a healthy pasta dish?",
+            "Can you suggest some ingredients?"
+        ];
+        let currentPhraseIndex = 0;
+        let charIndex = 0;
+
+        function typeTranscript() {
+            const currentText = phrases[currentPhraseIndex];
+            if (charIndex < currentText.length) {
+                transcriptEl.textContent = `"${currentText.substring(0, charIndex + 1)}"`;
+                charIndex++;
+                setTimeout(typeTranscript, 50 + Math.random() * 50);
+            } else {
+                setTimeout(() => {
+                    charIndex = 0;
+                    currentPhraseIndex = (currentPhraseIndex + 1) % phrases.length;
+                    typeTranscript();
+                }, 2000);
+            }
+        }
+
+        typeTranscript();
+    </script>
+</body></html>

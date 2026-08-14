@@ -1,0 +1,66 @@
+# ============================================================================
+# Android AI Assistant — Loki configuration (single-node / development)
+# ============================================================================
+#
+# This is a minimal Loki config suitable for a single Docker Compose node.
+# For production, replace the inmemory kvstore with etcd or consul, and
+# consider moving object storage from filesystem to S3 / GCS.
+# ============================================================================
+
+auth_enabled: false
+
+server:
+  http_listen_port: 3100
+
+ingester:
+  wal:
+    enabled: true
+    dir: /loki/wal
+  lifecycler:
+    ring:
+      kvstore:
+        store: inmemory
+      replication_factor: 1
+    final_sleep: 0s
+  chunk_idle_period:   1h    # Flush chunk to storage after 1 h of inactivity
+  chunk_retain_period: 30s   # Keep chunk in memory for 30 s after flushing
+  max_transfer_retries: 0    # Disable chunk transfers on shutdown
+
+schema_config:
+  configs:
+    - from: 2020-10-24
+      store:        boltdb-shipper
+      object_store: filesystem
+      schema:       v11
+      index:
+        prefix: index_
+        period: 24h
+
+storage_config:
+  boltdb_shipper:
+    active_index_directory: /loki/boltdb-shipper-active
+    shared_store:           filesystem
+    cache_location:         /loki/boltdb-shipper-cache
+    cache_ttl:              24h
+  filesystem:
+    directory: /loki/chunks
+
+limits_config:
+  enforce_metric_name:       false
+  reject_old_samples:        true
+  reject_old_samples_max_age: 168h   # 7 days
+  # Allow up to 30 labels per log stream so that structured fields forwarded
+  # by python-logging-loki (e.g. correlation_id, user_id, path, method,
+  # status_code, response_time_ms) are all accepted and indexed by Loki.
+  # The default limit is 15; raising it ensures no labels are silently dropped.
+  max_label_names_per_series: 30
+  # Raise the ingestion rate limit for development / testing workloads.
+  ingestion_rate_mb:          16
+  ingestion_burst_size_mb:    32
+
+chunk_store_config:
+  max_look_back_period: 0s
+
+table_manager:
+  retention_deletes_enabled: false
+  retention_period:          0s

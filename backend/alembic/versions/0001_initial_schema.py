@@ -24,7 +24,7 @@ from alembic import op
 # Revision identifiers, used by Alembic.
 # ---------------------------------------------------------------------------
 
-revision: str = "0001_initial_schema"
+revision: str = "0001_initial"
 down_revision: str | None = None
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
