@@ -1,5 +1,5 @@
 # ============================================================================
-# Android AI Assistant — Windows Development Startup Script
+# Android AI Assistant -- Windows Development Startup Script
 # ============================================================================
 #
 # Starts all backend infrastructure services (PostgreSQL, Redis, MinIO) using
@@ -22,17 +22,17 @@ param(
 )
 
 $ErrorActionPreference = "Stop"
-$ROOT = $PSScriptRoot
+$ROOT    = $PSScriptRoot
 $BACKEND = Join-Path $ROOT "backend"
-$VENV = Join-Path $BACKEND "venv311"
+$VENV    = Join-Path $BACKEND "venv311"
 $UVICORN = Join-Path $VENV "Scripts\uvicorn.exe"
 $ENV_FILE = Join-Path $BACKEND ".env"
 
 function Write-Step($msg) { Write-Host "`n==> $msg" -ForegroundColor Cyan }
-function Write-Ok($msg)   { Write-Host "    $msg" -ForegroundColor Green }
+function Write-Ok($msg)   { Write-Host "    $msg"   -ForegroundColor Green }
 function Write-Warn($msg) { Write-Host "    WARNING: $msg" -ForegroundColor Yellow }
 
-# ── Stop mode ────────────────────────────────────────────────────────────────
+# -- Stop mode ----------------------------------------------------------------
 if ($Stop) {
     Write-Step "Stopping Docker Compose services..."
     docker compose -f "$ROOT\docker-compose.yml" down
@@ -40,7 +40,7 @@ if ($Stop) {
     exit 0
 }
 
-# ── Pre-flight checks ─────────────────────────────────────────────────────────
+# -- Pre-flight checks --------------------------------------------------------
 Write-Step "Checking prerequisites..."
 
 if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
@@ -62,13 +62,13 @@ if (-not (Test-Path $UVICORN)) {
 
 Write-Ok "Prerequisites OK"
 
-# ── Start infrastructure ───────────────────────────────────────────────────────
+# -- Start infrastructure -----------------------------------------------------
 Write-Step "Starting infrastructure services (postgres, redis, minio)..."
 docker compose -f "$ROOT\docker-compose.yml" up -d postgres redis minio
 
 Write-Step "Waiting for services to be healthy..."
 $maxWait = 60
-$waited = 0
+$waited  = 0
 while ($waited -lt $maxWait) {
     $unhealthy = docker compose -f "$ROOT\docker-compose.yml" ps --format json 2>$null |
         ConvertFrom-Json -ErrorAction SilentlyContinue |
@@ -80,11 +80,11 @@ while ($waited -lt $maxWait) {
 Write-Ok "Infrastructure services are healthy"
 
 if ($InfraOnly) {
-    Write-Ok "InfraOnly mode — skipping backend startup."
+    Write-Ok "InfraOnly mode -- skipping backend startup."
     exit 0
 }
 
-# ── Run database migrations ────────────────────────────────────────────────────
+# -- Run database migrations --------------------------------------------------
 Write-Step "Running Alembic migrations..."
 Push-Location $BACKEND
 try {
@@ -94,7 +94,7 @@ try {
     Pop-Location
 }
 
-# ── Start FastAPI backend ──────────────────────────────────────────────────────
+# -- Start FastAPI backend ----------------------------------------------------
 Write-Step "Starting FastAPI backend with hot-reload on http://localhost:8000 ..."
 Write-Ok "API docs: http://localhost:8000/docs"
 Write-Ok "Press Ctrl+C to stop the server"
