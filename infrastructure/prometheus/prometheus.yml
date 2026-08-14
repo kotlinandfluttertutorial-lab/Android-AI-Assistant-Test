@@ -1,0 +1,42 @@
+# ============================================================================
+# Android AI Assistant — Prometheus scrape configuration
+# ============================================================================
+#
+# Prometheus polls each target at the global scrape_interval (15 s).
+# Add new scrape_configs entries as additional services expose /metrics.
+# ============================================================================
+
+global:
+  scrape_interval:     15s   # How frequently to scrape targets
+  evaluation_interval: 15s   # How frequently to evaluate alerting rules
+  # scrape_timeout defaults to 10s
+
+# ---------------------------------------------------------------------------
+# Scrape configurations
+# ---------------------------------------------------------------------------
+scrape_configs:
+
+  # FastAPI backend — exposes Prometheus metrics at /metrics via
+  # prometheus-fastapi-instrumentator (or starlette-prometheus).
+  - job_name: "ai_assistant_backend"
+    static_configs:
+      - targets: ["api:8000"]
+    metrics_path: /metrics
+
+  # Prometheus self-monitoring
+  - job_name: "prometheus"
+    static_configs:
+      - targets: ["localhost:9090"]
+
+  # Loki internal metrics
+  - job_name: "loki"
+    static_configs:
+      - targets: ["loki:3100"]
+    metrics_path: /metrics
+
+  # cAdvisor (container resource metrics) — uncomment when cAdvisor is added
+  # to docker-compose.yml as an additional service.
+  #
+  # - job_name: "cadvisor"
+  #   static_configs:
+  #     - targets: ["cadvisor:8080"]

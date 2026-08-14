@@ -1,0 +1,25 @@
+# ============================================================================
+# Grafana — Dashboard provisioning
+# ============================================================================
+#
+# Grafana scans the configured folder for *.json dashboard files and imports
+# them automatically.  Place dashboard JSON exports in:
+#
+#   infrastructure/grafana/provisioning/dashboards/
+#
+# The updateIntervalSeconds setting controls how often Grafana re-scans the
+# folder for changes (useful during development).
+# ============================================================================
+
+apiVersion: 1
+
+providers:
+  - name:                  "default"
+    orgId:                 1
+    folder:                ""
+    type:                  file
+    disableDeletion:       false
+    updateIntervalSeconds: 10
+    allowUiUpdates:        true
+    options:
+      path: /etc/grafana/provisioning/dashboards
