@@ -68,6 +68,19 @@ android {
         buildConfig = true
     }
 
+    lint {
+        // Baseline file captures pre-existing issues so lint only fails on new violations.
+        // Run `./gradlew :app:lintDebug -Dlint.baselines.continue=true` locally to regenerate.
+        baseline = file("lint-baseline.xml")
+        // Never abort the Gradle build — CI parses the XML report to decide pass/fail.
+        abortOnError = false
+        warningsAsErrors = false
+        // Write results so the CI artifact upload step can find them
+        xmlReport = true
+        htmlReport = true
+        sarifReport = true
+    }
+
     packaging {
         resources {
             excludes += setOf(

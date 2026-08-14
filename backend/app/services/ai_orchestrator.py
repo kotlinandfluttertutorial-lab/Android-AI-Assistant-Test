@@ -65,6 +65,7 @@ import re
 import uuid
 from dataclasses import dataclass, field
 from decimal import Decimal
+from typing import AsyncGenerator
 
 from fastapi import WebSocket
 from sqlalchemy.ext.asyncio import AsyncSession
