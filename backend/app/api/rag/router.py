@@ -346,7 +346,7 @@ async def upload_document(
 
 
 @router.get(
-    "/",
+    "",
     response_model=DocumentListResponse,
     summary="List user's documents",
 )
