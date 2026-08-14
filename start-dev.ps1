@@ -28,6 +28,17 @@ $VENV    = Join-Path $BACKEND "venv311"
 $UVICORN = Join-Path $VENV "Scripts\uvicorn.exe"
 $ENV_FILE = Join-Path $BACKEND ".env"
 
+# Prefer Python 3.11 — packages like asyncpg, tiktoken, pydantic-core require
+# it (no pre-built wheels for Python 3.14 yet as of Aug 2026).
+$PYTHON = "python3.11"
+if (-not (Get-Command $PYTHON -ErrorAction SilentlyContinue)) {
+    # Fall back to any py launcher alias
+    $PYTHON = "py"
+    $PYTHON_ARGS = @("-3.11")
+} else {
+    $PYTHON_ARGS = @()
+}
+
 function Write-Step($msg) { Write-Host "`n==> $msg" -ForegroundColor Cyan }
 function Write-Ok($msg)   { Write-Host "    $msg"   -ForegroundColor Green }
 function Write-Warn($msg) { Write-Host "    WARNING: $msg" -ForegroundColor Yellow }
@@ -54,8 +65,12 @@ if (-not (Test-Path $ENV_FILE)) {
 }
 
 if (-not (Test-Path $UVICORN)) {
-    Write-Warn "venv311 not found. Creating virtual environment..."
-    python -m venv $VENV
+    Write-Warn "venv311 not found. Creating virtual environment with Python 3.11..."
+    if ($PYTHON_ARGS.Count -gt 0) {
+        & $PYTHON @PYTHON_ARGS -m venv $VENV
+    } else {
+        & $PYTHON -m venv $VENV
+    }
     & "$VENV\Scripts\pip.exe" install --upgrade pip
     & "$VENV\Scripts\pip.exe" install -r "$BACKEND\requirements.txt"
 }
