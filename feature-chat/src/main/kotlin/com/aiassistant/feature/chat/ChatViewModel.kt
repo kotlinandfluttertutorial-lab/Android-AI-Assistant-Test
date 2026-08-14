@@ -66,6 +66,7 @@ import com.aiassistant.domain.model.Conversation
 import com.aiassistant.domain.model.GroupedConversations
 import com.aiassistant.domain.usecase.conversation.GetConversationsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
@@ -74,7 +75,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.stateIn
-import javax.inject.Inject
 
 /**
  * ViewModel for the conversation list.
@@ -127,11 +127,11 @@ class ChatViewModel @Inject constructor(
             else -> ChatListUiState.Error(null)
         }
     }
-    .stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000L),
-        initialValue = ChatListUiState.Loading
-    )
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000L),
+            initialValue = ChatListUiState.Loading
+        )
 
     /**
      * Paged flow of chat list items (Conversation + Headers).
