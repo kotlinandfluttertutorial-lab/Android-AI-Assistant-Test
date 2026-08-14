@@ -1,0 +1,43 @@
+# Ruff configuration for the Android AI Assistant backend.
+# https://docs.astral.sh/ruff/configuration/
+
+target-version = "py311"
+line-length = 100
+
+[lint]
+select = [
+    "E",   # pycodestyle errors
+    "W",   # pycodestyle warnings
+    "F",   # pyflakes
+    "I",   # isort
+    "B",   # flake8-bugbear
+    "C4",  # flake8-comprehensions
+    "UP",  # pyupgrade
+    "S",   # flake8-bandit (security)
+    "N",   # pep8-naming
+    "ANN", # flake8-annotations (type hints)
+    "RUF", # ruff-specific rules
+]
+
+ignore = [
+    "ANN101",  # missing-type-self (deprecated)
+    "ANN102",  # missing-type-cls (deprecated)
+    "ANN401",  # dynamically-typed-expression (Any)
+    "S101",    # assert — used in tests
+    "S105",    # hardcoded-password-string — false positives on config keys
+    "S106",    # hardcoded-password-func-arg
+    "B008",    # do-not-perform-function-call-in-default-argument — FastAPI Depends()
+    "N805",    # first-argument-of-a-method-should-be-named-self — Pydantic validators
+]
+
+[lint.per-file-ignores]
+"tests/**" = ["ANN", "S", "N"]
+"alembic/**" = ["ANN", "N801", "N999"]
+
+[lint.isort]
+known-first-party = ["app"]
+
+[format]
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Base application theme — Material3 via Compose; no legacy XML theme needed. -->
+    <style name="Theme.AIAssistant" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <!-- Splash screen theme using AndroidX SplashScreen API (windowSplashScreenBackground). -->
+    <style name="Theme.AIAssistant.SplashScreen" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@android:color/white</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="postSplashScreenTheme">@style/Theme.AIAssistant</item>
+    </style>
+</resources>

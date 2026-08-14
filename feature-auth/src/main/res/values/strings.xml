@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="biometric_prompt_title">Unlock AI Assistant</string>
+    <string name="biometric_prompt_subtitle">Use your fingerprint or face to continue</string>
+    <string name="auth_email_label">Email address</string>
+    <string name="auth_password_label">Password</string>
+    <string name="auth_sign_in">Sign In</string>
+    <string name="auth_register">Create Account</string>
+    <string name="auth_google_sign_in">Sign in with Google</string>
+    <string name="auth_biometric_login">Login with biometrics</string>
+    <string name="onboarding_continue">Continue</string>
+    <string name="onboarding_privacy_consent">I agree to the Privacy Policy and Terms of Service</string>
+    <string name="onboarding_analytics_consent">Allow optional analytics data collection</string>
+</resources>

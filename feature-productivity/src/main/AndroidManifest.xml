@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    feature-productivity AndroidManifest.xml
+
+    Declares the BroadcastReceivers required for the Reminders sub-feature:
+      - ReminderAlarmReceiver: handles exact alarm broadcasts from AlarmManager
+      - ReminderBootReceiver: reschedules alarms after device reboot
+
+    Permissions (declared in app/AndroidManifest.xml via manifest merge):
+      - SCHEDULE_EXACT_ALARM  (Android 12+, API 31+)
+      - USE_EXACT_ALARM       (Android 13+, API 33+)
+      - POST_NOTIFICATIONS    (Android 13+, API 33+)
+      - RECEIVE_BOOT_COMPLETED
+
+    Requirements: 16.3, 16.4
+-->
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <application>
+
+        <!--
+            ReminderAlarmReceiver
+            Receives the custom ALARM_ACTION broadcast when an exact AlarmManager alarm
+            fires for a scheduled reminder. Not exported to external apps.
+        -->
+        <receiver
+            android:name=".reminder.ReminderAlarmReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.aiassistant.feature.productivity.REMINDER_ALARM" />
+            </intent-filter>
+        </receiver>
+
+        <!--
+            ReminderBootReceiver
+            Reschedules all pending reminder alarms after device reboot or quick-boot,
+            because AlarmManager alarms do not survive a power cycle.
+            Exported must be true for the system to deliver BOOT_COMPLETED.
+        -->
+        <receiver
+            android:name=".reminder.ReminderBootReceiver"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.QUICKBOOT_POWERON" />
+                <category android:name="android.intent.category.DEFAULT" />
+            </intent-filter>
+        </receiver>
+
+    </application>
+
+</manifest>
