@@ -44,13 +44,13 @@
  *          offline status, and paging for a smooth list experience.
  * Architecture: feature-chat — ViewModel layer.
  * Dependencies: getConversationsUseCase (domain), Paging (AndroidX),
- *               ConnectionTracker (core-network), Hilt.
+ *               ConnectivityObserver (core-network), Hilt.
  *
  * Design decisions:
  * - Uses [combine] to react to both database updates and network status changes.
  * - Paging is handled via [flatMapLatest] on the raw domain flow to ensure
  *   the list refreshes if the underlying data source changes substantially.
- * - Offline status is tracked via [ConnectionTracker] to show status banners.
+ * - Offline status is tracked via [ConnectivityObserver] to show status banners.
  *
  * Requirements: 11.1, 11.3, 11.5
  */
@@ -61,9 +61,9 @@ import androidx.lifecycle.viewModelScope
 import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import com.aiassistant.core.common.ApiResult
-import com.aiassistant.core.network.ConnectionTracker
+import com.aiassistant.core.network.ConnectivityObserver
 import com.aiassistant.domain.model.Conversation
-import com.aiassistant.domain.usecase.chat.GetConversationsUseCase
+import com.aiassistant.domain.usecase.conversation.GetConversationsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
@@ -80,7 +80,7 @@ import javax.inject.Inject
  *
  * Reactive pipeline:
  * 1. [groupedConversationsFlow] emits [ApiResult] from the repository.
- * 2. [isOffline] emits Boolean from [ConnectionTracker].
+ * 2. [isOffline] emits Boolean from [ConnectivityObserver].
  * 3. [uiState] combines them into a high-level UI model.
  * 4. [pagedConversations] converts the success result into [PagingData].
  */
@@ -88,13 +88,14 @@ import javax.inject.Inject
 @HiltViewModel
 class ChatViewModel @Inject constructor(
     private val getConversationsUseCase: GetConversationsUseCase,
-    private val connectionTracker: ConnectionTracker
+    private val connectivityObserver: ConnectivityObserver
 ) : ViewModel() {
 
     // ── Domain flows ──────────────────────────────────────────────────────────
 
     /** Tracks real-time network connectivity. */
-    private val isOffline = connectionTracker.isOffline
+    private val isOffline = connectivityObserver.isConnectedFlow
+        .map { !it }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000L),
