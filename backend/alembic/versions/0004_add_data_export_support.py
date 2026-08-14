@@ -22,8 +22,8 @@ from collections.abc import Sequence
 # Revision identifiers, used by Alembic.
 # ---------------------------------------------------------------------------
 
-revision: str = "0004_add_data_export_support"
-down_revision: str | None = "0003_productivity_tables"
+revision: str = "0004_data_export"
+down_revision: str | None = "0003_productivity"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

@@ -23,8 +23,8 @@ from alembic import op
 # Revision identifiers, used by Alembic.
 # ---------------------------------------------------------------------------
 
-revision: str = "0006_add_privacy_mode_to_users"
-down_revision: str | None = "0005_prompt_templates_versioning"
+revision: str = "0006_privacy_mode"
+down_revision: str | None = "0005_prompt_versioning"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

@@ -181,6 +181,32 @@ class TestVerifyAccessToken:
         with pytest.raises(InvalidTokenError):
             verify_access_token(token)
 
+    def test_raises_on_unknown_crit_header(self) -> None:
+        """Regression test for CVE-2026-32597.
+
+        Unknown header extensions in 'crit' MUST be rejected.
+        """
+        now = datetime.now(tz=timezone.utc)
+        payload = {
+            "sub": str(SAMPLE_USER_ID),
+            "role": SAMPLE_ROLE,
+            "jti": str(uuid.uuid4()),
+            "iat": now,
+            "exp": now + timedelta(minutes=15),
+        }
+        # Manually construct a token with an unknown 'crit' header
+        # PyJWT >= 2.12.0 should reject this during decode.
+        headers = {"crit": ["unknown-extension"], "unknown-extension": "some-value"}
+        token = jwt.encode(
+            payload,
+            os.environ["SECRET_KEY"],
+            algorithm="HS256",
+            headers=headers,
+        )
+        with pytest.raises(InvalidTokenError) as excinfo:
+            verify_access_token(token)
+        assert "critical" in str(excinfo.value).lower() or "crit" in str(excinfo.value).lower()
+
 
 # ---------------------------------------------------------------------------
 # create_refresh_token

@@ -113,6 +113,9 @@ def run_migrations_offline() -> None:
         include_schemas=False,
         compare_type=True,
         compare_server_default=True,
+        # Revision IDs like "0007_usage_feature_and_spending_alerts" exceed the
+        # Alembic default of 32 chars — use 64 to avoid VARCHAR truncation errors.
+        version_table_pk_length=64,
     )
 
     with context.begin_transaction():
@@ -138,6 +141,9 @@ def do_run_migrations(connection: Connection) -> None:
         # Render AS expressions for server defaults so autogenerate can compare
         # them reliably.
         render_as_batch=False,
+        # Revision IDs like "0007_usage_feature_and_spending_alerts" exceed the
+        # Alembic default of 32 chars — use 64 to avoid VARCHAR truncation errors.
+        version_table_pk_length=64,
     )
 
     with context.begin_transaction():
