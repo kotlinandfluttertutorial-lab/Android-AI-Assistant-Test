@@ -148,16 +148,16 @@ class ChatViewModel @Inject constructor(
     // â”€â”€â”€ Grouped conversations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /** Internal flow of the latest [GroupedConversations] for use in paging. */
-    private val _groupedConversationsFlow = getConversationsUseCase()
+    private val groupedConversationsFlow = getConversationsUseCase()
 
-    // â”€â”€â”€ UI state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── UI state ──────────────────────────────────────────────────────────────
 
     /**
      * Primary UI state combining grouped conversations and offline status.
      * Emits [ChatListUiState.Loading] until the first result arrives.
      */
     val uiState: StateFlow<ChatListUiState> = combine(
-        _groupedConversationsFlow,
+        groupedConversationsFlow,
         isOffline
     ) { result, offline ->
         when (result) {
