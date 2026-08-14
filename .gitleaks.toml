@@ -1,0 +1,40 @@
+# Gitleaks configuration for the Android AI Assistant project.
+# https://github.com/gitleaks/gitleaks
+
+title = "Android AI Assistant — Gitleaks Config"
+
+[extend]
+# Extend the default gitleaks ruleset
+useDefault = true
+
+[[rules]]
+id          = "gemini-api-key"
+description = "Google Gemini / GCP API Key"
+regex       = '''AIza[0-9A-Za-z\-_]{35}'''
+tags        = ["key", "google", "gemini", "gcp"]
+
+[[rules]]
+id          = "google-oauth-client-secret"
+description = "Google OAuth2 Client Secret"
+regex       = '''GOCSPX-[0-9A-Za-z\-_]{28}'''
+tags        = ["key", "google", "oauth"]
+
+[[rules]]
+id          = "aes-base64-key"
+description = "Base64-encoded AES encryption key (32 bytes)"
+regex       = '''AES_ENCRYPTION_KEY\s*=\s*[A-Za-z0-9+/]{43}='''
+tags        = ["key", "aes", "encryption"]
+
+[allowlist]
+description = "Global allowlist"
+paths = [
+    '''.env\.example''',
+    '''\.gitleaks\.toml''',
+    '''backend/tests/''',
+]
+regexes = [
+    '''your[_-].*key[_-]here''',
+    '''changeme''',
+    '''replace.with''',
+    '''<PLACEHOLDER>''',
+]
