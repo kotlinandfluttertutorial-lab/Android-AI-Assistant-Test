@@ -42,12 +42,12 @@
  *
  * Purpose: Navigation graph for the chat feature, connecting the conversation list
  *          (ChatListScreen) and individual conversation detail screens.
- * Architecture: feature-chat — Navigation layer; consumed by the app module's root NavHost.
+ * Architecture: feature-chat â€” Navigation layer; consumed by the app module's root NavHost.
  * Dependencies: feature-chat screens, ChatViewModel (Hilt), AndroidX Navigation Compose
  *
  * Design decisions:
  * - Route strings live on [ChatRoute] companion object for type-safety and easy
- *   refactoring — avoid hard-coded strings at call sites.
+ *   refactoring â€” avoid hard-coded strings at call sites.
  * - [chatNavGraph] is a [NavGraphBuilder] extension so the app module can embed the chat
  *   graph into its root [NavHost] without importing screen composables directly.
  *
@@ -68,19 +68,19 @@ import com.aiassistant.core.ai.LlmProvider
  */
 object ChatRoute {
     /** Flat list of all conversations. */
-    const val LIST = "chat/list"
+    const val List = "chat/list"
 
     /**
      * Individual conversation detail screen.
      * The [conversationId] path segment is URL-encoded.
      */
-    const val DETAIL = "chat/detail/{conversationId}"
+    const val Detail = "chat/detail/{conversationId}"
 
     /**
      * Comparison Mode screen embedded in an active conversation.
      * The [conversationId] path segment is URL-encoded.
      */
-    const val COMPARISON = "chat/comparison/{conversationId}"
+    const val Comparison = "chat/comparison/{conversationId}"
 
     /**
      * Builds the resolved route to a specific conversation detail screen.
@@ -104,7 +104,7 @@ object ChatRoute {
  *
  * Usage in the app module's root [NavHost]:
  * ```kotlin
- * NavHost(navController = navController, startDestination = ChatRoute.LIST) {
+ * NavHost(navController = navController, startDestination = ChatRoute.List) {
  *     chatNavGraph(
  *         navController = navController,
  *         onNavigateToDetail = { conversationId -> ... },
@@ -123,8 +123,8 @@ fun NavGraphBuilder.chatNavGraph(
     configuredProviders: List<LlmProvider> = emptyList(),
     selectedComparisonProviders: List<LlmProvider> = emptyList()
 ) {
-    // ── Conversation List ─────────────────────────────────────────────────────────
-    composable(route = ChatRoute.LIST) {
+    // â”€â”€ Conversation List â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    composable(route = ChatRoute.List) {
         val viewModel: ChatViewModel = hiltViewModel()
         ChatListScreen(
             viewModel = viewModel,
@@ -134,9 +134,9 @@ fun NavGraphBuilder.chatNavGraph(
         )
     }
 
-    // ── Conversation Detail ───────────────────────────────────────────────────────
+    // â”€â”€ Conversation Detail â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     composable(
-        route = ChatRoute.DETAIL,
+        route = ChatRoute.Detail,
         arguments = listOf(
             navArgument("conversationId") { type = NavType.StringType }
         )

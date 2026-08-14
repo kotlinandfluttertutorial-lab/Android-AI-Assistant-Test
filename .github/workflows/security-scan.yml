@@ -341,12 +341,10 @@ jobs:
         continue-on-error: true
 
   # ──────────────────────────────────────────────────────────────────────────
-  # 7. pip-audit — Python dependency vulnerability check (fast, every PR)
-  #    Replaces the broken safety==3.2.7 which is incompatible with typer 0.10+
-  #    pip-audit is pip's own maintained scanner backed by OSV + PyPI Advisory DB.
+  # 7. Safety — Python dependency vulnerability check (fast, every PR)
   # ──────────────────────────────────────────────────────────────────────────
   safety:
-    name: Python Dependency Vulnerability Check
+    name: Python Safety Check
     runs-on: ubuntu-latest
 
     steps:
@@ -356,35 +354,41 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install pip-audit
-        run: pip install pip-audit==2.7.3
+      - name: Install Safety
+        run: pip install safety==3.2.7
 
-      - name: Run pip-audit (report, non-blocking)
-        # Print full vulnerability report for visibility — never blocks the job.
+      - name: Run Safety check (report, non-blocking)
         run: |
-          pip-audit \
-            --requirement backend/requirements.txt \
-            --output json \
-            --output-file pip-audit-report.json \
-            --no-deps \
-          || true
+          safety check \
+            --file backend/requirements.txt \
+            --output text \
+            --policy-file .github/safety-policy.yml \
+          || true   # report all findings for visibility
         continue-on-error: true
 
-      - name: Run pip-audit (critical CVE gate)
-        # Per Req 28.6: any vulnerability with CVSS >= 9.0 fails the workflow.
+      - name: Run Safety check (critical CVE gate)
+        # Per Req 28.6: any critical CVE fails the workflow job.
         run: |
-          pip-audit \
-            --requirement backend/requirements.txt \
-            --no-deps \
-            --strict
-        # No continue-on-error — vulnerabilities cause non-zero exit and fail the job
+          safety check \
+            --file backend/requirements.txt \
+            --output text \
+            --policy-file .github/safety-policy.yml
+        # No continue-on-error — critical CVEs cause non-zero exit and fail the job
 
-      - name: Upload pip-audit report
+      - name: Generate Safety JSON report
+        run: |
+          safety check \
+            --file backend/requirements.txt \
+            --output json \
+            --save-json safety-report.json \
+          || true
+
+      - name: Upload Safety report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: pip-audit-report-${{ github.run_number }}
-          path: pip-audit-report.json
+          name: safety-report-${{ github.run_number }}
+          path: safety-report.json
           retention-days: 14
 
   # ──────────────────────────────────────────────────────────────────────────

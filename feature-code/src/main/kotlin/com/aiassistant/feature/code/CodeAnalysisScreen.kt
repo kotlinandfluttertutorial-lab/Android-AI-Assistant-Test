@@ -42,7 +42,7 @@
  *
  * Purpose: Displays the AI analysis result with syntax-highlighted code using the
  *          languageId from the AI response, copy-to-clipboard, and back-to-editor navigation.
- * Architecture: feature-code — MVVM presentation layer (stateless composable pattern).
+ * Architecture: feature-code â€” MVVM presentation layer (stateless composable pattern).
  * Dependencies: core-ui (CodeBlock, MarkdownText), domain (CodeAction, CodeAnalysisResult),
  *               Compose Material 3
  *
@@ -95,7 +95,7 @@ import com.aiassistant.domain.model.SupportedLanguage
 /**
  * Code analysis result screen composable.
  *
- * Stateless composable — all state changes are delegated to ViewModel via lambda callbacks.
+ * Stateless composable â€” all state changes are delegated to ViewModel via lambda callbacks.
  *
  * Rendering strategy by action (Requirement 12.2, 12.3, 12.4, 12.6):
  * - [CodeAction.EXPLAIN]: renders [CodeAnalysisResult.content] as [MarkdownText] (structured
@@ -153,7 +153,7 @@ fun CodeAnalysisScreen(uiState: CodeUiState.AnalysisResult, onBackToEditor: () -
         ) {
             Spacer(modifier = Modifier.height(8.dp))
 
-            // ── Action header ─────────────────────────────────────────────────────────────
+            // â”€â”€ Action header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -180,7 +180,7 @@ fun CodeAnalysisScreen(uiState: CodeUiState.AnalysisResult, onBackToEditor: () -
 
             Spacer(modifier = Modifier.height(12.dp))
 
-            // ── Result content ────────────────────────────────────────────────────────────
+            // â”€â”€ Result content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             // Requirement 12.6: use languageId from AI response for syntax highlighting.
             // Requirement 12.2: EXPLAIN uses MarkdownText for structured explanation.
             // Requirements 12.3, 12.4: FIX_BUG and GENERATE_TESTS use CodeBlock.
@@ -214,12 +214,12 @@ fun CodeAnalysisScreen(uiState: CodeUiState.AnalysisResult, onBackToEditor: () -
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // ── Action buttons ────────────────────────────────────────────────────────────
+            // â”€â”€ Action buttons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Copy button — single-tap copies result content to clipboard (Requirement 12.5)
+                // Copy button â€” single-tap copies result content to clipboard (Requirement 12.5)
                 Button(
                     onClick = {
                         clipboardManager.setText(AnnotatedString(result.content))
@@ -267,9 +267,9 @@ fun CodeAnalysisScreen(uiState: CodeUiState.AnalysisResult, onBackToEditor: () -
     }
 }
 
-// ── Previews ──────────────────────────────────────────────────────────────────
+// â”€â”€â”€ Previews â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-@Preview(showBackground = true, name = "CodeAnalysisScreen — Explain")
+@Preview(showBackground = true, name = "CodeAnalysisScreen â€“ Explain")
 @Composable
 private fun CodeAnalysisExplainPreview() {
     AppTheme(dynamicColor = false) {
@@ -284,9 +284,7 @@ private fun CodeAnalysisExplainPreview() {
                     languageId = "kotlin",
                     originalCode = "fun hello() = println(\"Hello\")",
                     action = CodeAction.EXPLAIN,
-                    content = "## What it does\nPrints \"Hello\" to stdout.\n\n## Why\n" +
-                        "Demonstrates a minimal Kotlin function.\n\n## Improvements\n" +
-                        "- Add a parameter to make it configurable."
+                    content = "## What it does\nPrints \"Hello\" to stdout.\n\n## Why\nDemonstrates a minimal Kotlin function.\n\n## Improvements\n- Add a parameter to make it configurable."
                 )
             ),
             onBackToEditor = {}
@@ -294,7 +292,7 @@ private fun CodeAnalysisExplainPreview() {
     }
 }
 
-@Preview(showBackground = true, name = "CodeAnalysisScreen — Fix Bug")
+@Preview(showBackground = true, name = "CodeAnalysisScreen â€“ Fix Bug")
 @Composable
 private fun CodeAnalysisFixBugPreview() {
     AppTheme(dynamicColor = false) {
@@ -309,10 +307,7 @@ private fun CodeAnalysisFixBugPreview() {
                     languageId = "kotlin",
                     originalCode = "fun divide(a: Int, b: Int) = a / b",
                     action = CodeAction.FIX_BUG,
-                    content = "// FIX: Guard against division by zero\n" +
-                        "fun divide(a: Int, b: Int): Int? {\n" +
-                        "    if (b == 0) return null // return null instead of throwing\n" +
-                        "    return a / b\n}"
+                    content = "// FIX: Guard against division by zero\nfun divide(a: Int, b: Int): Int? {\n    if (b == 0) return null // return null instead of throwing\n    return a / b\n}"
                 )
             ),
             onBackToEditor = {}

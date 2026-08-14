@@ -84,11 +84,18 @@ import com.aiassistant.core.ui.spacing
 import com.aiassistant.domain.model.Message
 import java.util.Locale
 
-// ── Screen entry point ───────────────────────────────────────────────────────
+// ─── Screen entry point ──────────────────────────────────────────────────────
 
 /**
  * Stateful entry point. Collects state from [ComparisonModeViewModel] and delegates
  * rendering to the stateless overload.
+ *
+ * @param viewModel         The Hilt-provided [ComparisonModeViewModel].
+ * @param conversationId    ID of the active conversation.
+ * @param configuredProviders Providers that have been configured by the user (from Settings).
+ * @param selectedProviders Providers pre-selected for this comparison session.
+ * @param onNavigateUp      Called when the user taps the back arrow.
+ * @param onResponseAdopted Called with the canonical [Message] when "Use This Response" is tapped.
  */
 @Composable
 fun ComparisonModeScreen(
@@ -101,6 +108,7 @@ fun ComparisonModeScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
+    // Initialise availability check on first composition
     androidx.compose.runtime.LaunchedEffect(configuredProviders) {
         viewModel.initialise(configuredProviders)
     }
@@ -125,8 +133,12 @@ fun ComparisonModeScreen(
     )
 }
 
-// ── Stateless screen ──────────────────────────────────────────────────────────
+// ─── Stateless screen ────────────────────────────────────────────────────────
 
+/**
+ * Stateless ComparisonMode screen. All state is passed in; side effects communicated
+ * via callbacks.
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ComparisonModeScreenContent(
@@ -165,6 +177,7 @@ internal fun ComparisonModeScreenContent(
                 .imePadding()
         ) {
             if (uiState.panels.isEmpty()) {
+                // Prompt entry phase
                 PromptInputSection(
                     isAvailable = uiState.isComparisonModeAvailable,
                     unavailableTooltip = uiState.unavailableTooltip,
@@ -175,6 +188,7 @@ internal fun ComparisonModeScreenContent(
                         .padding(MaterialTheme.spacing.md)
                 )
             } else {
+                // Results phase: side-scrollable panels (Req 30.2)
                 ComparisonPanelRow(
                     panels = uiState.panels,
                     canonicalPanelId = uiState.canonicalPanelId,
@@ -184,6 +198,7 @@ internal fun ComparisonModeScreenContent(
                         .fillMaxWidth()
                 )
 
+                // Reset / new comparison
                 OutlinedButton(
                     onClick = onReset,
                     modifier = Modifier
@@ -198,8 +213,12 @@ internal fun ComparisonModeScreenContent(
     }
 }
 
-// ── Prompt input section ──────────────────────────────────────────────────────
+// ─── Prompt input section ────────────────────────────────────────────────────
 
+/**
+ * Text field + dispatch button. Disabled when [isAvailable] is false, with a tooltip
+ * explaining why (Req 30.8).
+ */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun PromptInputSection(
@@ -212,6 +231,7 @@ private fun PromptInputSection(
     var promptText by rememberSaveable { mutableStateOf("") }
 
     Column(modifier = modifier) {
+        // Provider chips summary
         if (selectedProviders.isNotEmpty()) {
             Text(
                 text = "Comparing: ${selectedProviders.joinToString(", ") { it.display }}",
@@ -236,6 +256,7 @@ private fun PromptInputSection(
 
         Spacer(modifier = Modifier.height(MaterialTheme.spacing.sm))
 
+        // Dispatch button — wrapped in a tooltip when disabled (Req 30.8)
         TooltipBox(
             positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
             tooltip = {
@@ -259,6 +280,7 @@ private fun PromptInputSection(
             }
         }
 
+        // Inline explanation when fewer than 2 providers are configured (Req 30.8)
         if (!isAvailable) {
             Spacer(modifier = Modifier.height(MaterialTheme.spacing.xs))
             Text(
@@ -273,8 +295,12 @@ private fun PromptInputSection(
     }
 }
 
-// ── Side-scrollable panel row ─────────────────────────────────────────────────
+// ─── Side-scrollable panel row ───────────────────────────────────────────────
 
+/**
+ * Horizontal-scrollable row of provider panels (Req 30.2).
+ * Each panel is ~320 dp wide so 2 panels fit on most phones and larger screens show more.
+ */
 @Composable
 private fun ComparisonPanelRow(
     panels: List<ProviderPanelState>,
@@ -303,8 +329,12 @@ private fun ComparisonPanelRow(
     }
 }
 
-// ── Single provider panel ─────────────────────────────────────────────────────
+// ─── Single provider panel ───────────────────────────────────────────────────
 
+/**
+ * Card containing all per-provider information: name, quality score, token count,
+ * latency, cost, response text, and "Use This Response" button (Req 30.2, 30.5, 30.6).
+ */
 @Composable
 private fun ProviderPanel(
     panel: ProviderPanelState,
@@ -380,8 +410,11 @@ private fun ProviderPanel(
     }
 }
 
-// ── Panel sub-components ──────────────────────────────────────────────────────
+// ─── Panel sub-components ────────────────────────────────────────────────────
 
+/**
+ * Panel header: provider name, quality score badge, and status indicator.
+ */
 @Composable
 private fun PanelHeader(panel: ProviderPanelState, isAdopted: Boolean) {
     Row(
@@ -437,6 +470,9 @@ private fun PanelHeader(panel: ProviderPanelState, isAdopted: Boolean) {
     }
 }
 
+/**
+ * Quality score badge displaying 0–100 with colour coding (Req 30.5).
+ */
 @Composable
 private fun QualityScoreBadge(score: Int) {
     val color = when {
@@ -461,6 +497,9 @@ private fun QualityScoreBadge(score: Int) {
     }
 }
 
+/**
+ * Metrics row: token count, latency, estimated cost (Req 30.2).
+ */
 @Composable
 private fun PanelMetrics(panel: ProviderPanelState) {
     val isComplete = panel.status is ProviderPanelStatus.Complete
@@ -488,6 +527,9 @@ private fun PanelMetrics(panel: ProviderPanelState) {
     }
 }
 
+/**
+ * Small metric label + value chip.
+ */
 @Composable
 private fun MetricChip(label: String, value: String) {
     Column(horizontalAlignment = Alignment.CenterHorizontally) {
@@ -504,6 +546,9 @@ private fun MetricChip(label: String, value: String) {
     }
 }
 
+/**
+ * Response body: Markdown-rendered response, error message, or loading/timeout placeholder.
+ */
 @Composable
 private fun PanelResponseBody(panel: ProviderPanelState) {
     when (val status = panel.status) {
@@ -527,9 +572,10 @@ private fun PanelResponseBody(panel: ProviderPanelState) {
         }
 
         is ProviderPanelStatus.Streaming -> {
+            // Render partial Markdown as tokens stream in (Req 30.2)
             MarkdownText(
                 markdown = panel.responseText,
-                contentDescription = "Streaming response from ${panel.providerName}",
+                contentDescription = "Streaming response from ${panel.providerName}: ${panel.responseText}",
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -537,7 +583,7 @@ private fun PanelResponseBody(panel: ProviderPanelState) {
         is ProviderPanelStatus.Complete -> {
             MarkdownText(
                 markdown = panel.responseText,
-                contentDescription = "Response from ${panel.providerName}",
+                contentDescription = "Response from ${panel.providerName}: ${panel.responseText}",
                 modifier = Modifier.fillMaxWidth()
             )
         }
@@ -548,7 +594,7 @@ private fun PanelResponseBody(panel: ProviderPanelState) {
                 color = MaterialTheme.colorScheme.errorContainer,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .semantics { contentDescription = "Error from ${panel.providerName}" }
+                    .semantics { contentDescription = "Error from ${panel.providerName}: ${status.message}" }
             ) {
                 Row(
                     modifier = Modifier.padding(MaterialTheme.spacing.sm),
@@ -603,7 +649,7 @@ private fun PanelResponseBody(panel: ProviderPanelState) {
     }
 }
 
-// ── Previews ──────────────────────────────────────────────────────────────────
+// ─── Previews ────────────────────────────────────────────────────────────────
 
 @Preview(showBackground = true, name = "ComparisonMode — Prompt entry (disabled)")
 @Composable
@@ -643,8 +689,7 @@ private fun ComparisonModeResultsPreview() {
             providerId = "openai_gpt4o",
             providerName = "OpenAI GPT-4o",
             status = ProviderPanelStatus.Complete,
-            responseText = "**Kotlin coroutines** simplify async programming.\n\n" +
-                "They allow you to write sequential-looking code that runs asynchronously.",
+            responseText = "**Kotlin coroutines** simplify async programming.\n\nThey allow you to write sequential-looking code that runs asynchronously.",
             tokenCount = 82,
             latencyMs = 430L,
             estimatedCostUsd = 0.00246,
