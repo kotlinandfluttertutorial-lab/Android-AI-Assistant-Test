@@ -37,3 +37,5 @@ backend/**/*.pyc
 
 # OS
 Thumbs.db
+/venv/
+/app/google-services.json
