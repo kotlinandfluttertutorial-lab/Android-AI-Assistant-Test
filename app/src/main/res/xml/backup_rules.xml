@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Full-backup content rules (Android 11 and lower).
+    Mirrors data_extraction_rules.xml for older API levels.
+
+    See: https://developer.android.com/guide/topics/data/autobackup
+-->
+<full-backup-content>
+    <!-- Exclude all shared preferences (contains tokens and keys) -->
+    <exclude domain="sharedpref" path="." />
+    <!-- Exclude all databases (local Room database) -->
+    <exclude domain="database" path="." />
+    <!-- Exclude all files (DataStore, certificates) -->
+    <exclude domain="file" path="." />
+    <!-- Exclude external files -->
+    <exclude domain="external" path="." />
+</full-backup-content>

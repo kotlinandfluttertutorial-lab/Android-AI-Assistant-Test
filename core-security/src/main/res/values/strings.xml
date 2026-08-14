@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="biometric_prompt_title">Unlock AI Assistant</string>
+    <string name="biometric_prompt_subtitle">Use biometric authentication to access your session</string>
+    <string name="biometric_prompt_negative_button">Use Password</string>
+    <string name="biometric_not_available">Biometric authentication is not available on this device</string>
+    <string name="biometric_not_enrolled">No biometric credentials enrolled. Please set up biometrics in device settings</string>
+</resources>
