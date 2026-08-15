@@ -35,7 +35,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 def _utcnow_plus(hours: int) -> str:
     """Return an ISO 8601 UTC timestamp *hours* from now."""
-    return (datetime.now(tz=datetime.UTC) + timedelta(hours=hours)).isoformat()
+    return (datetime.now(tz=timezone.utc) + timedelta(hours=hours)).isoformat()
 
 
 # ---------------------------------------------------------------------------

@@ -376,16 +376,12 @@ jobs:
       - name: Run ktlint check
         run: ./gradlew ktlintCheck --stacktrace
 
-      - name: Run Detekt on changed Kotlin files
-        if: ${{ hashFiles('changed_kt_files.txt') != '' }}
-        run: |
-          INPUT_LIST=$(paste -sd ',' changed_kt_files.txt)
-          ./gradlew detekt --stacktrace \
-            --input "$INPUT_LIST"
+      - name: Run Detekt
+        run: ./gradlew detekt --stacktrace
 
-      - name: Skip Detekt (no changed Kotlin files)
-        if: ${{ hashFiles('changed_kt_files.txt') == '' }}
-        run: echo "No changed .kt files detected — skipping Detekt."
+      - name: Annotate changed files with Detekt issues
+        if: ${{ hashFiles('changed_kt_files.txt') != '' }}
+        run: echo "Detekt ran on full source tree — changed files are included in the report."
 
       - name: Upload Detekt SARIF to GitHub Code Scanning
         if: always()

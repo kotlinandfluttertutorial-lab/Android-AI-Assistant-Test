@@ -41,7 +41,7 @@ import json
 import logging
 import math
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 from redis.asyncio import Redis
@@ -105,7 +105,7 @@ async def get_metrics(db: AsyncSession, redis: Redis) -> MetricsResponse:
 
     Requirements: 15.1
     """
-    now = datetime.now(tz=datetime.UTC)
+    now = datetime.now(tz=timezone.utc)
     one_hour_ago = now - timedelta(hours=1)
 
     # Active users — count unique session keys in Redis
@@ -383,7 +383,7 @@ async def get_error_summary(db: AsyncSession) -> ErrorSummaryResponse:
 
     Requirements: 15.6
     """
-    now = datetime.now(tz=datetime.UTC)
+    now = datetime.now(tz=timezone.utc)
     since = now - timedelta(hours=24)
 
     # Aggregate by error_type: count, last seen, latest message/trace
@@ -517,7 +517,7 @@ async def get_active_sessions(redis: Redis) -> ActiveSessionsResponse:
 
     Requirements: 15.9
     """
-    now = datetime.now(tz=datetime.UTC)
+    now = datetime.now(tz=timezone.utc)
     sessions: list[SessionInfo] = []
 
     try:
@@ -541,7 +541,7 @@ async def get_active_sessions(redis: Redis) -> ActiveSessionsResponse:
                     try:
                         connected_at = datetime.fromisoformat(connected_at_str)
                         if connected_at.tzinfo is None:
-                            connected_at = connected_at.replace(tzinfo=datetime.UTC)
+                            connected_at = connected_at.replace(tzinfo=timezone.utc)
                         duration = int((now - connected_at).total_seconds())
                     except (ValueError, TypeError):
                         duration = 0
@@ -631,7 +631,7 @@ async def update_remote_config_key(
 
     Requirements: 15.8
     """
-    now = datetime.now(tz=datetime.UTC)
+    now = datetime.now(tz=timezone.utc)
 
     try:
         raw = await redis.get(_REMOTE_CONFIG_KEY)
@@ -663,7 +663,7 @@ async def publish_remote_config(redis: Redis) -> RemoteConfigPublishResponse:
 
     Requirements: 15.8
     """
-    now = datetime.now(tz=datetime.UTC)
+    now = datetime.now(tz=timezone.utc)
 
     try:
         raw = await redis.get(_REMOTE_CONFIG_KEY)
@@ -822,7 +822,7 @@ async def get_usage_analytics(db: AsyncSession) -> UsageAnalyticsResponse:
 
     Requirements: 15.3
     """
-    now = datetime.now(tz=datetime.UTC)
+    now = datetime.now(tz=timezone.utc)
 
     rows = await db.execute(
         select(

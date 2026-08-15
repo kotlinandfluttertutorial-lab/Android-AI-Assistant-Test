@@ -42,3 +42,4 @@ Thumbs.db
 # Real keys are injected via the GOOGLE_SERVICES_JSON secret in build-signed-apk.
 # /app/google-services.json
 /app/google-services.json
+/backend/venv312/
