@@ -42,13 +42,13 @@
  *
  * Purpose: Navigation graph for the RAG feature, connecting the Document List screen
  *          and the Document Chat screen.
- * Architecture: feature-rag â€” Navigation layer; consumed by the app module's root NavHost.
+ * Architecture: feature-rag — Navigation layer; consumed by the app module's root NavHost.
  * Dependencies: feature-rag screens, RAGViewModel, DocumentChatViewModel (Hilt),
  *               AndroidX Navigation Compose
  *
  * Design decisions:
  * - Route strings live on [RAGRoute] companion object for type-safety and easy
- *   refactoring â€” avoid hard-coded strings at call sites.
+ *   refactoring — avoid hard-coded strings at call sites.
  * - [ragNavGraph] is a [NavGraphBuilder] extension so the app module can embed the RAG
  *   graph into its root [NavHost] without importing screen composables directly.
  * - [DocumentChatViewModel] receives the [documentId] via [SavedStateHandle] (injected
@@ -71,13 +71,13 @@ import androidx.navigation.navArgument
 object RAGRoute {
 
     /** Paginated list of all uploaded documents. */
-    const val DocumentList = "rag/documents"
+    const val DOCUMENT_LIST = "rag/documents"
 
     /**
      * Document-specific RAG chat screen.
      * The [documentId] path segment identifies the document to query.
      */
-    const val DocumentChat = "rag/documents/{documentId}/chat"
+    const val DOCUMENT_CHAT = "rag/documents/{documentId}/chat"
 
     /**
      * Builds the resolved route to a specific document chat screen.
@@ -93,7 +93,7 @@ object RAGRoute {
  *
  * Usage in the app module's root [NavHost]:
  * ```kotlin
- * NavHost(navController = navController, startDestination = RAGRoute.DocumentList) {
+ * NavHost(navController = navController, startDestination = RAGRoute.DOCUMENT_LIST) {
  *     ragNavGraph(navController = navController)
  * }
  * ```
@@ -101,8 +101,8 @@ object RAGRoute {
  * @param navController The root [NavHostController] shared with the app module.
  */
 fun NavGraphBuilder.ragNavGraph(navController: NavHostController) {
-    // â”€â”€ Document List â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-    composable(route = RAGRoute.DocumentList) {
+    // ── Document List ────────────────────────────────────────────────────────────
+    composable(route = RAGRoute.DOCUMENT_LIST) {
         val viewModel: RAGViewModel = hiltViewModel()
         DocumentListScreen(
             viewModel = viewModel,
@@ -112,11 +112,11 @@ fun NavGraphBuilder.ragNavGraph(navController: NavHostController) {
         )
     }
 
-    // â”€â”€ Document Chat â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Document Chat ────────────────────────────────────────────────────────────
     // The documentId argument is automatically forwarded to DocumentChatViewModel
     // via SavedStateHandle by Hilt Navigation Compose.
     composable(
-        route = RAGRoute.DocumentChat,
+        route = RAGRoute.DOCUMENT_CHAT,
         arguments = listOf(
             navArgument("documentId") { type = NavType.StringType }
         )
@@ -124,7 +124,7 @@ fun NavGraphBuilder.ragNavGraph(navController: NavHostController) {
         val viewModel: DocumentChatViewModel = hiltViewModel()
         DocumentChatScreen(
             viewModel = viewModel,
-            onNavigateUp = { navController.navigateUp() }
+            onNavigateUp = { navController.popBackStack() }
         )
     }
 }

@@ -183,7 +183,7 @@ private fun rootNavHost(navController: NavHostController) {
                 navDeepLink { uriPattern = "$DEEP_LINK_BASE/rag" }
             )
         ) {
-            navController.navigate(RAGRoute.DocumentList) {
+            navController.navigate(RAGRoute.DOCUMENT_LIST) {
                 popUpTo("deeplink/rag") { inclusive = true }
             }
         }
@@ -200,7 +200,7 @@ private fun rootNavHost(navController: NavHostController) {
                 navDeepLink { uriPattern = "$DEEP_LINK_BASE/voice" }
             )
         ) {
-            navController.navigate(VoiceRoute.Graph) {
+            navController.navigate(VoiceRoute.GRAPH) {
                 popUpTo("deeplink/voice") { inclusive = true }
             }
         }
