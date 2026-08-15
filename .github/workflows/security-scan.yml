@@ -347,10 +347,12 @@ jobs:
         continue-on-error: true
 
   # ──────────────────────────────────────────────────────────────────────────
-  # 7. Safety — Python dependency vulnerability check (fast, every PR)
+  # 7. pip-audit — Python dependency vulnerability check (fast, every PR)
+  #    Replaces Safety CLI which broke with typer>=0.9 (typer.rich_utils gone).
+  #    pip-audit uses the OSV + PyPI Advisory databases — no account required.
   # ──────────────────────────────────────────────────────────────────────────
   safety:
-    name: Python Safety Check
+    name: Python Dependency Audit (pip-audit)
     runs-on: ubuntu-latest
 
     steps:
@@ -360,41 +362,36 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Install Safety
-        run: pip install safety==3.2.7
+      - name: Install pip-audit
+        run: pip install pip-audit==2.9.0
 
-      - name: Run Safety check (report, non-blocking)
+      - name: Run pip-audit (report, non-blocking)
+        # Full report for visibility — does not fail the job.
         run: |
-          safety check \
-            --file backend/requirements.txt \
-            --output text \
-            --policy-file .github/safety-policy.yml \
-          || true   # report all findings for visibility
+          pip-audit \
+            --requirement backend/requirements.txt \
+            --output json \
+            --format json \
+            > pip-audit-report.json \
+          || true
         continue-on-error: true
 
-      - name: Run Safety check (critical CVE gate)
-        # Per Req 28.6: any critical CVE fails the workflow job.
+      - name: Run pip-audit (CRITICAL gate)
+        # Fail the job on any vulnerability not listed in the ignore file.
+        # CVE-2026-45829 (chromadb) is ignored — no patch available, port-binding
+        # mitigation is in place. See .trivyignore for details.
         run: |
-          safety check \
-            --file backend/requirements.txt \
-            --output text \
-            --policy-file .github/safety-policy.yml
-        # No continue-on-error — critical CVEs cause non-zero exit and fail the job
+          pip-audit \
+            --requirement backend/requirements.txt \
+            --ignore-vuln CVE-2026-45829 \
+            --strict
 
-      - name: Generate Safety JSON report
-        run: |
-          safety check \
-            --file backend/requirements.txt \
-            --output json \
-            --save-json safety-report.json \
-          || true
-
-      - name: Upload Safety report
+      - name: Upload pip-audit report
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: safety-report-${{ github.run_number }}
-          path: safety-report.json
+          name: pip-audit-report-${{ github.run_number }}
+          path: pip-audit-report.json
           retention-days: 14
 
   # ──────────────────────────────────────────────────────────────────────────
