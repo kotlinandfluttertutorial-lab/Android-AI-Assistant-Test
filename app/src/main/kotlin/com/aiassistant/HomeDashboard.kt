@@ -105,7 +105,7 @@ private val featureCards = listOf(
     FeatureCardItem("Meeting\nRecorder", Icons.Outlined.MeetingRoom, meetingRoute()),
     FeatureCardItem("Translator", Icons.Outlined.GTranslate, TRANSLATOR_ROUTE),
     FeatureCardItem("Settings", Icons.Outlined.Settings, SettingsRoute.SCREEN),
-    FeatureCardItem("Profile", Icons.Outlined.Person, ProfileRoute.Screen)
+    FeatureCardItem("Profile", Icons.Outlined.Person, ProfileRoute.SCREEN)
 )
 
 /**
