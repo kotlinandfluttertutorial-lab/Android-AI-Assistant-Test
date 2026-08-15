@@ -87,7 +87,7 @@ class RequestBodySizeLimitMiddleware:
                 from app.config.settings import get_settings
 
                 self._settings = get_settings()
-            except Exception:  # noqa: BLE001
+            except Exception:
                 return _DEFAULT_LIMIT_BYTES
         return getattr(self._settings, "MAX_REQUEST_BODY_SIZE", _DEFAULT_LIMIT_BYTES)
 

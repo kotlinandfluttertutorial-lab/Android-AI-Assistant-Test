@@ -211,6 +211,7 @@ async def _run_ingestion(task, document_id: str, user_id: str) -> dict:
 
 async def _handle_permanent_failure(document_id: str, user_id: str) -> None:
     """Mark document and job as permanently failed."""
+    from app.database import AsyncSessionLocal
     from app.models.document import IngestionStatus
     from app.models.job import Job, JobStatus
     from app.repositories.document_repository import DocumentRepository
@@ -220,7 +221,6 @@ async def _handle_permanent_failure(document_id: str, user_id: str) -> None:
 
     doc_uuid = uuid.UUID(document_id)
     user_uuid = uuid.UUID(user_id)
-    engine, AsyncSessionLocal = _make_session_factory()
     try:
         async with AsyncSessionLocal() as db:
             doc_repo = DocumentRepository(db)
@@ -245,8 +245,6 @@ async def _handle_permanent_failure(document_id: str, user_id: str) -> None:
             await db.commit()
     except Exception as exc:
         logger.error("Failed to write permanent-failure state for document=%s: %s", document_id, exc)
-    finally:
-        await engine.dispose()
 
     # Send FCM failure notification (best-effort)
     await rag_service.send_ingestion_failure_notification(user_id, document_id)

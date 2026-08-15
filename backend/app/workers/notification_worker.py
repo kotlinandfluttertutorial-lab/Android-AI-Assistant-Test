@@ -83,7 +83,7 @@ def send_push_notification(
 
     Requirements: 16.1, 16.2, 16.5, 16.6
     """
-    return asyncio.get_event_loop().run_until_complete(
+    return asyncio.run(
         _run_send_push_notification(self, user_id, title, body, data or {})
     )
 
@@ -181,7 +181,7 @@ def refresh_device_token(self, user_id: str, old_token: str, new_token: str) -> 
 
     Requirements: 16.7
     """
-    return asyncio.get_event_loop().run_until_complete(
+    return asyncio.run(
         _run_refresh_device_token(self, user_id, old_token, new_token)
     )
 
@@ -263,7 +263,7 @@ def send_message_delivery_notification_task(
         dict with ``status`` and relevant IDs.
     """
     try:
-        asyncio.get_event_loop().run_until_complete(
+        asyncio.run(
             _send_delivery_notification(user_id, message_id, conversation_id)
         )
         return {

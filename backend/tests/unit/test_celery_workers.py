@@ -357,7 +357,7 @@ class TestDeliveryNotificationTask:
         message_id = "msg-456"
         conversation_id = "conv-789"
 
-        asyncio.get_event_loop().run_until_complete(
+        asyncio.run(
             _fake_send(user_id, message_id, conversation_id)
         )
 

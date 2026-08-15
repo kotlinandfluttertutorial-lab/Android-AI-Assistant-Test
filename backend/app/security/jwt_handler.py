@@ -29,7 +29,7 @@ from __future__ import annotations
 import hashlib
 import secrets
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import jwt
@@ -85,7 +85,7 @@ def create_access_token(
     Requirements: 1.2
     """
     settings = _get_settings()
-    now = datetime.now(tz=datetime.UTC)
+    now = datetime.now(tz=timezone.utc)
 
     if expires_delta is None:
         expires_delta = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -156,8 +156,8 @@ def verify_access_token(token: str) -> TokenPayload:
 
     # Convert numeric timestamps to aware datetime objects.
     try:
-        iat = datetime.fromtimestamp(raw_payload["iat"], tz=datetime.UTC)
-        exp = datetime.fromtimestamp(raw_payload["exp"], tz=datetime.UTC)
+        iat = datetime.fromtimestamp(raw_payload["iat"], tz=timezone.utc)
+        exp = datetime.fromtimestamp(raw_payload["exp"], tz=timezone.utc)
     except (TypeError, ValueError, OSError) as exc:
         raise InvalidTokenError(f"JWT timestamp conversion failed: {exc}") from exc
 
@@ -227,7 +227,7 @@ def create_refresh_token(
     Requirements: 1.2
     """
     settings = _get_settings()
-    now = datetime.now(tz=datetime.UTC)
+    now = datetime.now(tz=timezone.utc)
 
     if expires_delta is None:
         expires_delta = timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
