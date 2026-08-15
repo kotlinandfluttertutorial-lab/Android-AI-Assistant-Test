@@ -15,9 +15,8 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
-
 from alembic import op
+from sqlalchemy.dialects import postgresql
 
 # ---------------------------------------------------------------------------
 # Revision identifiers, used by Alembic.
@@ -57,9 +56,7 @@ def upgrade() -> None:
         ),
         sa.Column("title", sa.String(512), nullable=False),
         sa.Column("description", sa.Text, nullable=False, server_default=""),
-        sa.Column(
-            "is_completed", sa.Boolean, nullable=False, server_default=sa.false()
-        ),
+        sa.Column("is_completed", sa.Boolean, nullable=False, server_default=sa.false()),
         sa.Column("due_date", sa.DateTime(timezone=True), nullable=True),
         sa.Column("priority", sa.String(16), nullable=False, server_default="medium"),
         sa.Column(
@@ -151,9 +148,7 @@ def upgrade() -> None:
             sa.ForeignKey("todo_items.id", ondelete="SET NULL"),
             nullable=True,
         ),
-        sa.Column(
-            "is_completed", sa.Boolean, nullable=False, server_default=sa.false()
-        ),
+        sa.Column("is_completed", sa.Boolean, nullable=False, server_default=sa.false()),
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),

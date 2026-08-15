@@ -162,17 +162,14 @@ class RequestBodySizeLimitMiddleware:
 
         await self.app(scope, buffered_receive, send)
 
-    async def _send_413(
-        self, scope: Scope, receive: Receive, send: Send, limit: int
-    ) -> None:
+    async def _send_413(self, scope: Scope, receive: Receive, send: Send, limit: int) -> None:
         """Helper to send a 413 response over raw ASGI."""
+        # JSONResponse's constructor doesn't take 'scope', 'receive', 'send'.
+        # It's an ASGI application, so we call it with them.
         response = JSONResponse(
             status_code=413,
             content={
-                "detail": (
-                    f"Request body too large. "
-                    f"Maximum allowed size is {limit // 1024} KiB."
-                )
+                "detail": (f"Request body too large. Maximum allowed size is {limit // 1024} KiB.")
             },
         )
         await response(scope, receive, send)

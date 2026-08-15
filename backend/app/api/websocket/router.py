@@ -105,9 +105,7 @@ async def websocket_chat(
     try:
         payload = await authenticate_websocket(token)
     except InvalidTokenError as exc:
-        logger.info(
-            "WebSocket auth rejected (conversation=%s): %s", conversation_id, exc
-        )
+        logger.info("WebSocket auth rejected (conversation=%s): %s", conversation_id, exc)
         await websocket.send_json(
             {
                 "type": "error",
@@ -296,8 +294,7 @@ class _BufferingWebSocketProxy:
         except (WebSocketDisconnect, RuntimeError, OSError):
             self._disconnected = True
             logger.info(
-                "Client disconnected mid-stream; buffering tokens "
-                "(user=%s conversation=%s)",
+                "Client disconnected mid-stream; buffering tokens (user=%s conversation=%s)",
                 self._user_id,
                 self._conversation_id,
             )

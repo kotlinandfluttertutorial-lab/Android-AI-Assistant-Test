@@ -197,18 +197,14 @@ class MemoryRepository:
             try:
                 embeddings = self._encode([content])
                 # Apply Laplace differential-privacy noise before storing
-                noised_embedding = LaplaceNoiseInjector.add_noise(
-                    embeddings[0], epsilon=_epsilon
-                )
+                noised_embedding = LaplaceNoiseInjector.add_noise(embeddings[0], epsilon=_epsilon)
                 client = self._get_chroma_client()
                 collection = client.get_or_create_collection(collection_name)
                 collection.add(
                     ids=[chroma_id],
                     embeddings=[noised_embedding],
                     documents=[content],
-                    metadatas=[
-                        {"user_id": str(user_id), "memory_type": memory_type.value}
-                    ],
+                    metadatas=[{"user_id": str(user_id), "memory_type": memory_type.value}],
                 )
             except Exception as exc:
                 logger.warning(
@@ -378,8 +374,7 @@ class MemoryRepository:
         result = await self._db.execute(
             select(Memory).where(
                 Memory.id == memory_id,
-                Memory.user_id
-                == user_id,  # user_id filter prevents cross-user deletion
+                Memory.user_id == user_id,  # user_id filter prevents cross-user deletion
             )
         )
         memory = result.scalar_one_or_none()
@@ -434,9 +429,7 @@ class MemoryRepository:
         Requirements: 7.3
         """
         result = await self._db.execute(
-            select(Memory)
-            .where(Memory.user_id == user_id)
-            .order_by(Memory.created_at.desc())
+            select(Memory).where(Memory.user_id == user_id).order_by(Memory.created_at.desc())
         )
         return list(result.scalars().all())
 

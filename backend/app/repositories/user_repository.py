@@ -64,9 +64,7 @@ class UserRepository:
         Returns:
             The matching :class:`~app.models.user.User` row, or ``None``.
         """
-        result = await self._db.execute(
-            select(User).where(User.email == email.strip().lower())
-        )
+        result = await self._db.execute(select(User).where(User.email == email.strip().lower()))
         return result.scalar_one_or_none()
 
     async def get_by_id(self, user_id: uuid.UUID) -> User | None:

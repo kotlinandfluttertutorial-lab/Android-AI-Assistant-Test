@@ -102,8 +102,7 @@ def _assert_no_foreign_user(
     """
     if claimed_user_id is not None and claimed_user_id != authenticated_user_id:
         logger.warning(
-            "Per-user cost data isolation violation attempt: "
-            "authenticated=%s claimed=%s",
+            "Per-user cost data isolation violation attempt: authenticated=%s claimed=%s",
             authenticated_user_id,
             claimed_user_id,
         )
@@ -234,9 +233,7 @@ async def list_alerts(
     responses={
         201: {"description": "Alert created successfully"},
         401: {"description": "JWT absent, expired, or invalid"},
-        422: {
-            "description": "Validation error: threshold out of range or 4th alert attempt"
-        },
+        422: {"description": "Validation error: threshold out of range or 4th alert attempt"},
     },
 )
 async def create_alert(
@@ -293,9 +290,7 @@ async def create_alert(
         "does not exist from the requester's perspective)."
     ),
     responses={
-        200: {
-            "description": "Alert deleted (deleted=True) or not found (deleted=False)"
-        },
+        200: {"description": "Alert deleted (deleted=True) or not found (deleted=False)"},
         401: {"description": "JWT absent, expired, or invalid"},
     },
 )

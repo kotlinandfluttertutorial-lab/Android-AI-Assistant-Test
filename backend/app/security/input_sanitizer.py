@@ -115,7 +115,7 @@ _SQL_PATTERNS: list[re.Pattern[str]] = [
     re.compile(r"\b(?:SLEEP|WAITFOR\s+DELAY|BENCHMARK)\s*\(", re.IGNORECASE),
     # Error-based extraction: EXTRACTVALUE, UPDATEXML, GROUP BY x HAVING
     re.compile(r"\b(?:EXTRACTVALUE|UPDATEXML)\s*\(", re.IGNORECASE),
-    # xp_cmdshell and other MSSQL exploits
+    # xp_cmdshell and other prototype exploits
     re.compile(r"\bxp_cmdshell\b", re.IGNORECASE),
     # Boolean-based: ' AND '1'='1
     re.compile(r"'\s*AND\s+'?\d+'?\s*=\s*'?\d+", re.IGNORECASE),

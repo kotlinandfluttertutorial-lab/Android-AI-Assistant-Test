@@ -65,7 +65,4 @@ class Feedback(Base, TimestampMixin):
     user: Mapped[User | None] = relationship("User")  # noqa: F821
 
     def __repr__(self) -> str:
-        return (
-            f"<Feedback id={self.id!s} user_id={self.user_id!s} "
-            f"category={self.category!r}>"
-        )
+        return f"<Feedback id={self.id!s} user_id={self.user_id!s} category={self.category!r}>"

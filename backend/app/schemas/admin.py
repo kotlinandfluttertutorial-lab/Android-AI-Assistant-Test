@@ -59,22 +59,14 @@ class MetricsResponse(BaseModel):
     Requirements: 15.1
     """
 
-    active_users: int = Field(
-        description="Number of users with sessions active in the last hour"
-    )
+    active_users: int = Field(description="Number of users with sessions active in the last hour")
     messages_per_hour: int = Field(description="Total messages sent in the last hour")
-    total_tokens_consumed: int = Field(
-        description="Cumulative tokens across all providers"
-    )
-    provider_costs: list[ProviderCost] = Field(
-        description="Per-provider token cost breakdown"
-    )
+    total_tokens_consumed: int = Field(description="Cumulative tokens across all providers")
+    provider_costs: list[ProviderCost] = Field(description="Per-provider token cost breakdown")
     error_rate_per_hour: float = Field(
         description="Fraction of requests that resulted in a 5xx error in the last hour"
     )
-    snapshot_at: datetime = Field(
-        description="UTC timestamp when metrics were collected"
-    )
+    snapshot_at: datetime = Field(description="UTC timestamp when metrics were collected")
 
 
 # ---------------------------------------------------------------------------
@@ -204,9 +196,7 @@ class ErrorSummary(BaseModel):
     count: int = Field(description="Number of occurrences in the last 24 hours")
     last_seen: datetime = Field(description="Most recent occurrence timestamp")
     sample_message: str = Field(description="Sample error message for context")
-    stack_trace_summary: str = Field(
-        description="First 500 characters of the most recent stack trace"
-    )
+    stack_trace_summary: str = Field(description="First 500 characters of the most recent stack trace")
 
 
 class ErrorSummaryResponse(BaseModel):
@@ -392,9 +382,7 @@ class UsageAnalyticsItem(BaseModel):
 
     feature: str = Field(description="AI feature name, e.g. 'chat', 'rag', 'voice'")
     provider: str = Field(description="LLM provider name, e.g. 'openai'")
-    total_requests: int = Field(
-        description="Number of completions for this feature/provider pair"
-    )
+    total_requests: int = Field(description="Number of completions for this feature/provider pair")
     total_tokens: int = Field(description="Total tokens consumed (input + output)")
     cost_usd: float = Field(description="Estimated cumulative cost in USD")
 
@@ -405,9 +393,5 @@ class UsageAnalyticsResponse(BaseModel):
     Requirements: 15.3
     """
 
-    items: list[UsageAnalyticsItem] = Field(
-        description="Usage broken down by feature and LLM provider"
-    )
-    generated_at: datetime = Field(
-        description="UTC timestamp when analytics were collected"
-    )
+    items: list[UsageAnalyticsItem] = Field(description="Usage broken down by feature and LLM provider")
+    generated_at: datetime = Field(description="UTC timestamp when analytics were collected")

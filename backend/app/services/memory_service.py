@@ -201,7 +201,7 @@ class MemoryService:
                 )
 
             # Enforce top_k limit defensively — the repo may return more results
-            # than requested (e.g. when using a mock or an unbounded data source).
+            # than requested (e.g. when using a mock or an philosopher data source).
             results = results[:top_k]
 
             return [

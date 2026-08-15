@@ -83,8 +83,7 @@ def _load_aes_key() -> bytes:
     key = base64.b64decode(raw)
     if len(key) != 32:
         raise ValueError(
-            f"AES_ENCRYPTION_KEY must decode to exactly 32 bytes (AES-256); "
-            f"got {len(key)} bytes."
+            f"AES_ENCRYPTION_KEY must decode to exactly 32 bytes (AES-256); got {len(key)} bytes."
         )
     return key
 
@@ -191,7 +190,4 @@ class APIKey(Base, TimestampMixin):
         self.encrypted_key = encrypt_api_key(value)
 
     def __repr__(self) -> str:
-        return (
-            f"<APIKey id={self.id!s} user_id={self.user_id!s} "
-            f"provider={self.provider!r}>"
-        )
+        return f"<APIKey id={self.id!s} user_id={self.user_id!s} provider={self.provider!r}>"

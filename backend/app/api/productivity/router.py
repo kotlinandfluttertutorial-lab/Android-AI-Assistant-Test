@@ -30,7 +30,7 @@ Requirements: 13.1, 9.1, 9.2
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -97,9 +97,7 @@ def _current_user_id(current_user: TokenPayload) -> uuid.UUID:
 async def list_todos(
     page: int = Query(default=1, ge=1, description="1-indexed page number."),
     page_size: int = Query(default=20, ge=1, le=100, description="Items per page."),
-    is_completed: bool | None = Query(
-        default=None, description="Filter by completion status."
-    ),
+    is_completed: bool | None = Query(default=None, description="Filter by completion status."),
     current_user: TokenPayload = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> TodoListResponse:
@@ -221,9 +219,7 @@ async def list_calendar_events(
     start_date: datetime | None = Query(
         default=None, description="Lower bound for start_time (ISO 8601)."
     ),
-    end_date: datetime | None = Query(
-        default=None, description="Upper bound for start_time (ISO 8601)."
-    ),
+    end_date: datetime | None = Query(default=None, description="Upper bound for start_time (ISO 8601)."),
     current_user: TokenPayload = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> CalendarEventListResponse:
@@ -305,9 +301,7 @@ async def suggest_meeting_times(
     user_id = _current_user_id(current_user)
     service = ProductivityService(db)
     llm_provider = LLMProvider(provider)
-    suggestions = await service.suggest_meeting_times(
-        user_id, body.prompt, body.duration_minutes, llm_provider
-    )
+    suggestions = await service.suggest_meeting_times(user_id, body.prompt, body.duration_minutes, llm_provider)
     return SuggestTimesResponse(suggestions=suggestions, prompt=body.prompt)
 
 
@@ -525,5 +519,5 @@ async def get_habit_insights(
     return HabitInsightsResponse(
         habit_id=habit_id,
         insights=insights,
-        generated_at=datetime.now(tz=datetime.UTC),
+        generated_at=datetime.now(tz=UTC),
     )

@@ -64,7 +64,7 @@ if TYPE_CHECKING:
     from app.models.user import User
 
 
-class UsageFeature(str, enum.Enum):
+class UsageFeature(enum.StrEnum):
     """The AI feature that generated a TokenUsage record."""
 
     chat = "chat"
@@ -136,9 +136,7 @@ class TokenUsage(Base):
     # Relationships
     # ------------------------------------------------------------------
     user: Mapped[User] = relationship("User", back_populates="token_usages")
-    message: Mapped[Message] = relationship(
-        "Message", back_populates="token_usage"
-    )
+    message: Mapped[Message] = relationship("Message", back_populates="token_usage")
 
     def __repr__(self) -> str:
         return (

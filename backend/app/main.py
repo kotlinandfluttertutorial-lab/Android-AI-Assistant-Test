@@ -140,9 +140,7 @@ def get_missing_env_vars() -> list[str]:
     Requirements: 26.3, 26.4
     """
     return [
-        var_name
-        for var_name, _ in REQUIRED_ENV_VARS
-        if not os.environ.get(var_name, "").strip()
+        var_name for var_name, _ in REQUIRED_ENV_VARS if not os.environ.get(var_name, "").strip()
     ]
 
 

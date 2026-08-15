@@ -112,7 +112,4 @@ class AuditLog(Base):
     )
 
     def __repr__(self) -> str:
-        return (
-            f"<AuditLog id={self.id!s} event_type={self.event_type!r} "
-            f"user_id={self.user_id!s}>"
-        )
+        return f"<AuditLog id={self.id!s} event_type={self.event_type!r} user_id={self.user_id!s}>"

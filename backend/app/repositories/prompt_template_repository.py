@@ -87,15 +87,14 @@ class PromptTemplateRepository:
         Requirements: 25.1
         """
         result = await self._db.execute(
-            select(PromptTemplate)
-            .where(PromptTemplate.name == name, PromptTemplate.is_active.is_(True))
+            select(PromptTemplate).where(
+                PromptTemplate.name == name, PromptTemplate.is_active.is_(True)
+            )
             .limit(1)
         )
         template = result.scalar_one_or_none()
         if template is None:
-            raise TemplateNotFoundError(
-                f"No active prompt template found with name={name!r}"
-            )
+            raise TemplateNotFoundError(f"No active prompt template found with name={name!r}")
         return template
 
     async def get_version(self, name: str, version: int) -> PromptTemplate:
@@ -114,8 +113,7 @@ class PromptTemplateRepository:
         Requirements: 25.2
         """
         result = await self._db.execute(
-            select(PromptTemplate)
-            .where(
+            select(PromptTemplate).where(
                 PromptTemplate.name == name,
                 PromptTemplate.version == version,
             )
@@ -123,9 +121,7 @@ class PromptTemplateRepository:
         )
         template = result.scalar_one_or_none()
         if template is None:
-            raise TemplateNotFoundError(
-                f"No version {version} found for template name={name!r}"
-            )
+            raise TemplateNotFoundError(f"No version {version} found for template name={name!r}")
         return template
 
     async def list_versions(self, name: str) -> list[PromptTemplate]:
@@ -141,9 +137,7 @@ class PromptTemplateRepository:
         Requirements: 25.1
         """
         result = await self._db.execute(
-            select(PromptTemplate)
-            .where(PromptTemplate.name == name)
-            .order_by(PromptTemplate.version.asc())
+            select(PromptTemplate).where(PromptTemplate.name == name).order_by(PromptTemplate.version.asc())
         )
         return list(result.scalars().all())
 
@@ -155,9 +149,7 @@ class PromptTemplateRepository:
 
         Requirements: 25.1
         """
-        result = await self._db.execute(
-            select(PromptTemplate.name).distinct().order_by(PromptTemplate.name.asc())
-        )
+        result = await self._db.execute(select(PromptTemplate.name).distinct().order_by(PromptTemplate.name.asc()))
         return list(result.scalars().all())
 
     # ------------------------------------------------------------------

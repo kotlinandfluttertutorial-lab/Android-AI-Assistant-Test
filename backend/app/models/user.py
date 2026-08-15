@@ -65,7 +65,7 @@ if TYPE_CHECKING:
     from app.models.token_usage import TokenUsage
 
 
-class UserRole(str, enum.Enum):
+class UserRole(enum.StrEnum):
     """Roles that control access to premium and admin features."""
 
     user = "user"
@@ -87,20 +87,15 @@ class User(Base, TimestampMixin):
     __tablename__ = "users"
 
     id: Mapped[uuid.UUID] = uuid_pk()
-    email: Mapped[str] = mapped_column(
-        String(255), unique=True, nullable=False, index=True
-    )
+    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
     password_hash: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
         comment=(
-            "bcrypt digest — work factor controlled by "
-            "settings.BCRYPT_WORK_FACTOR (default 12)"
+            "bcrypt digest — work factor controlled by settings.BCRYPT_WORK_FACTOR (default 12)"
         ),
     )
-    google_id: Mapped[str | None] = mapped_column(
-        String(255), unique=True, nullable=True
-    )
+    google_id: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
     display_name: Mapped[str] = mapped_column(String(255), nullable=False, default="")
     avatar_url: Mapped[str | None] = mapped_column(String(2048), nullable=True)
     role: Mapped[UserRole] = mapped_column(
@@ -150,9 +145,7 @@ class User(Base, TimestampMixin):
     api_keys: Mapped[list[APIKey]] = relationship(
         "APIKey", back_populates="user", cascade="all, delete-orphan"
     )
-    audit_logs: Mapped[list[AuditLog]] = relationship(
-        "AuditLog", back_populates="user"
-    )
+    audit_logs: Mapped[list[AuditLog]] = relationship("AuditLog", back_populates="user")
     prompt_templates: Mapped[list[PromptTemplate]] = relationship(
         "PromptTemplate", back_populates="author", cascade="all, delete-orphan"
     )

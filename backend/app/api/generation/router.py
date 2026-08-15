@@ -134,9 +134,7 @@ def _build_cover_letter_prompt(request: CoverLetterGenerateRequest) -> str:
 def _build_email_prompt(request: EmailGenerateRequest) -> str:
     """Construct an email generation prompt."""
     recipient_note = (
-        f"The recipient's name is {request.recipient_name}. "
-        if request.recipient_name
-        else ""
+        f"The recipient's name is {request.recipient_name}. " if request.recipient_name else ""
     )
     return (
         f"Write a {request.tone} email. "

@@ -42,12 +42,8 @@ class MCPToolSchema(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-    tool_name: str = Field(
-        description="Unique tool identifier, e.g. 'github' or 'gmail'."
-    )
-    description: str = Field(
-        description="Human-readable description of what the tool does."
-    )
+    tool_name: str = Field(description="Unique tool identifier, e.g. 'github' or 'gmail'.")
+    description: str = Field(description="Human-readable description of what the tool does.")
     parameters: dict = Field(
         description="JSON Schema-style parameter definitions for the tool.",
     )
@@ -68,9 +64,7 @@ class MCPToolResult(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-    tool_name: str = Field(
-        description="The tool that was (or would have been) invoked."
-    )
+    tool_name: str = Field(description="The tool that was (or would have been) invoked.")
     success: bool = Field(description="``True`` when the tool executed without error.")
     result: dict | None = Field(
         default=None,

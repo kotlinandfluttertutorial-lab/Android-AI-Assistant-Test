@@ -20,7 +20,7 @@ Covers:
 - DELETE /usage/alerts/{id} — remove spending alert (Req 34.4)
 - GET  /usage/alerts       — list spending alerts for the current user (Req 34.4)
 
-Requirements: 34.1, 34.2, 34.4, 34.7
+Requirements: 34.1, 34.2, 34.4, 34.7, 34.8
 """
 
 from __future__ import annotations
@@ -47,21 +47,13 @@ class DailyCostRowSchema(BaseModel):
     feature: str = Field(
         description="AI feature name: chat | rag | code | voice | comparison | suggestions"
     )
-    provider: str = Field(
-        description="LLM provider identifier, e.g. 'openai', 'anthropic', 'gemini'"
-    )
-    day: str = Field(
-        description="ISO-8601 calendar date (UTC) for this aggregated row, e.g. '2025-01-15'"
-    )
-    input_tokens: int = Field(
-        description="Total input tokens consumed on this day by this feature/provider"
-    )
+    provider: str = Field(description="LLM provider identifier, e.g. 'openai', 'anthropic', 'gemini'")
+    day: str = Field(description="ISO-8601 calendar date (UTC) for this aggregated row, e.g. '2025-01-15'")
+    input_tokens: int = Field(description="Total input tokens consumed on this day by this feature/provider")
     output_tokens: int = Field(
         description="Total output tokens consumed on this day by this feature/provider"
     )
-    cost_usd: float = Field(
-        description="Estimated cost in USD for this day/feature/provider combination"
-    )
+    cost_usd: float = Field(description="Estimated cost in USD for this day/feature/provider combination")
 
 
 class CostSummaryResponse(BaseModel):
@@ -75,15 +67,9 @@ class CostSummaryResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=False)
 
-    total_input_tokens: int = Field(
-        description="Total input tokens across all features, providers, and days"
-    )
-    total_output_tokens: int = Field(
-        description="Total output tokens across all features, providers, and days"
-    )
-    total_cost_usd: float = Field(
-        description="Total estimated cost in USD across the entire window"
-    )
+    total_input_tokens: int = Field(description="Total input tokens across all features, providers, and days")
+    total_output_tokens: int = Field(description="Total output tokens across all features, providers, and days")
+    total_cost_usd: float = Field(description="Total estimated cost in USD across the entire window")
     rows: list[DailyCostRowSchema] = Field(
         description="Per-(feature, provider, day) aggregated cost rows, ordered by day descending"
     )
@@ -119,9 +105,7 @@ class SpendingAlertCreateRequest(BaseModel):
         min_val = Decimal("0.01")
         max_val = Decimal("999.99")
         if v < min_val or v > max_val:
-            raise ValueError(
-                f"threshold_usd must be between {min_val} and {max_val}; got {v}"
-            )
+            raise ValueError(f"threshold_usd must be between {min_val} and {max_val}; got {v}")
         return v
 
 
@@ -135,9 +119,7 @@ class SpendingAlertResponse(BaseModel):
 
     id: uuid.UUID = Field(description="Unique identifier for this spending alert")
     user_id: uuid.UUID = Field(description="UUID of the user who owns this alert")
-    threshold_usd: float = Field(
-        description="Spending threshold in USD ($0.01 – $999.99)"
-    )
+    threshold_usd: float = Field(description="Spending threshold in USD ($0.01 – $999.99)")
     is_triggered: bool = Field(
         description="True when the alert monitor has detected the threshold was crossed"
     )
@@ -149,9 +131,7 @@ class SpendingAlertResponse(BaseModel):
         default=None,
         description="UTC timestamp when the user explicitly dismissed the banner, or null",
     )
-    created_at: datetime = Field(
-        description="UTC timestamp when this alert was created"
-    )
+    created_at: datetime = Field(description="UTC timestamp when this alert was created")
 
 
 class SpendingAlertListResponse(BaseModel):

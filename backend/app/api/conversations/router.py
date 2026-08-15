@@ -321,9 +321,7 @@ async def export_conversation(
         return Response(
             content=content.encode("utf-8"),
             media_type="application/pdf",
-            headers={
-                "Content-Disposition": (f'attachment; filename="{conversation_id}.pdf"')
-            },
+            headers={"Content-Disposition": (f'attachment; filename="{conversation_id}.pdf"')},
         )
 
     # Markdown export
@@ -336,9 +334,7 @@ async def export_conversation(
     return Response(
         content=markdown_content.encode("utf-8"),
         media_type="text/markdown",
-        headers={
-            "Content-Disposition": (f'attachment; filename="{conversation_id}.md"')
-        },
+        headers={"Content-Disposition": (f'attachment; filename="{conversation_id}.md"')},
     )
 
 

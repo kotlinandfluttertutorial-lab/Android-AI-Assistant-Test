@@ -665,9 +665,7 @@ async def delete_document(
     try:
         await rag_service.delete_file_minio(minio_key)
     except Exception:
-        logger.warning(
-            "MinIO file deletion failed for document %s (best-effort)", document_id
-        )
+        logger.warning("MinIO file deletion failed for document %s (best-effort)", document_id)
 
 
 # ---------------------------------------------------------------------------

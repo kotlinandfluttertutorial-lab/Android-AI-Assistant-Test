@@ -209,9 +209,7 @@ async def search_memories(
         pg_memory = pg_map.get(r.memory_id)
         from datetime import UTC, datetime
 
-        created_at = (
-            pg_memory.created_at if pg_memory else datetime.now(tz=UTC)
-        )
+        created_at = pg_memory.created_at if pg_memory else datetime.now(tz=UTC)
         search_results.append(
             MemorySearchResult(
                 id=r.memory_id,

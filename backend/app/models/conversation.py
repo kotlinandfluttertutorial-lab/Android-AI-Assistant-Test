@@ -54,9 +54,7 @@ class Conversation(Base, TimestampMixin):
         nullable=False,
         index=True,
     )
-    title: Mapped[str] = mapped_column(
-        String(512), nullable=False, default="New Conversation"
-    )
+    title: Mapped[str] = mapped_column(String(512), nullable=False, default="New Conversation")
     provider: Mapped[str] = mapped_column(
         String(64),
         nullable=False,

@@ -117,11 +117,7 @@ def _is_valid_image_magic(data: bytes) -> bool:
     if data[:4] == _MAGIC_PNG:
         return True
     # WebP: starts with RIFF....WEBP
-    if (
-        data[:4] == _MAGIC_WEBP_RIFF
-        and len(data) >= 12
-        and data[8:12] == _MAGIC_WEBP_WEBP
-    ):
+    if data[:4] == _MAGIC_WEBP_RIFF and len(data) >= 12 and data[8:12] == _MAGIC_WEBP_WEBP:
         return True
     return False
 
@@ -206,9 +202,7 @@ async def analyze_image(
     if content_type not in _ALLOWED_CONTENT_TYPES:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=(
-                f"Unsupported image format '{content_type}'. Allowed: JPEG, PNG, WebP."
-            ),
+            detail=(f"Unsupported image format '{content_type}'. Allowed: JPEG, PNG, WebP."),
         )
 
     # -----------------------------------------------------------------------
@@ -296,9 +290,7 @@ async def analyze_image(
                 status_code=200,
                 content={
                     "error": "no_vision_provider",
-                    "message": (
-                        "No vision-capable LLM provider is currently configured"
-                    ),
+                    "message": ("No vision-capable LLM provider is currently configured"),
                 },
             )
 
