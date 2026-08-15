@@ -13,7 +13,7 @@
 set -euo pipefail
 
 NSC_FILE="app/src/main/res/xml/network_security_config.xml"
-ENV_EXAMPLE=".env.example"
+ENV_EXAMPLE="backend/.env.example"
 
 # ── Extract primary pin from network_security_config.xml ─────────────────────
 # Matches the first <pin digest="SHA-256">VALUE</pin> line.
