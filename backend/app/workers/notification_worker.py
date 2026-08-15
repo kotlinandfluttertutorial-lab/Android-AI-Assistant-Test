@@ -135,7 +135,6 @@ async def _run_send_push_notification(
         await _log_push_failure(user_id, title, body)
         return {"status": "failed", "user_id": user_id}
 
-
 async def _log_push_failure(user_id: str, title: str, body: str) -> None:
     """Write a push notification failure record to the error_log table."""
     try:
@@ -150,7 +149,7 @@ async def _log_push_failure(user_id: str, title: str, body: str) -> None:
                 {"user_id": user_id, "message": f"Push failed: {title} — {body}"},
             )
             await db.commit()
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("_log_push_failure: could not write to error_log: %s", exc)
 
 
@@ -211,7 +210,7 @@ async def _run_refresh_device_token(
             else:
                 logger.warning("refresh_device_token: user=%s not found in DB", user_id)
         return {"status": "updated", "user_id": user_id}
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.error(
             "refresh_device_token: DB update failed for user=%s: %s", user_id, exc
         )
@@ -232,7 +231,7 @@ async def _set_token_retry_counter(user_id: str, new_token: str) -> None:
         logger.info(
             "_set_token_retry_counter: Redis retry counter set for user=%s", user_id
         )
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning(
             "_set_token_retry_counter: could not set Redis retry counter: %s", exc
         )
@@ -273,8 +272,7 @@ def send_message_delivery_notification_task(
             "message_id": message_id,
             "conversation_id": conversation_id,
         }
-    except Exception as exc:  # noqa: BLE001
-        # Best-effort: retry up to max_retries, then give up silently
+    except Exception as exc:  # Best-effort: retry up to max_retries, then give up silently
         logger.warning(
             "send_message_delivery_notification_task: attempt %d failed for "
             "user=%s message=%s: %s",
@@ -285,7 +283,7 @@ def send_message_delivery_notification_task(
         )
         try:
             raise self.retry(exc=exc, countdown=5, max_retries=2)
-        except Exception:  # noqa: BLE001
+        except Exception:
             # All retries exhausted — log and swallow; never propagate
             logger.error(
                 "send_message_delivery_notification_task: all retries exhausted "

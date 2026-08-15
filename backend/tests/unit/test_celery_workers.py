@@ -505,10 +505,10 @@ class TestBestEffortNotification:
             # Manually call the underlying logic (bypassing Celery execution)
             try:
                 raise Exception("Simulated Firebase error")
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 try:
                     raise mock_self.retry(exc=exc, countdown=5, max_retries=2)
-                except Exception:  # noqa: BLE001
+                except Exception:
                     result = {
                         "status": "failed",
                         "user_id": "user-1",

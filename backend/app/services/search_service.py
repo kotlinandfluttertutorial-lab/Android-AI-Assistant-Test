@@ -121,7 +121,7 @@ class SearchService:
 
         try:
             query_embedding = await asyncio.to_thread(_encode_query)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("Embedding generation failed for semantic search: %s", exc)
             return []
 
@@ -192,7 +192,7 @@ class SearchService:
                 client = self._get_chroma_client()
                 try:
                     collection = client.get_collection(collection_name)
-                except Exception:  # noqa: BLE001
+                except Exception:
                     # Collection does not exist — skip
                     return []
 
@@ -225,7 +225,7 @@ class SearchService:
                     }
                     for i in range(len(ids_list))
                 ]
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning(
                     "ChromaDB query failed for collection %s: %s",
                     collection_name,

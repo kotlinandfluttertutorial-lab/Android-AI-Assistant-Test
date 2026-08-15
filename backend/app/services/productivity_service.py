@@ -206,7 +206,7 @@ class ProductivityService:
                 user_id=str(user_id),
             )
             todos_data = json.loads(result.text)
-        except (json.JSONDecodeError, Exception) as exc:  # noqa: BLE001
+        except (json.JSONDecodeError, Exception) as exc:
             logger.warning("Failed to parse AI-generated todos: %s", exc)
             return []
 
@@ -304,7 +304,8 @@ class ProductivityService:
         ai_prompt = (
             f"Suggest 3 optimal meeting times for: {prompt}. "
             f"Duration: {duration_minutes} minutes. "
-            "Return ONLY a JSON array of ISO 8601 datetime strings (e.g., ['2024-01-15T14:00:00Z'])."
+            "Return ONLY a JSON array of ISO 8601 datetime strings "
+            "(e.g., ['2024-01-15T14:00:00Z'])."
         )
 
         try:
@@ -316,7 +317,7 @@ class ProductivityService:
             )
             suggestions = json.loads(result.text)
             return suggestions if isinstance(suggestions, list) else []
-        except (json.JSONDecodeError, Exception) as exc:  # noqa: BLE001
+        except (json.JSONDecodeError, Exception) as exc:
             logger.warning("Failed to parse AI-suggested meeting times: %s", exc)
             return []
 
@@ -402,7 +403,7 @@ class ProductivityService:
                 ),
                 "rationale": data.get("rationale", ""),
             }
-        except (json.JSONDecodeError, ValueError, Exception) as exc:  # noqa: BLE001
+        except (json.JSONDecodeError, ValueError, Exception) as exc:
             logger.warning("Failed to parse AI-suggested reminder: %s", exc)
             # Return fallback
             return {
@@ -541,7 +542,7 @@ class ProductivityService:
                 user_id=str(user_id),
             )
             return result.text
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("Failed to generate habit insights: %s", exc)
             return (
                 f"You've completed '{habit.name}' {total_entries} times total, "

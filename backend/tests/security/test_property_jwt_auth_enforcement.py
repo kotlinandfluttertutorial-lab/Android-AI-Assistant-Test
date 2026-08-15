@@ -218,7 +218,7 @@ def assert_no_user_data_in_response(response) -> None:
     """
     try:
         body = response.json()
-    except Exception:  # noqa: BLE001
+    except Exception:
         return  # non-JSON body → no fields to leak
 
     if isinstance(body, dict):

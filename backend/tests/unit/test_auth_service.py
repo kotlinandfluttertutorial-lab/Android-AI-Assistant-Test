@@ -75,14 +75,14 @@ def _make_user(
     role: str = "user",
     is_active: bool = True,
     google_id: str | None = None,
-    password_hash: str = "$2b$12$fakehash",
+    hashed_pw: str = "$2b$12$fakehash",
 ) -> MagicMock:
     user = MagicMock()
     user.id = user_id or SAMPLE_USER_ID
     user.email = email
     user.display_name = "Test User"
     user.is_active = is_active
-    user.password_hash = password_hash
+    user.password_hash = hashed_pw
     user.google_id = google_id
     role_mock = MagicMock()
     role_mock.value = role

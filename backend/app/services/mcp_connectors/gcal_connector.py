@@ -64,7 +64,8 @@ class GCalReadConnector(MCPToolConnector):
     """Read-only Google Calendar connector.
 
     Supported actions (passed as ``params["action"]``):
-    - ``list_events``:    List upcoming events. Params: ``calendar_id`` (opt), ``max_results`` (int, opt).
+    - ``list_events``:    List upcoming events. Params: ``calendar_id`` (opt),
+                          ``max_results`` (int, opt).
     - ``get_event``:      Get a specific event. Params: ``calendar_id``, ``event_id``.
     - ``list_calendars``: List all calendars. Params: none.
 
@@ -82,7 +83,10 @@ class GCalReadConnector(MCPToolConnector):
     def get_schema(self) -> MCPToolSchema:
         return MCPToolSchema(
             tool_name="gcal_read",
-            description="Read from Google Calendar: list upcoming events, get event details, list calendars.",
+            description=(
+                "Read from Google Calendar: list upcoming events,"
+                " get event details, list calendars."
+            ),
             parameters={
                 "type": "object",
                 "properties": {
@@ -173,8 +177,10 @@ class GCalWriteConnector(MCPToolConnector):
 
     Supported actions (passed as ``params["action"]``):
     - ``create_event``: Create a new event. Params: ``calendar_id``, ``summary``,
-                        ``start_datetime``, ``end_datetime``, ``description`` (opt), ``attendees`` (opt).
-    - ``update_event``: Update an event. Params: ``calendar_id``, ``event_id``, ``updates`` (dict).
+                        ``start_datetime``, ``end_datetime``, ``description`` (opt),
+                        ``attendees`` (opt).
+    - ``update_event``: Update an event. Params: ``calendar_id``, ``event_id``,
+                        ``updates`` (dict).
     - ``delete_event``: Delete an event. Params: ``calendar_id``, ``event_id``.
 
     Requirements: 8.3, 8.5
@@ -210,11 +216,17 @@ class GCalWriteConnector(MCPToolConnector):
                     },
                     "start_datetime": {
                         "type": "string",
-                        "description": "RFC3339 start datetime, e.g. '2024-01-15T10:00:00Z' (for create_event).",
+                        "description": (
+                            "RFC3339 start datetime,"
+                            " e.g. '2024-01-15T10:00:00Z' (for create_event)."
+                        ),
                     },
                     "end_datetime": {
                         "type": "string",
-                        "description": "RFC3339 end datetime, e.g. '2024-01-15T11:00:00Z' (for create_event).",
+                        "description": (
+                            "RFC3339 end datetime,"
+                            " e.g. '2024-01-15T11:00:00Z' (for create_event)."
+                        ),
                     },
                     "description": {
                         "type": "string",
