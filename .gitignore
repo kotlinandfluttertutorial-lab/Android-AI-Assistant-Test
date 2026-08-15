@@ -38,4 +38,7 @@ backend/coverage_fresh.json
 # OS
 Thumbs.db
 /venv/
+# google-services.json is committed with placeholder API keys.
+# Real keys are injected via the GOOGLE_SERVICES_JSON secret in build-signed-apk.
+# /app/google-services.json
 /app/google-services.json

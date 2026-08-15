@@ -77,6 +77,28 @@ android {
             )
         }
     }
+
+    lint {
+        // Use the committed baseline — only NEW violations fail the build.
+        baseline = file("lint-baseline.xml")
+
+        // Fail the build on errors (not warnings).
+        abortOnError = true
+        warningsAsErrors = false
+
+        // Keep XML + HTML reports so the CI artifact is useful.
+        xmlReport = true
+        htmlReport = true
+
+        // Don't abort just because a referenced module hasn't been built yet.
+        checkDependencies = false
+
+        // Checks that are noisy / not actionable in this project.
+        disable += setOf(
+            "GradleDependency", // version-update suggestions
+            "NewerVersionAvailable"
+        )
+    }
 }
 
 dependencies {

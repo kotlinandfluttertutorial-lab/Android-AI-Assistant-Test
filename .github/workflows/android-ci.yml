@@ -132,6 +132,19 @@ jobs:
       - name: Ensure gradlew is executable
         run: chmod +x gradlew
 
+      - name: Write google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            echo "$GOOGLE_SERVICES_JSON" | base64 --decode > app/google-services.json
+          else
+            cp app/google-services.json app/google-services.json 2>/dev/null || \
+            cat > app/google-services.json << 'EOF'
+          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
+          EOF
+          fi
+
       - name: Run KSP Hilt code generation (debug)
         run: ./gradlew :app:kspDebugKotlin --stacktrace
 
@@ -169,6 +182,18 @@ jobs:
       - name: Ensure gradlew is executable
         run: chmod +x gradlew
 
+      - name: Write google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            echo "$GOOGLE_SERVICES_JSON" | base64 --decode > app/google-services.json
+          elif [ ! -f app/google-services.json ]; then
+            cat > app/google-services.json << 'EOF'
+          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
+          EOF
+          fi
+
       - name: Run KSP code generation for Hilt (debug)
         run: ./gradlew :app:kspDebugKotlin --stacktrace
 
@@ -205,6 +230,18 @@ jobs:
       - name: Ensure gradlew is executable
         run: chmod +x gradlew
 
+      - name: Write google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            echo "$GOOGLE_SERVICES_JSON" | base64 --decode > app/google-services.json
+          elif [ ! -f app/google-services.json ]; then
+            cat > app/google-services.json << 'EOF'
+          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
+          EOF
+          fi
+
       - name: Run Android Lint on all modules
         run: ./gradlew lint --stacktrace
 
@@ -220,10 +257,9 @@ jobs:
 
       - name: Annotate PR with lint issues
         if: failure()
-        uses: actions/github-script@v7
-        with:
-          script: |
-            core.setFailed('Android Lint failed — see lint-reports artifact for details.')
+        run: |
+          echo "::error::Android Lint failed — see lint-reports artifact for details."
+          exit 1
 
   # ──────────────────────────────────────────────────────────────────────────
   # 3. Android Unit Tests — all modules
@@ -253,6 +289,18 @@ jobs:
 
       - name: Ensure gradlew is executable
         run: chmod +x gradlew
+
+      - name: Write google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            echo "$GOOGLE_SERVICES_JSON" | base64 --decode > app/google-services.json
+          elif [ ! -f app/google-services.json ]; then
+            cat > app/google-services.json << 'EOF'
+          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
+          EOF
+          fi
 
       - name: Run unit tests on all modules
         run: ./gradlew test --stacktrace --continue
@@ -305,6 +353,18 @@ jobs:
 
       - name: Ensure gradlew is executable
         run: chmod +x gradlew
+
+      - name: Write google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            echo "$GOOGLE_SERVICES_JSON" | base64 --decode > app/google-services.json
+          elif [ ! -f app/google-services.json ]; then
+            cat > app/google-services.json << 'EOF'
+          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
+          EOF
+          fi
 
       - name: Compute changed Kotlin files
         run: |
@@ -380,6 +440,18 @@ jobs:
       - name: Ensure gradlew is executable
         run: chmod +x gradlew
 
+      - name: Write google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            echo "$GOOGLE_SERVICES_JSON" | base64 --decode > app/google-services.json
+          elif [ ! -f app/google-services.json ]; then
+            cat > app/google-services.json << 'EOF'
+          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
+          EOF
+          fi
+
       - name: Generate JaCoCo reports for domain and data modules
         run: ./gradlew :domain:jacocoTestReport :data:jacocoTestReport --stacktrace
 
@@ -392,6 +464,8 @@ jobs:
       - name: Post coverage comment on PR
         if: always() && github.event_name == 'pull_request'
         uses: actions/github-script@v7
+        env:
+          ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true"
         with:
           script: |
             const pct = process.env.coverage_pct || 'N/A';
@@ -444,6 +518,18 @@ jobs:
 
       - name: Ensure gradlew is executable
         run: chmod +x gradlew
+
+      - name: Write google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            echo "$GOOGLE_SERVICES_JSON" | base64 --decode > app/google-services.json
+          elif [ ! -f app/google-services.json ]; then
+            cat > app/google-services.json << 'EOF'
+          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
+          EOF
+          fi
 
       - name: Run Hilt binding check (KSP)
         run: ./gradlew :app:kspDebugKotlin --stacktrace
@@ -777,6 +863,18 @@ jobs:
 
       - name: Ensure gradlew is executable
         run: chmod +x gradlew
+
+      - name: Write google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            echo "$GOOGLE_SERVICES_JSON" | base64 --decode > app/google-services.json
+          elif [ ! -f app/google-services.json ]; then
+            cat > app/google-services.json << 'EOF'
+          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
+          EOF
+          fi
 
       - name: Enable KVM group perms
         run: |
