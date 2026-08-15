@@ -38,4 +38,48 @@ regexes = [
     '''changeme''',
     '''replace.with''',
     '''PLACEHOLDER''',
+    # Canonical JWT example header used throughout documentation
+    '''eyJhbGciOiJIUzI1NiJ9''',
+    # Truncated example tokens in API docs (e.g. "eyJhbGciOiJIUzI1NiJ9...")
+    '''eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*\.\.\.$''',
+    # CI test keys in DEVOPS_GUIDE.md — not real secrets
+    '''ci-test-(secret|encryption)-key''',
 ]
+
+# Exact fingerprints for known false positives in documentation.
+# These are example/placeholder values, not real credentials.
+[[allowlist.findings]]
+# JWT example in docs/BACKEND_LEARNING_GUIDE.md line 317
+fingerprint = "a4d958bdf08bcf6ebe7a248535dfb1b8aa061cdc:docs/BACKEND_LEARNING_GUIDE.md:jwt:317"
+
+[[allowlist.findings]]
+# Example access_token in docs/API_SPECIFICATION.md line 63
+fingerprint = "a4d958bdf08bcf6ebe7a248535dfb1b8aa061cdc:docs/API_SPECIFICATION.md:generic-api-key:63"
+
+[[allowlist.findings]]
+# Example refresh_token in docs/API_SPECIFICATION.md line 64
+fingerprint = "a4d958bdf08bcf6ebe7a248535dfb1b8aa061cdc:docs/API_SPECIFICATION.md:generic-api-key:64"
+
+[[allowlist.findings]]
+# Example access_token in docs/API_SPECIFICATION.md line 88
+fingerprint = "a4d958bdf08bcf6ebe7a248535dfb1b8aa061cdc:docs/API_SPECIFICATION.md:generic-api-key:88"
+
+[[allowlist.findings]]
+# Example refresh_token in docs/API_SPECIFICATION.md line 89
+fingerprint = "a4d958bdf08bcf6ebe7a248535dfb1b8aa061cdc:docs/API_SPECIFICATION.md:generic-api-key:89"
+
+[[allowlist.findings]]
+# Example refresh_token in docs/API_SPECIFICATION.md line 107
+fingerprint = "a4d958bdf08bcf6ebe7a248535dfb1b8aa061cdc:docs/API_SPECIFICATION.md:generic-api-key:107"
+
+[[allowlist.findings]]
+# Example access_token in docs/API_SPECIFICATION.md line 113
+fingerprint = "a4d958bdf08bcf6ebe7a248535dfb1b8aa061cdc:docs/API_SPECIFICATION.md:generic-api-key:113"
+
+[[allowlist.findings]]
+# Example refresh_token in docs/API_SPECIFICATION.md line 114
+fingerprint = "a4d958bdf08bcf6ebe7a248535dfb1b8aa061cdc:docs/API_SPECIFICATION.md:generic-api-key:114"
+
+[[allowlist.findings]]
+# CI test ENCRYPTION_KEY in docs/DEVOPS_GUIDE.md line 212
+fingerprint = "a4d958bdf08bcf6ebe7a248535dfb1b8aa061cdc:docs/DEVOPS_GUIDE.md:generic-api-key:212"
