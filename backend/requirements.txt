@@ -61,8 +61,11 @@ python-multipart==0.0.31
 # ──────────────────────────────────────────────────────────────────────────────
 # Vector store
 # ──────────────────────────────────────────────────────────────────────────────
-# PYSEC-2026-311 — no published fix version yet; upgrading to latest available
-# (1.5.9) as the best available mitigation. Re-audit when a fix is published.
+# CVE-2026-45829 (CRITICAL) — pre-auth RCE in ChromaDB Python FastAPI server.
+# Affects all versions 1.0.0–1.5.9. NO patch available as of 2026-08-15.
+# Mitigation: ChromaDB port is NOT published to the host in docker-compose.yml
+# (internal Docker network only). Re-audit when a patched version is released.
+# Suppress in Trivy/Safety scans until a fix version exists.
 chromadb==1.5.9
 
 # ──────────────────────────────────────────────────────────────────────────────

@@ -75,8 +75,12 @@ services:
     restart: unless-stopped
     networks:
       - ai_assistant_net
-    ports:
-      - "8001:8000"
+    # CVE-2026-45829: no patch available — do NOT publish this port to the host.
+    # ChromaDB is reachable only from backend/celery_worker on the internal
+    # Docker network (chromadb:8000). Remove this comment and restore the port
+    # binding only after a patched image is available.
+    # ports:
+    #   - "8001:8000"
 
   backend:
     build:
