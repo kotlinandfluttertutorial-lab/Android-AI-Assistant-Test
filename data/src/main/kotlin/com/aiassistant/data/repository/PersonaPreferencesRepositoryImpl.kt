@@ -14,9 +14,8 @@ import kotlinx.coroutines.flow.map
 private val Context.personaDataStore by preferencesDataStore(name = "persona_preferences")
 
 @Singleton
-class PersonaPreferencesRepositoryImpl @Inject constructor(
-    @ApplicationContext private val context: Context,
-) : PersonaPreferencesRepository {
+class PersonaPreferencesRepositoryImpl @Inject constructor(@ApplicationContext private val context: Context) :
+    PersonaPreferencesRepository {
 
     private object Keys {
         val SELECTED_PERSONA_ID = stringPreferencesKey("selected_persona_id")
@@ -32,7 +31,7 @@ class PersonaPreferencesRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getSelectedPersonaId(): String? {
-        return context.personaDataStore.data.map { it[Keys.SELECTED_PERSONA_ID] }.first()
-    }
+    override suspend fun getSelectedPersonaId(): String? = context.personaDataStore.data.map {
+        it[Keys.SELECTED_PERSONA_ID]
+    }.first()
 }

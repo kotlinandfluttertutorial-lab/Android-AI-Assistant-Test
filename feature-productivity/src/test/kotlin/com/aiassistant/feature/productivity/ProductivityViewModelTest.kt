@@ -720,48 +720,47 @@ class ProductivityViewModelTest {
     }
 
     @Test
-    fun `saveReminder update calls cancelAlarm then update then scheduleAlarm`() =
-        runTest {
-            val reminder = makeReminder(title = "Existing Reminder")
-            val updateReminder = mockk<UpdateReminderUseCase>()
-            coEvery { updateReminder(any()) } returns ApiResult.Success(reminder)
+    fun `saveReminder update calls cancelAlarm then update then scheduleAlarm`() = runTest {
+        val reminder = makeReminder(title = "Existing Reminder")
+        val updateReminder = mockk<UpdateReminderUseCase>()
+        coEvery { updateReminder(any()) } returns ApiResult.Success(reminder)
 
-            val notificationManager = mockk<ReminderNotificationManager>(relaxed = true)
-            every { notificationManager.canScheduleExactAlarms() } returns true
+        val notificationManager = mockk<ReminderNotificationManager>(relaxed = true)
+        every { notificationManager.canScheduleExactAlarms() } returns true
 
-            val getReminders = mockk<GetRemindersUseCase>()
-            every { getReminders() } returns flowOf(ApiResult.Success(emptyList()))
+        val getReminders = mockk<GetRemindersUseCase>()
+        every { getReminders() } returns flowOf(ApiResult.Success(emptyList()))
 
-            val vm = ReminderViewModel(
-                getRemindersUseCase = getReminders,
-                createReminderUseCase = mockk<CreateReminderUseCase>().also {
-                    coEvery { it(any()) } returns
-                        ApiResult.Success(reminder)
-                },
-                updateReminderUseCase = updateReminder,
-                deleteReminderUseCase = mockk<DeleteReminderUseCase>().also {
-                    coEvery { it(any()) } returns
-                        ApiResult.Success(Unit)
-                },
-                suggestReminderUseCase = mockk<SuggestReminderUseCase>().also {
-                    coEvery { it(any()) } returns
-                        ApiResult.Success(reminder)
-                },
-                getTodosUseCase = mockk<GetTodosUseCase>().also {
-                    every { it(any()) } returns
-                        flowOf(ApiResult.Success(emptyList()))
-                },
-                notificationManager = notificationManager,
-                dispatchers = testDispatchers
-            )
+        val vm = ReminderViewModel(
+            getRemindersUseCase = getReminders,
+            createReminderUseCase = mockk<CreateReminderUseCase>().also {
+                coEvery { it(any()) } returns
+                    ApiResult.Success(reminder)
+            },
+            updateReminderUseCase = updateReminder,
+            deleteReminderUseCase = mockk<DeleteReminderUseCase>().also {
+                coEvery { it(any()) } returns
+                    ApiResult.Success(Unit)
+            },
+            suggestReminderUseCase = mockk<SuggestReminderUseCase>().also {
+                coEvery { it(any()) } returns
+                    ApiResult.Success(reminder)
+            },
+            getTodosUseCase = mockk<GetTodosUseCase>().also {
+                every { it(any()) } returns
+                    flowOf(ApiResult.Success(emptyList()))
+            },
+            notificationManager = notificationManager,
+            dispatchers = testDispatchers
+        )
 
-            vm.openEditReminder(reminder)
-            vm.saveReminder()
+        vm.openEditReminder(reminder)
+        vm.saveReminder()
 
-            coVerify { updateReminder(any()) }
-            verify { notificationManager.cancelAlarm(reminder.id, reminder.title) }
-            verify { notificationManager.scheduleAlarm(any()) }
-        }
+        coVerify { updateReminder(any()) }
+        verify { notificationManager.cancelAlarm(reminder.id, reminder.title) }
+        verify { notificationManager.scheduleAlarm(any()) }
+    }
 
     @Test
     fun `deleteReminder calls cancelAlarm and deleteReminderUseCase and optimistically removes from list`() = runTest {

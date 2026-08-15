@@ -20,7 +20,7 @@ import kotlinx.coroutines.flow.flowOn
 class PersonaRepositoryImpl @Inject constructor(
     private val remoteSource: PersonaRemoteDataSource,
     private val preferencesRepository: PersonaPreferencesRepository,
-    private val dispatchers: DispatcherProvider,
+    private val dispatchers: DispatcherProvider
 ) : PersonaRepository {
 
     override fun getPersonas(): Flow<ApiResult<List<Persona>>> = flow {
@@ -40,7 +40,7 @@ class PersonaRepositoryImpl @Inject constructor(
             systemPrompt = persona.systemPrompt,
             tone = persona.tone.value,
             scopeDescription = persona.scopeDescription,
-            allowedRoles = persona.allowedRoles,
+            allowedRoles = persona.allowedRoles
         )
         return when (val result = remoteSource.createPersona(request)) {
             is ApiResult.Success -> ApiResult.Success(result.data.toDomain())
@@ -56,7 +56,7 @@ class PersonaRepositoryImpl @Inject constructor(
             systemPrompt = persona.systemPrompt,
             tone = persona.tone.value,
             scopeDescription = persona.scopeDescription,
-            allowedRoles = persona.allowedRoles,
+            allowedRoles = persona.allowedRoles
         )
         return when (val result = remoteSource.updatePersona(persona.id, request)) {
             is ApiResult.Success -> ApiResult.Success(result.data.toDomain())
@@ -66,21 +66,17 @@ class PersonaRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun deletePersona(personaId: String): ApiResult<Unit> =
-        remoteSource.deletePersona(personaId)
+    override suspend fun deletePersona(personaId: String): ApiResult<Unit> = remoteSource.deletePersona(personaId)
 
-    override suspend fun getPersonaCount(): ApiResult<Int> {
-        return when (val result = remoteSource.getPersonas()) {
-            is ApiResult.Success -> ApiResult.Success(result.data.size)
-            is ApiResult.Error -> result
-            is ApiResult.NetworkUnavailable -> ApiResult.NetworkUnavailable
-            is ApiResult.Loading -> ApiResult.Loading
-        }
+    override suspend fun getPersonaCount(): ApiResult<Int> = when (val result = remoteSource.getPersonas()) {
+        is ApiResult.Success -> ApiResult.Success(result.data.size)
+        is ApiResult.Error -> result
+        is ApiResult.NetworkUnavailable -> ApiResult.NetworkUnavailable
+        is ApiResult.Loading -> ApiResult.Loading
     }
 
-    override suspend fun getSelectedPersonaId(): ApiResult<String?> {
-        return ApiResult.Success(preferencesRepository.getSelectedPersonaId())
-    }
+    override suspend fun getSelectedPersonaId(): ApiResult<String?> =
+        ApiResult.Success(preferencesRepository.getSelectedPersonaId())
 
     override suspend fun setSelectedPersonaId(personaId: String?): ApiResult<Unit> {
         preferencesRepository.saveSelectedPersonaId(personaId)
@@ -97,6 +93,6 @@ class PersonaRepositoryImpl @Inject constructor(
         adminLocked = adminLocked,
         allowedRoles = allowedRoles,
         createdAt = createdAt,
-        updatedAt = updatedAt,
+        updatedAt = updatedAt
     )
 }

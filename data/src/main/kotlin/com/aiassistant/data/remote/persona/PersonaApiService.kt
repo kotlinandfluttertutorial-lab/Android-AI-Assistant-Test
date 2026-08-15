@@ -20,14 +20,11 @@ data class PersonaResponse(
     @SerialName("admin_locked") val adminLocked: Boolean = false,
     @SerialName("allowed_roles") val allowedRoles: List<String> = emptyList(),
     @SerialName("created_at") val createdAt: Long = 0L,
-    @SerialName("updated_at") val updatedAt: Long = 0L,
+    @SerialName("updated_at") val updatedAt: Long = 0L
 )
 
 @Serializable
-data class PersonaListResponse(
-    val items: List<PersonaResponse>,
-    val total: Int,
-)
+data class PersonaListResponse(val items: List<PersonaResponse>, val total: Int)
 
 @Serializable
 data class PersonaCreateRequest(
@@ -36,7 +33,7 @@ data class PersonaCreateRequest(
     val tone: String,
     @SerialName("scope_description") val scopeDescription: String? = null,
     @SerialName("admin_locked") val adminLocked: Boolean = false,
-    @SerialName("allowed_roles") val allowedRoles: List<String> = emptyList(),
+    @SerialName("allowed_roles") val allowedRoles: List<String> = emptyList()
 )
 
 @Serializable
@@ -45,7 +42,7 @@ data class PersonaUpdateRequest(
     @SerialName("system_prompt") val systemPrompt: String? = null,
     val tone: String? = null,
     @SerialName("scope_description") val scopeDescription: String? = null,
-    @SerialName("allowed_roles") val allowedRoles: List<String>? = null,
+    @SerialName("allowed_roles") val allowedRoles: List<String>? = null
 )
 
 interface PersonaApiService {
