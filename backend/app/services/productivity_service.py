@@ -31,7 +31,7 @@ from __future__ import annotations
 import json
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -409,7 +409,7 @@ class ProductivityService:
             return {
                 "suggestion": ReminderCreate(
                     title=prompt[:100],
-                    trigger_time=datetime.now(tz=timezone.utc),
+                    trigger_time=datetime.now(tz=datetime.UTC),
                 ),
                 "rationale": "AI suggestion unavailable; using default values.",
             }
@@ -522,7 +522,7 @@ class ProductivityService:
         # Build stats summary
         total_entries = len(entries)
         recent_entries = [
-            e for e in entries if (datetime.now(tz=timezone.utc) - e.completed_at).days <= 30
+            e for e in entries if (datetime.now(tz=datetime.UTC) - e.completed_at).days <= 30
         ]
         recent_count = len(recent_entries)
 

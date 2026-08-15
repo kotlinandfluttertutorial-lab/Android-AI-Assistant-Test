@@ -789,7 +789,7 @@ class TestAccountLockout:
     """
 
     def _make_login_request(
-        self, client: TestClient, password: str = "WrongPass!!123"
+        self, client: TestClient, password: str = "WrongPass!!123"  # noqa: S107
     ) -> Any:
         return client.post(
             "/auth/login",
