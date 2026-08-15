@@ -393,21 +393,11 @@ def test_property_26c_oversized_valid_format_rejected_nothing_stored(
     """
     filename, mime_type = format_pair
 
-    # Build a small sentinel payload but mock file.read() to report declared_size.
-    # We use a custom bytes subclass so len() returns the declared size without
-    # allocating the full buffer.
-    class _FakeBytes(bytes):
-        """bytes subclass with a patched __len__ to simulate a large file."""
-
-        def __new__(cls, reported_size: int):
-            instance = super().__new__(cls, b"\x00")  # 1 real byte
-            instance._reported_size = reported_size
-            return instance
-
-        def __len__(self) -> int:  # type: ignore[override]
-            return self._reported_size
-
-    fake_bytes = _FakeBytes(declared_size)
+    # Build a mock file_bytes object whose len() returns declared_size.
+    # bytes.__len__ is a C slot and cannot be overridden in a subclass,
+    # so we use MagicMock with __len__ configured instead.
+    fake_bytes = MagicMock(spec=bytes)
+    fake_bytes.__len__ = MagicMock(return_value=declared_size)
 
     fake_user, mock_db = _patch_db_and_auth()
 
