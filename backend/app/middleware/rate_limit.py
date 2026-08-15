@@ -98,7 +98,7 @@ def _extract_user_id_from_header(authorization: str | None) -> str | None:
 
         payload = json.loads(base64.urlsafe_b64decode(payload_b64))
         return str(payload["sub"]) if payload.get("sub") else None
-    except Exception:  # noqa: BLE001
+    except Exception:
         return None
 
 
@@ -111,7 +111,7 @@ def _extract_user_id_from_scope(scope: Scope) -> str | None:
 
     try:
         return _extract_user_id_from_header(authorization.decode("utf-8"))
-    except Exception:  # noqa: BLE001
+    except Exception:
         return None
 
 
@@ -138,12 +138,12 @@ def _extract_client_ip(scope: Scope) -> str:
             first_ip = xff.decode("utf-8").split(",")[0].strip()
             if first_ip:
                 return first_ip
-        except Exception:  # noqa: BLE001
+        except Exception:
             pass
 
     # Fall back to the ASGI client tuple (host, port)
     client = scope.get("client")
-    if client and isinstance(client, (tuple, list)) and len(client) >= 1:
+    if client and isinstance(client, tuple | list) and len(client) >= 1:
         return str(client[0])
 
     return "unknown"
@@ -240,7 +240,7 @@ class RateLimitMiddleware:
                     )
                     await response(scope, receive, send)
                     return
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("Rate limit Redis check failed (fail-open): %s", exc)
         else:
             # Tier 2 — unauthenticated IP rate limit
@@ -266,7 +266,7 @@ class RateLimitMiddleware:
                     )
                     await response(scope, receive, send)
                     return
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("IP rate limit Redis check failed (fail-open): %s", exc)
 
         await self.app(scope, receive, send)
@@ -321,7 +321,7 @@ class RateLimitMiddleware:
                         },
                         headers={"Retry-After": str(retry_after)},
                     )
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("Rate limit Redis check failed (fail-open): %s", exc)
         else:
             # Tier 2 — unauthenticated IP rate limit
@@ -355,7 +355,7 @@ class RateLimitMiddleware:
                         },
                         headers={"Retry-After": str(retry_after)},
                     )
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("IP rate limit Redis check failed (fail-open): %s", exc)
 
         return await call_next(request)

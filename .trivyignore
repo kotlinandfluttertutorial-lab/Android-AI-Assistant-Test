@@ -1,0 +1,11 @@
+# Trivy vulnerability suppressions
+# Format: CVE-ID  # comment
+# Review all entries before expiry dates and remove once patched.
+
+# CVE-2026-45829: Pre-auth RCE in ChromaDB Python FastAPI server (CRITICAL).
+# No patch available as of 2026-08-15. Affects chromadb 1.0.0–1.5.9.
+# Mitigation: ChromaDB port is NOT published to the host in docker-compose.yml
+# (internal Docker network only, unreachable from outside the compose stack).
+# Remove this entry and upgrade chromadb once a patched version is released.
+# Expiry: 2027-02-15
+CVE-2026-45829

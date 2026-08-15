@@ -1,0 +1,68 @@
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = [
+    "E",      # pycodestyle errors
+    "W",      # pycodestyle warnings
+    "F",      # pyflakes
+    "B",      # flake8-bugbear
+    "I",      # isort
+    "UP",     # pyupgrade
+    "S",      # flake8-bandit (security)
+    "N",      # pep8-naming
+    "C4",     # flake8-comprehensions
+    "RUF",    # ruff-specific rules
+]
+
+ignore = [
+    # Annotation rules — add incrementally to existing codebase
+    "ANN001", "ANN002", "ANN003", "ANN201", "ANN202", "ANN205", "ANN206",
+    # Unicode ambiguous characters — used intentionally in docstrings and strings
+    "RUF001", "RUF002", "RUF003",
+    # Naming — Pydantic validators and constants use uppercase convention
+    "N802", "N806",
+    # Exception chaining — large existing codebase, fix incrementally
+    "B904",
+    # try/except/pass — intentional in background tasks and WebSocket handlers
+    "S110",
+    # S101 — assert is the standard pytest assertion; safe to allow globally
+    # since Bandit is run separately in the security-scan workflow for production
+    # code paths. Per-file-ignores alone are unreliable across ruff versions.
+    "S101",
+    # S105/S106 — test fixtures use intentional hardcoded credential strings
+    "S105",
+    "S106",
+    # UP041 — asyncio.TimeoutError alias acceptable in Python 3.11
+    "UP041",
+    # RUF012 — ClassVar annotation not required for pytest/Pydantic patterns
+    "RUF012",
+    # B017 — pytest.raises(Exception) used deliberately in WebSocket tests
+    "B017",
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Alembic migrations — E402 (import order after env setup), E501, older typing
+"alembic/**" = ["E402", "E501", "UP035", "UP007", "I001"]
+# Test files — assert (S101), env-setup imports (E402), hardcoded test creds
+# (S105/S106), long data strings, unused fixture vars, datetime patterns.
+# Both glob forms used for ruff version compatibility.
+"tests/**" = ["S101", "S105", "S106", "E402", "E501", "F841", "UP017", "B905", "UP038", "C401", "RUF012",
+              "RUF001", "RUF002", "RUF003", "I001", "B017"]
+"tests/**/*.py" = ["S101", "S105", "S106", "E402", "E501", "F841", "UP017", "B905", "UP038", "C401"]
+# Workers — deferred imports inside Celery task functions are intentional
+"app/workers/**" = ["E402", "E501", "I001", "N806"]
+# Settings — validator methods use SCREAMING_SNAKE_CASE by convention
+"app/config/settings.py" = ["N802", "E501"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = [
+    "fastapi.Depends",
+    "fastapi.Query",
+    "fastapi.Path",
+    "fastapi.Body",
+]

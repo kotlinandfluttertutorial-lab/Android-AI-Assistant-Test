@@ -1,0 +1,19 @@
+# Safety CLI policy file
+# Configures which vulnerability severity levels block CI.
+# Docs: https://docs.safetycli.com/safety-docs/safety-cli/policy-file
+
+version: "3.0"
+
+scanning-settings:
+  max-vulnerabilities:
+    critical: 0    # Block on any critical CVE
+    high: 0        # Block on any high CVE
+    medium: 5      # Allow up to 5 medium CVEs (review quarterly)
+    low: 10        # Allow up to 10 low CVEs
+
+# Packages that are ignored with justification (review before adding):
+ignore:
+  vulnerabilities:
+    - id: CVE-2026-45829
+      reason: "No patch available as of 2026-08-15. Mitigated by removing ChromaDB host port binding — server is internal Docker network only. Remove when a patched chromadb version is released."
+      expires: "2027-02-15"

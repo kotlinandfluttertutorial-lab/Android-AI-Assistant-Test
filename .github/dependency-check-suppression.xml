@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  OWASP Dependency-Check suppression file.
+  Add false-positive CVEs here with justification and expiry date.
+
+  Format:
+    <suppress until="YYYY-MM-DD">
+      <notes>Reason this is suppressed + JIRA/ticket reference</notes>
+      <cve>CVE-XXXX-XXXXX</cve>
+    </suppress>
+
+  Review suppressed entries quarterly and remove expired ones.
+-->
+<suppressions
+  xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+
+  <!--
+    Example suppression (remove before production use):
+
+    <suppress until="2025-12-31">
+      <notes>
+        CVE-2023-XXXXX: False positive — the affected code path is not reachable
+        in our usage of this library. Tracked in JIRA-1234.
+      </notes>
+      <cve>CVE-2023-XXXXX</cve>
+    </suppress>
+  -->
+
+  <!--
+    CVE-2026-45829: Pre-auth RCE in ChromaDB Python FastAPI server (CRITICAL).
+    No patch available as of 2026-08-15. Affects all versions 1.0.0–1.5.9.
+    Mitigation: ChromaDB port is NOT published to the host (internal Docker
+    network only). Re-audit and remove this suppression when a patched version
+    is released. Tracked: update chromadb once fix is published.
+  -->
+  <suppress until="2027-02-15">
+    <notes>CVE-2026-45829: No patch available. Mitigated by removing host port
+    binding — ChromaDB is internal-only. Re-audit 2027-02-15.</notes>
+    <cve>CVE-2026-45829</cve>
+  </suppress>
+
+</suppressions>

@@ -114,7 +114,7 @@ async def get_current_epsilon(redis=None) -> float:
         raw = await redis.get("dp:epsilon")
         if raw is not None:
             return float(raw)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning(
             "Failed to read dp:epsilon from Redis; falling back to settings: %s",
             exc,

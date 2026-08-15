@@ -85,7 +85,9 @@ class PromptInjectionError(Exception):
 # be kept in sync.  A production deployment should replace these with a
 # dedicated content-moderation API call.
 _HARMFUL_OUTPUT_PATTERNS: list[re.Pattern[str]] = [
-    re.compile(r"<script\b[^>]*>.*?</script>", re.IGNORECASE | re.DOTALL),
+    # Match <script ...>...</script> including variants like </script > or
+    # </script\n> where the closing tag may contain whitespace/attributes.
+    re.compile(r"<\s*script[\s\S]*?>[\s\S]*?<\s*/\s*script[\s\S]*?>", re.IGNORECASE),
     re.compile(r"javascript\s*:", re.IGNORECASE),
 ]
 

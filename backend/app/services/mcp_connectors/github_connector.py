@@ -199,9 +199,12 @@ class GitHubWriteConnector(MCPToolConnector):
     """Write operations GitHub connector (requires user confirmation).
 
     Supported actions (passed as ``params["action"]``):
-    - ``create_issue``:       Create a new issue. Params: ``owner``, ``repo``, ``title``, ``body``.
-    - ``create_pr_comment``:  Add comment to a PR. Params: ``owner``, ``repo``, ``pr_number``, ``body``.
-    - ``create_gist``:        Create a gist. Params: ``description``, ``filename``, ``content``, ``public``.
+    - ``create_issue``:       Create a new issue. Params: ``owner``, ``repo``,
+                              ``title``, ``body``.
+    - ``create_pr_comment``:  Add comment to a PR. Params: ``owner``, ``repo``,
+                              ``pr_number``, ``body``.
+    - ``create_gist``:        Create a gist. Params: ``description``, ``filename``,
+                              ``content``, ``public``.
 
     Requirements: 8.3, 8.5
     """

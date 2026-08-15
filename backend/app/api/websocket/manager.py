@@ -106,7 +106,7 @@ async def authenticate_websocket(token: str | None) -> TokenPayload:
             raise InvalidTokenError(f"Token has been revoked (jti={payload.jti})")
     except InvalidTokenError:
         raise
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         # Gracefully degrade when Redis is unavailable — log and continue.
         logger.warning(
             "Redis JTI revocation check unavailable (jti=%s): %s — skipping",
@@ -169,7 +169,7 @@ class HeartbeatMonitor:
                 # Send ping
                 try:
                     await self._ws.send_json({"type": "ping"})
-                except Exception:  # noqa: BLE001
+                except Exception:
                     # Connection already closed; stop heartbeat silently.
                     return
 
@@ -184,7 +184,7 @@ class HeartbeatMonitor:
                     logger.info("WebSocket heartbeat timeout — closing connection")
                     try:
                         await self._ws.close(code=1001)  # Going Away
-                    except Exception:  # noqa: BLE001
+                    except Exception:
                         pass
                     return
         except asyncio.CancelledError:
@@ -232,7 +232,7 @@ async def flush_token_buffer(
             for token in tokens:
                 await websocket.send_json({"type": "token", "data": token})
             await redis_client.delete(key)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("Failed to flush token buffer (key=%s): %s", key, exc)
 
 
@@ -263,5 +263,5 @@ async def buffer_token(
         pipe.ltrim(key, -_BUFFER_MAX_LEN, -1)
         pipe.expire(key, _BUFFER_TTL_SECONDS)
         await pipe.execute()
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("Failed to buffer token (key=%s): %s", key, exc)

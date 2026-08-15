@@ -210,7 +210,7 @@ class MemoryRepository:
                         {"user_id": str(user_id), "memory_type": memory_type.value}
                     ],
                 )
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning(
                     "ChromaDB store failed for user %s (graceful degradation): %s",
                     user_id,
@@ -266,7 +266,7 @@ class MemoryRepository:
 
         try:
             query_embedding = await asyncio.to_thread(_encode_query)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning(
                 "Embedding generation failed for user %s query; returning empty: %s",
                 user_id,
@@ -280,7 +280,7 @@ class MemoryRepository:
                 client = self._get_chroma_client()
                 try:
                     collection = client.get_collection(collection_name)
-                except Exception:  # noqa: BLE001
+                except Exception:
                     # Collection does not exist — user has no memories yet
                     return []
 
@@ -307,7 +307,7 @@ class MemoryRepository:
                     }
                     for i in range(len(ids_list))
                 ]
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning(
                     "ChromaDB query failed for user %s: %s",
                     user_id,
@@ -397,10 +397,10 @@ class MemoryRepository:
                 try:
                     collection = client.get_collection(collection_name)
                     collection.delete(ids=[chroma_id])
-                except Exception:  # noqa: BLE001
+                except Exception:
                     # Collection or document may not exist
                     pass
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning(
                     "ChromaDB delete failed for chroma_id=%s user=%s: %s",
                     chroma_id,

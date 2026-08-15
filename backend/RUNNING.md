@@ -75,7 +75,14 @@ Starts the entire stack in containers: FastAPI · Celery worker · PostgreSQL ·
 
 ```cmd
 rem From the project root (where docker-compose.yml lives)
+
 docker compose up -d
+docker compose build --no-cache backend
+docker compose up -d backend
+docker compose exec backend alembic upgrade head
+docker compose exec backend alembic upgrade head
+
+
 ```
 
 Wait for all containers to become healthy (about 30–60 s), then run migrations:
@@ -200,11 +207,7 @@ celery -A app.workers.celery_app worker --loglevel=info --concurrency=4
 cloudflared tunnel --config "C:\Users\admin\.cloudflared\config.yml" run mybackend
 ````
 
-
-
 ngrok http 8000
-
-3HGXyDZI56KopaFHbFNdknvm1AD_7aPhFZbR4daJHww5r2qTK
 
 For your Android app, since the URL changes, the easiest workaround is to put the base URL in a config you can update without rebuilding — like SharedPreferences or a settings screen. Then just paste the new ngrok URL whenever you restart.
 

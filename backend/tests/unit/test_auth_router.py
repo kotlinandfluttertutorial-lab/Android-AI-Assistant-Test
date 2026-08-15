@@ -48,7 +48,7 @@ def _make_user_mock(
     role_value: str = SAMPLE_ROLE,
     is_active: bool = True,
     display_name: str = "Test User",
-    password_hash: str = "$2b$12$fakehash",
+    hashed_pw: str = "$2b$12$fakehash",
 ) -> MagicMock:
     """Build a mock User ORM object."""
     user = MagicMock()
@@ -56,7 +56,7 @@ def _make_user_mock(
     user.email = email
     user.display_name = display_name
     user.is_active = is_active
-    user.password_hash = password_hash
+    user.password_hash = hashed_pw
     role_mock = MagicMock()
     role_mock.value = role_value
     user.role = role_mock
@@ -427,7 +427,7 @@ class TestRBACEnforcement:
     def test_require_admin_returns_403_for_user_role(self) -> None:
         """A `user`-role JWT must receive HTTP 403 on admin endpoints."""
         from fastapi import Depends
-        from fastapi.testclient import TestClient as TC
+        from fastapi.testclient import TestClient as TestClientAlias
 
         from app.security.jwt_handler import create_access_token
         from app.security.rbac import require_admin
@@ -438,7 +438,7 @@ class TestRBACEnforcement:
         async def _admin_ep():
             return {"ok": True}
 
-        tc = TC(admin_app, raise_server_exceptions=False)
+        tc = TestClientAlias(admin_app, raise_server_exceptions=False)
         user_token, _ = create_access_token(
             SAMPLE_USER_ID, "user", expires_delta=timedelta(minutes=5)
         )
@@ -456,7 +456,7 @@ class TestRBACEnforcement:
     def test_require_admin_allows_admin_role(self) -> None:
         """An `admin`-role JWT must succeed on admin endpoints."""
         from fastapi import Depends
-        from fastapi.testclient import TestClient as TC
+        from fastapi.testclient import TestClient as TestClientAlias
 
         from app.security.jwt_handler import create_access_token
         from app.security.rbac import require_admin
@@ -467,7 +467,7 @@ class TestRBACEnforcement:
         async def _admin_ep():
             return {"ok": True}
 
-        tc = TC(admin_app, raise_server_exceptions=False)
+        tc = TestClientAlias(admin_app, raise_server_exceptions=False)
         admin_token, _ = create_access_token(
             SAMPLE_USER_ID, "admin", expires_delta=timedelta(minutes=5)
         )
@@ -485,7 +485,7 @@ class TestRBACEnforcement:
     def test_require_admin_returns_403_for_premium_role(self) -> None:
         """A `premium`-role JWT must receive HTTP 403 on admin-only endpoints."""
         from fastapi import Depends
-        from fastapi.testclient import TestClient as TC
+        from fastapi.testclient import TestClient as TestClientAlias
 
         from app.security.jwt_handler import create_access_token
         from app.security.rbac import require_admin
@@ -496,7 +496,7 @@ class TestRBACEnforcement:
         async def _admin_ep():
             return {"ok": True}
 
-        tc = TC(admin_app, raise_server_exceptions=False)
+        tc = TestClientAlias(admin_app, raise_server_exceptions=False)
         token, _ = create_access_token(
             SAMPLE_USER_ID, "premium", expires_delta=timedelta(minutes=5)
         )

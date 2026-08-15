@@ -180,7 +180,7 @@ async def _ingest_document(
             celery_task_id=celery_result.id,
         )
         await db.commit()
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         # Non-fatal: the job row exists, the user can check status later
         logger.warning("Failed to dispatch Celery task: %s", exc)
 
@@ -329,7 +329,7 @@ async def upload_document(
             celery_task_id=celery_result.id,
         )
         await db.commit()
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         # Non-fatal: the job row exists, the user can check status later
         logger.warning("Failed to dispatch Celery task: %s", exc)
 
@@ -346,7 +346,7 @@ async def upload_document(
 
 
 @router.get(
-    "/",
+    "",
     response_model=DocumentListResponse,
     summary="List user's documents",
 )
@@ -471,7 +471,7 @@ async def query_documents(
             )
             answer = completion.text
 
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning(
                 "AI Orchestrator unavailable for RAG query; returning context only. Error: %s",
                 exc,
@@ -597,9 +597,10 @@ async def query_document_by_id(
             )
             answer = completion.text
 
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning(
-                "AI Orchestrator unavailable for per-document RAG query; returning context only. Error: %s",
+                "AI Orchestrator unavailable for per-document RAG query; "
+                "returning context only. Error: %s",
                 exc,
             )
             answer = result.context
@@ -654,7 +655,7 @@ async def delete_document(
     # Remove embeddings from ChromaDB (best-effort, graceful degradation)
     try:
         await rag_service.delete_embeddings(str(document_id), str(user_id))
-    except Exception:  # noqa: BLE001
+    except Exception:
         logger.warning(
             "ChromaDB embedding deletion failed for document %s (best-effort)",
             document_id,
@@ -663,7 +664,7 @@ async def delete_document(
     # Remove file from MinIO (best-effort, graceful degradation)
     try:
         await rag_service.delete_file_minio(minio_key)
-    except Exception:  # noqa: BLE001
+    except Exception:
         logger.warning(
             "MinIO file deletion failed for document %s (best-effort)", document_id
         )

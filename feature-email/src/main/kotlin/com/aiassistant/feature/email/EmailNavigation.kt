@@ -17,26 +17,6 @@
  *   - See import statements below
  * ============================================================
  */
-
-/*
- * ============================================================
- * Android AI Assistant (Enterprise Edition)
- * ============================================================
- * Module     : feature-email
- * File       : EmailNavigation.kt
- * Purpose    : EmailNavigation — feature-email module component
- *
- * Architecture Layer : Feature (feature-email)
- * Pattern Used       : Navigation Graph / Destinations
- *
- * Key Concepts:
- *   - Clean Architecture with strict layer separation
- *   - Hilt dependency injection
- *
- * Dependencies:
- *   - See import statements below
- * ============================================================
- */
 /**
  * EmailNavigation.kt
  *
@@ -61,13 +41,13 @@ import androidx.navigation.navigation
  */
 object EmailRoute {
     /** Email root navigation graph route. */
-    const val Graph = "email"
+    const val GRAPH = "email"
 
     /** Email composer screen route. */
-    const val EmailComposer = "email/composer"
+    const val EMAIL_COMPOSER = "email/composer"
 
     /** Grammar correction screen route. */
-    const val GrammarCorrection = "email/grammar-correction"
+    const val GRAMMAR_CORRECTION = "email/grammar-correction"
 }
 
 /**
@@ -92,13 +72,13 @@ fun NavGraphBuilder.emailNavGraph(
     onNavigateUp: () -> Unit = { navController.popBackStack() }
 ) {
     navigation(
-        startDestination = EmailRoute.EmailComposer,
-        route = EmailRoute.Graph
+        startDestination = EmailRoute.EMAIL_COMPOSER,
+        route = EmailRoute.GRAPH
     ) {
-        // â”€â”€ Email Composer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        composable(route = EmailRoute.EmailComposer) { backStackEntry ->
+        // ── Email Composer ────────────────────────────────────────────────────────
+        composable(route = EmailRoute.EMAIL_COMPOSER) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(EmailRoute.Graph)
+                navController.getBackStackEntry(EmailRoute.GRAPH)
             }
             val viewModel: EmailViewModel = hiltViewModel(parentEntry)
             val uiState by viewModel.uiState.collectAsState()
@@ -106,7 +86,7 @@ fun NavGraphBuilder.emailNavGraph(
             // Navigate to grammar correction when the GrammarCorrected state is reached
             LaunchedEffect(uiState) {
                 if (uiState is EmailUiState.GrammarCorrected) {
-                    navController.navigate(EmailRoute.GrammarCorrection)
+                    navController.navigate(EmailRoute.GRAMMAR_CORRECTION)
                 }
             }
 
@@ -119,10 +99,10 @@ fun NavGraphBuilder.emailNavGraph(
             )
         }
 
-        // â”€â”€ Grammar Correction â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        composable(route = EmailRoute.GrammarCorrection) { backStackEntry ->
+        // ── Grammar Correction ────────────────────────────────────────────────────
+        composable(route = EmailRoute.GRAMMAR_CORRECTION) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(EmailRoute.Graph)
+                navController.getBackStackEntry(EmailRoute.GRAPH)
             }
             val viewModel: EmailViewModel = hiltViewModel(parentEntry)
             val uiState by viewModel.uiState.collectAsState()
@@ -132,7 +112,7 @@ fun NavGraphBuilder.emailNavGraph(
                 onNavigateUp = { navController.popBackStack() },
                 onResetState = {
                     viewModel.resetState()
-                    navController.popBackStack(EmailRoute.EmailComposer, inclusive = false)
+                    navController.popBackStack(EmailRoute.EMAIL_COMPOSER, inclusive = false)
                 }
             )
         }

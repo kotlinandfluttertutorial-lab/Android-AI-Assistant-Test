@@ -20,16 +20,16 @@ captures/
 backend/venv/
 backend/venv311/
 backend/July30/
-backend/**/__pycache__/
-backend/__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
 backend/.env
 backend/.pytest_cache/
 backend/.ruff_cache/
 backend/.hypothesis/
 backend/.coverage
 backend/coverage.json
-backend/*.pyc
-backend/**/*.pyc
+backend/coverage_fresh.json
 
 # Environment secrets
 .env
@@ -37,3 +37,9 @@ backend/**/*.pyc
 
 # OS
 Thumbs.db
+/venv/
+# google-services.json is committed with placeholder API keys.
+# Real keys are injected via the GOOGLE_SERVICES_JSON secret in build-signed-apk.
+# /app/google-services.json
+/app/google-services.json
+/backend/venv312/

@@ -180,7 +180,7 @@ class RefreshTokenRepository:
             update(RefreshToken)
             .where(
                 RefreshToken.user_id == user_id,
-                RefreshToken.revoked == False,
+                ~RefreshToken.revoked,
             )
             .values(revoked=True)
         )

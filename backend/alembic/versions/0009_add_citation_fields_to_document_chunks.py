@@ -1,37 +1,57 @@
-"""Add citation metadata fields to document_chunks table.
+"""Add citation_type, char_offset_start, char_offset_end to document_chunks.
 
-This migration extends the ``document_chunks`` table with structured citation
-fields required by the RAG citation feature:
+Required for TXT/Markdown character-offset citations (Requirement 4.7).
 
-  - ``page_number``   : page number within the source document (nullable int)
-  - ``section_title`` : section or heading the chunk belongs to (nullable str)
-  - ``chunk_index``   : zero-based position of the chunk within its document
-  - ``citation_text`` : pre-formatted citation string returned to the client
-
-Revision ID: 0009_add_citation_fields_to_document_chunks
+Revision ID: 0009_add_citation_fields
 Revises: 0008_add_fcm_token_to_users
+Create Date: 2026-08-14 00:00:00.000000
 """
 
-from alembic import op
-import sqlalchemy as sa
+from __future__ import annotations
 
-revision: str = "0009_add_citation_fields_to_document_chunks"
-down_revision: str = "0008_add_fcm_token_to_users"
-branch_labels = None
-depends_on = None
+from typing import Sequence, Union
+
+import sqlalchemy as sa
+from alembic import op
+
+revision: str = "0009_add_citation_fields"
+down_revision: Union[str, None] = "0008_add_fcm_token_to_users"
+branch_labels: Union[str, Sequence[str], None] = None
+depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.add_column("document_chunks", sa.Column("page_number", sa.Integer(), nullable=True))
-    op.add_column("document_chunks", sa.Column("section_title", sa.String(length=512), nullable=True))
-    op.add_column("document_chunks", sa.Column("chunk_index", sa.Integer(), nullable=False, server_default="0"))
-    op.add_column("document_chunks", sa.Column("citation_text", sa.Text(), nullable=True))
-    op.create_index("ix_document_chunks_document_page", "document_chunks", ["document_id", "page_number"])
+    op.add_column(
+        "document_chunks",
+        sa.Column(
+            "citation_type",
+            sa.String(length=32),
+            nullable=False,
+            server_default="page",
+            comment="'page' for PDF/DOCX; 'char_offset' for TXT/Markdown",
+        ),
+    )
+    op.add_column(
+        "document_chunks",
+        sa.Column(
+            "char_offset_start",
+            sa.Integer(),
+            nullable=True,
+            comment="Character offset start (TXT/Markdown only)",
+        ),
+    )
+    op.add_column(
+        "document_chunks",
+        sa.Column(
+            "char_offset_end",
+            sa.Integer(),
+            nullable=True,
+            comment="Character offset end (TXT/Markdown only)",
+        ),
+    )
 
 
 def downgrade() -> None:
-    op.drop_index("ix_document_chunks_document_page", table_name="document_chunks")
-    op.drop_column("document_chunks", "citation_text")
-    op.drop_column("document_chunks", "chunk_index")
-    op.drop_column("document_chunks", "section_title")
-    op.drop_column("document_chunks", "page_number")
+    op.drop_column("document_chunks", "char_offset_end")
+    op.drop_column("document_chunks", "char_offset_start")
+    op.drop_column("document_chunks", "citation_type")

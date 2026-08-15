@@ -135,14 +135,14 @@ private fun screenViewTracker(navController: NavHostController) {
 private fun rootNavHost(navController: NavHostController) {
     NavHost(
         navController = navController,
-        startDestination = AuthRoute.Graph
+        startDestination = AuthRoute.GRAPH
     ) {
-        // â”€â”€ Auth sub-graph (Splash â†’ Onboarding â†’ Login â†’ Register) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── Auth sub-graph (Splash → Onboarding → Login → Register) ──────────
         authNavGraph(
             navController = navController,
             onAuthSuccess = {
                 navController.navigate(HOME_ROUTE) {
-                    popUpTo(AuthRoute.Graph) { inclusive = true }
+                    popUpTo(AuthRoute.GRAPH) { inclusive = true }
                 }
             }
         )
@@ -169,7 +169,7 @@ private fun rootNavHost(navController: NavHostController) {
             )
         ) {
             // Re-navigate into the real chat destination so the back stack is correct.
-            navController.navigate(ChatRoute.List) {
+            navController.navigate(ChatRoute.LIST) {
                 popUpTo("deeplink/chat") { inclusive = true }
             }
         }
@@ -183,7 +183,7 @@ private fun rootNavHost(navController: NavHostController) {
                 navDeepLink { uriPattern = "$DEEP_LINK_BASE/rag" }
             )
         ) {
-            navController.navigate(RAGRoute.DocumentList) {
+            navController.navigate(RAGRoute.DOCUMENT_LIST) {
                 popUpTo("deeplink/rag") { inclusive = true }
             }
         }
@@ -200,7 +200,7 @@ private fun rootNavHost(navController: NavHostController) {
                 navDeepLink { uriPattern = "$DEEP_LINK_BASE/voice" }
             )
         ) {
-            navController.navigate(VoiceRoute.Graph) {
+            navController.navigate(VoiceRoute.GRAPH) {
                 popUpTo("deeplink/voice") { inclusive = true }
             }
         }
@@ -250,7 +250,7 @@ private fun rootNavHost(navController: NavHostController) {
                 navDeepLink { uriPattern = "$DEEP_LINK_BASE/productivity" }
             )
         ) {
-            navController.navigate(ProductivityRoute.Graph) {
+            navController.navigate(ProductivityRoute.GRAPH) {
                 popUpTo("deeplink/productivity") { inclusive = true }
             }
         }

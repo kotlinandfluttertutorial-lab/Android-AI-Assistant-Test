@@ -285,7 +285,7 @@ async def _invalidate_all_tokens_for_user(
         update(RefreshToken)
         .where(
             RefreshToken.user_id == user_id,
-            RefreshToken.revoked == False,
+            ~RefreshToken.revoked,
         )
         .values(revoked=True)
         .returning(RefreshToken.id)
@@ -307,7 +307,7 @@ async def _invalidate_all_tokens_for_user(
         ttl = (settings.ACCESS_TOKEN_EXPIRE_MINUTES + 1) * 60
         await redis.setex(force_logout_key, ttl, "1")
         logger.info("Set force_logout marker for user %s (TTL=%ds)", user_id, ttl)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning(
             "Could not set Redis force_logout marker for user %s: %s", user_id, exc
         )
@@ -562,7 +562,7 @@ async def get_active_sessions(redis: Redis) -> ActiveSessionsResponse:
 
             if cursor == 0:
                 break
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("Could not read sessions from Redis: %s", exc)
 
     return ActiveSessionsResponse(
@@ -589,7 +589,6 @@ async def get_remote_config(redis: Redis) -> RemoteConfigListResponse:
         raw = await redis.get(_REMOTE_CONFIG_KEY)
         if raw:
             data: dict[str, Any] = json.loads(raw)
-            now = datetime.now(tz=timezone.utc)
             for key, entry_data in data.items():
                 if isinstance(entry_data, dict):
                     last_updated_raw = entry_data.get("last_updated")
@@ -616,7 +615,7 @@ async def get_remote_config(redis: Redis) -> RemoteConfigListResponse:
                 published_at = datetime.fromisoformat(published_raw)
             except ValueError:
                 published_at = None
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("Could not read remote config from Redis: %s", exc)
 
     return RemoteConfigListResponse(entries=entries, published_at=published_at)
@@ -637,7 +636,7 @@ async def update_remote_config_key(
     try:
         raw = await redis.get(_REMOTE_CONFIG_KEY)
         config: dict[str, Any] = json.loads(raw) if raw else {}
-    except (json.JSONDecodeError, Exception):  # noqa: BLE001
+    except (json.JSONDecodeError, Exception):
         config = {}
 
     config[key] = {
@@ -669,7 +668,7 @@ async def publish_remote_config(redis: Redis) -> RemoteConfigPublishResponse:
     try:
         raw = await redis.get(_REMOTE_CONFIG_KEY)
         config: dict[str, Any] = json.loads(raw) if raw else {}
-    except (json.JSONDecodeError, Exception):  # noqa: BLE001
+    except (json.JSONDecodeError, Exception):
         config = {}
 
     entries_count = len(config)
@@ -718,7 +717,7 @@ async def publish_remote_config(redis: Redis) -> RemoteConfigPublishResponse:
             "Install firebase-admin to enable live Firebase publishing."
         )
         logger.info(message)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         message = f"Firebase publish failed: {exc}"
         logger.error("Firebase Remote Config publish error: %s", exc)
         published = False
@@ -752,7 +751,7 @@ async def _count_active_sessions(redis: Redis) -> int:
             if cursor == 0:
                 break
         return count
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("Could not count active sessions: %s", exc)
         return 0
 
@@ -798,7 +797,7 @@ async def get_celery_metrics(celery_app: Any) -> CeleryMetricsResponse:
             for ids in revoked.values():
                 failed_tasks += len(ids or [])
 
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("Could not fetch Celery metrics (broker unreachable?): %s", exc)
 
     return CeleryMetricsResponse(

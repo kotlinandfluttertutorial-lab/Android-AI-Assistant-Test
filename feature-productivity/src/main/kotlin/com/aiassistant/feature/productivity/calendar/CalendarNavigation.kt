@@ -43,7 +43,7 @@
  * Purpose: Navigation graph for the CalendarView sub-feature, defining route constants
  *          and a NavGraphBuilder extension that wires CalendarViewScreen composables
  *          to CalendarViewModel callbacks.
- * Architecture: feature-productivity â€” Navigation layer; consumed by productivityNavGraph
+ * Architecture: feature-productivity — Navigation layer; consumed by productivityNavGraph
  *               in ProductivityNavigation.kt or embedded directly in the app's root NavHost.
  * Dependencies: feature-productivity calendar screens and CalendarViewModel (Hilt),
  *               AndroidX Navigation Compose.
@@ -54,7 +54,7 @@
  *   existing productivity navigation graph without exposing screen composables to callers.
  * - A single CalendarViewModel scoped to the calendar nav graph ensures state is shared
  *   across the CalendarView and EventEditor destinations.
- * - The EventEditor destination is embedded in the same nav graph â€” it does not push a
+ * - The EventEditor destination is embedded in the same nav graph — it does not push a
  *   new nav entry; instead, the ViewModel's state machine drives which content is rendered.
  *   This avoids duplicating ViewModel scope and simplifies back-stack management.
  *
@@ -76,24 +76,16 @@ import androidx.navigation.navigation
  */
 object CalendarRoute {
     /** Calendar root navigation graph route. */
-    const val Graph = "productivity/calendar-graph"
+    const val GRAPH = "productivity/calendar-graph"
 
     /** Calendar view screen route (monthly/weekly grid + event list). */
-    const val CalendarView = "productivity/calendar"
+    const val CALENDAR_VIEW = "productivity/calendar"
 }
 
 /**
  * Embeds the calendar navigation sub-graph into the caller's [NavGraphBuilder].
  *
- * The calendar graph contains a single composable destination ([CalendarRoute.CalendarView])
- * backed by [CalendarViewModel]. The EventEditor is rendered inline via the ViewModel's
- * [CalendarUiState.EventEditor] state rather than a separate navigation destination, keeping
- * the back-stack clean and the ViewModel scope confined to this graph.
- *
- * Usage from productivityNavGraph:
- * ```kotlin
- * navGraphBuilder.calendarNavGraph(navController = navController, onNavigateUp = { navController.popBackStack() })
- * ```
+ * Wires the calendar screen using [CalendarRoute.CALENDAR_VIEW].
  *
  * @param navController The root [NavHostController] shared with the parent graph.
  * @param onNavigateUp  Called when the user navigates back out of the calendar graph.
@@ -103,12 +95,12 @@ fun NavGraphBuilder.calendarNavGraph(
     onNavigateUp: () -> Unit = { navController.popBackStack() }
 ) {
     navigation(
-        startDestination = CalendarRoute.CalendarView,
-        route = CalendarRoute.Graph
+        startDestination = CalendarRoute.CALENDAR_VIEW,
+        route = CalendarRoute.GRAPH
     ) {
-        composable(route = CalendarRoute.CalendarView) { backStackEntry ->
+        composable(route = CalendarRoute.CALENDAR_VIEW) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(CalendarRoute.Graph)
+                navController.getBackStackEntry(CalendarRoute.GRAPH)
             }
             val viewModel: CalendarViewModel = hiltViewModel(parentEntry)
             val uiState by viewModel.uiState.collectAsState()

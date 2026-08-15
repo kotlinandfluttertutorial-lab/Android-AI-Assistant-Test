@@ -41,8 +41,8 @@ from alembic import op
 # Revision identifiers, used by Alembic.
 # ---------------------------------------------------------------------------
 
-revision: str = "0007_usage_feature_and_spending_alerts"
-down_revision: str | None = "0006_add_privacy_mode_to_users"
+revision: str = "0007_spending_alerts"
+down_revision: str | None = "0006_privacy_mode"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None
 

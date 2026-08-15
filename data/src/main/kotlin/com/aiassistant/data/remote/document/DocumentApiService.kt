@@ -17,26 +17,6 @@
  *   - See import statements below
  * ============================================================
  */
-
-/*
- * ============================================================
- * Android AI Assistant (Enterprise Edition)
- * ============================================================
- * Module     : data
- * File       : DocumentApiService.kt
- * Purpose    : DocumentApiService — data module component
- *
- * Architecture Layer : Data
- * Pattern Used       : Retrofit API Service Interface
- *
- * Key Concepts:
- *   - Clean Architecture with strict layer separation
- *   - Hilt dependency injection
- *
- * Dependencies:
- *   - See import statements below
- * ============================================================
- */
 /**
  * DocumentApiService.kt — data module
  *
@@ -77,15 +57,28 @@ data class DocumentListResponseDto(
  */
 @Serializable
 data class DocumentDto(
-    @SerialName("id") val id: String,
-    @SerialName("file_name") val fileName: String,
-    @SerialName("mime_type") val mimeType: String,
-    @SerialName("size_bytes") val sizeBytes: Long,
-    /** "pending" | "processing" | "ready" | "failed" */
-    @SerialName("ingestion_status") val ingestionStatus: String,
-    @SerialName("page_count") val pageCount: Int? = null,
+    @SerialName("id")
+    val id: String,
+
+    @SerialName("file_name")
+    val fileName: String,
+
+    @SerialName("mime_type")
+    val mimeType: String,
+
+    @SerialName("size_bytes")
+    val sizeBytes: Long,
+
+    /** \"pending\" | \"processing\" | \"ready\" | \"failed\" */
+    @SerialName("ingestion_status")
+    val ingestionStatus: String,
+
+    @SerialName("page_count")
+    val pageCount: Int? = null,
+
     /** ISO-8601 string from backend */
-    @SerialName("created_at") val createdAt: String
+    @SerialName("created_at")
+    val createdAt: String
 )
 
 /**
@@ -103,10 +96,18 @@ data class DocumentUploadResponseDto(
  */
 @Serializable
 data class JobStatusDto(
-    @SerialName("job_id") val jobId: String,
-    @SerialName("document_id") val documentId: String? = null,
-    @SerialName("status") val status: String, // "pending" | "processing" | "ready" | "failed"
-    @SerialName("error_message") val errorMessage: String? = null
+    @SerialName("job_id")
+    val jobId: String,
+
+    @SerialName("document_id")
+    val documentId: String? = null,
+
+    /** \"pending\" | \"processing\" | \"ready\" | \"failed\" */
+    @SerialName("status")
+    val status: String,
+
+    @SerialName("error_message")
+    val errorMessage: String? = null
 )
 
 /**

@@ -284,7 +284,9 @@ private fun CodeAnalysisExplainPreview() {
                     languageId = "kotlin",
                     originalCode = "fun hello() = println(\"Hello\")",
                     action = CodeAction.EXPLAIN,
-                    content = "## What it does\nPrints \"Hello\" to stdout.\n\n## Why\nDemonstrates a minimal Kotlin function.\n\n## Improvements\n- Add a parameter to make it configurable."
+                    content = "## What it does\nPrints \"Hello\" to stdout.\n\n## Why\n" +
+                        "Demonstrates a minimal Kotlin function.\n\n## Improvements\n" +
+                        "- Add a parameter to make it configurable."
                 )
             ),
             onBackToEditor = {}
@@ -307,7 +309,10 @@ private fun CodeAnalysisFixBugPreview() {
                     languageId = "kotlin",
                     originalCode = "fun divide(a: Int, b: Int) = a / b",
                     action = CodeAction.FIX_BUG,
-                    content = "// FIX: Guard against division by zero\nfun divide(a: Int, b: Int): Int? {\n    if (b == 0) return null // return null instead of throwing\n    return a / b\n}"
+                    content = "// FIX: Guard against division by zero\n" +
+                        "fun divide(a: Int, b: Int): Int? {\n" +
+                        "    if (b == 0) return null // return null instead of throwing\n" +
+                        "    return a / b\n}"
                 )
             ),
             onBackToEditor = {}

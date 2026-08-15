@@ -1,0 +1,27 @@
+[run]
+source = app
+omit =
+    app/workers/celery_app.py
+    app/config/*
+    */__pycache__/*
+    */venv*/*
+    */migrations/*
+    alembic/*
+branch = true
+
+[report]
+fail_under = 70
+show_missing = true
+exclude_lines =
+    pragma: no cover
+    def __repr__
+    raise NotImplementedError
+    if TYPE_CHECKING:
+    @abstractmethod
+    pass
+
+[html]
+directory = htmlcov
+
+[xml]
+output = coverage.xml

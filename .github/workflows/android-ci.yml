@@ -1,0 +1,965 @@
+# ============================================================================
+# Android CI/CD Pipeline — Production Grade
+# ============================================================================
+#
+# Triggers:
+#   pull_request  →  targets main or develop branches
+#   push          →  main branch only
+#   workflow_dispatch  →  manual trigger
+#
+# PR Required Status Checks (configure as branch-protection rules):
+#   • android-ci / validate
+#   • android-ci / dependency-lint
+#   • android-ci / hilt-ksp-gate
+#   • android-ci / hilt-di-gate
+#   • android-ci / android-lint
+#   • android-ci / android-unit-tests
+#   • android-ci / ktlint-detekt
+#   • android-ci / jacoco-gate
+#   • android-ci / backend-unit-tests
+#   • android-ci / backend-integration-tests
+#   • android-ci / instrumented-tests
+#
+# Main-branch Release Jobs:
+#   • android-ci / build-signed-apk  — signed APK artifact (merge-to-main)
+#
+# Secrets required (repository / environment level):
+#   KEYSTORE_BASE64            — base64-encoded release keystore (.jks)
+#   KEY_ALIAS                  — key alias in the keystore
+#   KEY_PASSWORD               — key password
+#   STORE_PASSWORD             — keystore store password
+#   GOOGLE_SERVICES_JSON       — google-services.json content (base64)
+#   FIREBASE_APP_ID            — Firebase App ID
+#   FIREBASE_SERVICE_ACCOUNT   — Firebase service account JSON (base64)
+#   FIREBASE_TESTER_GROUPS     — comma-separated tester group aliases
+#   SLACK_WEBHOOK_URL          — Slack incoming webhook for notifications (optional)
+# ============================================================================
+
+name: Android CI
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      release_notes:
+        description: "Release notes for Firebase App Distribution testers"
+        required: false
+        default: "New build from main branch — see commit history for changes."
+
+# Cancel in-flight runs for the same PR / branch to save runner minutes.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  JAVA_VERSION: "17"
+  JAVA_DISTRIBUTION: "temurin"
+  PYTHON_VERSION: "3.11"
+  GRADLE_OPTS: >-
+    -Dorg.gradle.daemon=false
+    -Dorg.gradle.parallel=true
+    -Dorg.gradle.caching=true
+    -Dorg.gradle.configureondemand=true
+    -Dkotlin.incremental=false
+
+jobs:
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # VALIDATION GATE — fail fast before spinning up heavier jobs
+  # ──────────────────────────────────────────────────────────────────────────
+  validate:
+    name: Validate Gradle Wrapper
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: gradle/actions/wrapper-validation@v3
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 1. Dependency-Lint — enforce Clean Architecture dependency rules
+  #    Forbidden edges: feature→feature, domain→data/feature, data→feature
+  #    (Requirements 19.2)
+  # ──────────────────────────────────────────────────────────────────────────
+  dependency-lint:
+    name: Module Dependency Lint
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Make dependency-lint script executable
+        run: chmod +x .github/scripts/check-module-deps.sh
+
+      - name: Run module dependency lint
+        run: .github/scripts/check-module-deps.sh "$GITHUB_WORKSPACE"
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Hilt DI Gate — enforce Hilt DI completeness across Android modules (KSP)
+  # (Requirements 30.1, 30.2, 30.3, 30.4)
+  # ──────────────────────────────────────────────────────────────────────────
+  hilt-di-gate:
+    name: Hilt DI Binding Verification (KSP)
+    runs-on: ubuntu-latest
+    needs: [validate]
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Ensure gradlew is executable
+        run: chmod +x gradlew
+
+      - name: Write google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            echo "$GOOGLE_SERVICES_JSON" | base64 --decode > app/google-services.json
+          else
+            cp app/google-services.json app/google-services.json 2>/dev/null || \
+            cat > app/google-services.json << 'EOF'
+          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
+          EOF
+          fi
+
+      - name: Run KSP Hilt code generation (debug)
+        run: ./gradlew :app:kspDebugKotlin --stacktrace
+
+      - name: Confirm zero Hilt binding errors
+        run: |
+          echo "✅ Hilt DI bindings verified — zero binding errors"
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # Hilt KSP Gate — confirm zero Hilt binding errors at compile time
+  # (Requirements 30.1, 30.2, 30.4)
+  # ──────────────────────────────────────────────────────────────────────────
+  hilt-ksp-gate:
+    name: Hilt KSP Binding Check
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Ensure gradlew is executable
+        run: chmod +x gradlew
+
+      - name: Write google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            echo "$GOOGLE_SERVICES_JSON" | base64 --decode > app/google-services.json
+          elif [ ! -f app/google-services.json ]; then
+            cat > app/google-services.json << 'EOF'
+          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
+          EOF
+          fi
+
+      - name: Run KSP code generation for Hilt (debug)
+        run: ./gradlew :app:kspDebugKotlin --stacktrace
+
+      - name: Confirm zero Hilt binding errors
+        run: |
+          echo "✅ Hilt KSP code generation completed with zero binding errors"
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 2. Android Lint — all modules
+  # ──────────────────────────────────────────────────────────────────────────
+  android-lint:
+    name: Android Lint
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Ensure gradlew is executable
+        run: chmod +x gradlew
+
+      - name: Write google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            echo "$GOOGLE_SERVICES_JSON" | base64 --decode > app/google-services.json
+          elif [ ! -f app/google-services.json ]; then
+            cat > app/google-services.json << 'EOF'
+          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
+          EOF
+          fi
+
+      - name: Run Android Lint on all modules
+        run: ./gradlew lintDebug --stacktrace --continue
+
+      - name: Upload lint results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lint-reports-${{ github.run_number }}
+          path: |
+            **/build/reports/lint-results*.html
+            **/build/reports/lint-results*.xml
+          retention-days: 7
+
+      - name: Annotate PR with lint issues
+        if: failure()
+        run: |
+          echo "::error::Android Lint failed — see lint-reports artifact for details."
+          exit 1
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 3. Android Unit Tests — all modules
+  # ──────────────────────────────────────────────────────────────────────────
+  android-unit-tests:
+    name: Android Unit Tests
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Ensure gradlew is executable
+        run: chmod +x gradlew
+
+      - name: Write google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            echo "$GOOGLE_SERVICES_JSON" | base64 --decode > app/google-services.json
+          elif [ ! -f app/google-services.json ]; then
+            cat > app/google-services.json << 'EOF'
+          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
+          EOF
+          fi
+
+      - name: Run unit tests on all modules
+        run: ./gradlew test --stacktrace --continue
+
+      - name: Publish test results
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Android Unit Test Results
+          path: "**/build/test-results/test*/*.xml"
+          reporter: java-junit
+          fail-on-error: false
+
+      - name: Upload test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-unit-test-reports-${{ github.run_number }}
+          path: "**/build/reports/tests/"
+          retention-days: 7
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 4. ktlint + Detekt — block merge on any error in changed Kotlin files
+  #    (Requirements 19.5, 19.6)
+  # ──────────────────────────────────────────────────────────────────────────
+  ktlint-detekt:
+    name: ktlint + Detekt
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.event_name == 'pull_request'
+    permissions:
+      security-events: write   # for SARIF upload to GitHub Code Scanning
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Ensure gradlew is executable
+        run: chmod +x gradlew
+
+      - name: Write google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            echo "$GOOGLE_SERVICES_JSON" | base64 --decode > app/google-services.json
+          elif [ ! -f app/google-services.json ]; then
+            cat > app/google-services.json << 'EOF'
+          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
+          EOF
+          fi
+
+      - name: Compute changed Kotlin files
+        run: |
+          git diff --name-only origin/${{ github.base_ref }}...HEAD \
+            | grep '\.kt$' > changed_kt_files.txt || true
+          echo "Changed .kt files:"
+          cat changed_kt_files.txt
+
+      - name: Run ktlint check
+        run: ./gradlew ktlintCheck --stacktrace
+
+      - name: Run Detekt
+        run: ./gradlew detekt --stacktrace
+
+      - name: Annotate changed files with Detekt issues
+        if: ${{ hashFiles('changed_kt_files.txt') != '' }}
+        run: echo "Detekt ran on full source tree — changed files are included in the report."
+
+      - name: Upload Detekt SARIF to GitHub Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: "**/build/reports/detekt/*.sarif"
+        continue-on-error: true   # SARIF upload is informational
+
+      - name: Upload ktlint reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ktlint-reports-${{ github.run_number }}
+          path: "**/build/reports/ktlint/"
+          retention-days: 7
+
+      - name: Upload Detekt HTML reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: detekt-reports-${{ github.run_number }}
+          path: "**/build/reports/detekt/"
+          retention-days: 7
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 5. JaCoCo Gate — combined domain + data coverage ≥ 70%
+  #    Calls the check-coverage.sh script (Requirement 19.5)
+  # ──────────────────────────────────────────────────────────────────────────
+  jacoco-gate:
+    name: JaCoCo Coverage Gate (≥70%)
+    runs-on: ubuntu-latest
+    needs: android-unit-tests
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Ensure gradlew is executable
+        run: chmod +x gradlew
+
+      - name: Write google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            echo "$GOOGLE_SERVICES_JSON" | base64 --decode > app/google-services.json
+          elif [ ! -f app/google-services.json ]; then
+            cat > app/google-services.json << 'EOF'
+          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
+          EOF
+          fi
+
+      - name: Generate JaCoCo reports for domain and data modules
+        run: ./gradlew :domain:jacocoTestReport :data:jacocoTestReport --stacktrace
+
+      - name: Make coverage script executable
+        run: chmod +x .github/scripts/check-coverage.sh
+
+      - name: Enforce combined coverage ≥ 70%
+        run: .github/scripts/check-coverage.sh "$GITHUB_WORKSPACE" 70
+
+      - name: Post coverage comment on PR
+        if: always() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        env:
+          ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true"
+        with:
+          script: |
+            const pct = process.env.coverage_pct || 'N/A';
+            const emoji = parseFloat(pct) >= 70 ? '✅' : '❌';
+            const body = `### ${emoji} JaCoCo Coverage Report\n\n` +
+              `**Combined (domain + data): ${pct}%** (threshold: 70%)\n\n` +
+              `_Generated for commit \`${context.sha.substring(0, 7)}\`_`;
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body
+            });
+
+      - name: Upload JaCoCo HTML reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: jacoco-reports-${{ github.run_number }}
+          path: |
+            domain/build/reports/jacoco/
+            data/build/reports/jacoco/
+          retention-days: 14
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 6. Hilt Audit — verify dependency injection graph
+  # ──────────────────────────────────────────────────────────────────────────
+  hilt-audit:
+    name: Hilt Audit
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Ensure gradlew is executable
+        run: chmod +x gradlew
+
+      - name: Write google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            echo "$GOOGLE_SERVICES_JSON" | base64 --decode > app/google-services.json
+          elif [ ! -f app/google-services.json ]; then
+            cat > app/google-services.json << 'EOF'
+          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
+          EOF
+          fi
+
+      - name: Run Hilt binding check (KSP)
+        run: ./gradlew :app:kspDebugKotlin --stacktrace
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 7. Backend Unit Tests — pytest backend/tests/unit/
+  #    (Requirement 20.3)
+  # ──────────────────────────────────────────────────────────────────────────
+  backend-unit-tests:
+    name: Backend Unit Tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('backend/requirements.txt') }}
+          restore-keys: pip-${{ runner.os }}-${{ env.PYTHON_VERSION }}-
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run backend unit tests
+        env:
+          SECRET_KEY: "ci-test-secret-key-must-be-at-least-32-chars!"
+          DATABASE_URL: "postgresql+asyncpg://testuser:testpass@localhost:5432/testdb"
+          REDIS_URL: "redis://localhost:6379/0"
+          OPENAI_API_KEY: "sk-test-not-real"
+          GEMINI_API_KEY: "test-gemini-not-real"
+          ANTHROPIC_API_KEY: "sk-ant-test-not-real"
+          OLLAMA_BASE_URL: "http://localhost:11434"
+          MINIO_ENDPOINT: "localhost:9000"
+          MINIO_ACCESS_KEY: "minioadmin"
+          MINIO_SECRET_KEY: "minioadmin123"
+          MINIO_BUCKET: "test-bucket"
+          LOKI_URL: ""
+          ENVIRONMENT: "test"
+          LOG_LEVEL: "WARNING"
+        run: |
+          pytest tests/unit/ \
+            --junit-xml=unit-test-results.xml \
+            -v \
+            --tb=short
+
+      - name: Publish unit test results
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Backend Unit Test Results (PR)
+          path: backend/unit-test-results.xml
+          reporter: java-junit
+          fail-on-error: false
+
+      - name: Upload unit test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-unit-test-reports-${{ github.run_number }}
+          path: backend/.pytest_cache/
+          retention-days: 7
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 7. Backend Integration Tests — pytest backend/tests/integration/
+  #    Spins up PostgreSQL 16 + Redis 7 as service containers.
+  #    (Requirement 20.4)
+  # ──────────────────────────────────────────────────────────────────────────
+  backend-integration-tests:
+    name: Backend Integration Tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    defaults:
+      run:
+        working-directory: backend
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: testdb
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U testuser -d testdb"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+          --health-start-period 15s
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('backend/requirements.txt') }}
+          restore-keys: pip-${{ runner.os }}-${{ env.PYTHON_VERSION }}-
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Wait for PostgreSQL to be ready
+        run: |
+          for i in {1..30}; do
+            pg_isready -h localhost -p 5432 -U testuser -d testdb && break
+            echo "Waiting for PostgreSQL... ($i/30)"
+            sleep 2
+          done
+
+      - name: Run Alembic migrations
+        env:
+          DATABASE_URL: "postgresql+asyncpg://testuser:testpass@localhost:5432/testdb"
+          PYTHONPATH: "."
+        run: alembic upgrade head
+        continue-on-error: true
+
+      - name: Run backend integration tests
+        env:
+          SECRET_KEY: "ci-test-secret-key-must-be-at-least-32-chars!"
+          DATABASE_URL: "postgresql+asyncpg://testuser:testpass@localhost:5432/testdb"
+          REDIS_URL: "redis://localhost:6379/0"
+          OPENAI_API_KEY: "sk-test-not-real"
+          GEMINI_API_KEY: "test-gemini-not-real"
+          ANTHROPIC_API_KEY: "sk-ant-test-not-real"
+          OLLAMA_BASE_URL: "http://localhost:11434"
+          MINIO_ENDPOINT: "localhost:9000"
+          MINIO_ACCESS_KEY: "minioadmin"
+          MINIO_SECRET_KEY: "minioadmin123"
+          MINIO_BUCKET: "test-bucket"
+          LOKI_URL: ""
+          ENVIRONMENT: "test"
+          LOG_LEVEL: "WARNING"
+        run: |
+          pytest tests/integration/ \
+            --junit-xml=integration-test-results.xml \
+            -v \
+            --tb=short
+
+      - name: Publish integration test results
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Backend Integration Test Results (PR)
+          path: backend/integration-test-results.xml
+          reporter: java-junit
+          fail-on-error: false
+
+      - name: Upload integration test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-integration-test-reports-pr-${{ github.run_number }}
+          path: backend/.pytest_cache/
+          retention-days: 7
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 8. Build Signed APK — merge-to-main only
+  #    Produces signed release APK artifact on every push to main.
+  #    (Requirement 20.3)
+  # ──────────────────────────────────────────────────────────────────────────
+  build-signed-apk:
+    name: Build & Sign Release APK
+    runs-on: ubuntu-latest
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+       github.event_name == 'workflow_dispatch'
+    environment: production
+
+    outputs:
+      version_name: ${{ steps.version.outputs.version_name }}
+      version_code: ${{ steps.version.outputs.version_code }}
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+
+      - name: Ensure gradlew is executable
+        run: chmod +x gradlew
+
+      - name: Decode google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            echo "$GOOGLE_SERVICES_JSON" | base64 --decode > app/google-services.json
+            echo "Using google-services.json from secret"
+          else
+            echo "GOOGLE_SERVICES_JSON secret not set — using committed placeholder"
+          fi
+
+      - name: Decode release keystore
+        id: keystore
+        env:
+          KEYSTORE_BASE64: ${{ secrets.KEYSTORE_BASE64 }}
+          KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
+        run: |
+          if [ -n "$KEYSTORE_BASE64" ]; then
+            echo "$KEYSTORE_BASE64" | base64 --decode > app/release.keystore
+            echo "has_keystore=true" >> "$GITHUB_OUTPUT"
+            echo "Using release keystore from secret"
+          else
+            echo "KEYSTORE_BASE64 secret not set — generating temporary debug keystore"
+            keytool -genkeypair -v \
+              -keystore app/release.keystore \
+              -alias androiddebugkey \
+              -keyalg RSA -keysize 2048 -validity 1 \
+              -storepass android -keypass android \
+              -dname "CN=Android Debug,O=Android,C=US" \
+              -storetype PKCS12
+            echo "has_keystore=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Compute version name and code from Git
+        id: version
+        run: |
+          VERSION_CODE=${{ github.run_number }}
+          VERSION_NAME=$(git describe --tags --abbrev=0 2>/dev/null || echo "1.0.0")-${{ github.run_number }}
+          echo "version_name=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+          echo "version_code=$VERSION_CODE"  >> "$GITHUB_OUTPUT"
+          echo "Version: $VERSION_NAME  Code: $VERSION_CODE"
+
+      - name: Build signed release APK
+        env:
+          KEY_ALIAS: ${{ steps.keystore.outputs.has_keystore == 'true' && secrets.KEY_ALIAS || 'androiddebugkey' }}
+          KEY_PASSWORD: ${{ steps.keystore.outputs.has_keystore == 'true' && secrets.KEY_PASSWORD || 'android' }}
+          STORE_PASSWORD: ${{ steps.keystore.outputs.has_keystore == 'true' && secrets.STORE_PASSWORD || 'android' }}
+        run: |
+          ./gradlew :app:assembleRelease \
+            -PversionCode="${{ steps.version.outputs.version_code }}" \
+            -PversionName="${{ steps.version.outputs.version_name }}" \
+            -Pandroid.injected.signing.store.file="$GITHUB_WORKSPACE/app/release.keystore" \
+            -Pandroid.injected.signing.store.password="$STORE_PASSWORD" \
+            -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
+            -Pandroid.injected.signing.key.password="$KEY_PASSWORD" \
+            --stacktrace
+
+      - name: Upload signed APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-apk-${{ steps.version.outputs.version_name }}
+          path: app/build/outputs/apk/release/*.apk
+          retention-days: 30
+          if-no-files-found: error
+
+      - name: Clean up keystore
+        if: always()
+        run: rm -f app/release.keystore
+
+      - name: Write build summary
+        run: |
+          echo "### ✅ Signed APK Built — v${{ steps.version.outputs.version_name }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|-------|-------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Version Name | \`${{ steps.version.outputs.version_name }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Version Code | \`${{ steps.version.outputs.version_code }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Commit | \`${{ github.sha }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Artifact | release-apk-${{ steps.version.outputs.version_name }} |" >> "$GITHUB_STEP_SUMMARY"
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 9. Instrumented / Compose UI Tests on Android Emulator (optional, PR)
+  # ──────────────────────────────────────────────────────────────────────────
+  instrumented-tests:
+    name: Instrumented Tests (API 34 Emulator)
+    runs-on: macos-latest         # hardware acceleration required for KVM
+    needs: android-unit-tests
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          cache-read-only: true
+
+      - name: Ensure gradlew is executable
+        run: chmod +x gradlew
+
+      - name: Write google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            echo "$GOOGLE_SERVICES_JSON" | base64 --decode > app/google-services.json
+          elif [ ! -f app/google-services.json ]; then
+            cat > app/google-services.json << 'EOF'
+          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
+          EOF
+          fi
+
+      - name: Enable KVM group perms
+        run: |
+          echo 'KERNEL=="kvm", GROUP="kvm", MODE="0666", OPTIONS+="static_node=kvm"' \
+            | sudo tee /etc/udev/rules.d/99-kvm4all.rules
+          sudo udevadm control --reload-rules
+          sudo udevadm trigger --name-match=kvm
+        continue-on-error: true   # macOS runners may not need this
+
+      - name: Cache AVD snapshot
+        uses: actions/cache@v4
+        id: avd-cache
+        with:
+          path: |
+            ~/.android/avd/*
+            ~/.android/adb*
+          key: avd-api34-${{ runner.os }}-${{ hashFiles('gradle/libs.versions.toml') }}
+
+      - name: Create AVD and generate snapshot for caching
+        if: steps.avd-cache.outputs.cache-hit != 'true'
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          force-avd-creation: false
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: false
+          script: echo "Generated AVD snapshot for caching."
+
+      - name: Run Compose UI tests on emulator
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 34
+          target: google_apis
+          arch: x86_64
+          profile: pixel_6
+          force-avd-creation: false
+          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: ./gradlew connectedAndroidTest --stacktrace
+
+      - name: Publish instrumented test results
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Instrumented Test Results
+          path: "**/build/outputs/androidTest-results/**/*.xml"
+          reporter: java-junit
+          fail-on-error: false
+
+      - name: Upload instrumented test reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: instrumented-test-reports-${{ github.run_number }}
+          path: "**/build/reports/androidTests/"
+          retention-days: 7
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 10. Slack Notification (on main-branch failure/success)
+  # ──────────────────────────────────────────────────────────────────────────
+  notify:
+    name: Slack Notification
+    runs-on: ubuntu-latest
+    needs:
+      - build-signed-apk
+    if: >-
+      always() &&
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    steps:
+      - name: Notify Slack
+        if: vars.SLACK_WEBHOOK_URL != ''
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          payload: |
+            {
+              "text": "${{ needs.build-signed-apk.result == 'success' && '✅ Android release APK built and uploaded' || '❌ Android CI pipeline failed on main' }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Android AI Assistant — CI Pipeline (main)*\n\n• *APK Build:* ${{ needs.build-signed-apk.result }}\n• *Commit:* <${{ github.event.head_commit.url }}|${{ github.sha }}>"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK

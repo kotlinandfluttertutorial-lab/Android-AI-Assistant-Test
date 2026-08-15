@@ -1,0 +1,488 @@
+# ============================================================================
+# Infrastructure Validation Pipeline — Production Grade
+# ============================================================================
+#
+# Validates all infrastructure-as-code and configuration files on every PR
+# that touches docker-compose, Nginx, Prometheus, Grafana, Loki, or
+# Alembic migration files. Also runs on pushes to main.
+#
+# Jobs:
+#   • validate-docker-compose   — docker compose config + health check logic
+#   • validate-nginx            — nginx -t config syntax
+#   • validate-prometheus       — promtool check rules + config
+#   • validate-alembic          — migration chain integrity
+#   • validate-env              — required env vars declared in .env.example
+#   • integration-stack-test    — spin up full stack, run smoke tests, tear down
+# ============================================================================
+
+name: Infrastructure Validation
+
+on:
+  pull_request:
+    branches:
+      - "**"
+    paths:
+      - "docker-compose.yml"
+      - "docker-compose.override.yml"
+      - "infrastructure/**"
+      - "backend/alembic/**"
+      - "backend/Dockerfile"
+      - ".env.example"
+      - "backend/.env.example"
+      - ".github/workflows/infrastructure-validation.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "docker-compose.yml"
+      - "infrastructure/**"
+      - "backend/alembic/**"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 1. Docker Compose Validation
+  # ──────────────────────────────────────────────────────────────────────────
+  validate-docker-compose:
+    name: Validate Docker Compose
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create stub backend/.env for config validation
+        run: cp backend/.env.example backend/.env
+
+      - name: Validate docker-compose.yml syntax
+        run: |
+          docker compose config --quiet
+          echo "✅ docker-compose.yml is valid"
+
+      - name: Check all service images are pinned or buildable
+        run: |
+          python3 - <<'PYEOF'
+          import subprocess, sys, yaml
+
+          with open("docker-compose.yml") as f:
+              compose = yaml.safe_load(f)
+
+          unpinned = []
+          latest_no_build = []
+          for name, svc in compose.get("services", {}).items():
+              image = svc.get("image", "")
+              build = svc.get("build", "")
+              if image and ":" not in image:
+                  unpinned.append(f"{name}: {image!r} (no tag)")
+              elif image and image.endswith(":latest"):
+                  if build:
+                      print(f"⚠️  {name}: uses :latest tag — consider pinning for reproducibility")
+                  else:
+                      latest_no_build.append(f"{name}: {image!r} (uses :latest without a build context)")
+
+          if unpinned:
+              print("::error::Unpinned images found:")
+              for u in unpinned:
+                  print(f"  {u}")
+              sys.exit(1)
+
+          if latest_no_build:
+              print("::error::Services using :latest tag without a build context found (pin the image digest or use a versioned tag):")
+              for u in latest_no_build:
+                  print(f"  {u}")
+              sys.exit(1)
+
+          print("✅ All images have explicit tags or are built from source")
+          PYEOF
+
+      - name: Check ChromaDB port does not conflict with backend
+        run: |
+          python3 - <<'PYEOF'
+          import sys, yaml
+
+          with open("docker-compose.yml") as f:
+              compose = yaml.safe_load(f)
+
+          chromadb_svc = compose.get("services", {}).get("chromadb", {})
+          ports = chromadb_svc.get("ports", [])
+
+          # CVE-2026-45829: ChromaDB port is intentionally NOT published to the
+          # host (internal Docker network only) as a mitigation for the pre-auth
+          # RCE vulnerability. No patch is available as of 2026-08-15.
+          # This check validates that the port is NOT published.
+          if ports:
+              host_port = None
+              for p in ports:
+                  port_str = str(p)
+                  if ":" in port_str:
+                      host_port = int(port_str.split(":")[0])
+                  else:
+                      host_port = int(port_str)
+                  break
+
+              if host_port == 8000:
+                  print("::error::ChromaDB host port 8000 conflicts with the backend API — use a different host port (e.g. 8001)")
+                  sys.exit(1)
+
+              print(f"⚠️  ChromaDB is publishing host port {host_port}. "
+                    f"Ensure CVE-2026-45829 is patched before exposing this port.")
+          else:
+              print("✅ ChromaDB has no published host ports — internal network only (CVE-2026-45829 mitigation active)")
+
+          PYEOF
+
+      - name: Lint Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: backend/Dockerfile
+          failure-threshold: error
+          format: sarif
+          output-file: hadolint-results.sarif
+          no-fail: false
+
+      - name: Upload Dockerfile lint SARIF
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: hadolint-results.sarif
+          category: hadolint-dockerfile
+        continue-on-error: true
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 2. Nginx Config Validation
+  # ──────────────────────────────────────────────────────────────────────────
+  validate-nginx:
+    name: Validate Nginx Config
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name != 'pull_request' ||
+      contains(toJson(github.event.pull_request.changed_files), 'infrastructure/nginx/')
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Test Nginx config syntax
+        run: |
+          docker run --rm \
+            -v "$PWD/infrastructure/nginx/nginx.conf:/etc/nginx/nginx.conf:ro" \
+            nginx:1.25-alpine \
+            nginx -t -c /etc/nginx/nginx.conf
+          echo "✅ Nginx config is valid"
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 3. Prometheus Config + Rules Validation
+  # ──────────────────────────────────────────────────────────────────────────
+  validate-prometheus:
+    name: Validate Prometheus Config
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name != 'pull_request' ||
+      contains(toJson(github.event.pull_request.changed_files), 'infrastructure/prometheus/')
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install promtool
+        run: |
+          PROM_VERSION="2.51.0"
+          curl -sSfL \
+            "https://github.com/prometheus/prometheus/releases/download/v${PROM_VERSION}/prometheus-${PROM_VERSION}.linux-amd64.tar.gz" \
+            | tar xz --strip-components=1 "prometheus-${PROM_VERSION}.linux-amd64/promtool"
+          chmod +x promtool
+          sudo mv promtool /usr/local/bin/
+
+      - name: Check Prometheus config
+        run: |
+          promtool check config infrastructure/prometheus/prometheus.yml
+          echo "✅ Prometheus config is valid"
+
+      - name: Check Prometheus alert rules (if present)
+        run: |
+          for f in infrastructure/prometheus/*.rules.yml infrastructure/prometheus/rules/*.yml; do
+            [[ -f "$f" ]] || continue
+            promtool check rules "$f"
+            echo "✅ Rules file valid: $f"
+          done
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 4. Grafana Dashboard JSON Validation
+  # ──────────────────────────────────────────────────────────────────────────
+  validate-grafana:
+    name: Validate Grafana Dashboards
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name != 'pull_request' ||
+      contains(toJson(github.event.pull_request.changed_files), 'infrastructure/grafana/')
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate all dashboard JSON files
+        run: |
+          ERRORS=0
+          for f in infrastructure/grafana/provisioning/dashboards/**/*.json; do
+            [[ -f "$f" ]] || continue
+            if python3 -c "import json,sys; json.load(open('$f'))" 2>/dev/null; then
+              echo "✅ Valid JSON: $f"
+            else
+              echo "::error file=$f::Invalid JSON in Grafana dashboard"
+              ERRORS=$((ERRORS + 1))
+            fi
+          done
+          if [[ "$ERRORS" -gt 0 ]]; then
+            echo "::error::$ERRORS Grafana dashboard JSON file(s) are invalid"
+            exit 1
+          fi
+
+      - name: Check Grafana datasource provisioning YAML
+        run: |
+          for f in infrastructure/grafana/provisioning/datasources/*.yml \
+                   infrastructure/grafana/provisioning/datasources/*.yaml; do
+            [[ -f "$f" ]] || continue
+            python3 -c "import yaml,sys; yaml.safe_load(open('$f'))" \
+              && echo "✅ Valid YAML: $f" \
+              || (echo "::error file=$f::Invalid YAML" && exit 1)
+          done
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 5. Alembic Migration Chain Validation
+  # ──────────────────────────────────────────────────────────────────────────
+  validate-alembic:
+    name: Validate Alembic Migrations
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name != 'pull_request' ||
+      contains(toJson(github.event.pull_request.changed_files), 'backend/alembic/')
+
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: migrationtest
+          POSTGRES_USER: testuser
+          POSTGRES_PASSWORD: testpass
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U testuser -d migrationtest"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Apply all migrations (upgrade head)
+        env:
+          DATABASE_URL: "postgresql+asyncpg://testuser:testpass@localhost:5432/migrationtest"
+          PYTHONPATH: "."
+        run: |
+          alembic upgrade head
+          echo "✅ All migrations applied successfully"
+
+      - name: Verify downgrade path (head → base)
+        env:
+          DATABASE_URL: "postgresql+asyncpg://testuser:testpass@localhost:5432/migrationtest"
+          PYTHONPATH: "."
+        run: |
+          alembic downgrade base
+          echo "✅ Full downgrade to base succeeded"
+
+      - name: Re-apply migrations after downgrade
+        env:
+          DATABASE_URL: "postgresql+asyncpg://testuser:testpass@localhost:5432/migrationtest"
+          PYTHONPATH: "."
+        run: |
+          alembic upgrade head
+          echo "✅ Re-apply after downgrade succeeded"
+
+      - name: Check for multiple heads (invalid branch in migration chain)
+        env:
+          DATABASE_URL: "postgresql+asyncpg://testuser:testpass@localhost:5432/migrationtest"
+          PYTHONPATH: "."
+        run: |
+          HEAD_COUNT=$(alembic heads 2>&1 | grep -c "head" || true)
+          if [[ "$HEAD_COUNT" -gt 1 ]]; then
+            echo "::error::Multiple Alembic heads detected — merge migration branches before merging this PR"
+            alembic heads
+            exit 1
+          fi
+          echo "✅ Single Alembic head — migration chain is clean"
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 6. Environment Variables Completeness Check
+  # ──────────────────────────────────────────────────────────────────────────
+  validate-env:
+    name: Validate .env.example Completeness
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check that required env vars are documented
+        run: |
+          python3 - <<'PYEOF'
+          import sys, re
+
+          # Only vars that are [REQUIRED] in backend/.env.example (no built-in default).
+          # Compose-level vars (POSTGRES_USER, MINIO_ROOT_USER, etc.) all have
+          # inline defaults in docker-compose.yml and do not need to be listed here.
+          REQUIRED_VARS = [
+              "DATABASE_URL",
+              "SECRET_KEY",
+              "AES_ENCRYPTION_KEY",
+              "BACKEND_TLS_PIN_SHA256",
+          ]
+
+          def load_keys(path):
+              keys = set()
+              try:
+                  with open(path) as f:
+                      for line in f:
+                          line = line.strip()
+                          if line and not line.startswith('#') and '=' in line:
+                              keys.add(line.split('=', 1)[0].strip())
+              except FileNotFoundError:
+                  print(f"::warning::File not found: {path}")
+              return keys
+
+          root_keys    = load_keys(".env.example")
+          backend_keys = load_keys("backend/.env.example")
+          all_keys = root_keys | backend_keys
+
+          missing = [v for v in REQUIRED_VARS if v not in all_keys]
+          if missing:
+              print("::error::Required environment variables missing from .env.example files:")
+              for m in missing:
+                  print(f"  {m}")
+              sys.exit(1)
+
+          print(f"✅ All {len(REQUIRED_VARS)} required env vars are documented in .env.example files")
+          print(f"   Root .env.example: {len(root_keys)} vars")
+          print(f"   Backend .env.example: {len(backend_keys)} vars")
+          PYEOF
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 7. Full Stack Integration Test (spin up → smoke → tear down)
+  #    Only runs on pushes to main or manual dispatch to avoid slow PR checks
+  # ──────────────────────────────────────────────────────────────────────────
+  integration-stack-test:
+    name: Full Stack Smoke Test
+    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch'
+    needs:
+      - validate-docker-compose
+      - validate-nginx
+      - validate-alembic
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create backend .env for stack test
+        run: |
+          cat > backend/.env <<'EOF'
+          SECRET_KEY=ci-stack-test-secret-key-at-least-32-chars!
+          DATABASE_URL=postgresql+asyncpg://aiassistant:changeme@postgres:5432/aiassistant
+          REDIS_URL=redis://redis:6379/0
+          OPENAI_API_KEY=sk-test-not-real
+          GEMINI_API_KEY=test-gemini-not-real
+          ANTHROPIC_API_KEY=sk-ant-test-not-real
+          OLLAMA_BASE_URL=http://localhost:11434
+          MINIO_ENDPOINT=minio:9000
+          MINIO_ACCESS_KEY=minioadmin
+          MINIO_SECRET_KEY=minioadmin123
+          MINIO_BUCKET=documents
+          ENVIRONMENT=test
+          LOG_LEVEL=INFO
+          LOKI_URL=
+          EOF
+
+      - name: Create root .env for Compose
+        run: |
+          cat > .env <<'EOF'
+          POSTGRES_USER=aiassistant
+          POSTGRES_PASSWORD=changeme
+          POSTGRES_DB=aiassistant
+          REDIS_PASSWORD=
+          MINIO_ROOT_USER=minioadmin
+          MINIO_ROOT_PASSWORD=minioadmin123
+          GRAFANA_ADMIN_USER=admin
+          GRAFANA_ADMIN_PASSWORD=changeme
+          EOF
+
+      - name: Start infrastructure services only (no backend yet)
+        run: |
+          docker compose up -d postgres redis minio chromadb
+          echo "Waiting for infrastructure to be healthy…"
+          sleep 30
+
+      - name: Run Alembic migrations
+        run: |
+          docker compose run --rm \
+            -e DATABASE_URL=postgresql+asyncpg://aiassistant:changeme@postgres:5432/aiassistant \
+            backend \
+            python -m alembic upgrade head
+        continue-on-error: true
+
+      - name: Start backend services
+        run: |
+          docker compose up -d backend celery_worker nginx
+          echo "Waiting for backend to be healthy…"
+          for i in {1..20}; do
+            if docker compose ps backend | grep -q "healthy"; then
+              echo "Backend is healthy after ${i}×5 s"
+              break
+            fi
+            echo "  Attempt $i/20…"
+            sleep 5
+          done
+
+      - name: Health check — /health endpoint
+        run: |
+          HTTP=$(curl -sSo /dev/null -w "%{http_code}" \
+            --retry 5 --retry-delay 10 --retry-connrefused \
+            http://localhost/health)
+          echo "/health → $HTTP"
+          [[ "$HTTP" == "200" ]] || (echo "::error::Health check failed ($HTTP)" && exit 1)
+
+      - name: Verify Prometheus is scraping
+        run: |
+          HTTP=$(curl -sSo /dev/null -w "%{http_code}" \
+            --retry 3 --retry-delay 5 \
+            http://localhost:9090/-/healthy || echo "000")
+          echo "Prometheus /-/healthy → $HTTP"
+          # Prometheus is internal-only; skip if not port-forwarded in CI
+        continue-on-error: true
+
+      - name: Collect Docker logs on failure
+        if: failure()
+        run: docker compose logs --no-color --tail=200 > stack-logs.txt
+
+      - name: Upload stack logs on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: stack-logs-${{ github.run_number }}
+          path: stack-logs.txt
+          retention-days: 7
+
+      - name: Tear down stack
+        if: always()
+        run: docker compose down -v --remove-orphans

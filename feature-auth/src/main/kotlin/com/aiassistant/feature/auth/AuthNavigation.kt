@@ -29,20 +29,20 @@ import com.google.android.gms.common.api.ApiException
  */
 
 object AuthRoute {
-    const val Graph = "auth"
-    const val Splash = "auth/splash"
-    const val Onboarding = "auth/onboarding"
-    const val Login = "auth/login"
-    const val Register = "auth/register"
+    const val GRAPH = "auth"
+    const val SPLASH = "auth/splash"
+    const val ONBOARDING = "auth/onboarding"
+    const val LOGIN = "auth/login"
+    const val REGISTER = "auth/register"
 }
 
 fun NavGraphBuilder.authNavGraph(navController: NavHostController, onAuthSuccess: () -> Unit) {
     navigation(
-        startDestination = AuthRoute.Splash,
-        route = AuthRoute.Graph
+        startDestination = AuthRoute.SPLASH,
+        route = AuthRoute.GRAPH
     ) {
         // -- Splash --
-        composable(route = AuthRoute.Splash) {
+        composable(route = AuthRoute.SPLASH) {
             val viewModel: AuthViewModel = hiltViewModel()
             val uiState by viewModel.uiState.collectAsState()
 
@@ -58,13 +58,13 @@ fun NavGraphBuilder.authNavGraph(navController: NavHostController, onAuthSuccess
                     when {
                         authenticated -> onAuthSuccess()
                         uiState is AuthUiState.OnboardingRequired -> {
-                            navController.navigate(AuthRoute.Onboarding) {
-                                popUpTo(AuthRoute.Splash) { inclusive = true }
+                            navController.navigate(AuthRoute.ONBOARDING) {
+                                popUpTo(AuthRoute.SPLASH) { inclusive = true }
                             }
                         }
                         else -> {
-                            navController.navigate(AuthRoute.Login) {
-                                popUpTo(AuthRoute.Splash) { inclusive = true }
+                            navController.navigate(AuthRoute.LOGIN) {
+                                popUpTo(AuthRoute.SPLASH) { inclusive = true }
                             }
                         }
                     }
@@ -75,13 +75,13 @@ fun NavGraphBuilder.authNavGraph(navController: NavHostController, onAuthSuccess
                 when (uiState) {
                     is AuthUiState.Authenticated -> onAuthSuccess()
                     is AuthUiState.OnboardingRequired -> {
-                        navController.navigate(AuthRoute.Onboarding) {
-                            popUpTo(AuthRoute.Splash) { inclusive = true }
+                        navController.navigate(AuthRoute.ONBOARDING) {
+                            popUpTo(AuthRoute.SPLASH) { inclusive = true }
                         }
                     }
                     is AuthUiState.Idle -> {
-                        navController.navigate(AuthRoute.Login) {
-                            popUpTo(AuthRoute.Splash) { inclusive = true }
+                        navController.navigate(AuthRoute.LOGIN) {
+                            popUpTo(AuthRoute.SPLASH) { inclusive = true }
                         }
                     }
                     else -> Unit
@@ -90,15 +90,15 @@ fun NavGraphBuilder.authNavGraph(navController: NavHostController, onAuthSuccess
         }
 
         // -- Onboarding --
-        composable(route = AuthRoute.Onboarding) {
+        composable(route = AuthRoute.ONBOARDING) {
             val viewModel: AuthViewModel = hiltViewModel()
             val uiState by viewModel.uiState.collectAsState()
 
             LaunchedEffect(uiState) {
                 when (uiState) {
                     is AuthUiState.Idle -> {
-                        navController.navigate(AuthRoute.Login) {
-                            popUpTo(AuthRoute.Onboarding) { inclusive = true }
+                        navController.navigate(AuthRoute.LOGIN) {
+                            popUpTo(AuthRoute.ONBOARDING) { inclusive = true }
                         }
                     }
                     is AuthUiState.Authenticated -> onAuthSuccess()
@@ -109,15 +109,15 @@ fun NavGraphBuilder.authNavGraph(navController: NavHostController, onAuthSuccess
             OnboardingScreen(
                 onConsentGiven = { viewModel.completeOnboarding() },
                 onDecline = {
-                    navController.navigate(AuthRoute.Login) {
-                        popUpTo(AuthRoute.Onboarding) { inclusive = true }
+                    navController.navigate(AuthRoute.LOGIN) {
+                        popUpTo(AuthRoute.ONBOARDING) { inclusive = true }
                     }
                 }
             )
         }
 
         // -- Login --
-        composable(route = AuthRoute.Login) {
+        composable(route = AuthRoute.LOGIN) {
             val viewModel: AuthViewModel = hiltViewModel()
             val uiState by viewModel.uiState.collectAsState()
             val context = LocalContext.current
@@ -167,7 +167,7 @@ fun NavGraphBuilder.authNavGraph(navController: NavHostController, onAuthSuccess
                 uiState = uiState,
                 onLogin = { email, password -> viewModel.login(email, password) },
                 onNavigateToRegister = {
-                    navController.navigate(AuthRoute.Register)
+                    navController.navigate(AuthRoute.REGISTER)
                 },
                 onGoogleSignIn = {
                     // Build GoogleSignInOptions requesting an ID token.
@@ -189,7 +189,7 @@ fun NavGraphBuilder.authNavGraph(navController: NavHostController, onAuthSuccess
         }
 
         // -- Register --
-        composable(route = AuthRoute.Register) {
+        composable(route = AuthRoute.REGISTER) {
             val viewModel: AuthViewModel = hiltViewModel()
             val uiState by viewModel.uiState.collectAsState()
 

@@ -37,11 +37,15 @@ Requirements: 9.3, 9.10, 25.1, 25.2
 from __future__ import annotations
 
 import uuid
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin, uuid_pk
+
+if TYPE_CHECKING:
+    from app.models.user import User
 
 
 class PromptTemplate(Base, TimestampMixin):
@@ -68,7 +72,10 @@ class PromptTemplate(Base, TimestampMixin):
         String(255),
         nullable=False,
         index=True,
-        comment="Logical template name shared across all versions, e.g. 'code_analysis_system_prompt'",
+        comment=(
+            "Logical template name shared across all versions, "
+            "e.g. 'code_analysis_system_prompt'"
+        ),
     )
     content: Mapped[str] = mapped_column(
         Text,
@@ -96,7 +103,7 @@ class PromptTemplate(Base, TimestampMixin):
     # ------------------------------------------------------------------
     # Relationships
     # ------------------------------------------------------------------
-    author: Mapped[User] = relationship(  # noqa: F821
+    author: Mapped[User] = relationship(
         "User", back_populates="prompt_templates"
     )
 

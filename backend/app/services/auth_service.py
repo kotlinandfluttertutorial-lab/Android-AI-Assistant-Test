@@ -121,7 +121,8 @@ async def refresh_tokens(
         raw_refresh_token:  The refresh token string submitted by the client.
 
     Returns:
-        A 6-tuple of ``(new_access_token, access_exp, new_refresh_token, refresh_exp, role, user_id)``.
+        A 6-tuple of
+        ``(new_access_token, access_exp, new_refresh_token, refresh_exp, role, user_id)``.
 
     Raises:
         :class:`~app.security.exceptions.InvalidTokenError`: Token not found,

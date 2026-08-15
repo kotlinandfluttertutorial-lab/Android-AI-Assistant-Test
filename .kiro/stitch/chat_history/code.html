@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AI Assistant - Chat History</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">tailwind.config = {darkMode: "class", theme: {extend: {colors: {"tertiary-fixed": "#ffdf93", "on-secondary": "#ffffff", "surface-dark": "#0F0F0F", "secondary-container": "#e4ddea", "on-primary-fixed-variant": "#4f378a", "on-surface": "#1c1b1f", "surface-container-high": "#ebe7ec", outline: "#7a7582", "primary-fixed-dim": "#cfbcff", "on-secondary-container": "#65616b", "on-surface-variant": "#494551", "surface-bright": "#fdf8fd", "secondary-fixed": "#e7e0ec", error: "#ba1a1a", tertiary: "#765b00", "surface-dim": "#ddd9de", "inverse-surface": "#313034", "on-primary": "#ffffff", "on-secondary-fixed": "#1d1a23", "surface-container-lowest": "#ffffff", background: "#fdf8fd", "inverse-primary": "#cfbcff", "primary-fixed": "#e9ddff", "on-error": "#ffffff", "surface-container-low": "#f7f2f8", "on-tertiary-container": "#503d00", "surface-container": "#f1ecf2", "on-secondary-fixed-variant": "#49454f", secondary: "#615c67", "on-tertiary": "#ffffff", "on-tertiary-fixed": "#241a00", "tertiary-fixed-dim": "#e7c365", "on-error-container": "#93000a", "secondary-fixed-dim": "#cbc4d0", "primary-container": "#6750a4", "tertiary-container": "#c9a74d", "outline-variant": "#cbc4d2", "error-container": "#ffdad6", primary: "#4f378a", surface: "#fdf8fd", "on-primary-container": "#e0d2ff", "on-background": "#1c1b1f", "surface-variant": "#e5e1e7", "on-tertiary-fixed-variant": "#594400", "surface-tint": "#6750a4", "inverse-on-surface": "#f4eff5", "surface-light": "#FFFBFD", "surface-container-highest": "#e5e1e7", "on-primary-fixed": "#22005d"}, borderRadius: {DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px"}, spacing: {sm: "8px", xs: "4px", "margin-desktop": "24px", md: "16px", gutter: "16px", base: "8px", xl: "32px", lg: "24px", "margin-mobile": "16px"}, fontFamily: {"headline-lg": ["Inter"], "title-lg": ["Inter"], "body-md": ["Inter"], "display-lg": ["Inter"], "label-lg": ["Inter"], "headline-lg-mobile": ["Inter"], "body-lg": ["Inter"], "label-md": ["Inter"], headline: ["Inter"], display: ["Inter"], body: ["Inter"], label: ["Inter"]}, fontSize: {"headline-lg": ["32px", {lineHeight: "40px", fontWeight: "600"}], "title-lg": ["22px", {lineHeight: "28px", fontWeight: "500"}], "body-md": ["14px", {lineHeight: "20px", letterSpacing: "0.25px", fontWeight: "400"}], "display-lg": ["57px", {lineHeight: "64px", letterSpacing: "-0.25px", fontWeight: "400"}], "label-lg": ["14px", {lineHeight: "20px", letterSpacing: "0.1px", fontWeight: "500"}], "headline-lg-mobile": ["28px", {lineHeight: "36px", fontWeight: "600"}], "body-lg": ["16px", {lineHeight: "24px", letterSpacing: "0.5px", fontWeight: "400"}], "label-md": ["12px", {lineHeight: "16px", letterSpacing: "0.5px", fontWeight: "500"}]}}}};</script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fdf8fd;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            user-select: none;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #e5e1e7;
+            border-radius: 10px;
+        }
+        .chat-list-item:active {
+            background-color: rgba(79, 55, 138, 0.08);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background min-h-screen flex flex-col">
+<!-- Top App Bar -->
+<header class="w-full top-0 sticky bg-surface z-40 flex justify-between items-center h-16 px-margin-mobile">
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-primary hover:bg-surface-container-high transition-colors p-2 rounded-full active:scale-95 duration-100">
+                menu
+            </button>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-primary">AI Assistant</h1>
+</div>
+<div class="flex items-center gap-2">
+<button class="material-symbols-outlined text-on-surface-variant hover:bg-surface-container-high transition-colors p-2 rounded-full active:scale-95 duration-100">
+                search
+            </button>
+<button class="material-symbols-outlined text-primary hover:bg-surface-container-high transition-colors p-2 rounded-full active:scale-95 duration-100">
+                account_circle
+            </button>
+</div>
+</header>
+<main class="flex-1 overflow-y-auto px-margin-mobile pb-32 custom-scrollbar">
+<!-- Search Bar Section -->
+<div class="mt-4 mb-6">
+<div class="relative flex items-center bg-surface-container-low rounded-full px-4 py-3 group focus-within:ring-2 focus-within:ring-primary-container transition-all">
+<span class="material-symbols-outlined text-on-surface-variant mr-3">search</span>
+<input class="bg-transparent border-none outline-none w-full font-body-md text-body-md text-on-surface placeholder-on-surface-variant" placeholder="Search conversations..." type="text"/>
+<button class="material-symbols-outlined text-on-surface-variant ml-2 opacity-0 group-focus-within:opacity-100 transition-opacity">close</button>
+</div>
+</div>
+<!-- Pinned Section -->
+<section class="mb-8">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-primary text-sm" style="font-variation-settings: 'FILL' 1;">push_pin</span>
+<h2 class="font-label-lg text-label-lg text-primary uppercase tracking-wider">Pinned Chats</h2>
+</div>
+<div class="grid grid-cols-1 gap-3">
+<!-- Pinned Item 1 -->
+<div class="bg-primary-fixed bg-opacity-30 rounded-xl p-4 flex items-center gap-4 hover:bg-opacity-50 transition-all cursor-pointer group">
+<div class="w-12 h-12 rounded-full bg-primary-container flex items-center justify-center text-on-primary-container">
+<span class="material-symbols-outlined">auto_awesome</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-center mb-1">
+<h3 class="font-title-lg text-label-lg text-on-surface truncate pr-2">Strategy Q3 Planning</h3>
+<span class="font-label-md text-label-md text-on-surface-variant shrink-0">10:45 AM</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant truncate">How should we approach the market expansion...</p>
+</div>
+<div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 rounded-full hover:bg-surface-container-high material-symbols-outlined text-on-surface-variant text-lg">edit</button>
+<button class="p-2 rounded-full hover:bg-surface-container-high material-symbols-outlined text-on-surface-variant text-lg">delete</button>
+</div>
+</div>
+<!-- Pinned Item 2 -->
+<div class="bg-primary-fixed bg-opacity-30 rounded-xl p-4 flex items-center gap-4 hover:bg-opacity-50 transition-all cursor-pointer group border-l-4 border-primary">
+<div class="w-12 h-12 rounded-full bg-secondary-container flex items-center justify-center text-on-secondary-container">
+<span class="material-symbols-outlined">code</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-center mb-1">
+<h3 class="font-title-lg text-label-lg text-on-surface truncate pr-2">Python Script Debugging</h3>
+<span class="font-label-md text-label-md text-on-surface-variant shrink-0">9:12 AM</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant truncate">The recursion depth exceeded error in the script...</p>
+</div>
+<div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+<button class="p-2 rounded-full hover:bg-surface-container-high material-symbols-outlined text-on-surface-variant text-lg">edit</button>
+<button class="p-2 rounded-full hover:bg-surface-container-high material-symbols-outlined text-on-surface-variant text-lg">delete</button>
+</div>
+</div>
+</div>
+</section>
+<!-- History Group: Today -->
+<section class="mb-8">
+<h2 class="font-label-lg text-label-lg text-on-surface-variant mb-4 px-2">Today</h2>
+<div class="flex flex-col gap-1">
+<!-- Chat Item -->
+<div class="chat-list-item flex items-center gap-4 p-4 rounded-2xl hover:bg-surface-container transition-colors cursor-pointer group">
+<div class="w-12 h-12 rounded-full bg-surface-container-highest flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">chat_bubble</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-center mb-1">
+<h3 class="font-body-lg text-body-lg text-on-surface truncate font-semibold">Travel Itinerary: Kyoto</h3>
+<span class="font-label-md text-label-md text-on-surface-variant">2:30 PM</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant truncate">Exploring the best temples in Eastern Kyoto...</p>
+</div>
+<div class="flex gap-1">
+<button class="p-2 rounded-full hover:bg-surface-variant material-symbols-outlined text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">push_pin</button>
+<button class="p-2 rounded-full hover:bg-surface-variant material-symbols-outlined text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">more_vert</button>
+</div>
+</div>
+<!-- Chat Item -->
+<div class="chat-list-item flex items-center gap-4 p-4 rounded-2xl hover:bg-surface-container transition-colors cursor-pointer group">
+<div class="w-12 h-12 rounded-full bg-surface-container-highest flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">description</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-center mb-1">
+<h3 class="font-body-lg text-body-lg text-on-surface truncate">Email Draft: New Hire</h3>
+<span class="font-label-md text-label-md text-on-surface-variant">11:05 AM</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant truncate">Welcome to the team! Here are your next steps...</p>
+</div>
+<div class="flex gap-1">
+<button class="p-2 rounded-full hover:bg-surface-variant material-symbols-outlined text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">push_pin</button>
+<button class="p-2 rounded-full hover:bg-surface-variant material-symbols-outlined text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">more_vert</button>
+</div>
+</div>
+</div>
+</section>
+<!-- History Group: Yesterday -->
+<section class="mb-8">
+<h2 class="font-label-lg text-label-lg text-on-surface-variant mb-4 px-2">Yesterday</h2>
+<div class="flex flex-col gap-1">
+<!-- Chat Item -->
+<div class="chat-list-item flex items-center gap-4 p-4 rounded-2xl hover:bg-surface-container transition-colors cursor-pointer group">
+<div class="w-12 h-12 rounded-full bg-surface-container-highest flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">lightbulb</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-center mb-1">
+<h3 class="font-body-lg text-body-lg text-on-surface truncate">Gift Ideas for Emily</h3>
+<span class="font-label-md text-label-md text-on-surface-variant">Oct 14</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant truncate">Something unique related to architecture or botany...</p>
+</div>
+<div class="flex gap-1">
+<button class="p-2 rounded-full hover:bg-surface-variant material-symbols-outlined text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">push_pin</button>
+<button class="p-2 rounded-full hover:bg-surface-variant material-symbols-outlined text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">more_vert</button>
+</div>
+</div>
+</div>
+</section>
+<!-- History Group: Last Week -->
+<section class="mb-8">
+<h2 class="font-label-lg text-label-lg text-on-surface-variant mb-4 px-2">Last Week</h2>
+<div class="flex flex-col gap-1">
+<!-- Chat Item -->
+<div class="chat-list-item flex items-center gap-4 p-4 rounded-2xl hover:bg-surface-container transition-colors cursor-pointer group">
+<div class="w-12 h-12 rounded-full bg-surface-container-highest flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">analytics</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-center mb-1">
+<h3 class="font-body-lg text-body-lg text-on-surface truncate">Monthly Budget Review</h3>
+<span class="font-label-md text-label-md text-on-surface-variant">Oct 10</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant truncate">Analyzing spending patterns for the last quarter...</p>
+</div>
+<div class="flex gap-1">
+<button class="p-2 rounded-full hover:bg-surface-variant material-symbols-outlined text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">push_pin</button>
+<button class="p-2 rounded-full hover:bg-surface-variant material-symbols-outlined text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">more_vert</button>
+</div>
+</div>
+<!-- Chat Item -->
+<div class="chat-list-item flex items-center gap-4 p-4 rounded-2xl hover:bg-surface-container transition-colors cursor-pointer group">
+<div class="w-12 h-12 rounded-full bg-surface-container-highest flex items-center justify-center text-primary">
+<span class="material-symbols-outlined">receipt</span>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-center mb-1">
+<h3 class="font-body-lg text-body-lg text-on-surface truncate">Healthy Meal Prep Ideas</h3>
+<span class="font-label-md text-label-md text-on-surface-variant">Oct 8</span>
+</div>
+<p class="font-body-md text-body-md text-on-surface-variant truncate">Quick vegetarian dinner options for a busy week...</p>
+</div>
+<div class="flex gap-1">
+<button class="p-2 rounded-full hover:bg-surface-variant material-symbols-outlined text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">push_pin</button>
+<button class="p-2 rounded-full hover:bg-surface-variant material-symbols-outlined text-on-surface-variant opacity-0 group-hover:opacity-100 transition-opacity">more_vert</button>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 w-full z-50 h-20 bg-surface-container flex justify-around items-center px-4 pb-2">
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-variant transition-all active:scale-90 duration-200">
+<span class="material-symbols-outlined mb-1">home</span>
+<span class="font-label-md text-label-md">Home</span>
+</button>
+<button class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-full px-4 py-1 hover:bg-surface-variant transition-all active:scale-90 duration-200">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">chat</span>
+<span class="font-label-md text-label-md">Chats</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-variant transition-all active:scale-90 duration-200">
+<span class="material-symbols-outlined mb-1">smart_toy</span>
+<span class="font-label-md text-label-md">AI Tools</span>
+</button>
+<button class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-variant transition-all active:scale-90 duration-200">
+<span class="material-symbols-outlined mb-1">person</span>
+<span class="font-label-md text-label-md">Profile</span>
+</button>
+</nav>
+<!-- Floating Action Button - Contextual for History Screen -->
+<button class="fixed right-6 bottom-24 w-14 h-14 bg-primary text-on-primary rounded-2xl flex items-center justify-center shadow-lg active:scale-90 transition-transform z-50">
+<span class="material-symbols-outlined">add</span>
+</button>
+<script>
+        // Simple Interaction logic
+        document.querySelectorAll('.chat-list-item').forEach(item => {
+            item.addEventListener('click', (e) => {
+                // Prevent ripple on buttons
+                if (e.target.closest('button')) return;
+                
+                // Visual feedback
+                item.style.backgroundColor = 'rgba(79, 55, 138, 0.12)';
+                setTimeout(() => {
+                    item.style.backgroundColor = '';
+                }, 300);
+                
+                console.log('Navigate to conversation');
+            });
+        });
+
+        // Search highlight logic
+        const searchInput = document.querySelector('input');
+        searchInput.addEventListener('focus', () => {
+            searchInput.parentElement.classList.add('bg-surface-bright');
+            searchInput.parentElement.classList.remove('bg-surface-container-low');
+        });
+        searchInput.addEventListener('blur', () => {
+            searchInput.parentElement.classList.remove('bg-surface-bright');
+            searchInput.parentElement.classList.add('bg-surface-container-low');
+        });
+    </script>
+</body></html>

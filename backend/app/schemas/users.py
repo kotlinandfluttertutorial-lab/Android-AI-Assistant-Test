@@ -59,7 +59,9 @@ class DataExportResponse(BaseModel):
         description="Human-readable confirmation message.",
     )
     estimated_completion: str = Field(
-        description="ISO 8601 UTC timestamp by which the export will be complete (24 h from now).",
+        description=(
+            "ISO 8601 UTC timestamp by which the export will be complete (24 h from now)."
+        ),
     )
 
 

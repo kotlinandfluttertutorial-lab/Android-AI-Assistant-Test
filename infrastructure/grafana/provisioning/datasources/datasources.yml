@@ -1,0 +1,26 @@
+# ============================================================================
+# Grafana — Datasource provisioning
+# ============================================================================
+#
+# Grafana reads this file on startup and automatically creates / updates the
+# listed datasources.  Changes take effect without manual UI interaction.
+# ============================================================================
+
+apiVersion: 1
+
+datasources:
+
+  # Prometheus — default metrics datasource
+  - name:      Prometheus
+    type:      prometheus
+    access:    proxy
+    url:       http://prometheus:9090
+    isDefault: true
+    editable:  false
+
+  # Loki — log aggregation datasource
+  - name:     Loki
+    type:     loki
+    access:   proxy
+    url:      http://loki:3100
+    editable: false

@@ -220,7 +220,7 @@ def test_insufficient_role_always_returns_403(
     # The error detail should not leak internal role names or the user sub.
     try:
         body = response.json()
-    except Exception:  # noqa: BLE001
+    except Exception:
         body = {}
 
     if isinstance(body, dict):

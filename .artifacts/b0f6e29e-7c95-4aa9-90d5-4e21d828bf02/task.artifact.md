@@ -1,0 +1,3 @@
+- [x] Update `backend/requirements.txt` with secure versions
+- [x] Add regression test to `backend/tests/unit/test_jwt_handler.py`
+- [/] Verify changes by running unit tests

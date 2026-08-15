@@ -188,7 +188,7 @@ class _ProviderRateLimiter:
                 raise RateLimitError(self._provider, retry_after)
         except RateLimitError:
             raise
-        except Exception as exc:  # noqa: BLE001 — Redis unavailable; fail-open
+        except Exception as exc:  # Redis unavailable; fail-open
             logger.warning(
                 "LLM provider rate-limit Redis check failed (fail-open) "
                 "for provider '%s': %s",

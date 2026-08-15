@@ -460,14 +460,17 @@ class TestCeleryJobStatusTransitions:
             return job
 
         with (
-            patch("app.database.AsyncSessionLocal") as MockSession,
+            patch("app.workers.rag_worker._make_session_factory") as MockFactory,
             patch("app.services.rag_service.rag_service") as mock_svc,
         ):
             mock_db = _make_mock_db()
             mock_ctx = AsyncMock()
             mock_ctx.__aenter__ = AsyncMock(return_value=mock_db)
             mock_ctx.__aexit__ = AsyncMock(return_value=False)
-            MockSession.return_value = mock_ctx
+            mock_session_factory = MagicMock(return_value=mock_ctx)
+            mock_engine = MagicMock()
+            mock_engine.dispose = AsyncMock()
+            MockFactory.return_value = (mock_engine, mock_session_factory)
 
             mock_doc_repo = AsyncMock()
             mock_doc_repo.get_by_id = AsyncMock(return_value=doc)
@@ -541,14 +544,17 @@ class TestCeleryJobStatusTransitions:
             return doc
 
         with (
-            patch("app.database.AsyncSessionLocal") as MockSession,
+            patch("app.workers.rag_worker._make_session_factory") as MockFactory,
             patch("app.services.rag_service.rag_service") as mock_svc,
         ):
             mock_db = _make_mock_db()
             mock_ctx = AsyncMock()
             mock_ctx.__aenter__ = AsyncMock(return_value=mock_db)
             mock_ctx.__aexit__ = AsyncMock(return_value=False)
-            MockSession.return_value = mock_ctx
+            mock_session_factory = MagicMock(return_value=mock_ctx)
+            mock_engine = MagicMock()
+            mock_engine.dispose = AsyncMock()
+            MockFactory.return_value = (mock_engine, mock_session_factory)
 
             mock_doc_repo = AsyncMock()
             mock_doc_repo.get_by_id = AsyncMock(return_value=doc)

@@ -357,7 +357,7 @@ class TestDeliveryNotificationTask:
         message_id = "msg-456"
         conversation_id = "conv-789"
 
-        asyncio.get_event_loop().run_until_complete(
+        asyncio.run(
             _fake_send(user_id, message_id, conversation_id)
         )
 
@@ -505,10 +505,10 @@ class TestBestEffortNotification:
             # Manually call the underlying logic (bypassing Celery execution)
             try:
                 raise Exception("Simulated Firebase error")
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 try:
                     raise mock_self.retry(exc=exc, countdown=5, max_retries=2)
-                except Exception:  # noqa: BLE001
+                except Exception:
                     result = {
                         "status": "failed",
                         "user_id": "user-1",

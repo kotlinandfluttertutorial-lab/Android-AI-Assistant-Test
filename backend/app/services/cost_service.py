@@ -458,5 +458,5 @@ def _enqueue_alert_notifications(
                     "current_cost_usd": f"{cost:.6f}",
                 },
             )
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("_enqueue_alert_notifications: failed to enqueue: %s", exc)
