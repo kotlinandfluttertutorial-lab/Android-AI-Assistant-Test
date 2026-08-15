@@ -55,6 +55,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Create stub backend/.env for config validation
+        run: cp backend/.env.example backend/.env
+
       - name: Validate docker-compose.yml syntax
         run: |
           docker compose config --quiet
