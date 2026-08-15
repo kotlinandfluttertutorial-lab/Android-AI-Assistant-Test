@@ -522,7 +522,7 @@ class ProductivityService:
         # Build stats summary
         total_entries = len(entries)
         recent_entries = [
-            e for e in entries if (datetime.now(tz=timezone.utc) - e.completed_at).days <= 30
+            e for e in entries if (datetime.now(tz=UTC) - e.completed_at).days <= 30
         ]
         recent_count = len(recent_entries)
 

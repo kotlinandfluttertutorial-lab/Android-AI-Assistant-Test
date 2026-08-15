@@ -859,10 +859,10 @@ class AIOrchestrator:
                 "Conversation summarization failed; keeping recent messages only. Error: %s",
                 exc,
             )
-        return [
-            PromptMessage(role=msg.role.value, content=msg.content)
-            for msg in recent_messages
-        ]
+            return [
+                PromptMessage(role=msg.role.value, content=msg.content)
+                for msg in recent_messages
+            ]
 
         # Build the condensed history
         condensed: list[PromptMessage] = [

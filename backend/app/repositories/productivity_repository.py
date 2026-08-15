@@ -241,7 +241,9 @@ class ProductivityRepository:
         await self._db.refresh(event)
         return event
 
-    async def get_calendar_event(self, event_id: uuid.UUID, user_id: uuid.UUID) -> CalendarEvent | None:
+    async def get_calendar_event(
+        self, event_id: uuid.UUID, user_id: uuid.UUID
+    ) -> CalendarEvent | None:
         """Return a calendar event by primary key, scoped to the given user."""
         result = await self._db.execute(
             select(CalendarEvent).where(
