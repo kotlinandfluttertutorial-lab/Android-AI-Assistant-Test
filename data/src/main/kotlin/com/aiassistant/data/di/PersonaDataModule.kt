@@ -23,9 +23,7 @@ abstract class PersonaDataModule {
 
     @Binds
     @Singleton
-    abstract fun bindPersonaPreferencesRepository(
-        impl: PersonaPreferencesRepositoryImpl,
-    ): PersonaPreferencesRepository
+    abstract fun bindPersonaPreferencesRepository(impl: PersonaPreferencesRepositoryImpl): PersonaPreferencesRepository
 
     companion object {
         @Provides

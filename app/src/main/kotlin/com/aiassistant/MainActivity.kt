@@ -135,14 +135,14 @@ private fun screenViewTracker(navController: NavHostController) {
 private fun rootNavHost(navController: NavHostController) {
     NavHost(
         navController = navController,
-        startDestination = AuthRoute.Graph
+        startDestination = AuthRoute.GRAPH
     ) {
-        // â”€â”€ Auth sub-graph (Splash â†’ Onboarding â†’ Login â†’ Register) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── Auth sub-graph (Splash → Onboarding → Login → Register) ──────────
         authNavGraph(
             navController = navController,
             onAuthSuccess = {
                 navController.navigate(HOME_ROUTE) {
-                    popUpTo(AuthRoute.Graph) { inclusive = true }
+                    popUpTo(AuthRoute.GRAPH) { inclusive = true }
                 }
             }
         )

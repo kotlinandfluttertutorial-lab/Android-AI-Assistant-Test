@@ -99,11 +99,11 @@ fun NavGraphBuilder.resumeNavGraph(
     onNavigateUp: () -> Unit = { navController.popBackStack() }
 ) {
     navigation(
-        startDestination = ResumeRoute.ResumeBuilder,
-        route = ResumeRoute.Graph
+        startDestination = ResumeRoute.RESUME_BUILDER,
+        route = ResumeRoute.GRAPH
     ) {
         // â”€â”€ Resume Builder â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        composable(route = ResumeRoute.ResumeBuilder) {
+        composable(route = ResumeRoute.RESUME_BUILDER) {
             val viewModel: ResumeViewModel = hiltViewModel()
             val uiState by viewModel.uiState.collectAsState()
 
@@ -121,7 +121,7 @@ fun NavGraphBuilder.resumeNavGraph(
         }
 
         // â”€â”€ Cover Letter Editor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        composable(route = ResumeRoute.CoverLetterEditor) {
+        composable(route = ResumeRoute.COVER_LETTER_EDITOR) {
             val viewModel: ResumeViewModel = hiltViewModel()
             val uiState by viewModel.uiState.collectAsState()
 

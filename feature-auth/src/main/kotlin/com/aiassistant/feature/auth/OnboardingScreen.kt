@@ -443,7 +443,8 @@ private fun ConsentPage(
         // Required consent toggle
         ConsentToggleRow(
             title = "Privacy Policy & Terms of Service",
-            description = "I agree to the Privacy Policy and Terms of Service (required to use the app).",
+            description = "I agree to the Privacy Policy and Terms of Service " +
+                "(required to use the app).",
             checked = requiredConsentChecked,
             onCheckedChange = onRequiredConsentChange,
             contentDescription = "Toggle agreement to Privacy Policy and Terms of Service",
@@ -492,7 +493,8 @@ private fun ConsentPage(
             Spacer(modifier = Modifier.height(MaterialTheme.spacing.xs))
 
             Text(
-                text = "Allow AI Assistant to send notifications for reminders and updates. You can change this in device Settings at any time.",
+                text = "Allow AI Assistant to send notifications for reminders and updates. " +
+                    "You can change this in device Settings at any time.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

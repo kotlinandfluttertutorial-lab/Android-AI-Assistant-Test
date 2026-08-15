@@ -12,7 +12,7 @@ import retrofit2.HttpException
 @Singleton
 class PersonaRemoteDataSource @Inject constructor(
     private val apiService: PersonaApiService,
-    private val dispatchers: DispatcherProvider,
+    private val dispatchers: DispatcherProvider
 ) {
     suspend fun getPersonas(): ApiResult<List<PersonaResponse>> = withContext(dispatchers.io) {
         safeApiCall { apiService.getPersonas().items }
@@ -22,9 +22,10 @@ class PersonaRemoteDataSource @Inject constructor(
         safeApiCall { apiService.createPersona(request) }
     }
 
-    suspend fun updatePersona(id: String, request: PersonaUpdateRequest): ApiResult<PersonaResponse> = withContext(dispatchers.io) {
-        safeApiCall { apiService.updatePersona(id, request) }
-    }
+    suspend fun updatePersona(id: String, request: PersonaUpdateRequest): ApiResult<PersonaResponse> =
+        withContext(dispatchers.io) {
+            safeApiCall { apiService.updatePersona(id, request) }
+        }
 
     suspend fun deletePersona(id: String): ApiResult<Unit> = withContext(dispatchers.io) {
         safeApiCall { apiService.deletePersona(id) }
@@ -40,7 +41,7 @@ class PersonaRemoteDataSource @Inject constructor(
                 422 -> DomainError.ValidationError(message = "Validation failed: ${e.message()}", cause = e)
                 in 400..499 -> DomainError.ValidationError(message = "Invalid request (${e.code()})", cause = e)
                 else -> DomainError.ServerError(httpStatusCode = e.code(), cause = e)
-            },
+            }
         )
     } catch (e: IOException) {
         ApiResult.Error(DomainError.NetworkError(message = e.message ?: "Network error", cause = e))

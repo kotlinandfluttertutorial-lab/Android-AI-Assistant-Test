@@ -86,9 +86,9 @@ private data class BottomNavItem(val label: String, val icon: ImageVector, val r
 
 private val bottomNavItems = listOf(
     BottomNavItem("Chat", Icons.Outlined.Forum, ChatRoute.List),
-    BottomNavItem("History", Icons.Outlined.History, HistoryRoute.Graph),
+    BottomNavItem("History", Icons.Outlined.History, HistoryRoute.GRAPH),
     BottomNavItem("Voice", Icons.Outlined.Mic, VoiceRoute.Graph),
-    BottomNavItem("Notes", Icons.Outlined.NoteAlt, NotesRoute.Graph),
+    BottomNavItem("Notes", Icons.Outlined.NoteAlt, NotesRoute.GRAPH),
     BottomNavItem("Tasks", Icons.Outlined.TaskAlt, ProductivityRoute.Graph)
 )
 
@@ -101,7 +101,7 @@ private val featureCards = listOf(
     FeatureCardItem("Camera\n& Vision", Icons.Outlined.Camera, CAMERA_ROUTE),
     FeatureCardItem("Code\nAssistant", Icons.Outlined.Code, CodeRoute.Graph),
     FeatureCardItem("Resume\nBuilder", Icons.Outlined.Description, ResumeRoute.Graph),
-    FeatureCardItem("Email\nComposer", Icons.Outlined.Email, EmailRoute.Graph),
+    FeatureCardItem("Email\nComposer", Icons.Outlined.Email, EmailRoute.GRAPH),
     FeatureCardItem("Meeting\nRecorder", Icons.Outlined.MeetingRoom, meetingRoute()),
     FeatureCardItem("Translator", Icons.Outlined.GTranslate, TRANSLATOR_ROUTE),
     FeatureCardItem("Settings", Icons.Outlined.Settings, SettingsRoute.SCREEN),
