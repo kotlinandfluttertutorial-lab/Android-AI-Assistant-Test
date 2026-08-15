@@ -87,7 +87,7 @@ private data class BottomNavItem(val label: String, val icon: ImageVector, val r
 private val bottomNavItems = listOf(
     BottomNavItem("Chat", Icons.Outlined.Forum, ChatRoute.LIST),
     BottomNavItem("History", Icons.Outlined.History, HistoryRoute.GRAPH),
-    BottomNavItem("Voice", Icons.Outlined.Mic, VoiceRoute.Graph),
+    BottomNavItem("Voice", Icons.Outlined.Mic, VoiceRoute.GRAPH),
     BottomNavItem("Notes", Icons.Outlined.NoteAlt, NotesRoute.GRAPH),
     BottomNavItem("Tasks", Icons.Outlined.TaskAlt, ProductivityRoute.GRAPH)
 )
@@ -97,10 +97,10 @@ private val bottomNavItems = listOf(
 private data class FeatureCardItem(val label: String, val icon: ImageVector, val route: String)
 
 private val featureCards = listOf(
-    FeatureCardItem("Documents\n& RAG", Icons.AutoMirrored.Outlined.LibraryBooks, RAGRoute.DocumentList),
+    FeatureCardItem("Documents\n& RAG", Icons.AutoMirrored.Outlined.LibraryBooks, RAGRoute.DOCUMENT_LIST),
     FeatureCardItem("Camera\n& Vision", Icons.Outlined.Camera, CAMERA_ROUTE),
     FeatureCardItem("Code\nAssistant", Icons.Outlined.Code, CodeRoute.GRAPH),
-    FeatureCardItem("Resume\nBuilder", Icons.Outlined.Description, ResumeRoute.Graph),
+    FeatureCardItem("Resume\nBuilder", Icons.Outlined.Description, ResumeRoute.GRAPH),
     FeatureCardItem("Email\nComposer", Icons.Outlined.Email, EmailRoute.GRAPH),
     FeatureCardItem("Meeting\nRecorder", Icons.Outlined.MeetingRoom, meetingRoute()),
     FeatureCardItem("Translator", Icons.Outlined.GTranslate, TRANSLATOR_ROUTE),
