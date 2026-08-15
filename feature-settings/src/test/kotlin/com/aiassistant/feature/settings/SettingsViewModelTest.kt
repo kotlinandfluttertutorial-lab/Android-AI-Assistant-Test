@@ -29,6 +29,7 @@ import com.aiassistant.domain.model.User
 import com.aiassistant.domain.model.UserRole
 import com.aiassistant.domain.repository.AuthRepository
 import com.aiassistant.domain.repository.UserRepository
+import com.google.android.gms.tasks.Tasks
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
@@ -119,6 +120,9 @@ class SettingsViewModelTest :
             coEvery { mockAuthRepository.isGoogleAccountLinked() } returns ApiResult.Success(false)
             // Default on-device capability: not supported
             coEvery { mockOnDeviceCapabilityChecker.evaluate() } returns OnDeviceCapabilityState.NotSupported
+            // Firebase Remote Config: return a completed task so fetchAndActivate().await() doesn't hang
+            every { mockRemoteConfig.fetchAndActivate() } returns Tasks.forResult(true)
+            every { mockRemoteConfig.getString(any()) } returns ""
         }
 
         // ─── Initial state loading ────────────────────────────────────────────────

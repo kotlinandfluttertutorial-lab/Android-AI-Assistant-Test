@@ -24,9 +24,9 @@ import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
-import org.junit.After
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class SemanticSearchViewModelTest {
@@ -35,13 +35,13 @@ class SemanticSearchViewModelTest {
     private val semanticSearchUseCase: SemanticSearchUseCase = mockk()
     private lateinit var viewModel: SemanticSearchViewModel
 
-    @Before
+    @BeforeEach
     fun setUp() {
         Dispatchers.setMain(testDispatcher)
         viewModel = SemanticSearchViewModel(semanticSearchUseCase)
     }
 
-    @After
+    @AfterEach
     fun tearDown() {
         Dispatchers.resetMain()
     }
