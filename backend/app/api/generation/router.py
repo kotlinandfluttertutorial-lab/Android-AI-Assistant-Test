@@ -38,7 +38,7 @@ Requirements: 14.1, 14.2, 14.4, 14.5
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import APIRouter, Depends, HTTPException, status
 
@@ -83,7 +83,7 @@ emails_router = APIRouter(
 
 
 def _now_utc() -> datetime:
-    return datetime.now(tz=timezone.utc)
+    return datetime.now(tz=UTC)
 
 
 def _word_count(text: str) -> int:

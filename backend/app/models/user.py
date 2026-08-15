@@ -40,11 +40,29 @@ from __future__ import annotations
 
 import enum
 import uuid
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, Enum, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin, uuid_pk
+
+if TYPE_CHECKING:
+    from app.models.api_key import APIKey
+    from app.models.audit_log import AuditLog
+    from app.models.calendar_event import CalendarEvent
+    from app.models.conversation import Conversation
+    from app.models.document import Document
+    from app.models.habit import HabitDefinition, HabitEntry
+    from app.models.job import Job
+    from app.models.memory import Memory
+    from app.models.note import Note
+    from app.models.persona import Persona
+    from app.models.prompt_template import PromptTemplate
+    from app.models.reminder import Reminder
+    from app.models.spending_alert import SpendingAlert
+    from app.models.todo_item import TodoItem
+    from app.models.token_usage import TokenUsage
 
 
 class UserRole(str, enum.Enum):
@@ -132,40 +150,40 @@ class User(Base, TimestampMixin):
     api_keys: Mapped[list[APIKey]] = relationship(
         "APIKey", back_populates="user", cascade="all, delete-orphan"
     )
-    audit_logs: Mapped[list[AuditLog]] = relationship(
+    audit_logs: Mapped[list[AuditLog]] = relationship(  # noqa: F821
         "AuditLog", back_populates="user"
     )
-    prompt_templates: Mapped[list[PromptTemplate]] = relationship(
+    prompt_templates: Mapped[list[PromptTemplate]] = relationship(  # noqa: F821
         "PromptTemplate", back_populates="author", cascade="all, delete-orphan"
     )
-    token_usages: Mapped[list[TokenUsage]] = relationship(
+    token_usages: Mapped[list[TokenUsage]] = relationship(  # noqa: F821
         "TokenUsage", back_populates="user", cascade="all, delete-orphan"
     )
-    notes: Mapped[list[Note]] = relationship(
+    notes: Mapped[list[Note]] = relationship(  # noqa: F821
         "Note", back_populates="user", cascade="all, delete-orphan"
     )
-    jobs: Mapped[list[Job]] = relationship(
+    jobs: Mapped[list[Job]] = relationship(  # noqa: F821
         "Job", back_populates="user", cascade="all, delete-orphan"
     )
-    todo_items: Mapped[list[TodoItem]] = relationship(
+    todo_items: Mapped[list[TodoItem]] = relationship(  # noqa: F821
         "TodoItem", back_populates="user", cascade="all, delete-orphan"
     )
-    calendar_events: Mapped[list[CalendarEvent]] = relationship(
+    calendar_events: Mapped[list[CalendarEvent]] = relationship(  # noqa: F821
         "CalendarEvent", back_populates="user", cascade="all, delete-orphan"
     )
-    reminders: Mapped[list[Reminder]] = relationship(
+    reminders: Mapped[list[Reminder]] = relationship(  # noqa: F821
         "Reminder", back_populates="user", cascade="all, delete-orphan"
     )
-    habit_definitions: Mapped[list[HabitDefinition]] = relationship(
+    habit_definitions: Mapped[list[HabitDefinition]] = relationship(  # noqa: F821
         "HabitDefinition", back_populates="user", cascade="all, delete-orphan"
     )
-    habit_entries: Mapped[list[HabitEntry]] = relationship(
+    habit_entries: Mapped[list[HabitEntry]] = relationship(  # noqa: F821
         "HabitEntry", back_populates="user", cascade="all, delete-orphan"
     )
-    spending_alerts: Mapped[list[SpendingAlert]] = relationship(
+    spending_alerts: Mapped[list[SpendingAlert]] = relationship(  # noqa: F821
         "SpendingAlert", back_populates="user", cascade="all, delete-orphan"
     )
-    personas: Mapped[list[Persona]] = relationship(
+    personas: Mapped[list[Persona]] = relationship(  # noqa: F821
         "Persona", back_populates="user", cascade="all, delete-orphan"
     )
 
