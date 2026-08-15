@@ -43,6 +43,7 @@ from __future__ import annotations
 
 import io
 import logging
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from fastapi.responses import JSONResponse
@@ -183,7 +184,7 @@ def _build_bounding_boxes(df) -> tuple[str, list[BoundingBox]]:  # type: ignore[
     response_model=ImageAnalyzeResponse,
 )
 async def analyze_image(
-    file: UploadFile = File(..., description="JPEG, PNG, or WebP image to analyze"),
+    file: Annotated[UploadFile, File(description="JPEG, PNG, or WebP image to analyze")],
     prompt: str | None = Form(None, description="Optional prompt for vision analysis"),
     provider: str = Form("openai", description="LLM provider for vision analysis"),
     current_user: TokenPayload = Depends(get_current_user),
@@ -264,7 +265,7 @@ async def analyze_image(
         _output_type = getattr(getattr(pytesseract, "output", None), "DICT", "dict")
         data = pytesseract.image_to_data(pil_image, output_type=_output_type)
         extracted_text, bounding_boxes = _build_bounding_boxes(data)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("pytesseract OCR failed: %s", exc)
         # Graceful degradation: return empty OCR result rather than 500
         extracted_text = ""
@@ -302,10 +303,6 @@ async def analyze_image(
             )
 
         try:
-            import base64
-
-            image_b64 = base64.b64encode(image_bytes).decode()
-
             # Use module-level AIOrchestrator and LLMProvider
             orchestrator = AIOrchestrator(db=None)  # type: ignore[arg-type]
             try:
@@ -321,7 +318,7 @@ async def analyze_image(
             )
             vision_analysis = result.text
 
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("Vision LLM analysis failed: %s", exc)
             vision_analysis = None
 

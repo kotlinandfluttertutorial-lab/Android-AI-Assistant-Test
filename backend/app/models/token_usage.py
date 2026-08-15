@@ -52,11 +52,16 @@ from __future__ import annotations
 import enum
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, Enum, ForeignKey, Integer, Numeric, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, uuid_pk
+
+if TYPE_CHECKING:
+    from app.models.message import Message
+    from app.models.user import User
 
 
 class UsageFeature(str, enum.Enum):
