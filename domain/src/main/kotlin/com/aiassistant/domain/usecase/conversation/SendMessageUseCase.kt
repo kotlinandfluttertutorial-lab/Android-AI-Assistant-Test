@@ -1,23 +1,3 @@
-﻿/*
- * ============================================================
- * Android AI Assistant (Enterprise Edition)
- * ============================================================
- * Module     : domain
- * File       : SendMessageUseCase.kt
- * Purpose    : Encapsulates the 'SendMessage' business operation
- *
- * Architecture Layer : Domain
- * Pattern Used       : Clean Architecture Use Case
- *
- * Key Concepts:
- *   - Clean Architecture with strict layer separation
- *   - Hilt dependency injection
- *
- * Dependencies:
- *   - See import statements below
- * ============================================================
- */
-
 /*
  * ============================================================
  * Android AI Assistant (Enterprise Edition)

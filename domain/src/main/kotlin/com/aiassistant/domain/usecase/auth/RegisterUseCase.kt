@@ -1,23 +1,3 @@
-﻿/*
- * ============================================================
- * Android AI Assistant (Enterprise Edition)
- * ============================================================
- * Module     : domain
- * File       : RegisterUseCase.kt
- * Purpose    : Encapsulates the 'Register' business operation
- *
- * Architecture Layer : Domain
- * Pattern Used       : Clean Architecture Use Case
- *
- * Key Concepts:
- *   - Clean Architecture with strict layer separation
- *   - Hilt dependency injection
- *
- * Dependencies:
- *   - See import statements below
- * ============================================================
- */
-
 /*
  * ============================================================
  * Android AI Assistant (Enterprise Edition)
@@ -95,7 +75,7 @@ class RegisterUseCase @Inject constructor(private val authRepository: AuthReposi
      *         [ApiResult.NetworkUnavailable] when the device has no connectivity.
      */
     suspend operator fun invoke(email: String, password: String): ApiResult<AuthTokens> {
-        // â”€â”€ 1. Validate email â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── 1. Validate email ────────────────────────────────────────────────
         if (!isValidEmail(email)) {
             return ApiResult.Error(
                 DomainError.ValidationError(
@@ -105,7 +85,7 @@ class RegisterUseCase @Inject constructor(private val authRepository: AuthReposi
             )
         }
 
-        // â”€â”€ 2. Validate password length â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── 2. Validate password length ──────────────────────────────────────
         if (password.length < MIN_PASSWORD_LENGTH) {
             return ApiResult.Error(
                 DomainError.ValidationError(
@@ -115,11 +95,11 @@ class RegisterUseCase @Inject constructor(private val authRepository: AuthReposi
             )
         }
 
-        // â”€â”€ 3. Delegate to repository â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── 3. Delegate to repository ────────────────────────────────────────
         return authRepository.register(email, password)
     }
 
-    // â”€â”€â”€ Internal helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─── Internal helpers ──────────────────────────────────────────────────────
 
     /**
      * Returns `true` when [email] conforms to a simplified RFC 5322 pattern:

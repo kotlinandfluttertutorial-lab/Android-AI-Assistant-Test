@@ -7,6 +7,7 @@
  *
  * Requirements: 36.1, 36.3, 36.8
  */
+
 package com.aiassistant.domain.repository
 
 import com.aiassistant.core.common.ApiResult

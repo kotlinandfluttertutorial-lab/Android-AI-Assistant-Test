@@ -1,23 +1,3 @@
-﻿/*
- * ============================================================
- * Android AI Assistant (Enterprise Edition)
- * ============================================================
- * Module     : domain
- * File       : ProductivityRepository.kt
- * Purpose    : Domain contract defining data access operations for Productivity entities
- *
- * Architecture Layer : Domain
- * Pattern Used       : Repository Interface
- *
- * Key Concepts:
- *   - Clean Architecture with strict layer separation
- *   - Hilt dependency injection
- *
- * Dependencies:
- *   - See import statements below
- * ============================================================
- */
-
 /*
  * ============================================================
  * Android AI Assistant (Enterprise Edition)
@@ -61,7 +41,7 @@ import com.aiassistant.domain.model.Reminder
 import com.aiassistant.domain.model.TodoItem
 import kotlinx.coroutines.flow.Flow
 
-// â”€â”€â”€ To-Do List filter â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── To-Do List filter ────────────────────────────────────────────────────────
 
 /**
  * Filter criteria for querying [TodoItem] objects.
@@ -78,7 +58,7 @@ data class TodoFilter(
     val tag: String? = null
 )
 
-// â”€â”€â”€ Calendar date range â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── Calendar date range ──────────────────────────────────────────────────────
 
 /**
  * A closed time range expressed as epoch milliseconds, used to query [CalendarEvent]
@@ -89,7 +69,7 @@ data class TodoFilter(
  */
 data class DateRange(val start: Long, val end: Long)
 
-// â”€â”€â”€ ProductivityRepository interface â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─── ProductivityRepository interface ────────────────────────────────────────
 
 /**
  * Unified contract for all four Productivity Suite sub-features:
@@ -104,7 +84,7 @@ data class DateRange(val start: Long, val end: Long)
  */
 interface ProductivityRepository {
 
-    // â”€â”€ To-Do List â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── To-Do List ───────────────────────────────────────────────────────────
 
     /**
      * Returns a [Flow] of [TodoItem] objects for the authenticated user, filtered by
@@ -153,7 +133,7 @@ interface ProductivityRepository {
      */
     suspend fun generateTodosFromPrompt(prompt: String): ApiResult<List<TodoItem>>
 
-    // â”€â”€ Calendar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Calendar ─────────────────────────────────────────────────────────────
 
     /**
      * Returns a [Flow] of [CalendarEvent] objects within the given [range], sourced from
@@ -181,7 +161,7 @@ interface ProductivityRepository {
      */
     suspend fun deleteCalendarEvent(eventId: String): ApiResult<Unit>
 
-    // â”€â”€ Reminders â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Reminders ────────────────────────────────────────────────────────────
 
     /**
      * Returns a [Flow] of all [Reminder] objects for the authenticated user, sorted by
@@ -229,7 +209,7 @@ interface ProductivityRepository {
      */
     suspend fun suggestReminder(prompt: String): ApiResult<Reminder>
 
-    // â”€â”€ Habit Tracker â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Habit Tracker ─────────────────────────────────────────────────────────
 
     /**
      * Returns a [Flow] of all [HabitDefinition] objects for the authenticated user,

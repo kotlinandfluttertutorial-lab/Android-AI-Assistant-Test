@@ -117,7 +117,8 @@ class CreatePersonaUseCase @Inject constructor(private val personaRepository: Pe
                     message = "System prompt must be at most $MAX_SYSTEM_PROMPT_LENGTH characters.",
                     fields = mapOf(
                         FIELD_SYSTEM_PROMPT to
-                            "System prompt must be at most $MAX_SYSTEM_PROMPT_LENGTH characters (currently ${persona.systemPrompt.length})."
+                            "System prompt must be at most $MAX_SYSTEM_PROMPT_LENGTH characters " +
+                            "(currently ${persona.systemPrompt.length})."
                     )
                 )
             )
@@ -131,7 +132,8 @@ class CreatePersonaUseCase @Inject constructor(private val personaRepository: Pe
                     message = "Scope description must be at most $MAX_SCOPE_DESCRIPTION_LENGTH characters.",
                     fields = mapOf(
                         FIELD_SCOPE_DESCRIPTION to
-                            "Scope description must be at most $MAX_SCOPE_DESCRIPTION_LENGTH characters (currently ${scopeDesc.length})."
+                            "Scope description must be at most $MAX_SCOPE_DESCRIPTION_LENGTH characters " +
+                            "(currently ${scopeDesc.length})."
                     )
                 )
             )
@@ -153,7 +155,8 @@ class CreatePersonaUseCase @Inject constructor(private val personaRepository: Pe
                     message = "Persona limit reached. You can store up to $MAX_PERSONAS_PER_USER personas.",
                     fields = mapOf(
                         FIELD_GENERAL to
-                            "You have reached the maximum of $MAX_PERSONAS_PER_USER personas. Please delete an existing persona before creating a new one."
+                            "You have reached the maximum of $MAX_PERSONAS_PER_USER personas. " +
+                            "Please delete an existing persona before creating a new one."
                     )
                 )
             )

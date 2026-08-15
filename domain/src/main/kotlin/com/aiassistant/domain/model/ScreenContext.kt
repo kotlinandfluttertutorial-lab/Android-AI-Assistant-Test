@@ -102,7 +102,8 @@ sealed class ScreenContext {
      * @param lastMessageAgeMillis Age of the last message in milliseconds. The AI_Orchestrator
      *                             uses this to determine whether a "Continue this conversation"
      *                             suggestion is appropriate (threshold: 24 hours).
-     * @param screenInstanceId     Unique identifier for this conversation screen instance (typically the conversation ID).
+     * @param screenInstanceId     Unique identifier for this conversation screen instance
+     *                             (typically the conversation ID).
      */
     data class ConversationContext(
         val lastMessageContent: String,
