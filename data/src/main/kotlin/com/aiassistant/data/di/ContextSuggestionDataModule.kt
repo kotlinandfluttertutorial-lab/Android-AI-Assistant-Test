@@ -72,17 +72,14 @@ abstract class ContextSuggestionDataModule {
          * is shared across all injection sites and correctly gates per screen instance.
          *
          * @param repository         The [ContextSuggestionRepository] singleton.
-         * @param dispatcherProvider The application-level [DispatcherProvider].
          * @return A singleton [GetContextSuggestionsUseCase].
          */
         @Provides
         @Singleton
         fun provideGetContextSuggestionsUseCase(
-            repository: ContextSuggestionRepository,
-            dispatcherProvider: DispatcherProvider
+            repository: ContextSuggestionRepository
         ): GetContextSuggestionsUseCase = GetContextSuggestionsUseCase(
-            repository = repository,
-            dispatcherProvider = dispatcherProvider
+            repository = repository
         )
 
         /**

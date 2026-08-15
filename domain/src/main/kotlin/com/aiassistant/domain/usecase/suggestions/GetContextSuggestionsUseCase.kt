@@ -45,7 +45,6 @@
 package com.aiassistant.domain.usecase.suggestions
 
 import com.aiassistant.core.common.ApiResult
-import com.aiassistant.core.common.DispatcherProvider
 import com.aiassistant.domain.model.ContextSuggestion
 import com.aiassistant.domain.model.ScreenContext
 import com.aiassistant.domain.repository.ContextSuggestionRepository
@@ -64,12 +63,10 @@ import javax.inject.Inject
  * THE AI_Assistant SHALL allow the User to disable context-aware suggestions globally;
  * when disabled, the AI_Orchestrator SHALL not be invoked (Requirement 33.8).
  *
- * @param repository         Repository that calls the AI orchestrator for suggestions.
- * @param dispatcherProvider Coroutine dispatcher provider for testability.
+ * @param repository Repository that calls the AI orchestrator for suggestions.
  */
 class GetContextSuggestionsUseCase @Inject constructor(
-    private val repository: ContextSuggestionRepository,
-    private val dispatcherProvider: DispatcherProvider
+    private val repository: ContextSuggestionRepository
 ) {
 
     /**

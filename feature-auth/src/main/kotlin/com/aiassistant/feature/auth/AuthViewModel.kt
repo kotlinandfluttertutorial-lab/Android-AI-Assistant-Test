@@ -55,7 +55,6 @@ import androidx.lifecycle.viewModelScope
 import com.aiassistant.core.common.ApiResult
 import com.aiassistant.core.common.DispatcherProvider
 import com.aiassistant.core.common.DomainError
-import com.aiassistant.core.security.BiometricAuthManager
 import com.aiassistant.core.security.SecureStorage
 import com.aiassistant.domain.usecase.auth.LoginUseCase
 import com.aiassistant.domain.usecase.auth.LoginWithGoogleUseCase
@@ -83,7 +82,6 @@ class AuthViewModel @Inject constructor(
     private val loginUseCase: LoginUseCase,
     private val registerUseCase: RegisterUseCase,
     private val loginWithGoogleUseCase: LoginWithGoogleUseCase,
-    private val biometricAuthManager: BiometricAuthManager,
     private val secureStorage: SecureStorage,
     private val dispatchers: DispatcherProvider
 ) : ViewModel() {

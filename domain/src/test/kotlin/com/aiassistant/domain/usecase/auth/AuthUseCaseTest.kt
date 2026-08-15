@@ -31,9 +31,9 @@ import io.mockk.mockk
 
 // ─── Shared test fixtures ──────────────────────────────────────────────────────
 
-private val VALID_EMAIL = "user@example.com"
-private val VALID_PASSWORD = "SuperSecret123" // 14 chars — ≥12 requirement satisfied
-private val VALID_REFRESH_TOKEN = "refresh-token-abc123"
+private const val VALID_EMAIL = "user@example.com"
+private const val VALID_PASSWORD = "SuperSecret123" // 14 chars — ≥12 requirement satisfied
+private const val VALID_REFRESH_TOKEN = "refresh-token-abc123"
 private val SAMPLE_TOKENS = AuthTokens(
     jwt = "jwt.sample.token",
     refreshToken = "refresh.sample.token",

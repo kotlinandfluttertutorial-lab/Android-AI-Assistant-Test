@@ -64,7 +64,6 @@ import com.aiassistant.domain.repository.DateRange
 import com.aiassistant.domain.usecase.productivity.CreateCalendarEventUseCase
 import com.aiassistant.domain.usecase.productivity.DeleteCalendarEventUseCase
 import com.aiassistant.domain.usecase.productivity.GetCalendarEventsUseCase
-import com.aiassistant.domain.usecase.suggestions.DismissSuggestionUseCase
 import com.aiassistant.domain.usecase.suggestions.GetContextSuggestionsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.DayOfWeek
@@ -99,8 +98,7 @@ class CalendarViewModel @Inject constructor(
     private val createCalendarEventUseCase: CreateCalendarEventUseCase,
     private val deleteCalendarEventUseCase: DeleteCalendarEventUseCase,
     private val dispatchers: DispatcherProvider,
-    private val getContextSuggestionsUseCase: GetContextSuggestionsUseCase,
-    private val dismissSuggestionUseCase: DismissSuggestionUseCase
+    private val getContextSuggestionsUseCase: GetContextSuggestionsUseCase
 ) : ViewModel() {
 
     // ─── Suggestion settings (updated by Settings screen) ────────────────────
