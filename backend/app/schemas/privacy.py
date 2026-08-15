@@ -90,7 +90,9 @@ class PrivacyBudgetResponse(BaseModel):
         default_factory=list,
         description="Per-user privacy budget entries, ordered by user_id.",
     )
-    total_users_tracked: int = Field(description="Number of users with a non-zero privacy budget recorded.")
+    total_users_tracked: int = Field(
+        description="Number of users with a non-zero privacy budget recorded."
+    )
     retrieved_at: datetime = Field(
         default_factory=lambda: datetime.now(UTC),
         description="Timestamp (UTC) when budgets were retrieved.",

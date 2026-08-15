@@ -135,7 +135,9 @@ class PersonaRepository:
         )
 
         result = await self._db.execute(
-            select(Persona).where(or_(own_condition, admin_locked_condition)).order_by(Persona.created_at)
+            select(Persona)
+            .where(or_(own_condition, admin_locked_condition))
+            .order_by(Persona.created_at)
         )
         return list(result.scalars().all())
 

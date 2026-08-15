@@ -36,7 +36,7 @@ from __future__ import annotations
 
 import logging
 import uuid
-from datetime import UTC, datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 
 from sqlalchemy import and_, func, select

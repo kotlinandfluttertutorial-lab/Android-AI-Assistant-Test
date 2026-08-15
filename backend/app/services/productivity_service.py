@@ -31,7 +31,7 @@ from __future__ import annotations
 import json
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from fastapi import HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -409,7 +409,7 @@ class ProductivityService:
             return {
                 "suggestion": ReminderCreate(
                     title=prompt[:100],
-                    trigger_time=datetime.now(tz=timezone.utc),
+                    trigger_time=datetime.now(tz=UTC),
                 ),
                 "rationale": "AI suggestion unavailable; using default values.",
             }

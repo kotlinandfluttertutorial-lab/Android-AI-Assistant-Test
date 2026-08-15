@@ -47,13 +47,21 @@ class DailyCostRowSchema(BaseModel):
     feature: str = Field(
         description="AI feature name: chat | rag | code | voice | comparison | suggestions"
     )
-    provider: str = Field(description="LLM provider identifier, e.g. 'openai', 'anthropic', 'gemini'")
-    day: str = Field(description="ISO-8601 calendar date (UTC) for this aggregated row, e.g. '2025-01-15'")
-    input_tokens: int = Field(description="Total input tokens consumed on this day by this feature/provider")
+    provider: str = Field(
+        description="LLM provider identifier, e.g. 'openai', 'anthropic', 'gemini'"
+    )
+    day: str = Field(
+        description="ISO-8601 calendar date (UTC) for this aggregated row, e.g. '2025-01-15'"
+    )
+    input_tokens: int = Field(
+        description="Total input tokens consumed on this day by this feature/provider"
+    )
     output_tokens: int = Field(
         description="Total output tokens consumed on this day by this feature/provider"
     )
-    cost_usd: float = Field(description="Estimated cost in USD for this day/feature/provider combination")
+    cost_usd: float = Field(
+        description="Estimated cost in USD for this day/feature/provider combination"
+    )
 
 
 class CostSummaryResponse(BaseModel):
@@ -67,9 +75,15 @@ class CostSummaryResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=False)
 
-    total_input_tokens: int = Field(description="Total input tokens across all features, providers, and days")
-    total_output_tokens: int = Field(description="Total output tokens across all features, providers, and days")
-    total_cost_usd: float = Field(description="Total estimated cost in USD across the entire window")
+    total_input_tokens: int = Field(
+        description="Total input tokens across all features, providers, and days"
+    )
+    total_output_tokens: int = Field(
+        description="Total output tokens across all features, providers, and days"
+    )
+    total_cost_usd: float = Field(
+        description="Total estimated cost in USD across the entire window"
+    )
     rows: list[DailyCostRowSchema] = Field(
         description="Per-(feature, provider, day) aggregated cost rows, ordered by day descending"
     )

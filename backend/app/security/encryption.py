@@ -96,7 +96,8 @@ def _load_aes_key() -> bytes:
     key = base64.b64decode(raw)
     if len(key) != 32:
         raise ValueError(
-            f"AES_ENCRYPTION_KEY must decode to exactly 32 bytes (AES-256); " f"got {len(key)} bytes."
+            f"AES_ENCRYPTION_KEY must decode to exactly 32 bytes (AES-256); "
+            f"got {len(key)} bytes."
         )
     return key
 

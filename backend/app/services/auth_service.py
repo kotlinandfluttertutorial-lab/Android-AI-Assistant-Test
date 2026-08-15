@@ -36,7 +36,7 @@ Requirements: 1.2, 1.3, 1.4, 1.5, 1.10
 from __future__ import annotations
 
 import uuid
-from datetime import UTC, datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -153,7 +153,9 @@ async def refresh_tokens(
     # entire family and raise an error.
     if record.used:
         count = await repo.revoke_family(record.family_id)
-        raise TokenFamilyRevokedError(f"replay detected — revoked {count} tokens in family {record.family_id}")
+        raise TokenFamilyRevokedError(
+            f"replay detected — revoked {count} tokens in family {record.family_id}"
+        )
 
     # Mark the current token as used (single-use property)
     await repo.mark_used(record.id)

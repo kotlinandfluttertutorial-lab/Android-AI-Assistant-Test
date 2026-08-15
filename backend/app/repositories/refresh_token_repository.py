@@ -111,7 +111,9 @@ class RefreshTokenRepository:
             or ``None`` if not found.
         """
         result = await self._db.execute(
-            select(RefreshToken).where(RefreshToken.token_hash == token_hash).options(selectinload(RefreshToken.user))
+            select(RefreshToken)
+            .where(RefreshToken.token_hash == token_hash)
+            .options(selectinload(RefreshToken.user))
         )
         return result.scalar_one_or_none()
 
@@ -128,7 +130,11 @@ class RefreshTokenRepository:
         Args:
             token_id: Primary key of the token to mark as used.
         """
-        await self._db.execute(update(RefreshToken).where(RefreshToken.id == token_id).values(used=True))
+        await self._db.execute(
+            update(RefreshToken)
+            .where(RefreshToken.id == token_id)
+            .values(used=True)
+        )
 
     async def revoke(self, token_id: uuid.UUID) -> None:
         """Permanently revoke a single token.
@@ -136,7 +142,11 @@ class RefreshTokenRepository:
         Args:
             token_id: Primary key of the token to revoke.
         """
-        await self._db.execute(update(RefreshToken).where(RefreshToken.id == token_id).values(revoked=True))
+        await self._db.execute(
+            update(RefreshToken)
+            .where(RefreshToken.id == token_id)
+            .values(revoked=True)
+        )
 
     async def revoke_family(self, family_id: uuid.UUID) -> int:
         """Revoke **all** tokens in a rotation chain.

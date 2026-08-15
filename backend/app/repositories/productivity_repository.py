@@ -130,7 +130,9 @@ class ProductivityRepository:
             base_where.append(TodoItem.is_completed == is_completed)
 
         # Count query
-        count_result = await self._db.execute(select(func.count()).select_from(TodoItem).where(*base_where))
+        count_result = await self._db.execute(
+            select(func.count()).select_from(TodoItem).where(*base_where)
+        )
         total = count_result.scalar_one()
 
         # Paginated query
@@ -263,7 +265,8 @@ class ProductivityRepository:
             end_date:   Optional upper bound for start_time (inclusive).
 
         Returns:
-            List of :class:`~app.models.calendar_event.CalendarEvent` ordered by start_time ASC.
+            List of :class:`~app.models.calendar_event.CalendarEvent` ordered
+            by start_time ASC.
         """
         conditions = [CalendarEvent.user_id == user_id]
         if start_date is not None:
@@ -358,7 +361,11 @@ class ProductivityRepository:
 
     async def list_reminders(self, user_id: uuid.UUID) -> list[Reminder]:
         """Return all reminders for a user, sorted by trigger_time ASC."""
-        result = await self._db.execute(select(Reminder).where(Reminder.user_id == user_id).order_by(Reminder.trigger_time.asc()))
+        result = await self._db.execute(
+            select(Reminder)
+            .where(Reminder.user_id == user_id)
+            .order_by(Reminder.trigger_time.asc())
+        )
         return list(result.scalars().all())
 
     async def update_reminder(
@@ -441,7 +448,9 @@ class ProductivityRepository:
     async def list_habits(self, user_id: uuid.UUID) -> list[HabitDefinition]:
         """Return all habit definitions for a user, ordered by created_at ASC."""
         result = await self._db.execute(
-            select(HabitDefinition).where(HabitDefinition.user_id == user_id).order_by(HabitDefinition.created_at.asc())
+            select(HabitDefinition)
+            .where(HabitDefinition.user_id == user_id)
+            .order_by(HabitDefinition.created_at.asc())
         )
         return list(result.scalars().all())
 

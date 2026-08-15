@@ -219,7 +219,9 @@ async def list_calendar_events(
     start_date: datetime | None = Query(
         default=None, description="Lower bound for start_time (ISO 8601)."
     ),
-    end_date: datetime | None = Query(default=None, description="Upper bound for start_time (ISO 8601)."),
+    end_date: datetime | None = Query(
+        default=None, description="Upper bound for start_time (ISO 8601)."
+    ),
     current_user: TokenPayload = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> CalendarEventListResponse:
@@ -301,7 +303,9 @@ async def suggest_meeting_times(
     user_id = _current_user_id(current_user)
     service = ProductivityService(db)
     llm_provider = LLMProvider(provider)
-    suggestions = await service.suggest_meeting_times(user_id, body.prompt, body.duration_minutes, llm_provider)
+    suggestions = await service.suggest_meeting_times(
+        user_id, body.prompt, body.duration_minutes, llm_provider
+    )
     return SuggestTimesResponse(suggestions=suggestions, prompt=body.prompt)
 
 

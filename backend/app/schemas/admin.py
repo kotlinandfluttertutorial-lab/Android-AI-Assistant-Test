@@ -196,7 +196,9 @@ class ErrorSummary(BaseModel):
     count: int = Field(description="Number of occurrences in the last 24 hours")
     last_seen: datetime = Field(description="Most recent occurrence timestamp")
     sample_message: str = Field(description="Sample error message for context")
-    stack_trace_summary: str = Field(description="First 500 characters of the most recent stack trace")
+    stack_trace_summary: str = Field(
+        description="First 500 characters of the most recent stack trace"
+    )
 
 
 class ErrorSummaryResponse(BaseModel):
@@ -393,5 +395,9 @@ class UsageAnalyticsResponse(BaseModel):
     Requirements: 15.3
     """
 
-    items: list[UsageAnalyticsItem] = Field(description="Usage broken down by feature and LLM provider")
-    generated_at: datetime = Field(description="UTC timestamp when analytics were collected")
+    items: list[UsageAnalyticsItem] = Field(
+        description="Usage broken down by feature and LLM provider"
+    )
+    generated_at: datetime = Field(
+        description="UTC timestamp when analytics were collected"
+    )

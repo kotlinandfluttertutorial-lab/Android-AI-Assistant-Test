@@ -137,7 +137,9 @@ class PromptTemplateRepository:
         Requirements: 25.1
         """
         result = await self._db.execute(
-            select(PromptTemplate).where(PromptTemplate.name == name).order_by(PromptTemplate.version.asc())
+            select(PromptTemplate)
+            .where(PromptTemplate.name == name)
+            .order_by(PromptTemplate.version.asc())
         )
         return list(result.scalars().all())
 
@@ -149,7 +151,11 @@ class PromptTemplateRepository:
 
         Requirements: 25.1
         """
-        result = await self._db.execute(select(PromptTemplate.name).distinct().order_by(PromptTemplate.name.asc()))
+        result = await self._db.execute(
+            select(PromptTemplate.name)
+            .distinct()
+            .order_by(PromptTemplate.name.asc())
+        )
         return list(result.scalars().all())
 
     # ------------------------------------------------------------------

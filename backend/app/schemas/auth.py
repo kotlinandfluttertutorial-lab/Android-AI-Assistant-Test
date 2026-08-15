@@ -109,8 +109,12 @@ class RegisterResponse(BaseModel):
     email: str = Field(description="Normalised email address.")
     access_token: str = Field(description="Signed JWT access token (15-minute expiry).")
     refresh_token: str = Field(description="Opaque refresh token (30-day expiry).")
-    access_token_expires_at: int = Field(description="Epoch milliseconds when the access token expires.")
-    refresh_token_expires_at: int = Field(description="Epoch milliseconds when the refresh token expires.")
+    access_token_expires_at: int = Field(
+        description="Epoch milliseconds when the access token expires."
+    )
+    refresh_token_expires_at: int = Field(
+        description="Epoch milliseconds when the refresh token expires."
+    )
     token_type: str = Field(default="bearer", description="OAuth2 token type literal.")
 
 
@@ -151,8 +155,12 @@ class LoginResponse(BaseModel):
     role: str = Field(description="User role: user | premium | admin.")
     access_token: str = Field(description="Signed JWT access token (15-minute expiry).")
     refresh_token: str = Field(description="Opaque refresh token (30-day expiry).")
-    access_token_expires_at: int = Field(description="Epoch milliseconds when the access token expires.")
-    refresh_token_expires_at: int = Field(description="Epoch milliseconds when the refresh token expires.")
+    access_token_expires_at: int = Field(
+        description="Epoch milliseconds when the access token expires."
+    )
+    refresh_token_expires_at: int = Field(
+        description="Epoch milliseconds when the refresh token expires."
+    )
     token_type: str = Field(default="bearer", description="OAuth2 token type literal.")
 
 
@@ -180,9 +188,15 @@ class RefreshResponse(BaseModel):
     """
 
     access_token: str = Field(description="New signed JWT access token.")
-    refresh_token: str = Field(description="New opaque refresh token (old token is invalidated).")
-    access_token_expires_at: int = Field(description="Epoch milliseconds when the new access token expires.")
-    refresh_token_expires_at: int = Field(description="Epoch milliseconds when the new refresh token expires.")
+    refresh_token: str = Field(
+        description="New opaque refresh token (old token is invalidated)."
+    )
+    access_token_expires_at: int = Field(
+        description="Epoch milliseconds when the new access token expires."
+    )
+    refresh_token_expires_at: int = Field(
+        description="Epoch milliseconds when the new refresh token expires."
+    )
     token_type: str = Field(default="bearer", description="OAuth2 token type literal.")
 
 
@@ -244,8 +258,12 @@ class GoogleAuthResponse(BaseModel):
     role: str = Field(description="User role: user | premium | admin.")
     access_token: str = Field(description="Signed JWT access token (15-minute expiry).")
     refresh_token: str = Field(description="Opaque refresh token (30-day expiry).")
-    access_token_expires_at: int = Field(description="Epoch milliseconds when the access token expires.")
-    refresh_token_expires_at: int = Field(description="Epoch milliseconds when the refresh token expires.")
+    access_token_expires_at: int = Field(
+        description="Epoch milliseconds when the access token expires."
+    )
+    refresh_token_expires_at: int = Field(
+        description="Epoch milliseconds when the refresh token expires."
+    )
     token_type: str = Field(default="bearer", description="OAuth2 token type literal.")
     is_new_user: bool = Field(
         description="``True`` when a new local account was created on this sign-in.",

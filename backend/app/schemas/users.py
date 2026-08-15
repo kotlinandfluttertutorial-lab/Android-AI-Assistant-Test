@@ -59,7 +59,9 @@ class DataExportResponse(BaseModel):
         description="Human-readable confirmation message.",
     )
     estimated_completion: str = Field(
-        description=("ISO 8601 UTC timestamp by which the export will be complete (24 h from now)."),
+        description=(
+            "ISO 8601 UTC timestamp by which the export will be complete (24 h from now)."
+        ),
     )
 
 
@@ -106,5 +108,7 @@ class AccountDeletionResponse(BaseModel):
         description="UTC timestamp at which the deletion was scheduled.",
     )
     estimated_completion: str = Field(
-        description=("ISO 8601 UTC timestamp by which the deletion will be complete (72 h from now)."),
+        description=(
+            "ISO 8601 UTC timestamp by which the deletion will be complete (72 h from now)."
+        ),
     )
