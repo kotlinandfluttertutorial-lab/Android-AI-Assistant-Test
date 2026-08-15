@@ -143,6 +143,8 @@ jobs:
       - name: Create GitHub Release
         id: create
         uses: actions/github-script@v7
+        env:
+          ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true"
         with:
           script: |
             const { data: release } = await github.rest.repos.createRelease({
