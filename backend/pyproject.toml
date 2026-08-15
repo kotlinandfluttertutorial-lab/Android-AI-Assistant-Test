@@ -40,7 +40,7 @@ ignore = [
 "alembic/**" = ["E402", "E501", "UP035", "UP007", "I001"]
 # Test files — long data strings, unused fixture vars, datetime patterns
 "tests/**" = ["E501", "F841", "UP017", "B905", "UP038", "C401", "RUF012",
-              "RUF001", "RUF002", "RUF003", "E402", "I001", "B017"]
+              "RUF001", "RUF002", "RUF003", "E402", "I001", "B017", "S101"]
 # Workers — deferred imports inside Celery task functions are intentional
 "app/workers/**" = ["E402", "E501", "I001", "N806"]
 # Settings — validator methods use SCREAMING_SNAKE_CASE by convention
