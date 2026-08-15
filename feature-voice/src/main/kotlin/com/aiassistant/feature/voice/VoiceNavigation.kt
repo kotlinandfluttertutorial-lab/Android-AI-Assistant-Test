@@ -17,26 +17,6 @@
  *   - See import statements below
  * ============================================================
  */
-
-/*
- * ============================================================
- * Android AI Assistant (Enterprise Edition)
- * ============================================================
- * Module     : feature-voice
- * File       : VoiceNavigation.kt
- * Purpose    : VoiceNavigation — feature-voice module component
- *
- * Architecture Layer : Feature (feature-voice)
- * Pattern Used       : Navigation Graph / Destinations
- *
- * Key Concepts:
- *   - Clean Architecture with strict layer separation
- *   - Hilt dependency injection
- *
- * Dependencies:
- *   - See import statements below
- * ============================================================
- */
 /**
  * VoiceNavigation.kt
  *
@@ -107,10 +87,7 @@ object VoiceRoute {
  * @param navController  The root [NavHostController] shared with the app module.
  * @param onNavigateBack Called when the user taps the back arrow in the voice screen.
  */
-fun NavGraphBuilder.voiceNavGraph(
-    navController: NavHostController,
-    onNavigateBack: () -> Unit
-) {
+fun NavGraphBuilder.voiceNavGraph(navController: NavHostController, onNavigateBack: () -> Unit) {
     navigation(
         startDestination = VoiceRoute.VOICE_ASSISTANT,
         route = VoiceRoute.GRAPH

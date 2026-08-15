@@ -63,23 +63,5 @@ subprojects {
     }
 }
 
-// ─── Android Lint — shared config for all Android library modules ─────────────
-// The :app module has its own lint {} block in app/build.gradle.kts.
-// Library modules get the shared lint.xml so that version-update noise and
-// cross-module false positives don't fail CI.
-subprojects {
-    plugins.withId("com.android.library") {
-        extensions.configure<com.android.build.gradle.LibraryExtension>("android") {
-            lint {
-                lintConfig = rootProject.file("config/lint/lint.xml")
-                abortOnError = true
-                warningsAsErrors = false
-                xmlReport = true
-                htmlReport = true
-            }
-        }
-    }
-}
-
 // Repositories are configured globally via dependencyResolutionManagement in settings.gradle.kts.
 // No per-project repository declarations needed (FAIL_ON_PROJECT_REPOS mode is active).

@@ -137,6 +137,8 @@ dependencies {
     implementation(project(":feature-translator"))
     implementation(project(":feature-productivity"))
     implementation(project(":feature-on-device-ai"))
+    implementation(project(":feature-search"))
+    implementation(project(":feature-persona"))
 
     // AndroidX Core
     implementation(libs.androidx.core.ktx)

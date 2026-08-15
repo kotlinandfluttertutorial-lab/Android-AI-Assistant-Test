@@ -17,26 +17,6 @@
  *   - See import statements below
  * ============================================================
  */
-
-/*
- * ============================================================
- * Android AI Assistant (Enterprise Edition)
- * ============================================================
- * Module     : feature-rag
- * File       : RAGViewModel.kt
- * Purpose    : Manages UI state and delegates actions to domain use cases for the RAG feature
- *
- * Architecture Layer : Feature (feature-rag)
- * Pattern Used       : MVVM ViewModel
- *
- * Key Concepts:
- *   - Clean Architecture with strict layer separation
- *   - Hilt dependency injection
- *
- * Dependencies:
- *   - See import statements below
- * ============================================================
- */
 /**
  * RAGViewModel.kt
  *
@@ -159,7 +139,7 @@ class RAGViewModel @Inject constructor(
     private var pollingJob: Job? = null
 
     /** Documents currently tracked by the polling loop (jobId â†’ documentId). */
-    private val _polledJobs = MutableStateFlow<Map<String, String>>(emptyMap())
+    private val polledJobs = MutableStateFlow<Map<String, String>>(emptyMap())
 
     init {
         // Load documents initially and transition to DocumentList state.
@@ -264,7 +244,7 @@ class RAGViewModel @Inject constructor(
         // Register the job for polling. The document ID used for status queries is looked
         // up from the repository; here we store jobId â†’ jobId as a tracking key and let
         // the repository resolve the document.
-        _polledJobs.update { current ->
+        polledJobs.update { current ->
             if (jobId in current) current else current + (jobId to jobId)
         }
 
@@ -276,7 +256,7 @@ class RAGViewModel @Inject constructor(
         pollingJob = viewModelScope.launch(dispatchers.io) {
             while (true) {
                 // Copy snapshot to avoid ConcurrentModification while iterating.
-                val activeJobs = _polledJobs.value.toMap()
+                val activeJobs = polledJobs.value.toMap()
                 if (activeJobs.isEmpty()) break
 
                 activeJobs.keys.forEach { trackedJobId ->
@@ -285,7 +265,7 @@ class RAGViewModel @Inject constructor(
                         val status = statusResult.data
                         if (status == IngestionStatus.READY || status == IngestionStatus.FAILED) {
                             // Job is terminal â€” remove from tracking map.
-                            _polledJobs.update { current ->
+                            polledJobs.update { current ->
                                 current.toMutableMap().also { it.remove(trackedJobId) }
                             }
                         }
