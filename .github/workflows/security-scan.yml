@@ -120,8 +120,11 @@ jobs:
         uses: github/codeql-action/analyze@v3
         with:
           category: "/language:${{ matrix.language }}"
-          upload: always
-        continue-on-error: true   # fails when Default Setup is also enabled; disable Default Setup in repo settings to resolve
+          # upload is disabled because GitHub Default Setup is enabled on this repo.
+          # To re-enable: go to Settings → Code security → Code scanning → Default setup → Disable,
+          # then change upload back to "always".
+          upload: never
+        continue-on-error: true
 
       - name: CodeQL summary
         if: always()
