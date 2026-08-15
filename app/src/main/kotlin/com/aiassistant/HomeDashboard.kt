@@ -89,7 +89,7 @@ private val bottomNavItems = listOf(
     BottomNavItem("History", Icons.Outlined.History, HistoryRoute.GRAPH),
     BottomNavItem("Voice", Icons.Outlined.Mic, VoiceRoute.Graph),
     BottomNavItem("Notes", Icons.Outlined.NoteAlt, NotesRoute.GRAPH),
-    BottomNavItem("Tasks", Icons.Outlined.TaskAlt, ProductivityRoute.Graph)
+    BottomNavItem("Tasks", Icons.Outlined.TaskAlt, ProductivityRoute.GRAPH)
 )
 
 // â”€â”€â”€ Feature card items (grid) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

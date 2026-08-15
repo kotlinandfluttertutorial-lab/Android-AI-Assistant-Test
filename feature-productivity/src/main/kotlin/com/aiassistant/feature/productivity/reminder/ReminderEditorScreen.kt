@@ -307,7 +307,8 @@ fun ReminderEditorScreen(
                 // â”€â”€ Exact alarm permission banner (Android 12+) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
                 if (!editorState.canScheduleExact) {
                     ErrorBanner(
-                        message = "Exact alarm permission is required to deliver reminders at the exact time. Tap to enable.",
+                        message = "Exact alarm permission is required to deliver reminders at the exact time. " +
+                            "Tap to enable.",
                         modifier = Modifier.fillMaxWidth()
                     )
                     Button(
