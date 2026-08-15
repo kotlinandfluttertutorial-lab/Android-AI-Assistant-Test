@@ -148,16 +148,16 @@ class ChatViewModel @Inject constructor(
     // â”€â”€â”€ Grouped conversations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /** Internal flow of the latest [GroupedConversations] for use in paging. */
-    private val _groupedConversationsFlow = getConversationsUseCase()
+    private val groupedConversationsFlow = getConversationsUseCase()
 
-    // â”€â”€â”€ UI state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ──────────────────────────────────────────────────────────────────────────
 
     /**
      * Primary UI state combining grouped conversations and offline status.
      * Emits [ChatListUiState.Loading] until the first result arrives.
      */
     val uiState: StateFlow<ChatListUiState> = combine(
-        _groupedConversationsFlow,
+        groupedConversationsFlow,
         isOffline
     ) { result, offline ->
         when (result) {
@@ -195,7 +195,7 @@ class ChatViewModel @Inject constructor(
      * Rebuilds the [Pager] whenever the upstream [GroupedConversations] changes, ensuring
      * the UI always shows the latest data. Each page holds at most 20 items.
      */
-    val pagedConversations: Flow<PagingData<ChatListItem>> = _groupedConversationsFlow
+    val pagedConversations: Flow<PagingData<ChatListItem>> = groupedConversationsFlow
         .flatMapLatest { result ->
             val items = when (result) {
                 is ApiResult.Success -> result.data.toFlatList()

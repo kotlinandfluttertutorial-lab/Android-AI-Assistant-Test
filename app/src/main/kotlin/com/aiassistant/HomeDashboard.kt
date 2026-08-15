@@ -85,7 +85,7 @@ import com.aiassistant.feature.voice.VoiceRoute
 private data class BottomNavItem(val label: String, val icon: ImageVector, val route: String)
 
 private val bottomNavItems = listOf(
-    BottomNavItem("Chat", Icons.Outlined.Forum, ChatRoute.List),
+    BottomNavItem("Chat", Icons.Outlined.Forum, ChatRoute.LIST),
     BottomNavItem("History", Icons.Outlined.History, HistoryRoute.GRAPH),
     BottomNavItem("Voice", Icons.Outlined.Mic, VoiceRoute.Graph),
     BottomNavItem("Notes", Icons.Outlined.NoteAlt, NotesRoute.GRAPH),
@@ -99,7 +99,7 @@ private data class FeatureCardItem(val label: String, val icon: ImageVector, val
 private val featureCards = listOf(
     FeatureCardItem("Documents\n& RAG", Icons.AutoMirrored.Outlined.LibraryBooks, RAGRoute.DocumentList),
     FeatureCardItem("Camera\n& Vision", Icons.Outlined.Camera, CAMERA_ROUTE),
-    FeatureCardItem("Code\nAssistant", Icons.Outlined.Code, CodeRoute.Graph),
+    FeatureCardItem("Code\nAssistant", Icons.Outlined.Code, CodeRoute.GRAPH),
     FeatureCardItem("Resume\nBuilder", Icons.Outlined.Description, ResumeRoute.Graph),
     FeatureCardItem("Email\nComposer", Icons.Outlined.Email, EmailRoute.GRAPH),
     FeatureCardItem("Meeting\nRecorder", Icons.Outlined.MeetingRoom, meetingRoute()),

@@ -173,6 +173,7 @@ def _make_orchestrator(
         input_tokens: int,
         output_tokens: int,
         cost_usd: Decimal = Decimal(0),
+        feature=None,  # added: ai_orchestrator now passes feature kwarg (Req 34.1)
     ):
         captured_calls.append(
             {

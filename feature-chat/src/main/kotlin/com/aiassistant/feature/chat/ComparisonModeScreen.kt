@@ -689,7 +689,8 @@ private fun ComparisonModeResultsPreview() {
             providerId = "openai_gpt4o",
             providerName = "OpenAI GPT-4o",
             status = ProviderPanelStatus.Complete,
-            responseText = "**Kotlin coroutines** simplify async programming.\n\nThey allow you to write sequential-looking code that runs asynchronously.",
+            responseText = "**Kotlin coroutines** simplify async programming.\n\n" +
+                "They allow you to write sequential-looking code that runs asynchronously.",
             tokenCount = 82,
             latencyMs = 430L,
             estimatedCostUsd = 0.00246,
