@@ -87,7 +87,7 @@ object VoiceRoute {
  * @param navController  The root [NavHostController] shared with the app module.
  * @param onNavigateBack Called when the user taps the back arrow in the voice screen.
  */
-fun NavGraphBuilder.voiceNavGraph(navController: NavHostController, onNavigateBack: () -> Unit) {
+fun NavGraphBuilder.voiceNavGraph(@Suppress("UnusedParameter") navController: NavHostController, onNavigateBack: () -> Unit) {
     navigation(
         startDestination = VoiceRoute.VOICE_ASSISTANT,
         route = VoiceRoute.GRAPH

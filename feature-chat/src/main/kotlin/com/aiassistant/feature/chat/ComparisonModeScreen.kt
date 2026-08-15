@@ -22,6 +22,7 @@
  */
 package com.aiassistant.feature.chat
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -418,7 +419,14 @@ private fun ProviderPanel(
 @Composable
 private fun PanelHeader(panel: ProviderPanelState, isAdopted: Boolean) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(
+                if (isAdopted) Modifier.background(
+                    MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f),
+                    shape = MaterialTheme.shapes.small
+                ) else Modifier
+            ),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {

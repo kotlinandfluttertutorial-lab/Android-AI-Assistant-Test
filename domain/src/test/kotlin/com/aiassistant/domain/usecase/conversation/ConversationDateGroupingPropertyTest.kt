@@ -118,15 +118,6 @@ private val arbConversationList: Arb<List<Conversation>> = arbitrary {
     (0 until size).map { index -> arbConversationWithUniqueId(index).bind() }
 }
 
-/**
- * Generates a non-empty list (1..20) so properties that require at least one
- * conversation in a specific group can assert that group is non-empty.
- */
-private val arbNonEmptyConversationList: Arb<List<Conversation>> = arbitrary {
-    val size = Arb.long(1L..20L).bind().toInt()
-    (0 until size).map { index -> arbConversationWithUniqueId(index).bind() }
-}
-
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 /**

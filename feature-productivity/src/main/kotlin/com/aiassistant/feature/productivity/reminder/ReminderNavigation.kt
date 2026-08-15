@@ -157,12 +157,12 @@ fun NavGraphBuilder.remindersNavGraph(
                                 (uiState as? ReminderUiState.ReminderEditor)?.triggerTimeError == null
                             )
                     ) {
-                        navController.popBackStack()
+                        onNavigateUp()
                     }
                 },
                 onBack = {
                     viewModel.backToList()
-                    navController.popBackStack()
+                    onNavigateUp()
                 },
                 onOpenExactAlarmSettings = {
                     val intent = viewModel.buildExactAlarmSettingsIntent()

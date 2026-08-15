@@ -696,7 +696,7 @@ style:
     active: false
   UnusedParameter:
     active: true
-    allowedNames: 'ignored|expected'
+    allowedNames: '(_|ignored|expected)'
   UnusedPrivateClass:
     active: true
   UnusedPrivateMember:

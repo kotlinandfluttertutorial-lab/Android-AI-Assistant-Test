@@ -30,7 +30,7 @@ Requirements: 13.1, 9.1, 9.2
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -525,5 +525,5 @@ async def get_habit_insights(
     return HabitInsightsResponse(
         habit_id=habit_id,
         insights=insights,
-        generated_at=datetime.utcnow(),
+        generated_at=datetime.now(tz=timezone.utc),
     )

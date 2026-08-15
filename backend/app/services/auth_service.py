@@ -36,7 +36,7 @@ Requirements: 1.2, 1.3, 1.4, 1.5, 1.10
 from __future__ import annotations
 
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -145,7 +145,7 @@ async def refresh_tokens(
         raise InvalidTokenError("refresh token has been revoked")
 
     # Check expiry (Python-level check; the database clock is authoritative)
-    now = datetime.now(tz=datetime.UTC)
+    now = datetime.now(tz=timezone.utc)
     if record.expires_at <= now:
         raise InvalidTokenError("refresh token has expired")
 

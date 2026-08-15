@@ -211,7 +211,7 @@ class AuthViewModel @Inject constructor(
      * @param errorCode Platform-specific error code from [BiometricAuthManager].
      * @param message   Human-readable error message from the biometric framework.
      */
-    fun onBiometricError(errorCode: Int, message: String) {
+    fun onBiometricError(@Suppress("UnusedParameter") errorCode: Int, message: String) {
         _uiState.value = AuthUiState.Error(
             message = message,
             fieldErrors = emptyMap()

@@ -50,12 +50,6 @@ private val arbRegion: Arb<String> = Arb.element(REGIONS)
 private val arbRole: Arb<String> = Arb.element(ROLES)
 
 /**
- * Generates a random subset of roles (0..3 elements) as [BackendEndpoint.allowedRoles].
- */
-private val arbAllowedRoles: Arb<List<String>> =
-    Arb.list(arbRole, 0..ROLES.size).map { it.distinct() }
-
-/**
  * Generates a random [BackendEndpoint] with region drawn from [REGIONS],
  * roles drawn from [ROLES], and a latency between 1..5000 ms.
  */

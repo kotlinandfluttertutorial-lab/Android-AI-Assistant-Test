@@ -154,12 +154,12 @@ fun NavGraphBuilder.habitsNavGraph(
                     if (currentState !is HabitUiState.HabitEditor ||
                         currentState.nameError == null
                     ) {
-                        navController.popBackStack()
+                        onNavigateUp()
                     }
                 },
                 onBack = {
                     viewModel.backToList()
-                    navController.popBackStack()
+                    onNavigateUp()
                 }
             )
         }
@@ -176,7 +176,7 @@ fun NavGraphBuilder.habitsNavGraph(
                 uiState = uiState,
                 onBack = {
                     viewModel.backToList()
-                    navController.popBackStack()
+                    onNavigateUp()
                 },
                 onRetry = {
                     // Re-fetch insights for the current habit

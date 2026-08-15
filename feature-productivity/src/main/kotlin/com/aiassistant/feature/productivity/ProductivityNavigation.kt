@@ -158,11 +158,11 @@ fun NavGraphBuilder.productivityNavGraph(
                 },
                 onSave = { todo ->
                     viewModel.saveTodo(todo)
-                    navController.popBackStack()
+                    onNavigateUp()
                 },
                 onBack = {
                     viewModel.backToList()
-                    navController.popBackStack()
+                    onNavigateUp()
                 }
             )
         }

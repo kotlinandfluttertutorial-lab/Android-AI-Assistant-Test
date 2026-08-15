@@ -436,7 +436,7 @@ class SearchConversationsUseCaseTest :
 
                 it("returns only conversations matching the query") {
                     val match = makeConversation(id = "match", title = "Kotlin tutorial")
-                    val noMatch = makeConversation(id = "nomatch", title = "Python tips")
+                    makeConversation(id = "nomatch", title = "Python tips") // stubbed out of results
                     every { repository.searchConversations("Kotlin") } returns
                         flowOf(ApiResult.Success(listOf(match)))
 

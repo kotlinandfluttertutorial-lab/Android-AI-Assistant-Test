@@ -147,17 +147,16 @@ fun NavGraphBuilder.notesNavGraph(
 
             NoteEditorScreen(
                 uiState = uiState,
-                onTitleChange = { /* handled via onUpdateDraft */ },
                 onUpdateDraft = { title, content, tags ->
                     viewModel.updateDraft(title, content, tags)
                 },
                 onSave = { note ->
                     viewModel.saveNote(note)
-                    navController.popBackStack()
+                    onNavigateUp()
                 },
                 onBack = {
                     viewModel.backToList()
-                    navController.popBackStack()
+                    onNavigateUp()
                 },
                 onTogglePreview = { viewModel.togglePreviewMode() },
                 onSummarize = { noteId -> viewModel.summarizeNote(noteId) },

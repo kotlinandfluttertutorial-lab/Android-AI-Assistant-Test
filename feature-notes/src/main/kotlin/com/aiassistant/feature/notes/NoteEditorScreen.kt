@@ -119,7 +119,6 @@ import kotlinx.coroutines.delay
  * states, nothing meaningful is rendered â€” the navigation layer guards those transitions.
  *
  * @param uiState          Current state from [NotesViewModel].
- * @param onTitleChange    (Unused by the editor directly â€” use [onUpdateDraft].)
  * @param onUpdateDraft    Invoked whenever title, content, or tags change in the editor.
  * @param onSave           Invoked with the current note when the user taps Save.
  * @param onBack           Invoked when the user taps the back arrow.
@@ -133,7 +132,6 @@ import kotlinx.coroutines.delay
 @Composable
 fun NoteEditorScreen(
     uiState: NotesUiState,
-    onTitleChange: (String) -> Unit,
     onUpdateDraft: (title: String, content: String, tags: List<String>) -> Unit,
     onSave: (Note) -> Unit,
     onBack: () -> Unit,
