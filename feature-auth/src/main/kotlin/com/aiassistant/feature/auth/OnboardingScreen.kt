@@ -457,8 +457,8 @@ private fun ConsentPage(
         ConsentToggleRow(
             title = "Analytics Data Collection",
             description =
-                "Allow optional analytics data collection to help improve the app. " +
-                    "You can change this in Settings at any time.",
+            "Allow optional analytics data collection to help improve the app. " +
+                "You can change this in Settings at any time.",
             checked = analyticsConsentChecked,
             onCheckedChange = onAnalyticsConsentChange,
             contentDescription = "Toggle optional analytics data collection",

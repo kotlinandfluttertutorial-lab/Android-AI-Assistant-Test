@@ -721,7 +721,8 @@ private fun DataExportSection(
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                         Text(
-                            text = "Your data archive is being prepared and may take up to 24 hours. You will be notified when it's ready.",
+                            text = "Your data archive is being prepared and may take up to 24 hours. " +
+                                "You will be notified when it's ready.",
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
@@ -919,9 +920,8 @@ private fun AccountDeletionDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(spacing.sm)) {
                 Text(
-                    text =
-                    "This will permanently delete your account and all associated data (conversations, memories, documents, notes). " +
-                        "This action cannot be undone.",
+                    text = "This will permanently delete your account and all associated data " +
+                        "(conversations, memories, documents, notes). This action cannot be undone.",
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Text(
