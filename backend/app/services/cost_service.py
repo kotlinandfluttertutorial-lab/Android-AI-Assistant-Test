@@ -36,7 +36,7 @@ from __future__ import annotations
 
 import logging
 import uuid
-from datetime import datetime, timezone
+from datetime import datetime
 from decimal import Decimal
 
 from sqlalchemy import and_, func, select
@@ -179,7 +179,7 @@ async def get_user_cost_summary(
 
     from sqlalchemy import Date, cast
 
-    cutoff = datetime.now(tz=timezone.utc) - timedelta(days=days)
+    cutoff = datetime.now(tz=datetime.UTC) - timedelta(days=days)
 
     # Aggregate by feature, provider, and calendar day
     stmt = (
@@ -367,7 +367,7 @@ async def check_spending_alerts(db: AsyncSession) -> None:
     from datetime import date
 
     today_start = datetime.combine(date.today(), datetime.min.time()).replace(
-        tzinfo=timezone.utc
+        tzinfo=datetime.UTC
     )
 
     # Load all un-triggered alerts (dismissed_at is NULL or not set)
@@ -403,7 +403,7 @@ async def check_spending_alerts(db: AsyncSession) -> None:
         row.user_id: float(row.daily_cost or 0) for row in cost_result.all()
     }
 
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=datetime.UTC)
     triggered_user_ids: list[
         tuple[uuid.UUID, float, float]
     ] = []  # (user_id, threshold, cost)
@@ -458,5 +458,5 @@ def _enqueue_alert_notifications(
                     "current_cost_usd": f"{cost:.6f}",
                 },
             )
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("_enqueue_alert_notifications: failed to enqueue: %s", exc)

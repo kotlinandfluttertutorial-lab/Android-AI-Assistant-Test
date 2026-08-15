@@ -62,7 +62,7 @@ def _make_user_orm(
     *,
     user_id: uuid.UUID | None = None,
     email: str = _VALID_EMAIL,
-    password_hash: str = "$2b$12$fakehash",
+    hashed_pw: str = "$2b$12$fakehash",
     display_name: str = _VALID_DISPLAY_NAME,
     role: str = "user",
     is_active: bool = True,
@@ -72,7 +72,7 @@ def _make_user_orm(
     user = MagicMock()
     user.id = user_id or uuid.uuid4()
     user.email = email
-    user.password_hash = password_hash
+    user.password_hash = hashed_pw
     user.display_name = display_name
     role_mock = MagicMock()
     role_mock.value = role
@@ -789,13 +789,13 @@ class TestAccountLockout:
     """
 
     def _make_login_request(
-        self, client: TestClient, password: str = "WrongPass!!123"
+        self, client: TestClient, pwd: str = "WrongPass!!123"
     ) -> Any:
         return client.post(
             "/auth/login",
             json={
                 "email": _VALID_EMAIL,
-                "password": password,
+                "password": pwd,
             },
         )
 

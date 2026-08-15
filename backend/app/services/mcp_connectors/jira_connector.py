@@ -162,7 +162,8 @@ class JiraWriteConnector(MCPToolConnector):
     """Write operations Jira connector (requires user confirmation).
 
     Supported actions (passed as ``params["action"]``):
-    - ``create_issue``:  Create a new issue. Params: ``project_key``, ``summary``, ``description``, ``issue_type``.
+    - ``create_issue``:  Create a new issue. Params: ``project_key``, ``summary``,
+                         ``description``, ``issue_type``.
     - ``update_issue``:  Update an issue's fields. Params: ``issue_key``, ``fields`` (dict).
     - ``add_comment``:   Add a comment to an issue. Params: ``issue_key``, ``body``.
 

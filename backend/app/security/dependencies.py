@@ -85,7 +85,7 @@ async def _is_jti_revoked(jti: str) -> bool:
         key = f"{_REVOKED_JTI_KEY_PREFIX}{jti}"
         result = await redis_client.exists(key)
         return bool(result)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         # Gracefully degrade: log a warning and allow the request to proceed.
         logger.warning(
             "Redis revocation check unavailable (jti=%s): %s — skipping", jti, exc

@@ -68,7 +68,10 @@ class PromptTemplate(Base, TimestampMixin):
         String(255),
         nullable=False,
         index=True,
-        comment="Logical template name shared across all versions, e.g. 'code_analysis_system_prompt'",
+        comment=(
+            "Logical template name shared across all versions, "
+            "e.g. 'code_analysis_system_prompt'"
+        ),
     )
     content: Mapped[str] = mapped_column(
         Text,
@@ -96,7 +99,7 @@ class PromptTemplate(Base, TimestampMixin):
     # ------------------------------------------------------------------
     # Relationships
     # ------------------------------------------------------------------
-    author: Mapped[User] = relationship(  # noqa: F821
+    author: Mapped[User] = relationship(
         "User", back_populates="prompt_templates"
     )
 

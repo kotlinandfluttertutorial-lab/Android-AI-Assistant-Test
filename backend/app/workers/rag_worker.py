@@ -37,9 +37,9 @@ def _make_session_factory():
     Called once per task execution so each task gets its own connection pool
     and event loop, avoiding asyncpg 'Future attached to a different loop' errors.
     """
-    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine  # noqa: PLC0415
+    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-    from app.config.settings import get_settings  # noqa: PLC0415
+    from app.config.settings import get_settings
 
     settings = get_settings()
     engine = create_async_engine(
@@ -78,12 +78,12 @@ def ingest_document_task(self, document_id: str, user_id: str) -> dict:
 
 async def _run_ingestion(task, document_id: str, user_id: str) -> dict:
     """Async ingestion pipeline — creates a fresh DB engine per invocation."""
-    from app.models.document import IngestionStatus  # noqa: PLC0415
-    from app.models.job import Job, JobStatus  # noqa: PLC0415
-    from app.repositories.document_repository import DocumentRepository  # noqa: PLC0415
-    from app.repositories.job_repository import JobRepository  # noqa: PLC0415
-    from app.services.rag_service import ExtractionError, rag_service  # noqa: PLC0415
-    from sqlalchemy import select  # noqa: PLC0415
+    from app.models.document import IngestionStatus
+    from app.models.job import Job, JobStatus
+    from app.repositories.document_repository import DocumentRepository
+    from app.repositories.job_repository import JobRepository
+    from app.services.rag_service import ExtractionError, rag_service
+    from sqlalchemy import select
 
     doc_uuid = uuid.UUID(document_id)
     user_uuid = uuid.UUID(user_id)
@@ -130,7 +130,7 @@ async def _run_ingestion(task, document_id: str, user_id: str) -> dict:
 
             try:
                 file_bytes = await rag_service.download_file_minio(document.minio_key)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("MinIO download failed (attempt %d): %s", task.request.retries, exc)
                 countdown = 2 ** task.request.retries
                 try:
@@ -175,7 +175,7 @@ async def _run_ingestion(task, document_id: str, user_id: str) -> dict:
             # Step 5 — embed and store
             try:
                 await rag_service.embed_and_store(chunks, document_id, user_id, db)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("embed_and_store failed (attempt %d): %s", task.request.retries, exc)
                 countdown = 2 ** task.request.retries
                 try:
@@ -211,12 +211,12 @@ async def _run_ingestion(task, document_id: str, user_id: str) -> dict:
 
 async def _handle_permanent_failure(document_id: str, user_id: str) -> None:
     """Mark document and job as permanently failed."""
-    from app.models.document import IngestionStatus  # noqa: PLC0415
-    from app.models.job import Job, JobStatus  # noqa: PLC0415
-    from app.repositories.document_repository import DocumentRepository  # noqa: PLC0415
-    from app.repositories.job_repository import JobRepository  # noqa: PLC0415
-    from app.services.rag_service import rag_service  # noqa: PLC0415
-    from sqlalchemy import select  # noqa: PLC0415
+    from app.models.document import IngestionStatus
+    from app.models.job import Job, JobStatus
+    from app.repositories.document_repository import DocumentRepository
+    from app.repositories.job_repository import JobRepository
+    from app.services.rag_service import rag_service
+    from sqlalchemy import select
 
     doc_uuid = uuid.UUID(document_id)
     user_uuid = uuid.UUID(user_id)
@@ -243,7 +243,7 @@ async def _handle_permanent_failure(document_id: str, user_id: str) -> None:
                 )
                 job.retry_count = 3
             await db.commit()
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.error("Failed to write permanent-failure state for document=%s: %s", document_id, exc)
     finally:
         await engine.dispose()

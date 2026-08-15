@@ -75,7 +75,10 @@ class User(Base, TimestampMixin):
     password_hash: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
-        comment="bcrypt digest — work factor controlled by settings.BCRYPT_WORK_FACTOR (default 12)",
+        comment=(
+            "bcrypt digest — work factor controlled by "
+            "settings.BCRYPT_WORK_FACTOR (default 12)"
+        ),
     )
     google_id: Mapped[str | None] = mapped_column(
         String(255), unique=True, nullable=True
@@ -117,52 +120,52 @@ class User(Base, TimestampMixin):
     # ------------------------------------------------------------------
     # Relationships (back-populated in child models)
     # ------------------------------------------------------------------
-    conversations: Mapped[list[Conversation]] = relationship(  # noqa: F821
+    conversations: Mapped[list[Conversation]] = relationship(
         "Conversation", back_populates="user", cascade="all, delete-orphan"
     )
-    documents: Mapped[list[Document]] = relationship(  # noqa: F821
+    documents: Mapped[list[Document]] = relationship(
         "Document", back_populates="user", cascade="all, delete-orphan"
     )
-    memories: Mapped[list[Memory]] = relationship(  # noqa: F821
+    memories: Mapped[list[Memory]] = relationship(
         "Memory", back_populates="user", cascade="all, delete-orphan"
     )
-    api_keys: Mapped[list[APIKey]] = relationship(  # noqa: F821
+    api_keys: Mapped[list[APIKey]] = relationship(
         "APIKey", back_populates="user", cascade="all, delete-orphan"
     )
-    audit_logs: Mapped[list[AuditLog]] = relationship(  # noqa: F821
+    audit_logs: Mapped[list[AuditLog]] = relationship(
         "AuditLog", back_populates="user"
     )
-    prompt_templates: Mapped[list[PromptTemplate]] = relationship(  # noqa: F821
+    prompt_templates: Mapped[list[PromptTemplate]] = relationship(
         "PromptTemplate", back_populates="author", cascade="all, delete-orphan"
     )
-    token_usages: Mapped[list[TokenUsage]] = relationship(  # noqa: F821
+    token_usages: Mapped[list[TokenUsage]] = relationship(
         "TokenUsage", back_populates="user", cascade="all, delete-orphan"
     )
-    notes: Mapped[list[Note]] = relationship(  # noqa: F821
+    notes: Mapped[list[Note]] = relationship(
         "Note", back_populates="user", cascade="all, delete-orphan"
     )
-    jobs: Mapped[list[Job]] = relationship(  # noqa: F821
+    jobs: Mapped[list[Job]] = relationship(
         "Job", back_populates="user", cascade="all, delete-orphan"
     )
-    todo_items: Mapped[list[TodoItem]] = relationship(  # noqa: F821
+    todo_items: Mapped[list[TodoItem]] = relationship(
         "TodoItem", back_populates="user", cascade="all, delete-orphan"
     )
-    calendar_events: Mapped[list[CalendarEvent]] = relationship(  # noqa: F821
+    calendar_events: Mapped[list[CalendarEvent]] = relationship(
         "CalendarEvent", back_populates="user", cascade="all, delete-orphan"
     )
-    reminders: Mapped[list[Reminder]] = relationship(  # noqa: F821
+    reminders: Mapped[list[Reminder]] = relationship(
         "Reminder", back_populates="user", cascade="all, delete-orphan"
     )
-    habit_definitions: Mapped[list[HabitDefinition]] = relationship(  # noqa: F821
+    habit_definitions: Mapped[list[HabitDefinition]] = relationship(
         "HabitDefinition", back_populates="user", cascade="all, delete-orphan"
     )
-    habit_entries: Mapped[list[HabitEntry]] = relationship(  # noqa: F821
+    habit_entries: Mapped[list[HabitEntry]] = relationship(
         "HabitEntry", back_populates="user", cascade="all, delete-orphan"
     )
-    spending_alerts: Mapped[list[SpendingAlert]] = relationship(  # noqa: F821
+    spending_alerts: Mapped[list[SpendingAlert]] = relationship(
         "SpendingAlert", back_populates="user", cascade="all, delete-orphan"
     )
-    personas: Mapped[list[Persona]] = relationship(  # noqa: F821
+    personas: Mapped[list[Persona]] = relationship(
         "Persona", back_populates="user", cascade="all, delete-orphan"
     )
 

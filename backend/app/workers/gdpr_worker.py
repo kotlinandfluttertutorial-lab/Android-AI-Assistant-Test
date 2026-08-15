@@ -63,7 +63,7 @@ def _row_to_dict(obj) -> dict:
         else:
             result[col.name] = (
                 str(value)
-                if not isinstance(value, (int, float, bool, str, list, dict))
+                if not isinstance(value, int | float | bool | str | list | dict)
                 else value
             )
     return result
@@ -187,7 +187,7 @@ async def _run_export(task, user_id: str, job_id: str) -> dict:
         )
         return {"status": "completed", "job_id": job_id}
 
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.error(
             "export_user_data_task: failed for user=%s job=%s: %s",
             user_id,
@@ -208,7 +208,7 @@ async def _run_export(task, user_id: str, job_id: str) -> dict:
                     error_message=str(exc),
                 )
                 await db.commit()
-        except Exception as inner_exc:  # noqa: BLE001
+        except Exception as inner_exc:
             logger.error(
                 "export_user_data_task: could not mark job failed: %s", inner_exc
             )
@@ -279,7 +279,7 @@ async def _run_delete(task, user_id: str) -> dict:
                         "delete_user_data_task: deleted ChromaDB collection %s",
                         collection_name,
                     )
-                except Exception as chroma_exc:  # noqa: BLE001
+                except Exception as chroma_exc:
                     logger.warning(
                         "delete_user_data_task: could not delete ChromaDB collection %s: %s",
                         collection_name,
@@ -289,7 +289,7 @@ async def _run_delete(task, user_id: str) -> dict:
             logger.debug(
                 "delete_user_data_task: ChromaDB not configured, skipping embedding deletion."
             )
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning(
             "delete_user_data_task: ChromaDB cleanup failed for user=%s: %s",
             user_id,
@@ -321,7 +321,7 @@ async def _run_delete(task, user_id: str) -> dict:
 
         return {"status": "completed", "user_id": user_id}
 
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.error(
             "delete_user_data_task: failed to delete user=%s from PostgreSQL: %s",
             user_id,

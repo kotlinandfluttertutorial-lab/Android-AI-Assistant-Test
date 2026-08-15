@@ -89,7 +89,7 @@ async def export_user_data(
 
     from datetime import timedelta
 
-    estimated = (datetime.now(tz=timezone.utc) + timedelta(hours=24)).isoformat()
+    estimated = (datetime.now(tz=datetime.UTC) + timedelta(hours=24)).isoformat()
 
     return DataExportResponse(
         job_id=job.id,
@@ -146,7 +146,7 @@ async def delete_user_account(
 
     delete_user_data_task.delay(str(user_id))
 
-    scheduled_at = datetime.now(tz=timezone.utc)
+    scheduled_at = datetime.now(tz=datetime.UTC)
     estimated = (scheduled_at + timedelta(hours=72)).isoformat()
 
     logger.info("Account deletion scheduled for user %s at %s", user_id, scheduled_at)

@@ -115,7 +115,10 @@ class TokenUsage(Base):
         nullable=False,
         default=UsageFeature.chat,
         server_default=UsageFeature.chat.value,
-        comment="AI feature that generated this usage record (chat/rag/code/voice/comparison/suggestions)",
+        comment=(
+            "AI feature that generated this usage record "
+            "(chat/rag/code/voice/comparison/suggestions)"
+        ),
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
@@ -127,8 +130,8 @@ class TokenUsage(Base):
     # ------------------------------------------------------------------
     # Relationships
     # ------------------------------------------------------------------
-    user: Mapped[User] = relationship("User", back_populates="token_usages")  # noqa: F821
-    message: Mapped[Message] = relationship(  # noqa: F821
+    user: Mapped[User] = relationship("User", back_populates="token_usages")
+    message: Mapped[Message] = relationship(
         "Message", back_populates="token_usage"
     )
 

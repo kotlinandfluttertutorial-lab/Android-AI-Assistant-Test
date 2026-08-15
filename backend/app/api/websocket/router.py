@@ -185,7 +185,7 @@ async def _handle_messages(
                     conversation_id,
                 )
                 return
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("WebSocket receive error: %s", exc)
                 return
 
@@ -365,7 +365,7 @@ async def _stream_response(
         if not proxy.disconnected:
             try:
                 await websocket.send_json({"type": "error", "message": str(exc)})
-            except Exception:  # noqa: BLE001
+            except Exception:
                 pass
     except Exception as exc:
         logger.exception(
@@ -382,5 +382,5 @@ async def _stream_response(
                         "message": "An internal error occurred while processing your request.",
                     }
                 )
-            except Exception:  # noqa: BLE001
+            except Exception:
                 pass

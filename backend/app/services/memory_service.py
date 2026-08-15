@@ -147,7 +147,7 @@ class MemoryService:
         if redis is not None:
             try:
                 await redis.incrbyfloat(f"privacy_budget:{user_id}", epsilon)
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning(
                     "Failed to increment privacy_budget for user %s: %s",
                     user_id,
@@ -212,7 +212,7 @@ class MemoryService:
                 )
                 for r in results
             ]
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             # Requirement 7.2: IF memory retrieval fails, proceed without memories
             logger.warning(
                 "Memory retrieval failed for user %s; proceeding without memories. Error: %s",

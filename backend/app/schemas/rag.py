@@ -118,7 +118,10 @@ class ExtractionErrorResponse(BaseModel):
 
     error: str = Field(default="extraction_failed", description="Error category.")
     stage: str = Field(
-        description="Pipeline stage where the failure occurred: pdf_extraction | ocr | docx_extraction | text_read."
+        description=(
+            "Pipeline stage where the failure occurred: "
+            "pdf_extraction | ocr | docx_extraction | text_read."
+        )
     )
     file_name: str = Field(description="Original filename that caused the failure.")
     detail: str = Field(
@@ -169,7 +172,9 @@ class PerDocumentQueryRequest(BaseModel):
     )
     top_k: int = Field(
         default=5,
-        description="Number of most relevant chunks to retrieve from this document (default K=5).",
+        description=(
+            "Number of most relevant chunks to retrieve from this document (default K=5)."
+        ),
         ge=1,
         le=20,
     )
@@ -321,6 +326,9 @@ class ChunkQueryResponse(BaseModel):
         description="List of retrieved chunks with citations."
     )
     context: str = Field(
-        description="Pre-formatted context string ready for LLM injection, includes all chunks with citations."
+        description=(
+            "Pre-formatted context string ready for LLM injection, "
+            "includes all chunks with citations."
+        )
     )
     total_chunks: int = Field(description="Number of chunks retrieved.")

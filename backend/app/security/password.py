@@ -142,5 +142,5 @@ def verify_password(plaintext: str, hashed: str) -> bool:
 
     try:
         return _get_pwd_context().verify(plaintext, hashed)
-    except Exception:  # noqa: BLE001 — passlib may raise on malformed hashes
+    except Exception:  # passlib may raise on malformed hashes
         return False
