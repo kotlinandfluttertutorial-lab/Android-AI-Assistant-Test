@@ -169,7 +169,7 @@ private fun rootNavHost(navController: NavHostController) {
             )
         ) {
             // Re-navigate into the real chat destination so the back stack is correct.
-            navController.navigate(ChatRoute.List) {
+            navController.navigate(ChatRoute.LIST) {
                 popUpTo("deeplink/chat") { inclusive = true }
             }
         }
