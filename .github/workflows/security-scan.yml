@@ -243,6 +243,7 @@ jobs:
           exit-code: "0"
           ignore-unfixed: true
           vuln-type: "os,library"
+          trivyignores: ".trivyignore"
 
       - name: Upload Trivy SARIF to Code Scanning
         uses: github/codeql-action/upload-sarif@v3
@@ -260,6 +261,7 @@ jobs:
           exit-code: "1"
           ignore-unfixed: true
           vuln-type: "os,library"
+          trivyignores: ".trivyignore"
 
   # ──────────────────────────────────────────────────────────────────────────
   # 5. Trivy — Filesystem / IaC Scan
@@ -281,6 +283,7 @@ jobs:
           severity: "CRITICAL,HIGH"
           exit-code: "0"
           skip-dirs: ".gradle,build,venv311,.venv,node_modules"
+          trivyignores: ".trivyignore"
 
       - name: Upload Trivy FS SARIF to Code Scanning
         uses: github/codeql-action/upload-sarif@v3

@@ -12,8 +12,8 @@ scanning-settings:
     low: 10        # Allow up to 10 low CVEs
 
 # Packages that are ignored with justification (review before adding):
-# ignore:
-#   vulnerabilities:
-#     - id: 12345
-#       reason: "False positive — unused code path"
-#       expires: "2025-12-31"
+ignore:
+  vulnerabilities:
+    - id: CVE-2026-45829
+      reason: "No patch available as of 2026-08-15. Mitigated by removing ChromaDB host port binding — server is internal Docker network only. Remove when a patched chromadb version is released."
+      expires: "2027-02-15"

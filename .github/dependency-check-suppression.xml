@@ -26,4 +26,17 @@
     </suppress>
   -->
 
+  <!--
+    CVE-2026-45829: Pre-auth RCE in ChromaDB Python FastAPI server (CRITICAL).
+    No patch available as of 2026-08-15. Affects all versions 1.0.0–1.5.9.
+    Mitigation: ChromaDB port is NOT published to the host (internal Docker
+    network only). Re-audit and remove this suppression when a patched version
+    is released. Tracked: update chromadb once fix is published.
+  -->
+  <suppress until="2027-02-15">
+    <notes>CVE-2026-45829: No patch available. Mitigated by removing host port
+    binding — ChromaDB is internal-only. Re-audit 2027-02-15.</notes>
+    <cve>CVE-2026-45829</cve>
+  </suppress>
+
 </suppressions>
