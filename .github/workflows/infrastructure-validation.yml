@@ -345,11 +345,14 @@ jobs:
           python3 - <<'PYEOF'
           import sys, re
 
+          # Only vars that are [REQUIRED] in backend/.env.example (no built-in default).
+          # Compose-level vars (POSTGRES_USER, MINIO_ROOT_USER, etc.) all have
+          # inline defaults in docker-compose.yml and do not need to be listed here.
           REQUIRED_VARS = [
-              # Compose-level
-              "POSTGRES_USER", "POSTGRES_PASSWORD", "POSTGRES_DB",
-              "MINIO_ROOT_USER", "MINIO_ROOT_PASSWORD",
-              "GRAFANA_ADMIN_USER", "GRAFANA_ADMIN_PASSWORD",
+              "DATABASE_URL",
+              "SECRET_KEY",
+              "AES_ENCRYPTION_KEY",
+              "BACKEND_TLS_PIN_SHA256",
           ]
 
           def load_keys(path):
