@@ -17,26 +17,6 @@
  *   - See import statements below
  * ============================================================
  */
-
-/*
- * ============================================================
- * Android AI Assistant (Enterprise Edition)
- * ============================================================
- * Module     : feature-resume
- * File       : ResumeNavigation.kt
- * Purpose    : ResumeNavigation — feature-resume module component
- *
- * Architecture Layer : Feature (feature-resume)
- * Pattern Used       : Navigation Graph / Destinations
- *
- * Key Concepts:
- *   - Clean Architecture with strict layer separation
- *   - Hilt dependency injection
- *
- * Dependencies:
- *   - See import statements below
- * ============================================================
- */
 /**
  * ResumeNavigation.kt
  *

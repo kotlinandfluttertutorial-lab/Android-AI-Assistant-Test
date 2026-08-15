@@ -17,26 +17,6 @@
  *   - See import statements below
  * ============================================================
  */
-
-/*
- * ============================================================
- * Android AI Assistant (Enterprise Edition)
- * ============================================================
- * Module     : feature-auth
- * File       : OnboardingScreen.kt
- * Purpose    : Compose UI screen for the Onboarding feature
- *
- * Architecture Layer : Feature (feature-auth)
- * Pattern Used       : Jetpack Compose Screen
- *
- * Key Concepts:
- *   - Clean Architecture with strict layer separation
- *   - Hilt dependency injection
- *
- * Dependencies:
- *   - See import statements below
- * ============================================================
- */
 /**
  * OnboardingScreen.kt
  *
@@ -456,9 +436,8 @@ private fun ConsentPage(
         // Optional analytics toggle
         ConsentToggleRow(
             title = "Analytics Data Collection",
-            description =
-                "Allow optional analytics data collection to help improve the app. " +
-                    "You can change this in Settings at any time.",
+            description = "Allow optional analytics data collection to help improve the app. " +
+                "You can change this in Settings at any time.",
             checked = analyticsConsentChecked,
             onCheckedChange = onAnalyticsConsentChange,
             contentDescription = "Toggle optional analytics data collection",

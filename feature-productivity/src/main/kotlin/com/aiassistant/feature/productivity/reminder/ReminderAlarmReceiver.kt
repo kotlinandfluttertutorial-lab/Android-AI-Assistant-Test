@@ -49,6 +49,7 @@
  */
 package com.aiassistant.feature.productivity.reminder
 
+import android.annotation.SuppressLint
 import android.app.PendingIntent
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -88,7 +89,12 @@ class ReminderAlarmReceiver : BroadcastReceiver() {
      * On Android 13+ (API 33) the POST_NOTIFICATIONS permission must be granted. This
      * method checks the permission before attempting to notify, so it silently no-ops
      * when the user has declined notifications (Requirement 16.3).
+     *
+     * The @SuppressLint is warranted: the permission check is performed explicitly in the
+     * SDK-version branch above the notify() call. Lint cannot follow the TIRAMISU version
+     * guard and incorrectly flags the call as missing a permission check.
      */
+    @SuppressLint("MissingPermission")
     private fun postNotification(context: Context, reminderId: String, title: String) {
         val notificationManager = NotificationManagerCompat.from(context)
 

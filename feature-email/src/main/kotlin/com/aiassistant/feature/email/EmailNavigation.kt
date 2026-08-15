@@ -17,26 +17,6 @@
  *   - See import statements below
  * ============================================================
  */
-
-/*
- * ============================================================
- * Android AI Assistant (Enterprise Edition)
- * ============================================================
- * Module     : feature-email
- * File       : EmailNavigation.kt
- * Purpose    : EmailNavigation — feature-email module component
- *
- * Architecture Layer : Feature (feature-email)
- * Pattern Used       : Navigation Graph / Destinations
- *
- * Key Concepts:
- *   - Clean Architecture with strict layer separation
- *   - Hilt dependency injection
- *
- * Dependencies:
- *   - See import statements below
- * ============================================================
- */
 /**
  * EmailNavigation.kt
  *

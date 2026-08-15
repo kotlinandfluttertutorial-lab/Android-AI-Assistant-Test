@@ -17,26 +17,6 @@
  *   - See import statements below
  * ============================================================
  */
-
-/*
- * ============================================================
- * Android AI Assistant (Enterprise Edition)
- * ============================================================
- * Module     : feature-voice
- * File       : VoiceViewModel.kt
- * Purpose    : Manages UI state and delegates actions to domain use cases for the Voice feature
- *
- * Architecture Layer : Feature (feature-voice)
- * Pattern Used       : MVVM ViewModel
- *
- * Key Concepts:
- *   - Clean Architecture with strict layer separation
- *   - Hilt dependency injection
- *
- * Dependencies:
- *   - See import statements below
- * ============================================================
- */
 /**
  * VoiceViewModel.kt
  *
@@ -277,8 +257,10 @@ class VoiceViewModel @Inject constructor(
         android.speech.SpeechRecognizer.ERROR_CLIENT -> "Client-side error. Please try again."
         android.speech.SpeechRecognizer.ERROR_INSUFFICIENT_PERMISSIONS ->
             "Microphone permission is required for voice input."
-        android.speech.SpeechRecognizer.ERROR_NETWORK -> "Network error during recognition. Please check your connection."
-        android.speech.SpeechRecognizer.ERROR_NETWORK_TIMEOUT -> "Network timeout. Please try again."
+        android.speech.SpeechRecognizer.ERROR_NETWORK ->
+            "Network error during recognition. Please check your connection."
+        android.speech.SpeechRecognizer.ERROR_NETWORK_TIMEOUT ->
+            "Network timeout. Please try again."
         android.speech.SpeechRecognizer.ERROR_NO_MATCH -> "No speech detected. Please try again."
         android.speech.SpeechRecognizer.ERROR_RECOGNIZER_BUSY -> "Speech recognizer is busy. Please wait and try again."
         android.speech.SpeechRecognizer.ERROR_SERVER -> "Speech recognition server error. Please try again."

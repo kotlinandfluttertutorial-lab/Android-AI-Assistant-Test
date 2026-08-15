@@ -17,26 +17,6 @@
  *   - See import statements below
  * ============================================================
  */
-
-/*
- * ============================================================
- * Android AI Assistant (Enterprise Edition)
- * ============================================================
- * Module     : feature-rag
- * File       : RAGNavigation.kt
- * Purpose    : RAGNavigation — feature-rag module component
- *
- * Architecture Layer : Feature (feature-rag)
- * Pattern Used       : Navigation Graph / Destinations
- *
- * Key Concepts:
- *   - Clean Architecture with strict layer separation
- *   - Hilt dependency injection
- *
- * Dependencies:
- *   - See import statements below
- * ============================================================
- */
 /**
  * RAGNavigation.kt
  *

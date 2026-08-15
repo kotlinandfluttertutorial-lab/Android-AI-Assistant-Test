@@ -31,4 +31,12 @@
       modules legitimately have no density-specific drawables.
     -->
     <issue id="IconMissingDensityFolder" severity="ignore" />
+
+    <!--
+      AppLinkUrlError: custom URI scheme deep links (e.g. aiassistant://) do not
+      use Digital Asset Link verification, so autoVerify is not applicable.
+      The manifest has been corrected to remove autoVerify; this entry prevents
+      regression from future tooling changes.
+    -->
+    <issue id="AppLinkUrlError" severity="ignore" />
 </lint>
