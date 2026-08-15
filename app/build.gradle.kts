@@ -82,6 +82,9 @@ android {
         // Use the committed baseline — only NEW violations fail the build.
         baseline = file("lint-baseline.xml")
 
+        // Shared lint rules (version-update noise, cross-module false positives).
+        lintConfig = rootProject.file("config/lint/lint.xml")
+
         // Fail the build on errors (not warnings).
         abortOnError = true
         warningsAsErrors = false

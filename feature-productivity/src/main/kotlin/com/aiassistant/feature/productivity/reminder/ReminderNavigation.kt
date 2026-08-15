@@ -44,7 +44,7 @@
  *          exposing ReminderListScreen and ReminderEditorScreen backed by a shared
  *          ProductivityViewModel scoped to the nav graph.
  *
- * Architecture: feature-productivity â€” Navigation layer; consumed by the app module's
+ * Architecture: feature-productivity — Navigation layer; consumed by the app module's
  *               root NavHost or the productivity feature nav graph.
  * Dependencies: ProductivityViewModel (Hilt), ReminderListScreen, ReminderEditorScreen,
  *               AndroidX Navigation Compose.
@@ -69,13 +69,13 @@ import androidx.navigation.navigation
  */
 object ReminderRoute {
     /** Reminders root navigation graph route. */
-    const val Graph = "reminders"
+    const val GRAPH = "reminders"
 
     /** Reminder list screen route. */
-    const val List = "reminders/list"
+    const val LIST = "reminders/list"
 
     /** Reminder editor screen route. */
-    const val Editor = "reminders/editor"
+    const val EDITOR = "reminders/editor"
 }
 
 /**
@@ -92,13 +92,13 @@ fun NavGraphBuilder.remindersNavGraph(
     onNavigateUp: () -> Unit = { navController.popBackStack() }
 ) {
     navigation(
-        startDestination = ReminderRoute.List,
-        route = ReminderRoute.Graph
+        startDestination = ReminderRoute.LIST,
+        route = ReminderRoute.GRAPH
     ) {
-        // â”€â”€ Reminder list â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        composable(route = ReminderRoute.List) { backStackEntry ->
+        // ── Reminder list ────────────────────────────────────────────────────────
+        composable(route = ReminderRoute.LIST) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(ReminderRoute.Graph)
+                navController.getBackStackEntry(ReminderRoute.GRAPH)
             }
             val viewModel: ProductivityViewModel = hiltViewModel(parentEntry)
             val uiState by viewModel.uiState.collectAsState()
@@ -107,26 +107,26 @@ fun NavGraphBuilder.remindersNavGraph(
                 uiState = uiState,
                 onReminderClick = { reminder ->
                     viewModel.openEditReminder(reminder)
-                    navController.navigate(ReminderRoute.Editor)
+                    navController.navigate(ReminderRoute.EDITOR)
                 },
                 onNewReminder = {
                     viewModel.openNewReminder()
-                    navController.navigate(ReminderRoute.Editor)
+                    navController.navigate(ReminderRoute.EDITOR)
                 },
                 onDeleteReminder = { reminderId -> viewModel.deleteReminder(reminderId) },
                 onUndoDelete = { viewModel.undoDelete() },
                 onClearUndo = { viewModel.clearUndoState() },
                 onAiSuggest = { prompt ->
                     viewModel.suggestReminder(prompt)
-                    navController.navigate(ReminderRoute.Editor)
+                    navController.navigate(ReminderRoute.EDITOR)
                 }
             )
         }
 
-        // â”€â”€ Reminder editor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        composable(route = ReminderRoute.Editor) { backStackEntry ->
+        // ── Reminder editor ──────────────────────────────────────────────────────
+        composable(route = ReminderRoute.EDITOR) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(ReminderRoute.Graph)
+                navController.getBackStackEntry(ReminderRoute.GRAPH)
             }
             val viewModel: ProductivityViewModel = hiltViewModel(parentEntry)
             val uiState by viewModel.uiState.collectAsState()

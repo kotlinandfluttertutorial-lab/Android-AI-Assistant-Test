@@ -243,8 +243,10 @@ def _detect_prompt_injection_static(text: str) -> bool:
 # This is a lightweight placeholder; a production system would integrate a
 # dedicated content-moderation API (e.g. OpenAI Moderation API).
 _HARMFUL_OUTPUT_PATTERNS: list[re.Pattern[str]] = [
-    # Placeholder patterns — extend as needed
-    re.compile(r"<script\b[^>]*>.*?</script>", re.IGNORECASE | re.DOTALL),
+    # Placeholder patterns — extend as needed.
+    # Match <script ...>...</script> including variants like </script > or
+    # </script\n> where the closing tag may contain whitespace/attributes.
+    re.compile(r"<\s*script[\s\S]*?>[\s\S]*?<\s*/\s*script[\s\S]*?>", re.IGNORECASE),
     re.compile(r"javascript\s*:", re.IGNORECASE),
 ]
 

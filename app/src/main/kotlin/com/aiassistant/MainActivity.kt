@@ -250,7 +250,7 @@ private fun rootNavHost(navController: NavHostController) {
                 navDeepLink { uriPattern = "$DEEP_LINK_BASE/productivity" }
             )
         ) {
-            navController.navigate(ProductivityRoute.Graph) {
+            navController.navigate(ProductivityRoute.GRAPH) {
                 popUpTo("deeplink/productivity") { inclusive = true }
             }
         }
