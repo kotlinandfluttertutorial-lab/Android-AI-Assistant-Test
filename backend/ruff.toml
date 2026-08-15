@@ -64,7 +64,7 @@ unfixable = []
 
 # Test files — long lines in test data strings, unused variables in fixtures,
 # and datetime.utcnow() patterns from mock setup are expected.
-"tests/**" = ["E501", "F841", "UP017", "B905", "UP038", "C401"]
+"tests/**" = ["E501", "F841", "UP017", "B905", "UP038", "C401", "S101"]
 
 # Workers — deferred imports inside task functions are intentional (E402),
 # noqa for PLC0415 (pylint import-outside-toplevel) is used for Celery pattern.
