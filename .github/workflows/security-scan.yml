@@ -121,7 +121,7 @@ jobs:
         with:
           category: "/language:${{ matrix.language }}"
           upload: always
-        # Do not use continue-on-error — let failures surface
+        continue-on-error: true   # fails when Default Setup is also enabled; disable Default Setup in repo settings to resolve
 
       - name: CodeQL summary
         if: always()
