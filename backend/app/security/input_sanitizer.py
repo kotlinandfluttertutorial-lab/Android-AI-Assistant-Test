@@ -72,7 +72,7 @@ MAX_EMAIL_LENGTH = 254  # per RFC 5321
 _XSS_PATTERNS: list[re.Pattern[str]] = [
     # <script ...> tags (opening or closing)
     re.compile(r"<\s*script[^>]*>", re.IGNORECASE | re.DOTALL),
-    re.compile(r"<\s*/\s*script\s*>", re.IGNORECASE),
+    re.compile(r"<\s*/\s*script[^>]*>", re.IGNORECASE),
     # javascript: or vbscript: protocol in attribute values
     re.compile(r"\bjavascript\s*:", re.IGNORECASE),
     re.compile(r"\bvbscript\s*:", re.IGNORECASE),
