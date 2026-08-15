@@ -114,6 +114,7 @@ class SettingsViewModelTest :
             every { mockSettingsPreferences.ragIngestionEnabled } returns flowOf(true)
             every { mockSettingsPreferences.remindersEnabled } returns flowOf(true)
             every { mockSettingsPreferences.privacyModeEnabled } returns flowOf(false)
+            every { mockSettingsPreferences.contextSuggestionsEnabled } returns flowOf(true)
             // Default auth stubs
             coEvery { mockAuthRepository.isGoogleAccountLinked() } returns ApiResult.Success(false)
             // Default on-device capability: not supported
@@ -275,6 +276,7 @@ class SettingsViewModelTest :
                     every { mockSettingsPreferences.ragIngestionEnabled } returns flow { }
                     every { mockSettingsPreferences.remindersEnabled } returns flow { }
                     every { mockSettingsPreferences.privacyModeEnabled } returns flow { }
+                    every { mockSettingsPreferences.contextSuggestionsEnabled } returns flow { }
 
                     val vm = buildViewModel()
                     vm.uiState.value.shouldBeInstanceOf<SettingsUiState.Loading>()
@@ -717,6 +719,7 @@ class SettingsViewModelTest :
                     every { mockSettingsPreferences.ragIngestionEnabled } returns flow { }
                     every { mockSettingsPreferences.remindersEnabled } returns flow { }
                     every { mockSettingsPreferences.privacyModeEnabled } returns flow { }
+                    every { mockSettingsPreferences.contextSuggestionsEnabled } returns flow { }
 
                     val vm = buildViewModel()
                     vm.uiState.value.shouldBeInstanceOf<SettingsUiState.Loading>()
