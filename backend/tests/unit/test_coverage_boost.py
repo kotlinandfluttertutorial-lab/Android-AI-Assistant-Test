@@ -200,7 +200,7 @@ class TestGoogleAuth:
             patch("app.api.auth.router.asyncio") as mock_asyncio,
         ):
             mock_loop = MagicMock()
-            mock_asyncio.get_event_loop.return_value = mock_loop
+            mock_asyncio.get_running_loop.return_value = mock_loop
             mock_loop.run_in_executor = AsyncMock(return_value=id_info)
             MockRepo.return_value.get_by_google_id = AsyncMock(return_value=user)
             MockAudit.return_value.log_login = AsyncMock()
@@ -232,7 +232,7 @@ class TestGoogleAuth:
             patch("app.api.auth.router.asyncio") as mock_asyncio,
         ):
             mock_loop = MagicMock()
-            mock_asyncio.get_event_loop.return_value = mock_loop
+            mock_asyncio.get_running_loop.return_value = mock_loop
             mock_loop.run_in_executor = AsyncMock(return_value=id_info)
             MockRepo.return_value.get_by_google_id = AsyncMock(return_value=None)
             MockRepo.return_value.get_by_email = AsyncMock(return_value=None)
@@ -266,7 +266,7 @@ class TestGoogleAuth:
             patch("app.api.auth.router.asyncio") as mock_asyncio,
         ):
             mock_loop = MagicMock()
-            mock_asyncio.get_event_loop.return_value = mock_loop
+            mock_asyncio.get_running_loop.return_value = mock_loop
             mock_loop.run_in_executor = AsyncMock(return_value=id_info)
             MockRepo.return_value.get_by_google_id = AsyncMock(return_value=None)
             MockRepo.return_value.get_by_email = AsyncMock(return_value=existing_user)
