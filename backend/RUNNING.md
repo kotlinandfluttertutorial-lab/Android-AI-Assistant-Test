@@ -45,11 +45,11 @@ copy .env.example .env
 Open `backend\.env` and fill in at minimum the three required values:
 
 ```env
-# Required — PostgreSQL connection
-DATABASE_URL=postgresql+asyncpg://aiassistant:changeme@localhost:5432/aiassistant
+# Required — PostgreSQL connection (use the Docker service name, not localhost)
+DATABASE_URL=postgresql+asyncpg://aiassistant:aiassistant@postgres:5432/aiassistant
 
-# Required — Redis connection
-REDIS_URL=redis://localhost:6379/0
+# Required — Redis connection (use the Docker service name, not localhost)
+REDIS_URL=redis://redis:6379/0
 
 # Required — JWT signing secret (generate a strong random value)
 SECRET_KEY=<run: python -c "import secrets; print(secrets.token_hex(32))">
@@ -98,6 +98,7 @@ docker compose exec backend alembic upgrade head
 
 ```cmd
 curl http://localhost/health
+curl http://localhost:8000/health
 ```
 
 Expected response: `{"status": "ok", ...}`

@@ -114,25 +114,7 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-// â”€â”€â”€ iCal RRULE presets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-/** Represents a recurrence preset that maps to an optional iCal RRULE string. */
-enum class RecurrencePreset(val label: String, val rrule: String?) {
-    NONE("None", null),
-    DAILY("Daily", "FREQ=DAILY"),
-    WEEKLY("Weekly", "FREQ=WEEKLY"),
-    CUSTOM("Custom (RRULE)â€¦", null) // handled separately via free-text input
-}
-
-/**
- * Infers a [RecurrencePreset] from a raw iCal RRULE [rule] string.
- */
-private fun recurrencePresetFromRule(rule: String?): RecurrencePreset = when (rule) {
-    null -> RecurrencePreset.NONE
-    "FREQ=DAILY" -> RecurrencePreset.DAILY
-    "FREQ=WEEKLY" -> RecurrencePreset.WEEKLY
-    else -> RecurrencePreset.CUSTOM
-}
 
 // â”€â”€â”€ Screen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -573,6 +555,26 @@ fun ReminderEditorScreen(
 /**
  * Returns the effective iCal RRULE string for the given [preset] and [customRrule].
  */
+// â”€â”€â”€ iCal RRULE presets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+/** Represents a recurrence preset that maps to an optional iCal RRULE string. */
+enum class RecurrencePreset(val label: String, val rrule: String?) {
+    NONE("None", null),
+    DAILY("Daily", "FREQ=DAILY"),
+    WEEKLY("Weekly", "FREQ=WEEKLY"),
+    CUSTOM("Custom (RRULE)â€¦", null) // handled separately via free-text input
+}
+
+/**
+ * Infers a [RecurrencePreset] from a raw iCal RRULE [rule] string.
+ */
+private fun recurrencePresetFromRule(rule: String?): RecurrencePreset = when (rule) {
+    null -> RecurrencePreset.NONE
+    "FREQ=DAILY" -> RecurrencePreset.DAILY
+    "FREQ=WEEKLY" -> RecurrencePreset.WEEKLY
+    else -> RecurrencePreset.CUSTOM
+}
+
 private fun currentRrule(preset: RecurrencePreset, customRrule: String): String? = when (preset) {
     RecurrencePreset.NONE -> null
     RecurrencePreset.DAILY -> "FREQ=DAILY"

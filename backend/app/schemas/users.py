@@ -28,14 +28,14 @@ Requirements: 28.1, 28.2
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from pydantic import BaseModel, ConfigDict, Field
 
 
 def _utcnow_plus(hours: int) -> str:
     """Return an ISO 8601 UTC timestamp *hours* from now."""
-    return (datetime.now(tz=timezone.utc) + timedelta(hours=hours)).isoformat()
+    return (datetime.now(tz=UTC) + timedelta(hours=hours)).isoformat()
 
 
 # ---------------------------------------------------------------------------
@@ -108,5 +108,7 @@ class AccountDeletionResponse(BaseModel):
         description="UTC timestamp at which the deletion was scheduled.",
     )
     estimated_completion: str = Field(
-        description="ISO 8601 UTC timestamp by which the deletion will be complete (72 h from now).",
+        description=(
+            "ISO 8601 UTC timestamp by which the deletion will be complete (72 h from now)."
+        ),
     )

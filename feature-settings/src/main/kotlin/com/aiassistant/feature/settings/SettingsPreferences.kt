@@ -166,7 +166,7 @@ class SettingsPreferences(private val context: Context) {
      *
      * When alse, [GetContextSuggestionsUseCase] returns an empty list immediately
      * without calling the AI backend (Requirement 33.8).
-     * Default: 	rue (suggestions enabled).
+     * Default:     rue (suggestions enabled).
      */
     val contextSuggestionsEnabled: Flow<Boolean> = context.settingsDataStore.data
         .map { prefs -> prefs[Keys.CONTEXT_SUGGESTIONS_ENABLED] ?: true }
@@ -211,7 +211,7 @@ class SettingsPreferences(private val context: Context) {
      *
      * When alse, all context suggestion calls are suppressed at the use-case level.
      *
-     * @param enabled 	rue to enable context suggestions; alse to disable them.
+     * @param enabled     rue to enable context suggestions; alse to disable them.
      */
     suspend fun setContextSuggestionsEnabled(enabled: Boolean) {
         context.settingsDataStore.edit { prefs ->

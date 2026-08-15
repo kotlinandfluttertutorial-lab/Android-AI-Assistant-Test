@@ -257,7 +257,9 @@ class RAGQueryResult(BaseModel):
     """
 
     context: str = Field(
-        description="Pre-formatted context string with inline citation markers, ready for LLM injection."
+        description=(
+            "Pre-formatted context string with inline citation markers, ready for LLM injection."
+        )
     )
     chunks: list[RetrievedChunk] = Field(
         description="List of retrieved chunks with full metadata."

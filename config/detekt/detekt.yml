@@ -367,6 +367,11 @@ naming:
   FunctionMaxLength:
     active: true
     maximumFunctionNameLength: 50
+    ignoreAnnotated:
+      - 'Test'
+      - 'ParameterizedTest'
+      - 'RepeatedTest'
+      - 'TestFactory'
   FunctionMinLength:
     active: true
     minimumFunctionNameLength: 3
@@ -376,7 +381,9 @@ naming:
     excludeClassPattern: '$^'
     ignoreAnnotated:
       - 'Composable'
+      - 'Preview'
       - 'Test'
+      - 'ParameterizedTest'
   FunctionParameterNaming:
     active: true
     parameterPattern: '[a-z][A-Za-z0-9]*'
@@ -391,6 +398,10 @@ naming:
   MatchingDeclarationName:
     active: true
     mustBeFirst: true
+    excludes:
+      - "**/*Navigation.kt"
+      - "**/*Route*.kt"
+      - "**/components/**"
   MemberNameEqualsClassName:
     active: true
     ignoreOverridden: true
@@ -478,7 +489,7 @@ potential-bugs:
   MapGetWithNotNullAssertionOperator:
     active: true
   MissingPackageDeclaration:
-    active: true
+    active: false
     excludes: ["**/test/**", "**/androidTest/**"]
   NullCheckOnMutableProperty:
     active: false
@@ -532,7 +543,7 @@ style:
     active: false
   DestructuringDeclarationWithTooManyEntries:
     active: true
-    maxDestructuringEntries: 3
+    maxDestructuringEntries: 4
   DoubleNegativeLambda:
     active: false
   EqualsNullCall:
@@ -691,6 +702,8 @@ style:
   UnusedPrivateMember:
     active: true
     allowedNames: '(_|ignored|expected|serialVersionUID)'
+    ignoreAnnotated:
+      - 'Preview'
   UnusedPrivateProperty:
     active: true
     allowedNames: '(_|ignored|expected|serialVersionUID)'

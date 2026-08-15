@@ -60,7 +60,7 @@ Requirements: 1.5
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from redis.asyncio import Redis
 
@@ -202,7 +202,7 @@ async def record_failed_attempt(
     """
     already_locked = await is_locked(redis, email)
 
-    now_utc = datetime.now(tz=timezone.utc)
+    now_utc = datetime.now(tz=UTC)
     cutoff_utc = now_utc - timedelta(minutes=window_minutes)
     window_ttl_seconds = window_minutes * 60
 

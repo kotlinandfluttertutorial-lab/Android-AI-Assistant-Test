@@ -30,7 +30,7 @@ Requirements: 37.2, 37.6, 37.7
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from pydantic import BaseModel, Field
 
@@ -63,7 +63,7 @@ class EpsilonResponse(BaseModel):
         description="Noise mechanism in use (always 'Laplace' in this implementation).",
     )
     updated_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+        default_factory=lambda: datetime.now(UTC),
         description="Timestamp (UTC) when epsilon was last updated.",
     )
 
@@ -96,6 +96,6 @@ class PrivacyBudgetResponse(BaseModel):
         description="Number of users with a non-zero privacy budget recorded."
     )
     retrieved_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
+        default_factory=lambda: datetime.now(UTC),
         description="Timestamp (UTC) when budgets were retrieved.",
     )
