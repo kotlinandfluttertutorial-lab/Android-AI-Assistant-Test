@@ -36,11 +36,16 @@ Requirements: 9.3, 9.10
 from __future__ import annotations
 
 import uuid
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin, uuid_pk
+
+if TYPE_CHECKING:
+    from app.models.message import Message
+    from app.models.user import User
 
 
 class Conversation(Base, TimestampMixin):
@@ -74,10 +79,8 @@ class Conversation(Base, TimestampMixin):
     # ------------------------------------------------------------------
     # Relationships
     # ------------------------------------------------------------------
-    user: Mapped[User] = relationship(
-        "User", back_populates="conversations"
-    )  # noqa: F821
-    messages: Mapped[list[Message]] = relationship(  # noqa: F821
+    user: Mapped[User] = relationship("User", back_populates="conversations")
+    messages: Mapped[list[Message]] = relationship(
         "Message", back_populates="conversation", cascade="all, delete-orphan"
     )
 

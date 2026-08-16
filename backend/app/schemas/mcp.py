@@ -31,6 +31,8 @@ Requirements: 9.1
 
 from __future__ import annotations
 
+from typing import Any
+
 from pydantic import BaseModel, ConfigDict, Field
 
 
@@ -48,7 +50,7 @@ class MCPToolSchema(BaseModel):
     description: str = Field(
         description="Human-readable description of what the tool does."
     )
-    parameters: dict = Field(
+    parameters: dict[str, Any] = Field(
         description="JSON Schema-style parameter definitions for the tool.",
     )
     requires_confirmation: bool = Field(
@@ -72,7 +74,7 @@ class MCPToolResult(BaseModel):
         description="The tool that was (or would have been) invoked."
     )
     success: bool = Field(description="``True`` when the tool executed without error.")
-    result: dict | None = Field(
+    result: dict[str, Any] | None = Field(
         default=None,
         description="Success payload returned by the connector, or ``None``.",
     )
@@ -97,7 +99,7 @@ class MCPInvokeRequest(BaseModel):
     Requirements: 9.1
     """
 
-    params: dict = Field(
+    params: dict[str, Any] = Field(
         default_factory=dict,
         description="Tool-specific parameters as a key/value mapping.",
     )

@@ -35,11 +35,16 @@ from __future__ import annotations
 
 import enum
 import uuid
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, Enum, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, uuid_pk
+
+if TYPE_CHECKING:
+    from app.models.conversation import Conversation
+    from app.models.token_usage import TokenUsage
 
 
 class MessageRole(str, enum.Enum):
@@ -89,10 +94,10 @@ class Message(Base):
     # ------------------------------------------------------------------
     # Relationships
     # ------------------------------------------------------------------
-    conversation: Mapped[Conversation] = relationship(  # noqa: F821
+    conversation: Mapped[Conversation] = relationship(
         "Conversation", back_populates="messages"
     )
-    token_usage: Mapped[TokenUsage | None] = relationship(  # noqa: F821
+    token_usage: Mapped[TokenUsage | None] = relationship(
         "TokenUsage", back_populates="message", uselist=False
     )
 

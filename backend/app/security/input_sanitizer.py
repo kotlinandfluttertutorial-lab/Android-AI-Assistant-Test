@@ -244,7 +244,7 @@ def sanitize_string(value: str) -> str:
     return value
 
 
-def sanitize_user_string(cls, value: str) -> str:
+def sanitize_user_string(cls: type, value: str) -> str:
     """Pydantic v2 ``field_validator`` compatible sanitization function.
 
     Designed to be used with ``@field_validator`` or ``model_validator``::

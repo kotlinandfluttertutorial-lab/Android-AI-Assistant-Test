@@ -31,12 +31,17 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin, uuid_pk
+
+if TYPE_CHECKING:
+    from app.models.reminder import Reminder
+    from app.models.user import User
 
 
 class TodoItem(Base, TimestampMixin):
@@ -92,8 +97,8 @@ class TodoItem(Base, TimestampMixin):
     # ------------------------------------------------------------------
     # Relationships
     # ------------------------------------------------------------------
-    user: Mapped[User] = relationship("User", back_populates="todo_items")  # noqa: F821
-    reminders: Mapped[list[Reminder]] = relationship(  # noqa: F821
+    user: Mapped[User] = relationship("User", back_populates="todo_items")
+    reminders: Mapped[list[Reminder]] = relationship(
         "Reminder", back_populates="linked_todo", foreign_keys="Reminder.linked_todo_id"
     )
 

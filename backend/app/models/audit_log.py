@@ -47,12 +47,16 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, ForeignKey, String, func
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, uuid_pk
+
+if TYPE_CHECKING:
+    from app.models.user import User
 
 
 class AuditLog(Base):
@@ -90,7 +94,7 @@ class AuditLog(Base):
         default="",
         comment="HTTP User-Agent header value from the request",
     )
-    metadata_: Mapped[dict] = mapped_column(
+    metadata_: Mapped[dict[str, object]] = mapped_column(
         "metadata",  # column name in the database
         JSONB,
         nullable=False,
@@ -107,9 +111,7 @@ class AuditLog(Base):
     # ------------------------------------------------------------------
     # Relationships
     # ------------------------------------------------------------------
-    user: Mapped[User | None] = relationship(  # noqa: F821
-        "User", back_populates="audit_logs"
-    )
+    user: Mapped[User | None] = relationship("User", back_populates="audit_logs")
 
     def __repr__(self) -> str:
         return f"<AuditLog id={self.id!s} event_type={self.event_type!r} user_id={self.user_id!s}>"

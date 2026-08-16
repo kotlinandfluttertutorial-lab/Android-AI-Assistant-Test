@@ -62,7 +62,7 @@ def get_redis_client() -> Redis:
         A connected :class:`redis.asyncio.Redis` instance.
     """
     settings = get_settings()
-    return aioredis.from_url(
+    return aioredis.from_url(  # type: ignore[no-untyped-call]
         settings.REDIS_URL,
         encoding="utf-8",
         decode_responses=True,

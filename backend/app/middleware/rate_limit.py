@@ -42,10 +42,15 @@ import json
 import logging
 import math
 import time
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
 
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 from starlette.types import ASGIApp, Receive, Scope, Send
+
+if TYPE_CHECKING:
+    from app.config.settings import Settings
 
 logger = logging.getLogger(__name__)
 
@@ -168,9 +173,9 @@ class RateLimitMiddleware:
 
     def __init__(self, app: ASGIApp) -> None:
         self.app = app
-        self._settings = None  # lazy
+        self._settings: Settings | None = None  # lazy
 
-    def _get_settings(self):
+    def _get_settings(self) -> Settings:
         if self._settings is None:
             from app.config.settings import get_settings
 
@@ -189,9 +194,9 @@ class RateLimitMiddleware:
 
         async def call_next(req: Request) -> Response:
             response_started = False
-            response_body = []
+            response_body: list[bytes] = []
 
-            async def send_wrapper(message) -> None:
+            async def send_wrapper(message: dict[str, Any]) -> None:
                 nonlocal response_started
                 if message["type"] == "http.response.start":
                     response_started = True
@@ -271,7 +276,11 @@ class RateLimitMiddleware:
 
         await self.app(scope, receive, send)
 
-    async def dispatch(self, request: Request, call_next) -> Response:
+    async def dispatch(
+        self,
+        request: Request,
+        call_next: Callable[[Request], Any],
+    ) -> Response:
         """Handle a single HTTP request with rate limiting.
 
         This method follows the Starlette BaseHTTPMiddleware ``dispatch``
@@ -360,7 +369,7 @@ class RateLimitMiddleware:
 
         return await call_next(request)
 
-    async def _get_redis(self):
+    async def _get_redis(self) -> Any:
         """Return the shared async Redis client singleton."""
         from app.database.redis import get_redis_client
 

@@ -58,8 +58,8 @@ class TokenPayload(BaseModel):
 # ---------------------------------------------------------------------------
 
 
-def _get_settings():
-    from app.config.settings import get_settings
+def _get_settings() -> Settings:
+    from app.config.settings import Settings, get_settings  # noqa: F401
 
     return get_settings()
 

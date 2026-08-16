@@ -40,47 +40,47 @@ if _ENV_FILE.exists():
         dotenv_path=_ENV_FILE, override=False
     )  # env vars already set take priority
 
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from prometheus_fastapi_instrumentator import Instrumentator
-from sqlalchemy import text
+from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
+from fastapi.responses import JSONResponse  # noqa: E402
+from prometheus_fastapi_instrumentator import Instrumentator  # noqa: E402
+from sqlalchemy import text  # noqa: E402
 
-from app.api.admin.router import router as admin_router
-from app.api.analytics.router import router as analytics_router
+from app.api.admin.router import router as admin_router  # noqa: E402
+from app.api.analytics.router import router as analytics_router  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # API sub-router imports (stubs — full implementation in subsequent tasks)
 # ---------------------------------------------------------------------------
-from app.api.auth.router import router as auth_router
-from app.api.chat.router import router as chat_router
-from app.api.conversations.router import router as conversations_router
-from app.api.data.router import router as data_router
-from app.api.generation.router import (
+from app.api.auth.router import router as auth_router  # noqa: E402
+from app.api.chat.router import router as chat_router  # noqa: E402
+from app.api.conversations.router import router as conversations_router  # noqa: E402
+from app.api.data.router import router as data_router  # noqa: E402
+from app.api.generation.router import (  # noqa: E402
     covers_router,
     emails_router,
     resumes_router,
 )
-from app.api.images.router import router as images_router
-from app.api.mcp.router import router as mcp_router
-from app.api.memory.router import router as memory_router
-from app.api.notifications.router import router as notifications_router
-from app.api.personas.router import router as personas_router
-from app.api.productivity.router import router as productivity_router
-from app.api.prompts.router import router as prompts_router
-from app.api.rag.router import jobs_router as rag_jobs_router
-from app.api.rag.router import router as rag_router
-from app.api.search.router import router as search_router
-from app.api.suggestions.router import router as suggestions_router
-from app.api.transcription.router import router as transcription_router
-from app.api.translation.router import router as translation_router
-from app.api.usage.router import router as usage_router
-from app.api.users.router import router as users_router
-from app.api.websocket.router import router as websocket_router
-from app.config.settings import get_settings
-from app.middleware.data_residency import DataResidencyMiddleware
-from app.middleware.logging_middleware import RequestLoggingMiddleware
-from app.middleware.rate_limit import RateLimitMiddleware
-from app.middleware.request_size import RequestBodySizeLimitMiddleware
+from app.api.images.router import router as images_router  # noqa: E402
+from app.api.mcp.router import router as mcp_router  # noqa: E402
+from app.api.memory.router import router as memory_router  # noqa: E402
+from app.api.notifications.router import router as notifications_router  # noqa: E402
+from app.api.personas.router import router as personas_router  # noqa: E402
+from app.api.productivity.router import router as productivity_router  # noqa: E402
+from app.api.prompts.router import router as prompts_router  # noqa: E402
+from app.api.rag.router import jobs_router as rag_jobs_router  # noqa: E402
+from app.api.rag.router import router as rag_router  # noqa: E402
+from app.api.search.router import router as search_router  # noqa: E402
+from app.api.suggestions.router import router as suggestions_router  # noqa: E402
+from app.api.transcription.router import router as transcription_router  # noqa: E402
+from app.api.translation.router import router as translation_router  # noqa: E402
+from app.api.usage.router import router as usage_router  # noqa: E402
+from app.api.users.router import router as users_router  # noqa: E402
+from app.api.websocket.router import router as websocket_router  # noqa: E402
+from app.config.settings import get_settings  # noqa: E402
+from app.middleware.data_residency import DataResidencyMiddleware  # noqa: E402
+from app.middleware.logging_middleware import RequestLoggingMiddleware  # noqa: E402
+from app.middleware.rate_limit import RateLimitMiddleware  # noqa: E402
+from app.middleware.request_size import RequestBodySizeLimitMiddleware  # noqa: E402
 
 logger = logging.getLogger(__name__)
 

@@ -35,11 +35,15 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, Numeric
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin, uuid_pk
+
+if TYPE_CHECKING:
+    from app.models.user import User
 
 
 class SpendingAlert(Base, TimestampMixin):
@@ -79,9 +83,7 @@ class SpendingAlert(Base, TimestampMixin):
     # ------------------------------------------------------------------
     # Relationships
     # ------------------------------------------------------------------
-    user: Mapped[User] = relationship(
-        "User", back_populates="spending_alerts"
-    )  # noqa: F821
+    user: Mapped[User] = relationship("User", back_populates="spending_alerts")
 
     def __repr__(self) -> str:
         return (

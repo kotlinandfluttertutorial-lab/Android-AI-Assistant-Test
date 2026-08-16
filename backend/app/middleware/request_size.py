@@ -51,9 +51,13 @@ Requirements: 9.7
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING, Any
 
 from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Receive, Scope, Send
+
+if TYPE_CHECKING:
+    from app.config.settings import Settings
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +82,7 @@ class RequestBodySizeLimitMiddleware:
 
     def __init__(self, app: ASGIApp) -> None:
         self.app = app
-        self._settings = None  # lazy
+        self._settings: Settings | None = None  # lazy
 
     def _get_limit(self) -> int:
         """Return the configured max body size, falling back to the default."""
@@ -155,10 +159,10 @@ class RequestBodySizeLimitMiddleware:
                 return
 
         # Patch the receive callable so the app can read the buffered messages.
-        async def buffered_receive() -> dict:
+        async def buffered_receive() -> dict[str, Any]:
             if messages:
-                return messages.pop(0)
-            return await receive()
+                return messages.pop(0)  # type: ignore[return-value]
+            return await receive()  # type: ignore[return-value]
 
         await self.app(scope, buffered_receive, send)
 

@@ -54,12 +54,16 @@ from __future__ import annotations
 import base64
 import os
 import uuid
+from typing import TYPE_CHECKING
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from sqlalchemy import ForeignKey, LargeBinary, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin, uuid_pk
+
+if TYPE_CHECKING:
+    from app.models.user import User
 
 # GCM nonce size (12 bytes is the NIST recommended default for AESGCM)
 _NONCE_SIZE = 12
@@ -169,7 +173,7 @@ class APIKey(Base, TimestampMixin):
     # ------------------------------------------------------------------
     # Relationships
     # ------------------------------------------------------------------
-    user: Mapped[User] = relationship("User", back_populates="api_keys")  # noqa: F821
+    user: Mapped[User] = relationship("User", back_populates="api_keys")
 
     # ------------------------------------------------------------------
     # Convenience properties

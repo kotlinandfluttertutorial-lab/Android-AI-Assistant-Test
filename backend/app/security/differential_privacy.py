@@ -86,7 +86,7 @@ class LaplaceNoiseInjector:
         return (arr + noise).tolist()
 
 
-async def get_current_epsilon(redis=None) -> float:
+async def get_current_epsilon(redis: object = None) -> float:
     """Return the current differential privacy ε value.
 
     Precedence:
@@ -111,7 +111,7 @@ async def get_current_epsilon(redis=None) -> float:
         return fallback
 
     try:
-        raw = await redis.get("dp:epsilon")
+        raw: str | None = await redis.get("dp:epsilon")  # type: ignore[union-attr]
         if raw is not None:
             return float(raw)
     except Exception as exc:

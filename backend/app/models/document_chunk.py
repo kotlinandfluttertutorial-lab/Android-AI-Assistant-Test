@@ -35,11 +35,15 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, uuid_pk
+
+if TYPE_CHECKING:
+    from app.models.document import Document
 
 
 class DocumentChunk(Base):
@@ -99,9 +103,7 @@ class DocumentChunk(Base):
     # ------------------------------------------------------------------
     # Relationships
     # ------------------------------------------------------------------
-    document: Mapped[Document] = relationship(
-        "Document", back_populates="chunks"
-    )  # noqa: F821
+    document: Mapped[Document] = relationship("Document", back_populates="chunks")
 
     def __repr__(self) -> str:
         return (

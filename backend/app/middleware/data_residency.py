@@ -39,9 +39,13 @@ Requirements: 9.7
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING
 
 from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Receive, Scope, Send
+
+if TYPE_CHECKING:
+    from app.config.settings import Settings
 
 logger = logging.getLogger(__name__)
 
@@ -61,9 +65,9 @@ class DataResidencyMiddleware:
 
     def __init__(self, app: ASGIApp) -> None:
         self.app = app
-        self._settings = None  # lazy
+        self._settings: Settings | None = None  # lazy
 
-    def _get_settings(self):
+    def _get_settings(self) -> Settings:
         if self._settings is None:
             from app.config.settings import get_settings
 

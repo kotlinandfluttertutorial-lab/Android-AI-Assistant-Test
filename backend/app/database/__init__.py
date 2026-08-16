@@ -28,6 +28,7 @@ from __future__ import annotations
 from collections.abc import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
     AsyncSession,
     async_sessionmaker,
     create_async_engine,
@@ -55,7 +56,7 @@ class Base(DeclarativeBase):
 # ---------------------------------------------------------------------------
 
 
-def _build_engine():
+def _build_engine() -> AsyncEngine:
     """Construct the async SQLAlchemy engine from application settings.
 
     The engine is created lazily so that tests can override ``DATABASE_URL``
