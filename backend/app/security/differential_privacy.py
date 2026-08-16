@@ -111,7 +111,7 @@ async def get_current_epsilon(redis: object = None) -> float:
         return fallback
 
     try:
-        raw: str | None = await redis.get("dp:epsilon")  # type: ignore[union-attr]
+        raw: str | None = await redis.get("dp:epsilon")  # type: ignore[union-attr,no-untyped-call]
         if raw is not None:
             return float(raw)
     except Exception as exc:

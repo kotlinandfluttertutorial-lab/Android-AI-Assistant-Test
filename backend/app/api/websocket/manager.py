@@ -262,6 +262,6 @@ async def buffer_token(
         pipe.rpush(key, token)
         pipe.ltrim(key, -_BUFFER_MAX_LEN, -1)
         pipe.expire(key, _BUFFER_TTL_SECONDS)
-        await pipe.execute()
+        await pipe.execute()  # type: ignore[no-untyped-call]
     except Exception as exc:
         logger.warning("Failed to buffer token (key=%s): %s", key, exc)

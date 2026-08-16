@@ -100,7 +100,7 @@ class JobRepository:
         status: JobStatus,
         *,
         error_message: str | None = None,
-        result_payload: dict | None = None,
+        result_payload: dict[str, object] | None = None,
         celery_task_id: str | None = None,
     ) -> Job | None:
         """Update job status and optional metadata fields.

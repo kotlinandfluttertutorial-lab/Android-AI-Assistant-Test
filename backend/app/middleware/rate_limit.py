@@ -205,7 +205,7 @@ class RateLimitMiddleware:
                     response_body.append(message.get("body", b""))
                 await send(message)
 
-            await self.app(scope, receive, send_wrapper)
+            await self.app(scope, receive, send_wrapper)  # type: ignore[arg-type]
             # Return a synthetic Response so dispatch() can return it
             status_code = scope.get("_response_started", {}).get("status", 200)
             return Response(
@@ -367,7 +367,7 @@ class RateLimitMiddleware:
             except Exception as exc:
                 logger.warning("IP rate limit Redis check failed (fail-open): %s", exc)
 
-        return await call_next(request)
+        return await call_next(request)  # type: ignore[return-value]
 
     async def _get_redis(self) -> Any:
         """Return the shared async Redis client singleton."""

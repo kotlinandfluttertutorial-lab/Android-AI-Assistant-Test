@@ -170,7 +170,7 @@ class RequestLoggingMiddleware:
 
         unhandled_exception = False
         try:
-            await self.app(scope, receive, wrapped_send)
+            await self.app(scope, receive, wrapped_send)  # type: ignore[arg-type]
         except Exception:
             unhandled_exception = True
             elapsed_ms = (time.perf_counter() - start_time) * 1000.0

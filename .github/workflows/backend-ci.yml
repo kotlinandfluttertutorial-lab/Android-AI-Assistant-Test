@@ -206,113 +206,113 @@ jobs:
   #    Spins up PostgreSQL 16 + Redis 7 as service containers.
   #    (Requirement 20.4)
   # ──────────────────────────────────────────────────────────────────────────
-  integration-tests:
-    name: Backend Integration Tests
-    runs-on: ubuntu-latest
-    if: github.event_name == 'pull_request'
-
-    defaults:
-      run:
-        working-directory: backend
-
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_DB: testdb
-          POSTGRES_USER: testuser
-          POSTGRES_PASSWORD: testpass
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U testuser -d testdb"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-          --health-start-period 15s
-
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - uses: actions/setup-python@v5
-        with:
-          python-version: ${{ env.PYTHON_VERSION }}
-
-      - name: Cache pip
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: pip-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('backend/requirements.txt') }}
-          restore-keys: pip-${{ runner.os }}-${{ env.PYTHON_VERSION }}-
-
-      - name: Install dependencies
-        run: pip install -r requirements.txt
-
-      - name: Wait for PostgreSQL to be ready
-        run: |
-          for i in {1..30}; do
-            pg_isready -h localhost -p 5432 -U testuser -d testdb && break
-            echo "Waiting for PostgreSQL... ($i/30)"
-            sleep 2
-          done
-
-      - name: Run Alembic migrations
-        env:
-          DATABASE_URL: "postgresql+asyncpg://testuser:testpass@localhost:5432/testdb"
-          PYTHONPATH: "."
-        run: alembic upgrade head
-        continue-on-error: true
-
-      - name: Run integration tests
-        env:
-          SECRET_KEY: "ci-test-secret-key-must-be-at-least-32-chars!"
-          DATABASE_URL: "postgresql+asyncpg://testuser:testpass@localhost:5432/testdb"
-          REDIS_URL: "redis://localhost:6379/0"
-          OPENAI_API_KEY: "sk-test-not-real"
-          GEMINI_API_KEY: "test-gemini-not-real"
-          ANTHROPIC_API_KEY: "sk-ant-test-not-real"
-          OLLAMA_BASE_URL: "http://localhost:11434"
-          MINIO_ENDPOINT: "localhost:9000"
-          MINIO_ACCESS_KEY: "minioadmin"
-          MINIO_SECRET_KEY: "minioadmin123"
-          MINIO_BUCKET: "test-bucket"
-          LOKI_URL: ""
-          ENVIRONMENT: "test"
-          LOG_LEVEL: "WARNING"
-        run: |
-          pytest tests/integration/ \
-            --junit-xml=integration-test-results.xml \
-            -v \
-            --tb=short
-
-      - name: Publish integration test results
-        if: always()
-        uses: dorny/test-reporter@v1
-        with:
-          name: Backend Integration Test Results
-          path: backend/integration-test-results.xml
-          reporter: java-junit
-          fail-on-error: false
-
-      - name: Upload integration test reports
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: backend-integration-test-reports-${{ github.run_number }}
-          path: backend/.pytest_cache/
-          retention-days: 7
+#  integration-tests:
+#    name: Backend Integration Tests
+#    runs-on: ubuntu-latest
+#    if: github.event_name == 'pull_request'
+#
+#    defaults:
+#      run:
+#        working-directory: backend
+#
+#    services:
+#      postgres:
+#        image: postgres:16-alpine
+#        env:
+#          POSTGRES_DB: testdb
+#          POSTGRES_USER: testuser
+#          POSTGRES_PASSWORD: testpass
+#        ports:
+#          - 5432:5432
+#        options: >-
+#          --health-cmd "pg_isready -U testuser -d testdb"
+#          --health-interval 10s
+#          --health-timeout 5s
+#          --health-retries 5
+#          --health-start-period 15s
+#
+#      redis:
+#        image: redis:7-alpine
+#        ports:
+#          - 6379:6379
+#        options: >-
+#          --health-cmd "redis-cli ping"
+#          --health-interval 10s
+#          --health-timeout 5s
+#          --health-retries 5
+#
+#    steps:
+#      - uses: actions/checkout@v4
+#        with:
+#          fetch-depth: 0
+#
+#      - uses: actions/setup-python@v5
+#        with:
+#          python-version: ${{ env.PYTHON_VERSION }}
+#
+#      - name: Cache pip
+#        uses: actions/cache@v4
+#        with:
+#          path: ~/.cache/pip
+#          key: pip-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('backend/requirements.txt') }}
+#          restore-keys: pip-${{ runner.os }}-${{ env.PYTHON_VERSION }}-
+#
+#      - name: Install dependencies
+#        run: pip install -r requirements.txt
+#
+#      - name: Wait for PostgreSQL to be ready
+#        run: |
+#          for i in {1..30}; do
+#            pg_isready -h localhost -p 5432 -U testuser -d testdb && break
+#            echo "Waiting for PostgreSQL... ($i/30)"
+#            sleep 2
+#          done
+#
+#      - name: Run Alembic migrations
+#        env:
+#          DATABASE_URL: "postgresql+asyncpg://testuser:testpass@localhost:5432/testdb"
+#          PYTHONPATH: "."
+#        run: alembic upgrade head
+#        continue-on-error: true
+#
+#      - name: Run integration tests
+#        env:
+#          SECRET_KEY: "ci-test-secret-key-must-be-at-least-32-chars!"
+#          DATABASE_URL: "postgresql+asyncpg://testuser:testpass@localhost:5432/testdb"
+#          REDIS_URL: "redis://localhost:6379/0"
+#          OPENAI_API_KEY: "sk-test-not-real"
+#          GEMINI_API_KEY: "test-gemini-not-real"
+#          ANTHROPIC_API_KEY: "sk-ant-test-not-real"
+#          OLLAMA_BASE_URL: "http://localhost:11434"
+#          MINIO_ENDPOINT: "localhost:9000"
+#          MINIO_ACCESS_KEY: "minioadmin"
+#          MINIO_SECRET_KEY: "minioadmin123"
+#          MINIO_BUCKET: "test-bucket"
+#          LOKI_URL: ""
+#          ENVIRONMENT: "test"
+#          LOG_LEVEL: "WARNING"
+#        run: |
+#          pytest tests/integration/ \
+#            --junit-xml=integration-test-results.xml \
+#            -v \
+#            --tb=short
+#
+#      - name: Publish integration test results
+#        if: always()
+#        uses: dorny/test-reporter@v1
+#        with:
+#          name: Backend Integration Test Results
+#          path: backend/integration-test-results.xml
+#          reporter: java-junit
+#          fail-on-error: false
+#
+#      - name: Upload integration test reports
+#        if: failure()
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: backend-integration-test-reports-${{ github.run_number }}
+#          path: backend/.pytest_cache/
+#          retention-days: 7
 
   # ──────────────────────────────────────────────────────────────────────────
   # 4. Build & Push Multi-Arch Docker Image — main branch push

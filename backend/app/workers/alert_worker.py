@@ -78,10 +78,10 @@ def check_spending_alerts_task(self) -> None:
 
 async def _run_alert_check() -> None:
     """Async inner function that obtains a DB session and invokes the alert checker."""
-    from app.database import async_session_factory
+    from app.database import AsyncSessionLocal
     from app.services.cost_service import check_spending_alerts
 
-    async with async_session_factory() as db:
+    async with AsyncSessionLocal() as db:
         try:
             await check_spending_alerts(db=db)
             await db.commit()

@@ -61,11 +61,14 @@ import time
 from abc import ABC, abstractmethod
 from collections.abc import AsyncIterator
 from decimal import Decimal
+from typing import Any, cast
 
 import google.generativeai as genai
 import httpx
 from anthropic import AsyncAnthropic
+from anthropic.types import TextBlock
 from openai import AsyncOpenAI
+from openai.types.chat import ChatCompletionMessageParam
 
 from app.config.settings import get_settings
 
@@ -197,11 +200,11 @@ class _ProviderRateLimiter:
             )
 
     @staticmethod
-    async def _get_redis():
+    async def _get_redis() -> Any:
         import redis.asyncio as aioredis
 
         settings = get_settings()
-        return aioredis.from_url(settings.REDIS_URL, decode_responses=True)
+        return aioredis.from_url(settings.REDIS_URL, decode_responses=True)  # type: ignore[no-untyped-call]
 
 
 # ---------------------------------------------------------------------------
@@ -247,7 +250,7 @@ class BaseLLMClient(ABC):
     # ------------------------------------------------------------------
 
     @abstractmethod
-    async def stream(self, context: PromptContext) -> AsyncIterator[str]:
+    def stream(self, context: PromptContext) -> AsyncIterator[str]:
         """Stream completion tokens incrementally.
 
         Implementations MUST call ``await self._rate_limiter.check(context.user_id)``
@@ -405,9 +408,11 @@ class OpenAIClient(BaseLLMClient):
         """
         await self._rate_limiter.check(context.user_id)
 
-        messages = [{"role": "system", "content": context.system_prompt}]
+        messages: list[ChatCompletionMessageParam] = [
+            {"role": "system", "content": context.system_prompt}  # type: ignore[misc]
+        ]
         for role, content in context.messages:
-            messages.append({"role": role, "content": content})
+            messages.append({"role": role, "content": content})  # type: ignore[misc]
 
         stream = await self.client.chat.completions.create(
             model=self.model,
@@ -428,19 +433,21 @@ class OpenAIClient(BaseLLMClient):
         """
         await self._rate_limiter.check(context.user_id)
 
-        messages = [{"role": "system", "content": context.system_prompt}]
+        messages2: list[ChatCompletionMessageParam] = [
+            {"role": "system", "content": context.system_prompt}  # type: ignore[misc]
+        ]
         for role, content in context.messages:
-            messages.append({"role": role, "content": content})
+            messages2.append({"role": role, "content": content})  # type: ignore[misc]
 
         response = await self.client.chat.completions.create(
             model=self.model,
-            messages=messages,
+            messages=messages2,
             max_tokens=context.max_tokens,
             temperature=context.temperature,
             stream=False,
         )
 
-        return response.choices[0].message.content or ""
+        return cast(str, response.choices[0].message.content or "")
 
     @property
     def max_context_tokens(self) -> int:
@@ -609,8 +616,11 @@ class ClaudeClient(BaseLLMClient):
         """
         await self._rate_limiter.check(context.user_id)
 
-        messages = [
-            {"role": role, "content": content} for role, content in context.messages
+        from anthropic.types import MessageParam
+
+        claude_messages: list[MessageParam] = [
+            {"role": role, "content": content}  # type: ignore[misc]
+            for role, content in context.messages
         ]
 
         async with self.client.messages.stream(
@@ -618,7 +628,7 @@ class ClaudeClient(BaseLLMClient):
             max_tokens=context.max_tokens,
             temperature=context.temperature,
             system=context.system_prompt,
-            messages=messages,
+            messages=claude_messages,
         ) as stream:
             async for text in stream.text_stream:
                 yield text
@@ -630,8 +640,11 @@ class ClaudeClient(BaseLLMClient):
         """
         await self._rate_limiter.check(context.user_id)
 
-        messages = [
-            {"role": role, "content": content} for role, content in context.messages
+        from anthropic.types import MessageParam
+
+        claude_messages2: list[MessageParam] = [
+            {"role": role, "content": content}  # type: ignore[misc]
+            for role, content in context.messages
         ]
 
         response = await self.client.messages.create(
@@ -639,10 +652,11 @@ class ClaudeClient(BaseLLMClient):
             max_tokens=context.max_tokens,
             temperature=context.temperature,
             system=context.system_prompt,
-            messages=messages,
+            messages=claude_messages2,
         )
 
-        return response.content[0].text
+        first_block = response.content[0]
+        return cast(str, first_block.text if isinstance(first_block, TextBlock) else "")
 
     @property
     def max_context_tokens(self) -> int:
@@ -766,7 +780,7 @@ class OllamaClient(BaseLLMClient):
         response = await self.client.post("/api/generate", json=payload)
         response.raise_for_status()
         data = response.json()
-        return data.get("response", "")
+        return str(data.get("response", ""))
 
     @property
     def max_context_tokens(self) -> int:
