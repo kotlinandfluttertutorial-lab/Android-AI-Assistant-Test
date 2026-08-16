@@ -39,6 +39,7 @@ import com.aiassistant.domain.usecase.productivity.LogHabitEntryUseCase
 import com.aiassistant.domain.usecase.productivity.SuggestReminderUseCase
 import com.aiassistant.domain.usecase.productivity.UpdateReminderUseCase
 import com.aiassistant.domain.usecase.productivity.UpdateTodoUseCase
+import com.aiassistant.domain.usecase.suggestions.GetContextSuggestionsUseCase
 import com.aiassistant.feature.productivity.calendar.CalendarUiState
 import com.aiassistant.feature.productivity.calendar.CalendarViewMode
 import com.aiassistant.feature.productivity.calendar.CalendarViewModel
@@ -957,7 +958,8 @@ class ProductivityViewModelTest {
             getCalendarEventsUseCase = getEvents,
             createCalendarEventUseCase = createEvent,
             deleteCalendarEventUseCase = deleteEvent,
-            dispatchers = testDispatchers
+            dispatchers = testDispatchers,
+            getContextSuggestionsUseCase = mockk<GetContextSuggestionsUseCase>(relaxed = true)
         )
     }
 
@@ -999,7 +1001,8 @@ class ProductivityViewModelTest {
                 coEvery { it(any()) } returns
                     ApiResult.Success(Unit)
             },
-            dispatchers = testDispatchers
+            dispatchers = testDispatchers,
+            getContextSuggestionsUseCase = mockk<GetContextSuggestionsUseCase>(relaxed = true)
         )
 
         vm.openNewEvent()
@@ -1025,7 +1028,8 @@ class ProductivityViewModelTest {
                 coEvery { it(any()) } returns
                     ApiResult.Success(Unit)
             },
-            dispatchers = testDispatchers
+            dispatchers = testDispatchers,
+            getContextSuggestionsUseCase = mockk<GetContextSuggestionsUseCase>(relaxed = true)
         )
 
         val now = System.currentTimeMillis()
@@ -1062,7 +1066,8 @@ class ProductivityViewModelTest {
                 coEvery { it(any()) } returns
                     ApiResult.Success(Unit)
             },
-            dispatchers = testDispatchers
+            dispatchers = testDispatchers,
+            getContextSuggestionsUseCase = mockk<GetContextSuggestionsUseCase>(relaxed = true)
         )
 
         val now = System.currentTimeMillis()
@@ -1096,7 +1101,8 @@ class ProductivityViewModelTest {
                     ApiResult.Success(makeCalendarEvent())
             },
             deleteCalendarEventUseCase = deleteEvent,
-            dispatchers = testDispatchers
+            dispatchers = testDispatchers,
+            getContextSuggestionsUseCase = mockk<GetContextSuggestionsUseCase>(relaxed = true)
         )
 
         vm.deleteEvent("e1")
@@ -1120,7 +1126,8 @@ class ProductivityViewModelTest {
                 coEvery { it(any()) } returns
                     ApiResult.Success(Unit)
             },
-            dispatchers = testDispatchers
+            dispatchers = testDispatchers,
+            getContextSuggestionsUseCase = mockk<GetContextSuggestionsUseCase>(relaxed = true)
         )
 
         vm.switchViewMode(CalendarViewMode.WEEKLY)

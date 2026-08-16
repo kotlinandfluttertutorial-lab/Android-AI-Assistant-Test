@@ -23,8 +23,20 @@ import os
 import sys
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
+
+# ---------------------------------------------------------------------------
+# Load .env early — before any os.environ reads or pydantic-settings init.
+# Using an absolute path anchored to this file means uvicorn can be launched
+# from any working directory and still pick up backend/.env correctly.
+# ---------------------------------------------------------------------------
+_ENV_FILE = Path(__file__).resolve().parents[1] / ".env"  # backend/.env
+if _ENV_FILE.exists():
+    from dotenv import load_dotenv
+    load_dotenv(dotenv_path=_ENV_FILE, override=False)  # env vars already set take priority
+
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from prometheus_fastapi_instrumentator import Instrumentator

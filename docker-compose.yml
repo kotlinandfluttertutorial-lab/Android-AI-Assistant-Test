@@ -27,6 +27,8 @@ services:
       - postgres_data:/var/lib/postgresql/data
     networks:
       - ai_assistant_net
+    ports:
+      - "5432:5432"
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-aiassistant} -d ${POSTGRES_DB:-aiassistant}"]
       interval: 10s
@@ -42,6 +44,8 @@ services:
       - redis_data:/data
     networks:
       - ai_assistant_net
+    ports:
+      - "6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
