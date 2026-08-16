@@ -61,10 +61,14 @@ from __future__ import annotations
 
 import logging
 from datetime import UTC, datetime, timedelta
+from typing import TYPE_CHECKING
 
 from redis.asyncio import Redis
 
 from app.security.email_service import send_failed_login_email
+
+if TYPE_CHECKING:
+    from app.config.settings import Settings
 
 logger = logging.getLogger(__name__)
 
@@ -207,13 +211,15 @@ async def record_failed_attempt(
     window_ttl_seconds = window_minutes * 60
 
     # Atomic attempt recording via Lua script
-    attempt_count: int = await redis.eval(  # type: ignore[assignment]
-        _RECORD_ATTEMPT_SCRIPT,
-        1,  # number of KEYS
-        _attempts_key(email),
-        now_utc.isoformat(),
-        cutoff_utc.isoformat(),
-        str(window_ttl_seconds),
+    attempt_count: int = int(
+        await redis.eval(  # type: ignore[no-untyped-call]
+            _RECORD_ATTEMPT_SCRIPT,
+            1,  # number of KEYS
+            _attempts_key(email),
+            now_utc.isoformat(),
+            cutoff_utc.isoformat(),
+            str(window_ttl_seconds),
+        )
     )
 
     just_locked = False
@@ -299,11 +305,11 @@ class AccountLockoutService:
             redis: Async Redis client shared with the request lifecycle.
         """
         self._redis = redis
-        self._settings = None  # lazy
+        self._settings: Settings | None = None  # lazy
 
-    def _get_settings(self):
+    def _get_settings(self) -> Settings:
         if self._settings is None:
-            from app.config.settings import get_settings
+            from app.config.settings import Settings, get_settings
 
             self._settings = get_settings()
         return self._settings

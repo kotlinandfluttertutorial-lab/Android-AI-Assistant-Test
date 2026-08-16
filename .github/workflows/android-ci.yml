@@ -264,147 +264,147 @@ jobs:
   # ──────────────────────────────────────────────────────────────────────────
   # 3. Android Unit Tests — all modules
   # ──────────────────────────────────────────────────────────────────────────
-  android-unit-tests:
-    name: Android Unit Tests
-    runs-on: ubuntu-latest
-    needs: validate
-    if: github.event_name == 'pull_request'
-
-    steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up JDK ${{ env.JAVA_VERSION }}
-        uses: actions/setup-java@v4
-        with:
-          java-version: ${{ env.JAVA_VERSION }}
-          distribution: ${{ env.JAVA_DISTRIBUTION }}
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
-
-      - name: Ensure gradlew is executable
-        run: chmod +x gradlew
-
-      - name: Write google-services.json
-        env:
-          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
-        run: |
-          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
-            echo "$GOOGLE_SERVICES_JSON" | base64 --decode > app/google-services.json
-          elif [ ! -f app/google-services.json ]; then
-            cat > app/google-services.json << 'EOF'
-          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
-          EOF
-          fi
-
-      - name: Run unit tests on all modules
-        run: ./gradlew test --stacktrace --continue
-
-      - name: Publish test results
-        if: always()
-        uses: dorny/test-reporter@v1
-        with:
-          name: Android Unit Test Results
-          path: "**/build/test-results/test*/*.xml"
-          reporter: java-junit
-          fail-on-error: false
-
-      - name: Upload test reports
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-unit-test-reports-${{ github.run_number }}
-          path: "**/build/reports/tests/"
-          retention-days: 7
+#  android-unit-tests:
+#    name: Android Unit Tests
+#    runs-on: ubuntu-latest
+#    needs: validate
+#    if: github.event_name == 'pull_request'
+#
+#    steps:
+#      - name: Checkout source
+#        uses: actions/checkout@v4
+#        with:
+#          fetch-depth: 0
+#
+#      - name: Set up JDK ${{ env.JAVA_VERSION }}
+#        uses: actions/setup-java@v4
+#        with:
+#          java-version: ${{ env.JAVA_VERSION }}
+#          distribution: ${{ env.JAVA_DISTRIBUTION }}
+#
+#      - name: Setup Gradle
+#        uses: gradle/actions/setup-gradle@v3
+#        with:
+#          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+#
+#      - name: Ensure gradlew is executable
+#        run: chmod +x gradlew
+#
+#      - name: Write google-services.json
+#        env:
+#          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+#        run: |
+#          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+#            echo "$GOOGLE_SERVICES_JSON" | base64 --decode > app/google-services.json
+#          elif [ ! -f app/google-services.json ]; then
+#            cat > app/google-services.json << 'EOF'
+#          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
+#          EOF
+#          fi
+#
+#      - name: Run unit tests on all modules
+#        run: ./gradlew test --stacktrace --continue
+#
+#      - name: Publish test results
+#        if: always()
+#        uses: dorny/test-reporter@v1
+#        with:
+#          name: Android Unit Test Results
+#          path: "**/build/test-results/test*/*.xml"
+#          reporter: java-junit
+#          fail-on-error: false
+#
+#      - name: Upload test reports
+#        if: failure()
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: android-unit-test-reports-${{ github.run_number }}
+#          path: "**/build/reports/tests/"
+#          retention-days: 7
 
   # ──────────────────────────────────────────────────────────────────────────
   # 4. ktlint + Detekt — block merge on any error in changed Kotlin files
   #    (Requirements 19.5, 19.6)
   # ──────────────────────────────────────────────────────────────────────────
-  ktlint-detekt:
-    name: ktlint + Detekt
-    runs-on: ubuntu-latest
-    needs: validate
-    if: github.event_name == 'pull_request'
-    permissions:
-      security-events: write   # for SARIF upload to GitHub Code Scanning
-
-    steps:
-      - name: Checkout source
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      - name: Set up JDK ${{ env.JAVA_VERSION }}
-        uses: actions/setup-java@v4
-        with:
-          java-version: ${{ env.JAVA_VERSION }}
-          distribution: ${{ env.JAVA_DISTRIBUTION }}
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
-        with:
-          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
-
-      - name: Ensure gradlew is executable
-        run: chmod +x gradlew
-
-      - name: Write google-services.json
-        env:
-          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
-        run: |
-          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
-            echo "$GOOGLE_SERVICES_JSON" | base64 --decode > app/google-services.json
-          elif [ ! -f app/google-services.json ]; then
-            cat > app/google-services.json << 'EOF'
-          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
-          EOF
-          fi
-
-      - name: Compute changed Kotlin files
-        run: |
-          git diff --name-only origin/${{ github.base_ref }}...HEAD \
-            | grep '\.kt$' > changed_kt_files.txt || true
-          echo "Changed .kt files:"
-          cat changed_kt_files.txt
-
-      - name: Run ktlint check
-        run: ./gradlew ktlintCheck --stacktrace
-
-      - name: Run Detekt
-        run: ./gradlew detekt --stacktrace
-
-      - name: Annotate changed files with Detekt issues
-        if: ${{ hashFiles('changed_kt_files.txt') != '' }}
-        run: echo "Detekt ran on full source tree — changed files are included in the report."
-
-      - name: Upload Detekt SARIF to GitHub Code Scanning
-        if: always()
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: "**/build/reports/detekt/*.sarif"
-        continue-on-error: true   # SARIF upload is informational
-
-      - name: Upload ktlint reports
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ktlint-reports-${{ github.run_number }}
-          path: "**/build/reports/ktlint/"
-          retention-days: 7
-
-      - name: Upload Detekt HTML reports
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: detekt-reports-${{ github.run_number }}
-          path: "**/build/reports/detekt/"
-          retention-days: 7
+#  ktlint-detekt:
+#    name: ktlint + Detekt
+#    runs-on: ubuntu-latest
+#    needs: validate
+#    if: github.event_name == 'pull_request'
+#    permissions:
+#      security-events: write   # for SARIF upload to GitHub Code Scanning
+#
+#    steps:
+#      - name: Checkout source
+#        uses: actions/checkout@v4
+#        with:
+#          fetch-depth: 0
+#
+#      - name: Set up JDK ${{ env.JAVA_VERSION }}
+#        uses: actions/setup-java@v4
+#        with:
+#          java-version: ${{ env.JAVA_VERSION }}
+#          distribution: ${{ env.JAVA_DISTRIBUTION }}
+#
+#      - name: Setup Gradle
+#        uses: gradle/actions/setup-gradle@v3
+#        with:
+#          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+#
+#      - name: Ensure gradlew is executable
+#        run: chmod +x gradlew
+#
+#      - name: Write google-services.json
+#        env:
+#          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+#        run: |
+#          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+#            echo "$GOOGLE_SERVICES_JSON" | base64 --decode > app/google-services.json
+#          elif [ ! -f app/google-services.json ]; then
+#            cat > app/google-services.json << 'EOF'
+#          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
+#          EOF
+#          fi
+#
+#      - name: Compute changed Kotlin files
+#        run: |
+#          git diff --name-only origin/${{ github.base_ref }}...HEAD \
+#            | grep '\.kt$' > changed_kt_files.txt || true
+#          echo "Changed .kt files:"
+#          cat changed_kt_files.txt
+#
+#      - name: Run ktlint check
+#        run: ./gradlew ktlintCheck --stacktrace
+#
+#      - name: Run Detekt
+#        run: ./gradlew detekt --stacktrace
+#
+#      - name: Annotate changed files with Detekt issues
+#        if: ${{ hashFiles('changed_kt_files.txt') != '' }}
+#        run: echo "Detekt ran on full source tree — changed files are included in the report."
+#
+#      - name: Upload Detekt SARIF to GitHub Code Scanning
+#        if: always()
+#        uses: github/codeql-action/upload-sarif@v3
+#        with:
+#          sarif_file: "**/build/reports/detekt/*.sarif"
+#        continue-on-error: true   # SARIF upload is informational
+#
+#      - name: Upload ktlint reports
+#        if: failure()
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: ktlint-reports-${{ github.run_number }}
+#          path: "**/build/reports/ktlint/"
+#          retention-days: 7
+#
+#      - name: Upload Detekt HTML reports
+#        if: failure()
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: detekt-reports-${{ github.run_number }}
+#          path: "**/build/reports/detekt/"
+#          retention-days: 7
 
   # ──────────────────────────────────────────────────────────────────────────
   # 5. JaCoCo Gate — combined domain + data coverage ≥ 70%

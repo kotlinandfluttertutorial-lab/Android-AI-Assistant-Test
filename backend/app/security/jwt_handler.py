@@ -30,13 +30,16 @@ import hashlib
 import secrets
 import uuid
 from datetime import UTC, datetime, timedelta
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 import jwt
 from jwt.exceptions import PyJWTError as JWTError
 from pydantic import BaseModel
 
 from app.security.exceptions import InvalidTokenError
+
+if TYPE_CHECKING:
+    from app.config.settings import Settings
 
 # ---------------------------------------------------------------------------
 # Token payload schema
