@@ -504,12 +504,12 @@ class TestCeleryJobStatusTransitions:
                 result = await _run_ingestion(mock_task, str(doc_id), str(user_id))
 
         assert result["status"] == "completed"
-        assert "running" in status_log, (
-            f"Expected 'running' in status log: {status_log}"
-        )
-        assert "completed" in status_log, (
-            f"Expected 'completed' in status log: {status_log}"
-        )
+        assert (
+            "running" in status_log
+        ), f"Expected 'running' in status log: {status_log}"
+        assert (
+            "completed" in status_log
+        ), f"Expected 'completed' in status log: {status_log}"
         assert status_log.index("running") < status_log.index("completed")
 
     @pytest.mark.asyncio
@@ -1143,9 +1143,9 @@ class TestCrossUserIsolation:
             await service.query_documents(user_id=user_a, query="sensitive data")
 
         for name in queried_collections:
-            assert name != f"documents_{user_b}", (
-                f"User B collection '{name}' was queried during user A's search"
-            )
+            assert (
+                name != f"documents_{user_b}"
+            ), f"User B collection '{name}' was queried during user A's search"
 
     @pytest.mark.asyncio
     async def test_embed_and_store_scoped_to_user_collection(self) -> None:

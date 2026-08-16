@@ -87,7 +87,9 @@ async def _is_jti_revoked(jti: str) -> bool:
         return bool(result)
     except Exception as exc:
         # Gracefully degrade: log a warning and allow the request to proceed.
-        logger.warning("Redis revocation check unavailable (jti=%s): %s — skipping", jti, exc)
+        logger.warning(
+            "Redis revocation check unavailable (jti=%s): %s — skipping", jti, exc
+        )
         return False
 
 

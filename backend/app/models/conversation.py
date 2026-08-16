@@ -54,7 +54,9 @@ class Conversation(Base, TimestampMixin):
         nullable=False,
         index=True,
     )
-    title: Mapped[str] = mapped_column(String(512), nullable=False, default="New Conversation")
+    title: Mapped[str] = mapped_column(
+        String(512), nullable=False, default="New Conversation"
+    )
     provider: Mapped[str] = mapped_column(
         String(64),
         nullable=False,
@@ -72,7 +74,9 @@ class Conversation(Base, TimestampMixin):
     # ------------------------------------------------------------------
     # Relationships
     # ------------------------------------------------------------------
-    user: Mapped[User] = relationship("User", back_populates="conversations")  # noqa: F821
+    user: Mapped[User] = relationship(
+        "User", back_populates="conversations"
+    )  # noqa: F821
     messages: Mapped[list[Message]] = relationship(  # noqa: F821
         "Message", back_populates="conversation", cascade="all, delete-orphan"
     )

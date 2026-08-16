@@ -156,9 +156,9 @@ class TestChunkTextCoverage:
 
         source_token_set = set(source_tokens)
         # Every unique token in the source must appear in at least one chunk
-        assert source_token_set.issubset(covered_tokens), (
-            "Some source tokens are not covered by any chunk — Property 7 violated."
-        )
+        assert source_token_set.issubset(
+            covered_tokens
+        ), "Some source tokens are not covered by any chunk — Property 7 violated."
 
     def test_single_chunk_for_short_text(self) -> None:
         """A text shorter than chunk_size should produce exactly one chunk."""
@@ -193,9 +193,9 @@ class TestChunkTextCoverage:
 
         shared = first_tokens & second_tokens
         # There must be at least 1 shared token to confirm overlapping chunks
-        assert len(shared) >= 1, (
-            "Consecutive chunks have no overlapping tokens — sliding window may be broken."
-        )
+        assert (
+            len(shared) >= 1
+        ), "Consecutive chunks have no overlapping tokens — sliding window may be broken."
 
     def test_chunk_coverage_for_long_document(self) -> None:
         """Full coverage must hold even for very long input texts.
@@ -217,9 +217,9 @@ class TestChunkTextCoverage:
         for chunk in chunks:
             covered.update(enc.encode(chunk.text))
 
-        assert set(source_token_ids).issubset(covered), (
-            "Some source tokens missing from chunks — coverage broken for long text."
-        )
+        assert set(source_token_ids).issubset(
+            covered
+        ), "Some source tokens missing from chunks — coverage broken for long text."
 
     def test_no_gap_between_chunks(self) -> None:
         """The stride must never leave a gap — start positions must be contiguous."""

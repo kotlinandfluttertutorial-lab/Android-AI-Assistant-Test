@@ -124,9 +124,9 @@ def test_property_7_chunk_coverage_no_gaps(text: str) -> None:
         # Hypothesis may generate text that encodes to zero tokens (very rare)
         return
 
-    assert len(chunks) >= 1, (
-        f"Non-empty text must produce at least one chunk. text={text!r:.80}"
-    )
+    assert (
+        len(chunks) >= 1
+    ), f"Non-empty text must produce at least one chunk. text={text!r:.80}"
 
     covered: set[int] = set()
     for chunk in chunks:
@@ -241,9 +241,9 @@ def test_property_7_coverage_with_varied_chunk_sizes(
 
     chunks = service.chunk_text(text, chunk_size=chunk_size, overlap=safe_overlap)
 
-    assert len(chunks) >= 1, (
-        f"Non-empty text with {len(words)} words should yield at least one chunk"
-    )
+    assert (
+        len(chunks) >= 1
+    ), f"Non-empty text with {len(words)} words should yield at least one chunk"
 
     # Verify coverage using original token indices, not re-encoded chunks.
     # Re-encoding decoded text can produce different token IDs at chunk boundaries.
@@ -271,4 +271,3 @@ def test_property_7_coverage_with_varied_chunk_sizes(
         f"{len(missing_indices)} token index/indices missing from coverage. "
         f"Source ({len(words)} words), {len(chunks)} chunks produced."
     )
-

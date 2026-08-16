@@ -160,9 +160,9 @@ class TestPerUserScopingHttp403:
                 headers=_auth(token),
             )
 
-        assert resp.status_code == 403, (
-            f"Expected HTTP 403 for foreign user_id, got {resp.status_code}"
-        )
+        assert (
+            resp.status_code == 403
+        ), f"Expected HTTP 403 for foreign user_id, got {resp.status_code}"
         body = resp.json()
         assert "forbidden" in body.get("detail", "").lower()
 
@@ -195,9 +195,9 @@ class TestPerUserScopingHttp403:
                 headers=_auth(token),
             )
 
-        assert resp.status_code != 403, (
-            "Should NOT get 403 when own user_id is supplied"
-        )
+        assert (
+            resp.status_code != 403
+        ), "Should NOT get 403 when own user_id is supplied"
 
     def test_get_cost_without_user_id_param_uses_auth_user(self) -> None:
         """GET /usage/cost without user_id param uses the JWT-authenticated user.

@@ -79,7 +79,9 @@ class SpendingAlert(Base, TimestampMixin):
     # ------------------------------------------------------------------
     # Relationships
     # ------------------------------------------------------------------
-    user: Mapped[User] = relationship("User", back_populates="spending_alerts")  # noqa: F821
+    user: Mapped[User] = relationship(
+        "User", back_populates="spending_alerts"
+    )  # noqa: F821
 
     def __repr__(self) -> str:
         return (

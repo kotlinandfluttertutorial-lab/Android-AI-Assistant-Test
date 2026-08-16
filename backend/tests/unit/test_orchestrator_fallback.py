@@ -193,9 +193,9 @@ class TestStreamChatFallback:
             message_types = [m.get("type") for m in sent]
 
             # A 'notice' event must have been sent (Requirement 3.3)
-            assert "notice" in message_types, (
-                "User was not notified of fallback substitution"
-            )
+            assert (
+                "notice" in message_types
+            ), "User was not notified of fallback substitution"
 
             # Token events must have been sent (fallback actually ran)
             assert "token" in message_types
@@ -284,6 +284,6 @@ class TestStreamChatFallback:
                 )
 
             sent = [call.args[0] for call in ws.send_json.call_args_list]
-            assert not any(m.get("type") == "notice" for m in sent), (
-                "No notice should be sent when no fallback is configured"
-            )
+            assert not any(
+                m.get("type") == "notice" for m in sent
+            ), "No notice should be sent when no fallback is configured"

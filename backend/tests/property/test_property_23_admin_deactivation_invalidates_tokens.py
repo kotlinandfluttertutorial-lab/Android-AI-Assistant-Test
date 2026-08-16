@@ -503,14 +503,14 @@ def test_property_23e_update_user_deactivate_action_invalidates_all_tokens(
     )
 
     # 4. Response action field must be 'deactivate'
-    assert response.action == "deactivate", (
-        f"Property 23E violated: response.action={response.action!r}, expected 'deactivate'."
-    )
+    assert (
+        response.action == "deactivate"
+    ), f"Property 23E violated: response.action={response.action!r}, expected 'deactivate'."
 
     # 5. Response is_active must be False
-    assert response.is_active is False, (
-        f"Property 23E violated: response.is_active={response.is_active}, expected False."
-    )
+    assert (
+        response.is_active is False
+    ), f"Property 23E violated: response.is_active={response.is_active}, expected False."
 
 
 # ===========================================================================
@@ -553,9 +553,9 @@ class TestAdminDeactivationTokenInvalidationEdgeCases:
         count, mock_redis = _run_async(_run())
 
         assert count == 1, f"Expected 1 token revoked, got {count}"
-        assert f"force_logout:{user_id}" in mock_redis._store, (
-            "force_logout marker not set for single-token deactivation"
-        )
+        assert (
+            f"force_logout:{user_id}" in mock_redis._store
+        ), "force_logout marker not set for single-token deactivation"
 
     def test_deactivation_with_no_active_refresh_tokens(self) -> None:
         """Deactivating a user with zero active refresh tokens still sets force_logout."""
@@ -579,9 +579,9 @@ class TestAdminDeactivationTokenInvalidationEdgeCases:
         count, mock_redis = _run_async(_run())
 
         assert count == 0, f"Expected 0 tokens revoked, got {count}"
-        assert f"force_logout:{user_id}" in mock_redis._store, (
-            "force_logout marker must be set even when user has no active refresh tokens"
-        )
+        assert (
+            f"force_logout:{user_id}" in mock_redis._store
+        ), "force_logout marker must be set even when user has no active refresh tokens"
 
     def test_deactivation_with_five_refresh_tokens_revokes_all_five(self) -> None:
         """Deactivating a user with 5 active refresh tokens revokes all 5."""
@@ -640,9 +640,9 @@ class TestAdminDeactivationTokenInvalidationEdgeCases:
 
         response, mock_user = _run_async(_run())
 
-        assert mock_user.is_active is False, (
-            "user.is_active must be False after deactivation"
-        )
+        assert (
+            mock_user.is_active is False
+        ), "user.is_active must be False after deactivation"
         assert response.is_active is False, "response.is_active must be False"
         assert response.tokens_revoked == 0  # no tokens to revoke in this case
 
@@ -669,9 +669,9 @@ class TestAdminDeactivationTokenInvalidationEdgeCases:
 
         mock_redis = _run_async(_run())
 
-        assert f"force_logout:{user_id}" not in mock_redis._store, (
-            "force_logout marker must NOT be set for non-deactivation actions (e.g., 'promote')"
-        )
+        assert (
+            f"force_logout:{user_id}" not in mock_redis._store
+        ), "force_logout marker must NOT be set for non-deactivation actions (e.g., 'promote')"
 
     def test_force_logout_marker_key_format_is_correct(self) -> None:
         """Redis force_logout key must follow the exact format 'force_logout:{user_id}'."""
@@ -726,6 +726,6 @@ class TestAdminDeactivationTokenInvalidationEdgeCases:
 
         for i, (uid, mock_redis) in enumerate(zip(user_ids, instances)):
             key = f"force_logout:{uid}"
-            assert key in mock_redis._store, (
-                f"Edge case failed: user {i} ({uid}) did not get a force_logout marker."
-            )
+            assert (
+                key in mock_redis._store
+            ), f"Edge case failed: user {i} ({uid}) did not get a force_logout marker."

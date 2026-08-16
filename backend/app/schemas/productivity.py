@@ -65,8 +65,12 @@ class TodoCreate(BaseModel):
         max_length=_MAX_DESC_LEN,
         description="Optional longer description.",
     )
-    due_date: datetime | None = Field(default=None, description="Optional deadline (ISO 8601).")
-    priority: str = Field(default="medium", description="Priority level: low | medium | high.")
+    due_date: datetime | None = Field(
+        default=None, description="Optional deadline (ISO 8601)."
+    )
+    priority: str = Field(
+        default="medium", description="Priority level: low | medium | high."
+    )
     tags: list[str] = Field(default_factory=list, description="Optional tag labels.")
 
     @field_validator("title", "description")
@@ -209,7 +213,9 @@ class CalendarEventCreate(BaseModel):
         description="Optional location.",
     )
     is_all_day: bool = Field(default=False, description="True for all-day events.")
-    source: str = Field(default="local", description="Event source: local | google_calendar.")
+    source: str = Field(
+        default="local", description="Event source: local | google_calendar."
+    )
 
     @field_validator("title", "description")
     @classmethod
@@ -311,7 +317,9 @@ class SuggestTimesRequest(BaseModel):
 class SuggestTimesResponse(BaseModel):
     """Response schema for suggested meeting times."""
 
-    suggestions: list[str] = Field(description="List of suggested ISO 8601 datetime strings.")
+    suggestions: list[str] = Field(
+        description="List of suggested ISO 8601 datetime strings."
+    )
     prompt: str = Field(description="The original prompt used to generate suggestions.")
 
 
@@ -330,7 +338,9 @@ class ReminderCreate(BaseModel):
         description="Short description of the reminder.",
         max_length=_MAX_TITLE_LEN,
     )
-    trigger_time: datetime = Field(description="When the reminder should fire (ISO 8601).")
+    trigger_time: datetime = Field(
+        description="When the reminder should fire (ISO 8601)."
+    )
     recurrence_rule: str | None = Field(
         default=None,
         max_length=_MAX_RECURRENCE_LEN,
@@ -448,7 +458,9 @@ class HabitCreate(BaseModel):
         max_length=_MAX_DESC_LEN,
         description="Optional description or motivation.",
     )
-    recurrence: str = Field(default="daily", description="Recurrence schedule: daily | weekly.")
+    recurrence: str = Field(
+        default="daily", description="Recurrence schedule: daily | weekly."
+    )
     target_frequency: int = Field(
         default=1,
         ge=1,
@@ -527,7 +539,9 @@ class HabitEntryCreate(BaseModel):
     Requirements: 9.7
     """
 
-    completed_at: datetime = Field(description="When the habit was completed (ISO 8601).")
+    completed_at: datetime = Field(
+        description="When the habit was completed (ISO 8601)."
+    )
     note: str | None = Field(
         default=None,
         max_length=_MAX_NOTE_LEN,
@@ -559,5 +573,9 @@ class HabitInsightsResponse(BaseModel):
     """Response schema for AI-generated habit insights."""
 
     habit_id: uuid.UUID
-    insights: str = Field(description="AI-generated insights text about habit performance.")
-    generated_at: datetime = Field(description="Timestamp when insights were generated.")
+    insights: str = Field(
+        description="AI-generated insights text about habit performance."
+    )
+    generated_at: datetime = Field(
+        description="Timestamp when insights were generated."
+    )

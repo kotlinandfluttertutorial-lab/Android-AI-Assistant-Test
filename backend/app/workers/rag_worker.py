@@ -37,7 +37,11 @@ def _make_session_factory():
     Called once per task execution so each task gets its own connection pool
     and event loop, avoiding asyncpg 'Future attached to a different loop' errors.
     """
-    from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+    from sqlalchemy.ext.asyncio import (
+        AsyncSession,
+        async_sessionmaker,
+        create_async_engine,
+    )
 
     from app.config.settings import get_settings
 
@@ -119,7 +123,8 @@ async def _run_ingestion(task, document_id: str, user_id: str) -> dict:
                 logger.error("Document %s not found for user %s", document_id, user_id)
                 if job is not None:
                     await job_repo.update_status(
-                        job.id, JobStatus.failed,
+                        job.id,
+                        JobStatus.failed,
                         error_message=f"Document {document_id} not found.",
                     )
                     await db.commit()
@@ -131,19 +136,26 @@ async def _run_ingestion(task, document_id: str, user_id: str) -> dict:
             try:
                 file_bytes = await rag_service.download_file_minio(document.minio_key)
             except Exception as exc:
-                logger.warning("MinIO download failed (attempt %d): %s", task.request.retries, exc)
-                countdown = 2 ** task.request.retries
+                logger.warning(
+                    "MinIO download failed (attempt %d): %s", task.request.retries, exc
+                )
+                countdown = 2**task.request.retries
                 try:
                     raise task.retry(exc=exc, countdown=countdown, max_retries=3)
                 except MaxRetriesExceededError:
                     await doc_repo.update_status(doc_uuid, IngestionStatus.failed)
                     if job is not None:
                         await job_repo.update_status(
-                            job.id, JobStatus.failed,
-                            error_message=json.dumps({"error": "download_failed", "detail": str(exc)}),
+                            job.id,
+                            JobStatus.failed,
+                            error_message=json.dumps(
+                                {"error": "download_failed", "detail": str(exc)}
+                            ),
                         )
                     await db.commit()
-                    await rag_service.send_ingestion_failure_notification(user_id, document_id)
+                    await rag_service.send_ingestion_failure_notification(
+                        user_id, document_id
+                    )
                     return {"status": "failed", "document_id": document_id}
 
             # Step 3 — extract text
@@ -156,47 +168,65 @@ async def _run_ingestion(task, document_id: str, user_id: str) -> dict:
                 await doc_repo.update_status(doc_uuid, IngestionStatus.failed)
                 if job is not None:
                     await job_repo.update_status(
-                        job.id, JobStatus.failed,
-                        error_message=json.dumps({
-                            "error": "extraction_failed",
-                            "stage": exc.stage,
-                            "file_name": exc.file_name,
-                            "detail": exc.detail,
-                        }),
+                        job.id,
+                        JobStatus.failed,
+                        error_message=json.dumps(
+                            {
+                                "error": "extraction_failed",
+                                "stage": exc.stage,
+                                "file_name": exc.file_name,
+                                "detail": exc.detail,
+                            }
+                        ),
                     )
                 await db.commit()
                 return {"status": "failed", "document_id": document_id}
 
             # Step 4 — chunk
-            is_plain_text = document.mime_type in {"text/plain", "text/markdown"} or \
-                document.file_name.lower().endswith((".txt", ".md"))
+            is_plain_text = document.mime_type in {
+                "text/plain",
+                "text/markdown",
+            } or document.file_name.lower().endswith((".txt", ".md"))
             chunks = rag_service.chunk_text(extracted_text, is_plain_text=is_plain_text)
 
             # Step 5 — embed and store
             try:
                 await rag_service.embed_and_store(chunks, document_id, user_id, db)
             except Exception as exc:
-                logger.warning("embed_and_store failed (attempt %d): %s", task.request.retries, exc)
-                countdown = 2 ** task.request.retries
+                logger.warning(
+                    "embed_and_store failed (attempt %d): %s", task.request.retries, exc
+                )
+                countdown = 2**task.request.retries
                 try:
                     raise task.retry(exc=exc, countdown=countdown, max_retries=3)
                 except MaxRetriesExceededError:
                     await doc_repo.update_status(doc_uuid, IngestionStatus.failed)
                     if job is not None:
                         await job_repo.update_status(
-                            job.id, JobStatus.failed,
-                            error_message=json.dumps({"error": "embedding_failed", "detail": str(exc)}),
+                            job.id,
+                            JobStatus.failed,
+                            error_message=json.dumps(
+                                {"error": "embedding_failed", "detail": str(exc)}
+                            ),
                         )
                     await db.commit()
-                    await rag_service.send_ingestion_failure_notification(user_id, document_id)
+                    await rag_service.send_ingestion_failure_notification(
+                        user_id, document_id
+                    )
                     return {"status": "failed", "document_id": document_id}
 
             # Step 6 — mark ready
-            await doc_repo.update_status(doc_uuid, IngestionStatus.ready, page_count=page_count)
+            await doc_repo.update_status(
+                doc_uuid, IngestionStatus.ready, page_count=page_count
+            )
             if job is not None:
                 await job_repo.update_status(
-                    job.id, JobStatus.completed,
-                    result_payload={"document_id": document_id, "chunk_count": len(chunks)},
+                    job.id,
+                    JobStatus.completed,
+                    result_payload={
+                        "document_id": document_id,
+                        "chunk_count": len(chunks),
+                    },
                 )
             await db.commit()
 
@@ -205,7 +235,11 @@ async def _run_ingestion(task, document_id: str, user_id: str) -> dict:
 
     # Step 7 — push notification (outside session)
     await rag_service.send_ingestion_notification(user_id, document_id)
-    logger.info("ingest_document_task: completed document=%s chunks=%d", document_id, len(chunks))
+    logger.info(
+        "ingest_document_task: completed document=%s chunks=%d",
+        document_id,
+        len(chunks),
+    )
     return {"status": "completed", "document_id": document_id}
 
 
@@ -238,13 +272,18 @@ async def _handle_permanent_failure(document_id: str, user_id: str) -> None:
             job = result.scalar_one_or_none()
             if job is not None:
                 await job_repo.update_status(
-                    job.id, JobStatus.failed,
+                    job.id,
+                    JobStatus.failed,
                     error_message="Max retries exceeded. Document processing permanently failed.",
                 )
                 job.retry_count = 3
             await db.commit()
     except Exception as exc:
-        logger.error("Failed to write permanent-failure state for document=%s: %s", document_id, exc)
+        logger.error(
+            "Failed to write permanent-failure state for document=%s: %s",
+            document_id,
+            exc,
+        )
 
     # Send FCM failure notification (best-effort)
     await rag_service.send_ingestion_failure_notification(user_id, document_id)

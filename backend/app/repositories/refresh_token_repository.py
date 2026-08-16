@@ -131,9 +131,7 @@ class RefreshTokenRepository:
             token_id: Primary key of the token to mark as used.
         """
         await self._db.execute(
-            update(RefreshToken)
-            .where(RefreshToken.id == token_id)
-            .values(used=True)
+            update(RefreshToken).where(RefreshToken.id == token_id).values(used=True)
         )
 
     async def revoke(self, token_id: uuid.UUID) -> None:
@@ -143,9 +141,7 @@ class RefreshTokenRepository:
             token_id: Primary key of the token to revoke.
         """
         await self._db.execute(
-            update(RefreshToken)
-            .where(RefreshToken.id == token_id)
-            .values(revoked=True)
+            update(RefreshToken).where(RefreshToken.id == token_id).values(revoked=True)
         )
 
     async def revoke_family(self, family_id: uuid.UUID) -> int:
@@ -162,7 +158,9 @@ class RefreshTokenRepository:
             The number of rows updated (useful for audit logging).
         """
         result = await self._db.execute(
-            update(RefreshToken).where(RefreshToken.family_id == family_id).values(revoked=True)
+            update(RefreshToken)
+            .where(RefreshToken.family_id == family_id)
+            .values(revoked=True)
         )
         return result.rowcount  # type: ignore[return-value]
 

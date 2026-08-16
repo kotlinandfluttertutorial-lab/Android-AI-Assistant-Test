@@ -160,9 +160,9 @@ def test_property_36_dp_retrieval_utility(embedding: list[float]) -> None:
     """
     # Verify the embedding is unit-normalized (strategy invariant)
     norm = np.linalg.norm(np.array(embedding))
-    assert abs(norm - 1.0) < 1e-6 or norm == 0.0, (
-        f"Setup error: embedding should be unit-normalized, norm={norm:.6f}"
-    )
+    assert (
+        abs(norm - 1.0) < 1e-6 or norm == 0.0
+    ), f"Setup error: embedding should be unit-normalized, norm={norm:.6f}"
 
     # Apply Laplace noise at ε=1.0
     noised = LaplaceNoiseInjector.add_noise(embedding, epsilon=EPSILON)
@@ -199,9 +199,9 @@ class TestProperty36EdgeCases:
         noised = LaplaceNoiseInjector.add_noise(embedding, epsilon=EPSILON)
         sim = cosine_similarity(embedding, noised)
 
-        assert sim >= COSINE_SIMILARITY_THRESHOLD, (
-            f"Canonical unit vector: cosine_similarity={sim:.4f} < {COSINE_SIMILARITY_THRESHOLD}"
-        )
+        assert (
+            sim >= COSINE_SIMILARITY_THRESHOLD
+        ), f"Canonical unit vector: cosine_similarity={sim:.4f} < {COSINE_SIMILARITY_THRESHOLD}"
 
     def test_uniform_unit_vector_cosine_similarity(self) -> None:
         """A uniform unit vector (all 384 dims equally weighted) maintains cosine similarity ≥ -0.15."""
@@ -211,9 +211,9 @@ class TestProperty36EdgeCases:
         noised = LaplaceNoiseInjector.add_noise(embedding, epsilon=EPSILON)
         sim = cosine_similarity(embedding, noised)
 
-        assert sim >= COSINE_SIMILARITY_THRESHOLD, (
-            f"Uniform unit vector: cosine_similarity={sim:.4f} < {COSINE_SIMILARITY_THRESHOLD}"
-        )
+        assert (
+            sim >= COSINE_SIMILARITY_THRESHOLD
+        ), f"Uniform unit vector: cosine_similarity={sim:.4f} < {COSINE_SIMILARITY_THRESHOLD}"
 
     def test_random_unit_vector_cosine_similarity_repeated(self) -> None:
         """Run 50 random unit vectors and assert all maintain cosine similarity ≥ 0.70."""

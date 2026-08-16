@@ -87,7 +87,9 @@ class User(Base, TimestampMixin):
     __tablename__ = "users"
 
     id: Mapped[uuid.UUID] = uuid_pk()
-    email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False, index=True)
+    email: Mapped[str] = mapped_column(
+        String(255), unique=True, nullable=False, index=True
+    )
     password_hash: Mapped[str] = mapped_column(
         String(255),
         nullable=False,
@@ -95,7 +97,9 @@ class User(Base, TimestampMixin):
             "bcrypt digest — work factor controlled by settings.BCRYPT_WORK_FACTOR (default 12)"
         ),
     )
-    google_id: Mapped[str | None] = mapped_column(String(255), unique=True, nullable=True)
+    google_id: Mapped[str | None] = mapped_column(
+        String(255), unique=True, nullable=True
+    )
     display_name: Mapped[str] = mapped_column(String(255), nullable=False, default="")
     avatar_url: Mapped[str | None] = mapped_column(String(2048), nullable=True)
     role: Mapped[UserRole] = mapped_column(

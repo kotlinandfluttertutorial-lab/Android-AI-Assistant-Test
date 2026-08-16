@@ -789,7 +789,9 @@ class TestAccountLockout:
     """
 
     def _make_login_request(
-        self, client: TestClient, password: str = "WrongPass!!123"  # noqa: S107
+        self,
+        client: TestClient,
+        password: str = "WrongPass!!123",  # noqa: S107
     ) -> Any:
         return client.post(
             "/auth/login",
@@ -836,13 +838,13 @@ class TestAccountLockout:
             with TestClient(_app) as client:
                 for attempt in range(1, 5):
                     resp = self._make_login_request(client)
-                    assert resp.status_code == 401, (
-                        f"Attempt {attempt} should return 401, got {resp.status_code}"
-                    )
+                    assert (
+                        resp.status_code == 401
+                    ), f"Attempt {attempt} should return 401, got {resp.status_code}"
 
-        assert len(audit_calls) == 4, (
-            f"Expected 4 failed_login audit entries, got {len(audit_calls)}"
-        )
+        assert (
+            len(audit_calls) == 4
+        ), f"Expected 4 failed_login audit entries, got {len(audit_calls)}"
 
     def test_fifth_failure_triggers_lockout_status(self) -> None:
         """5th failed attempt returns 429 (locked) or 401, account is now locked.
@@ -891,9 +893,10 @@ class TestAccountLockout:
                 resp = self._make_login_request(client)
 
         # After lockout, the router returns 429 with Retry-After header
-        assert resp.status_code in (401, 429), (
-            f"5th attempt should be 401 or 429, got {resp.status_code}"
-        )
+        assert resp.status_code in (
+            401,
+            429,
+        ), f"5th attempt should be 401 or 429, got {resp.status_code}"
 
     def test_correct_password_during_lockout_still_returns_locked_status(self) -> None:
         """Correct password while account is locked still returns 429.
@@ -968,8 +971,8 @@ class TestAccountLockout:
                 for _ in range(3):
                     self._make_login_request(client)
 
-        assert len(audit_log_calls) == 3, (
-            f"Expected 3 audit log entries for 3 failed attempts, got {len(audit_log_calls)}"
-        )
+        assert (
+            len(audit_log_calls) == 3
+        ), f"Expected 3 audit log entries for 3 failed attempts, got {len(audit_log_calls)}"
         for call in audit_log_calls:
             assert call.get("reason") == "wrong_password"

@@ -167,7 +167,9 @@ class MCPBroker:
         """
         name = connector.tool_name
         if name in self._registry:
-            logger.warning("MCPBroker: overwriting existing connector for tool=%r", name)
+            logger.warning(
+                "MCPBroker: overwriting existing connector for tool=%r", name
+            )
         self._registry[name] = connector
         logger.debug("MCPBroker: registered tool=%r", name)
 

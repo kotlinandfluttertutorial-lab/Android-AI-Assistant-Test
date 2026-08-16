@@ -210,9 +210,9 @@ class TestValidJwtTokenStreaming:
         token_msgs = [m for m in received_msgs if m.get("type") == "token"]
         done_msgs = [m for m in received_msgs if m.get("type") == "done"]
 
-        assert len(token_msgs) == len(expected_tokens), (
-            f"Expected {len(expected_tokens)} token events, got {len(token_msgs)}"
-        )
+        assert len(token_msgs) == len(
+            expected_tokens
+        ), f"Expected {len(expected_tokens)} token events, got {len(token_msgs)}"
         assert [m["data"] for m in token_msgs] == expected_tokens
         assert len(done_msgs) == 1, f"Expected 1 done event, got {len(done_msgs)}"
         assert "usage" in done_msgs[0], "done event must contain a 'usage' field"
@@ -458,7 +458,9 @@ class TestBufferDeliveryOnReconnect:
         )
 
         # New stream tokens follow.
-        assert [m["data"] for m in new_token_events] == new_tokens, (
+        assert [
+            m["data"] for m in new_token_events
+        ] == new_tokens, (
             f"New stream tokens incorrect: {[m['data'] for m in new_token_events]!r}"
         )
 

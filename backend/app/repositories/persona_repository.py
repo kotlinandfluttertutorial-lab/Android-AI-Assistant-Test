@@ -201,7 +201,9 @@ class PersonaRepository:
 
         Requirements: 32.3
         """
-        result = await self._db.execute(select(func.count()).where(Persona.user_id == user_id))
+        result = await self._db.execute(
+            select(func.count()).where(Persona.user_id == user_id)
+        )
         return result.scalar_one()
 
     async def update_persona(

@@ -270,7 +270,9 @@ class TestGoogleAuth:
             mock_loop.run_in_executor = AsyncMock(return_value=id_info)
             MockRepo.return_value.get_by_google_id = AsyncMock(return_value=None)
             MockRepo.return_value.get_by_email = AsyncMock(return_value=existing_user)
-            MockRepo.return_value.update_google_id = AsyncMock(return_value=updated_user)
+            MockRepo.return_value.update_google_id = AsyncMock(
+                return_value=updated_user
+            )
             MockAudit.return_value.log_login = AsyncMock()
 
             response = client.post(
@@ -289,9 +291,7 @@ class TestGoogleAuth:
             mock_asyncio.get_event_loop.return_value = mock_loop
             mock_loop.run_in_executor = AsyncMock(side_effect=ValueError("bad token"))
 
-            response = client.post(
-                "/auth/google", json={"id_token": "bad-token"}
-            )
+            response = client.post("/auth/google", json={"id_token": "bad-token"})
 
         assert response.status_code == 401
 
@@ -325,7 +325,9 @@ class TestGoogleAuth:
             mock_loop = MagicMock()
             mock_asyncio.get_event_loop.return_value = mock_loop
             mock_loop.run_in_executor = AsyncMock(return_value=id_info)
-            MockRepo.return_value.get_by_google_id = AsyncMock(return_value=disabled_user)
+            MockRepo.return_value.get_by_google_id = AsyncMock(
+                return_value=disabled_user
+            )
 
             response = client.post(
                 "/auth/google", json={"id_token": "fake-google-token"}
@@ -666,7 +668,9 @@ class TestRefreshTokenRepository:
         family_id = uuid.uuid4()
         expires = NOW + timedelta(days=30)
 
-        with patch("app.repositories.refresh_token_repository.RefreshToken") as MockToken:
+        with patch(
+            "app.repositories.refresh_token_repository.RefreshToken"
+        ) as MockToken:
             mock_token = MagicMock()
             MockToken.return_value = mock_token
             result = await repo.create(
@@ -1107,9 +1111,7 @@ class TestRollbackPrompt:
             "app.api.prompts.router.PromptService.rollback",
             new=AsyncMock(return_value=restored),
         ):
-            response = client.post(
-                "/prompts/test_template/rollback?version=1"
-            )
+            response = client.post("/prompts/test_template/rollback?version=1")
 
         assert response.status_code == 200
         body = response.json()
@@ -1132,9 +1134,7 @@ class TestRollbackPrompt:
             "app.api.prompts.router.PromptService.rollback",
             new=AsyncMock(side_effect=TemplateNotFoundError("version not found")),
         ):
-            response = client.post(
-                "/prompts/test_template/rollback?version=99"
-            )
+            response = client.post("/prompts/test_template/rollback?version=99")
 
         assert response.status_code == 404
 
@@ -1147,9 +1147,7 @@ class TestRollbackPrompt:
             "app.api.prompts.router.PromptService.rollback",
             new=AsyncMock(return_value=restored),
         ):
-            response = client.post(
-                "/prompts/test_template/rollback?version=1"
-            )
+            response = client.post("/prompts/test_template/rollback?version=1")
 
         assert response.status_code == 200
         body = response.json()

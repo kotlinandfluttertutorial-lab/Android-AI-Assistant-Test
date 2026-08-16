@@ -184,7 +184,9 @@ async def update_persona(
         db=db,
     )
 
-    logger.info("PUT /api/v1/personas/%s — updated by user=%s", persona_id, current_user.sub)
+    logger.info(
+        "PUT /api/v1/personas/%s — updated by user=%s", persona_id, current_user.sub
+    )
     return PersonaResponse.model_validate(persona)
 
 
@@ -221,5 +223,7 @@ async def delete_persona(
         db=db,
     )
 
-    logger.info("DELETE /api/v1/personas/%s — deleted by user=%s", persona_id, current_user.sub)
+    logger.info(
+        "DELETE /api/v1/personas/%s — deleted by user=%s", persona_id, current_user.sub
+    )
     return Response(status_code=status.HTTP_204_NO_CONTENT)

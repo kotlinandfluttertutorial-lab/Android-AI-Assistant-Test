@@ -166,7 +166,11 @@ class RefreshToken(Base, TimestampMixin):
         """
         from datetime import UTC  # local import to avoid polluting module scope
 
-        return not self.used and not self.revoked and self.expires_at > datetime.now(tz=UTC)
+        return (
+            not self.used
+            and not self.revoked
+            and self.expires_at > datetime.now(tz=UTC)
+        )
 
     def __repr__(self) -> str:
         return (

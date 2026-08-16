@@ -637,9 +637,9 @@ async def test_5_boundary_token_sum_at_context_window_ollama() -> None:
     assert len(captured) == 1
     rec = captured[0]
     total = rec["input_tokens"] + rec["output_tokens"]
-    assert total <= max_ctx, (
-        f"Boundary: total {total} must be ≤ max_context_tokens {max_ctx}"
-    )
+    assert (
+        total <= max_ctx
+    ), f"Boundary: total {total} must be ≤ max_context_tokens {max_ctx}"
 
 
 @pytest.mark.asyncio
@@ -686,18 +686,18 @@ async def test_5_all_six_providers_deterministic() -> None:
         rec = captured[0]
         max_ctx = PROVIDER_MAX_CONTEXT_TOKENS[provider]
 
-        assert rec["input_tokens"] > 0, (
-            f"[5a] input_tokens must be > 0 for {provider.value}"
-        )
-        assert rec["output_tokens"] > 0, (
-            f"[5b] output_tokens must be > 0 for {provider.value}"
-        )
+        assert (
+            rec["input_tokens"] > 0
+        ), f"[5a] input_tokens must be > 0 for {provider.value}"
+        assert (
+            rec["output_tokens"] > 0
+        ), f"[5b] output_tokens must be > 0 for {provider.value}"
         assert rec["input_tokens"] + rec["output_tokens"] <= max_ctx, (
             f"[5c] total tokens must be ≤ {max_ctx} for {provider.value}, "
             f"got {rec['input_tokens']} + {rec['output_tokens']} = "
             f"{rec['input_tokens'] + rec['output_tokens']}"
         )
         assert rec["cost_usd"] >= 0, f"[5d] cost_usd must be ≥ 0 for {provider.value}"
-        assert rec["provider"] == provider.value, (
-            f"[5e] provider field must match for {provider.value}"
-        )
+        assert (
+            rec["provider"] == provider.value
+        ), f"[5e] provider field must match for {provider.value}"

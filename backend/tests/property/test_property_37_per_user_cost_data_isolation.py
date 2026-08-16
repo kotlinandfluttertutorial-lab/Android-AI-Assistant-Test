@@ -370,9 +370,9 @@ class TestCostDataIsolationEdgeCases:
                 authenticated_user_id=user_a,
             )
 
-        assert exc_info.value.status_code == 403, (
-            f"Expected HTTP 403, got {exc_info.value.status_code}"
-        )
+        assert (
+            exc_info.value.status_code == 403
+        ), f"Expected HTTP 403, got {exc_info.value.status_code}"
 
     def test_same_user_id_does_not_raise(self) -> None:
         """_assert_no_foreign_user must NOT raise when IDs are identical.

@@ -270,9 +270,9 @@ async def _run_export_for_user(user_id_str: str, rows: dict[str, list]) -> dict:
     ):
         result = await _run_export(MagicMock(), user_id_str, job_id)
 
-    assert result["status"] == "completed", (
-        f"_run_export returned status={result['status']!r} instead of 'completed'"
-    )
+    assert (
+        result["status"] == "completed"
+    ), f"_run_export returned status={result['status']!r} instead of 'completed'"
 
     # Extract archive from the completed update_status call
     from app.models.job import JobStatus
@@ -350,9 +350,9 @@ def test_property_31a_export_completeness_single_user(
 
     # Verify all required keys are present
     missing = _REQUIRED_ARCHIVE_KEYS - set(archive.keys())
-    assert not missing, (
-        f"Property 31A violated: archive missing keys {missing}. user_id={uid_str}"
-    )
+    assert (
+        not missing
+    ), f"Property 31A violated: archive missing keys {missing}. user_id={uid_str}"
 
     # Verify completeness for each of the five required types
     expected_conv_count = counts["conversations"]
@@ -551,9 +551,9 @@ class TestExportCompletenessEdgeCases:
         assert not missing, f"Empty-user archive missing keys: {missing}"
 
         for key in _REQUIRED_ARCHIVE_KEYS:
-            assert archive[key] == [], (
-                f"Expected empty list for '{key}' but got {archive[key]!r}"
-            )
+            assert (
+                archive[key] == []
+            ), f"Expected empty list for '{key}' but got {archive[key]!r}"
 
     def test_user_with_only_conversations_and_messages(self) -> None:
         """When a user has conversations but no other data, messages are linked via
@@ -574,13 +574,13 @@ class TestExportCompletenessEdgeCases:
         rows = _build_user_rows(uid_str, counts)
         archive = _run_async(_run_export_for_user(uid_str, rows))
 
-        assert len(archive["conversations"]) == 2, (
-            f"Expected 2 conversations, got {len(archive['conversations'])}"
-        )
+        assert (
+            len(archive["conversations"]) == 2
+        ), f"Expected 2 conversations, got {len(archive['conversations'])}"
         # messages are linked to the first conversation; all 3 should be present
-        assert len(archive["messages"]) == 3, (
-            f"Expected 3 messages, got {len(archive['messages'])}"
-        )
+        assert (
+            len(archive["messages"]) == 3
+        ), f"Expected 3 messages, got {len(archive['messages'])}"
         # All other types should be empty
         for key in (
             "documents",
@@ -592,9 +592,9 @@ class TestExportCompletenessEdgeCases:
             "habit_definitions",
             "habit_entries",
         ):
-            assert archive[key] == [], (
-                f"Expected empty list for '{key}', got {archive[key]!r}"
-            )
+            assert (
+                archive[key] == []
+            ), f"Expected empty list for '{key}', got {archive[key]!r}"
 
     def test_two_users_archives_have_no_cross_contamination(self) -> None:
         """Deterministic two-user test: each archive must contain only its own user's
@@ -640,16 +640,16 @@ class TestExportCompletenessEdgeCases:
         # User A's archive must not contain any row with uid_b
         for key in ("conversations", "documents", "memories", "notes"):
             for entry in archive_a.get(key, []):
-                assert entry.get("user_id") != uid_b, (
-                    f"Cross-contamination: archive_a['{key}'] contains uid_b={uid_b}"
-                )
+                assert (
+                    entry.get("user_id") != uid_b
+                ), f"Cross-contamination: archive_a['{key}'] contains uid_b={uid_b}"
 
         # User B's archive must not contain any row with uid_a
         for key in ("conversations", "documents", "memories", "notes"):
             for entry in archive_b.get(key, []):
-                assert entry.get("user_id") != uid_a, (
-                    f"Cross-contamination: archive_b['{key}'] contains uid_a={uid_a}"
-                )
+                assert (
+                    entry.get("user_id") != uid_a
+                ), f"Cross-contamination: archive_b['{key}'] contains uid_a={uid_a}"
 
         # Verify correct counts for user A
         assert len(archive_a["conversations"]) == counts_a["conversations"]

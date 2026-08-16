@@ -286,9 +286,9 @@ def test_property_4_rag_round_trip_retrieval(
     document_text = _build_document_text(phrase, filler_before, filler_after)
 
     # Sanity: the phrase must appear verbatim in the document we built
-    assert phrase in document_text, (
-        f"Setup error: phrase {phrase!r} not found in constructed document text."
-    )
+    assert (
+        phrase in document_text
+    ), f"Setup error: phrase {phrase!r} not found in constructed document text."
 
     result = _run_round_trip(phrase, document_text, document_name)
 
@@ -330,12 +330,12 @@ class TestRAGRoundTripProperty4EdgeCases:
 
         result = _run_round_trip(phrase, document_text, document_name)
 
-        assert len(result.retrieved_chunks) > 0, (
-            "3-word phrase should produce at least one retrieved chunk."
-        )
-        assert any(phrase in c.content for c in result.retrieved_chunks), (
-            f"3-word phrase {phrase!r} not found in any retrieved chunk."
-        )
+        assert (
+            len(result.retrieved_chunks) > 0
+        ), "3-word phrase should produce at least one retrieved chunk."
+        assert any(
+            phrase in c.content for c in result.retrieved_chunks
+        ), f"3-word phrase {phrase!r} not found in any retrieved chunk."
 
     def test_longer_multi_word_phrase(self) -> None:
         """A longer phrase of several words must be retrievable."""
@@ -347,12 +347,12 @@ class TestRAGRoundTripProperty4EdgeCases:
 
         result = _run_round_trip(phrase, document_text, document_name)
 
-        assert len(result.retrieved_chunks) > 0, (
-            "Multi-word phrase should produce at least one retrieved chunk."
-        )
-        assert any(phrase in c.content for c in result.retrieved_chunks), (
-            f"Multi-word phrase {phrase!r} not found in any retrieved chunk."
-        )
+        assert (
+            len(result.retrieved_chunks) > 0
+        ), "Multi-word phrase should produce at least one retrieved chunk."
+        assert any(
+            phrase in c.content for c in result.retrieved_chunks
+        ), f"Multi-word phrase {phrase!r} not found in any retrieved chunk."
 
     def test_phrase_at_start_of_document(self) -> None:
         """A verbatim ≥3-word phrase at the very start of the document must be retrieved."""
@@ -362,12 +362,12 @@ class TestRAGRoundTripProperty4EdgeCases:
 
         result = _run_round_trip(phrase, document_text, document_name)
 
-        assert len(result.retrieved_chunks) > 0, (
-            "Phrase at document start should produce retrieved chunks."
-        )
-        assert any(phrase in c.content for c in result.retrieved_chunks), (
-            f"Phrase at document start {phrase!r} not found in retrieved chunks."
-        )
+        assert (
+            len(result.retrieved_chunks) > 0
+        ), "Phrase at document start should produce retrieved chunks."
+        assert any(
+            phrase in c.content for c in result.retrieved_chunks
+        ), f"Phrase at document start {phrase!r} not found in retrieved chunks."
 
     def test_phrase_at_end_of_document(self) -> None:
         """A verbatim ≥3-word phrase at the very end of the document must be retrieved."""
@@ -377,12 +377,12 @@ class TestRAGRoundTripProperty4EdgeCases:
 
         result = _run_round_trip(phrase, document_text, document_name)
 
-        assert len(result.retrieved_chunks) > 0, (
-            "Phrase at document end should produce retrieved chunks."
-        )
-        assert any(phrase in c.content for c in result.retrieved_chunks), (
-            f"Phrase at document end {phrase!r} not found in retrieved chunks."
-        )
+        assert (
+            len(result.retrieved_chunks) > 0
+        ), "Phrase at document end should produce retrieved chunks."
+        assert any(
+            phrase in c.content for c in result.retrieved_chunks
+        ), f"Phrase at document end {phrase!r} not found in retrieved chunks."
 
     def test_phrase_with_alphanumeric_words(self) -> None:
         """A phrase containing numeric tokens mixed with words must be retrievable."""
@@ -392,12 +392,12 @@ class TestRAGRoundTripProperty4EdgeCases:
 
         result = _run_round_trip(phrase, document_text, document_name)
 
-        assert len(result.retrieved_chunks) > 0, (
-            "Alphanumeric phrase should produce retrieved chunks."
-        )
-        assert any(phrase in c.content for c in result.retrieved_chunks), (
-            f"Alphanumeric phrase {phrase!r} not found in retrieved chunks."
-        )
+        assert (
+            len(result.retrieved_chunks) > 0
+        ), "Alphanumeric phrase should produce retrieved chunks."
+        assert any(
+            phrase in c.content for c in result.retrieved_chunks
+        ), f"Alphanumeric phrase {phrase!r} not found in retrieved chunks."
 
     def test_phrase_in_long_document(self) -> None:
         """A ≥3-word phrase embedded in a multi-chunk document must be retrieved."""
@@ -407,9 +407,9 @@ class TestRAGRoundTripProperty4EdgeCases:
 
         result = _run_round_trip(phrase, document_text, document_name)
 
-        assert len(result.retrieved_chunks) > 0, (
-            "Phrase in long document should produce retrieved chunks."
-        )
-        assert any(phrase in c.content for c in result.retrieved_chunks), (
-            f"Phrase in long document {phrase!r} not found in retrieved chunks."
-        )
+        assert (
+            len(result.retrieved_chunks) > 0
+        ), "Phrase in long document should produce retrieved chunks."
+        assert any(
+            phrase in c.content for c in result.retrieved_chunks
+        ), f"Phrase in long document {phrase!r} not found in retrieved chunks."

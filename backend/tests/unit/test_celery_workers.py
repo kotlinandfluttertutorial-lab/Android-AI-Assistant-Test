@@ -357,9 +357,7 @@ class TestDeliveryNotificationTask:
         message_id = "msg-456"
         conversation_id = "conv-789"
 
-        asyncio.run(
-            _fake_send(user_id, message_id, conversation_id)
-        )
+        asyncio.run(_fake_send(user_id, message_id, conversation_id))
 
         assert len(captured_messages) == 1
         msg = captured_messages[0]

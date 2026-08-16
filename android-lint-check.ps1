@@ -1,22 +1,19 @@
 # ============================================================================
 # Android AI Assistant -- Local ktlint + Detekt Check Script
 # ============================================================================
-#
 # Mirrors the CI "ktlint + Detekt" job exactly:
-#   1. Writes a placeholder google-services.json  (if not present)
+#   1. Writes a placeholder google-services.json (if not present)
 #   2. Lists changed .kt files vs the target branch
-#   3. Runs ./gradlew ktlintCheck   (blocks on any error)
-#   4. Runs ./gradlew detekt        (blocks on any error)
+#   3. Runs ./gradlew ktlintCheck
+#   4. Runs ./gradlew detekt
 #   5. Opens HTML reports in the browser on failure (optional)
 #
-# Run this before pushing to catch Kotlin lint/style failures locally.
-#
 # Usage (from project root):
-#   .\android-lint-check.ps1                         # check only
-#   .\android-lint-check.ps1 -Fix                    # run ktlintFormat first, then check
-#   .\android-lint-check.ps1 -Branch main            # diff against a specific branch (default: main)
-#   .\android-lint-check.ps1 -Fix -SkipDetekt        # format only, skip detekt
-#   .\android-lint-check.ps1 -OpenReports            # open HTML reports in browser after failure
+#   .\android-lint-check.ps1                    # check only
+#   .\android-lint-check.ps1 -Fix               # run ktlintFormat first, then check
+#   .\android-lint-check.ps1 -Branch main       # diff against a specific branch (default: main)
+#   .\android-lint-check.ps1 -Fix -SkipDetekt   # format only, skip detekt
+#   .\android-lint-check.ps1 -OpenReports       # open HTML reports in browser after failure
 # ============================================================================
 
 param(
@@ -27,27 +24,29 @@ param(
     [string]$Branch = "main"
 )
 
+Set-StrictMode -Off
 $ErrorActionPreference = "Stop"
-$ROOT     = $PSScriptRoot
-$GRADLEW  = Join-Path $ROOT "gradlew.bat"
+$ROOT    = $PSScriptRoot
+$GRADLEW = Join-Path $ROOT "gradlew.bat"
 
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
-function Write-Step($msg) { Write-Host "`n==> $msg" -ForegroundColor Cyan }
-function Write-Ok($msg)   { Write-Host "    OK: $msg" -ForegroundColor Green }
-function Write-Fail($msg) { Write-Host "    FAIL: $msg" -ForegroundColor Red }
-function Write-Info($msg) { Write-Host "    $msg" -ForegroundColor Gray }
+function Write-Step([string]$msg) { Write-Host "`n==> $msg" -ForegroundColor Cyan }
+function Write-Ok([string]$msg)   { Write-Host "    OK: $msg" -ForegroundColor Green }
+function Write-Fail([string]$msg) { Write-Host "    FAIL: $msg" -ForegroundColor Red }
+function Write-Info([string]$msg) { Write-Host "    $msg" -ForegroundColor Gray }
 
 $failures = [System.Collections.Generic.List[string]]::new()
 
-function Invoke-Step {
-    param([string]$Name, [scriptblock]$Block)
+function Invoke-Step([string]$Name, [scriptblock]$Block) {
     Write-Step $Name
+    $global:LASTEXITCODE = 0
     try {
         & $Block
-        if ($LASTEXITCODE -and $LASTEXITCODE -ne 0) {
-            Write-Fail "$Name exited with code $LASTEXITCODE"
+        $code = $global:LASTEXITCODE
+        if ($code -ne 0) {
+            Write-Fail "$Name exited with code $code"
             $failures.Add($Name)
         } else {
             Write-Ok $Name
@@ -62,11 +61,12 @@ function Invoke-Step {
 # Pre-flight: gradlew must exist
 # ---------------------------------------------------------------------------
 if (-not (Test-Path $GRADLEW)) {
-    Write-Error "gradlew.bat not found at $ROOT. Run this script from the project root."
+    Write-Host "gradlew.bat not found at $ROOT. Run this script from the project root." -ForegroundColor Red
+    exit 1
 }
 
 # ---------------------------------------------------------------------------
-# Step 1 — Ensure google-services.json exists (CI placeholder logic)
+# Step 1 -- Ensure google-services.json exists (CI placeholder logic)
 # ---------------------------------------------------------------------------
 $GSJ = Join-Path $ROOT "app\google-services.json"
 if (-not (Test-Path $GSJ)) {
@@ -102,13 +102,13 @@ if (-not (Test-Path $GSJ)) {
 }
 '@
     $placeholder | Set-Content -Path $GSJ -Encoding UTF8
-    Write-Ok "Placeholder google-services.json written to app\"
+    Write-Ok "Placeholder google-services.json written"
 } else {
-    Write-Info "google-services.json already present — skipping placeholder."
+    Write-Info "google-services.json already present -- skipping placeholder."
 }
 
 # ---------------------------------------------------------------------------
-# Step 2 — Show changed .kt files vs target branch
+# Step 2 -- Show changed .kt files vs target branch
 # ---------------------------------------------------------------------------
 Write-Step "Changed .kt files vs origin/$Branch..."
 Push-Location $ROOT
@@ -119,15 +119,15 @@ try {
     if ($changedKt) {
         $changedKt | ForEach-Object { Write-Info "  $_" }
     } else {
-        Write-Info "  (no changed .kt files detected — running checks on full tree)"
+        Write-Info "  (no changed .kt files detected -- running checks on full tree)"
     }
 } catch {
-    Write-Info "  (git diff failed — likely no remote or no commits yet; running on full tree)"
+    Write-Info "  (git diff failed -- likely no remote or no commits yet; running on full tree)"
 }
 Pop-Location
 
 # ---------------------------------------------------------------------------
-# Step 3 — ktlint
+# Step 3 -- ktlint
 # ---------------------------------------------------------------------------
 Push-Location $ROOT
 try {
@@ -146,7 +146,7 @@ try {
     }
 
     # -------------------------------------------------------------------------
-    # Step 4 — Detekt
+    # Step 4 -- Detekt
     # -------------------------------------------------------------------------
     if (-not $SkipDetekt) {
         Invoke-Step "Detekt (detekt)" {
@@ -160,18 +160,16 @@ try {
 }
 
 # ---------------------------------------------------------------------------
-# Step 5 — Open reports on failure (optional)
+# Step 5 -- Open reports on failure (optional)
 # ---------------------------------------------------------------------------
 if ($failures.Count -gt 0 -and $OpenReports) {
     Write-Step "Opening failure reports in browser..."
 
-    # ktlint reports
-    $ktlintReports = Get-ChildItem -Path $ROOT -Recurse -Filter "*.html" |
+    $ktlintReports = Get-ChildItem -Path $ROOT -Recurse -Filter "*.html" -ErrorAction SilentlyContinue |
         Where-Object { $_.FullName -match "build.reports.ktlint" }
     $ktlintReports | ForEach-Object { Start-Process $_.FullName }
 
-    # Detekt HTML report
-    $detektReports = Get-ChildItem -Path $ROOT -Recurse -Filter "detekt.html" |
+    $detektReports = Get-ChildItem -Path $ROOT -Recurse -Filter "detekt.html" -ErrorAction SilentlyContinue |
         Where-Object { $_.FullName -match "build.reports.detekt" }
     $detektReports | ForEach-Object { Start-Process $_.FullName }
 }
@@ -198,7 +196,7 @@ if ($failures.Count -eq 0) {
     Write-Host "    -OpenReports  open HTML reports in your browser" -ForegroundColor Yellow
     Write-Host ""
     Write-Host "  Report locations:" -ForegroundColor Yellow
-    Write-Host "    ktlint:  <module>\build\reports\ktlint\" -ForegroundColor Yellow
-    Write-Host "    Detekt:  <module>\build\reports\detekt\" -ForegroundColor Yellow
+    Write-Host "    ktlint : <module>\build\reports\ktlint\" -ForegroundColor Yellow
+    Write-Host "    Detekt : <module>\build\reports\detekt\" -ForegroundColor Yellow
     exit 1
 }

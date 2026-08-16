@@ -378,7 +378,9 @@ class AIOrchestrator:
                 ),
             }
             await ws.send_json(error_payload)
-            raise ValueError(f"Prompt injection detected in message from user {user_id}")
+            raise ValueError(
+                f"Prompt injection detected in message from user {user_id}"
+            )
 
         conv_uuid = uuid.UUID(conversation_id)
         user_uuid = uuid.UUID(user_id)
@@ -537,7 +539,9 @@ class AIOrchestrator:
                 cost_usd=float(cost_usd),
             )
         except Exception as metrics_exc:
-            logger.warning("Failed to record token usage Prometheus metrics: %s", metrics_exc)
+            logger.warning(
+                "Failed to record token usage Prometheus metrics: %s", metrics_exc
+            )
 
         await self._db.commit()
         return token_usage
@@ -751,11 +755,15 @@ class AIOrchestrator:
 
         # Step 3 — Load conversation history from the database
         # Exclude messages created in this same request (user_message not yet committed)
-        history_messages: list[Message] = await self._message_repo.get_by_conversation_id(conv_uuid)
+        history_messages: list[Message] = (
+            await self._message_repo.get_by_conversation_id(conv_uuid)
+        )
 
         # Filter to only user and assistant messages (exclude any system-injected rows)
         history_messages = [
-            msg for msg in history_messages if msg.role in (MessageRole.user, MessageRole.assistant)
+            msg
+            for msg in history_messages
+            if msg.role in (MessageRole.user, MessageRole.assistant)
         ]
 
         # Step 4 — Estimate tokens and check if summarization is needed
@@ -786,7 +794,8 @@ class AIOrchestrator:
             final_history = summarized_messages
         else:
             final_history = [
-                PromptMessage(role=msg.role.value, content=msg.content) for msg in history_messages
+                PromptMessage(role=msg.role.value, content=msg.content)
+                for msg in history_messages
             ]
 
         # Step 5 — Assemble the final prompt context
@@ -800,7 +809,8 @@ class AIOrchestrator:
 
         # Recalculate estimated tokens after potential summarization
         total_tokens_after = (
-            sum(_estimate_tokens(msg.content) for msg in prompt_messages) + current_message_tokens
+            sum(_estimate_tokens(msg.content) for msg in prompt_messages)
+            + current_message_tokens
         )
 
         return PromptContext(
@@ -870,7 +880,10 @@ class AIOrchestrator:
                 role=self.SUMMARY_ROLE,
                 content=f"{self.SUMMARY_PREFIX}{summary_text}",
             ),
-            *[PromptMessage(role=msg.role.value, content=msg.content) for msg in recent_messages],
+            *[
+                PromptMessage(role=msg.role.value, content=msg.content)
+                for msg in recent_messages
+            ],
         ]
         logger.info(
             "Summarized %d messages into a single summary block for user %s",
@@ -1007,7 +1020,9 @@ class AIOrchestrator:
             # Append memory context (mirrors build_base_system_prompt behaviour)
             if memory_entries:
                 memory_block = "\n".join(f"- {entry}" for entry in memory_entries)
-                persona_prompt += f"\n\nRelevant context from your memory:\n{memory_block}"
+                persona_prompt += (
+                    f"\n\nRelevant context from your memory:\n{memory_block}"
+                )
 
             return persona_prompt
 

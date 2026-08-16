@@ -197,7 +197,9 @@ async def get_user_cost_summary(
                 TokenUsage.created_at >= cutoff,
             )
         )
-        .group_by(TokenUsage.feature, TokenUsage.provider, cast(TokenUsage.created_at, Date))
+        .group_by(
+            TokenUsage.feature, TokenUsage.provider, cast(TokenUsage.created_at, Date)
+        )
         .order_by(cast(TokenUsage.created_at, Date).desc())
     )
 
@@ -211,7 +213,9 @@ async def get_user_cost_summary(
 
     for row in rows_raw:
         feature_val = (
-            row.feature.value if isinstance(row.feature, UsageFeature) else str(row.feature)
+            row.feature.value
+            if isinstance(row.feature, UsageFeature)
+            else str(row.feature)
         )
         input_t = int(row.sum_input or 0)
         output_t = int(row.sum_output or 0)
@@ -362,7 +366,9 @@ async def check_spending_alerts(db: AsyncSession) -> None:
     """
     from datetime import date
 
-    today_start = datetime.combine(date.today(), datetime.min.time()).replace(tzinfo=UTC)
+    today_start = datetime.combine(date.today(), datetime.min.time()).replace(
+        tzinfo=UTC
+    )
 
     # Load all un-triggered alerts (dismissed_at is NULL or not set)
     alerts_result = await db.execute(
@@ -398,14 +404,18 @@ async def check_spending_alerts(db: AsyncSession) -> None:
     }
 
     now = datetime.now(tz=UTC)
-    triggered_user_ids: list[tuple[uuid.UUID, float, float]] = []  # (user_id, threshold, cost)
+    triggered_user_ids: list[tuple[uuid.UUID, float, float]] = (
+        []
+    )  # (user_id, threshold, cost)
 
     for alert in alerts:
         daily_cost = daily_cost_by_user.get(alert.user_id, 0.0)
         if daily_cost >= float(alert.threshold_usd):
             alert.is_triggered = True
             alert.triggered_at = now
-            triggered_user_ids.append((alert.user_id, float(alert.threshold_usd), daily_cost))
+            triggered_user_ids.append(
+                (alert.user_id, float(alert.threshold_usd), daily_cost)
+            )
             logger.info(
                 "SpendingAlert triggered: user=%s threshold=%.2f daily_cost=%.6f",
                 alert.user_id,

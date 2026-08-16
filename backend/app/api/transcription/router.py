@@ -107,7 +107,9 @@ def _estimate_duration(file_bytes: bytes, content_type: str) -> float:
     return max(1.0, round(estimated, 2))
 
 
-def _generate_stub_transcript(language: str, duration_seconds: float) -> list[TranscriptSegment]:
+def _generate_stub_transcript(
+    language: str, duration_seconds: float
+) -> list[TranscriptSegment]:
     """Generate a stub transcript with realistic structure.
 
     This is a mock implementation. In production, this would delegate to a
@@ -135,7 +137,9 @@ def _generate_stub_transcript(language: str, duration_seconds: float) -> list[Tr
         ]
         text = texts[i % len(texts)]
 
-        segments.append(TranscriptSegment(timestamp=timestamp, speaker=speaker, text=text))
+        segments.append(
+            TranscriptSegment(timestamp=timestamp, speaker=speaker, text=text)
+        )
 
     return segments
 
@@ -175,7 +179,9 @@ async def transcribe_audio(
     if ext and ext not in _ALLOWED_AUDIO_EXTENSIONS:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=(f"Unsupported audio format '{ext}'. Allowed: mp3, wav, m4a, ogg, webm."),
+            detail=(
+                f"Unsupported audio format '{ext}'. Allowed: mp3, wav, m4a, ogg, webm."
+            ),
         )
 
     # Content-type check (secondary, as some clients may not set it correctly)

@@ -105,7 +105,9 @@ async def websocket_chat(
     try:
         payload = await authenticate_websocket(token)
     except InvalidTokenError as exc:
-        logger.info("WebSocket auth rejected (conversation=%s): %s", conversation_id, exc)
+        logger.info(
+            "WebSocket auth rejected (conversation=%s): %s", conversation_id, exc
+        )
         await websocket.send_json(
             {
                 "type": "error",

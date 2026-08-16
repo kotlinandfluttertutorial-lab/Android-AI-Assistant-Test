@@ -184,9 +184,7 @@ class PromptService:
             is_active=True,
         )
         db.add(new_template)
-        await (
-            db.flush()
-        )  # populate server-side defaults (id, timestamps) within transaction
+        await db.flush()  # populate server-side defaults (id, timestamps) within transaction
         await db.refresh(new_template)
         return new_template
 

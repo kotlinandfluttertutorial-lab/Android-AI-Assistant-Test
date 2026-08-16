@@ -369,9 +369,9 @@ class TestJWTIssuance:
 
         now = datetime.now(tz=timezone.utc)
         lifetime_seconds = (access_exp - now).total_seconds()
-        assert 14 * 60 + 50 <= lifetime_seconds <= 15 * 60 + 10, (
-            f"Expected ~15-min expiry, got {lifetime_seconds:.1f}s"
-        )
+        assert (
+            14 * 60 + 50 <= lifetime_seconds <= 15 * 60 + 10
+        ), f"Expected ~15-min expiry, got {lifetime_seconds:.1f}s"
 
     @pytest.mark.asyncio
     async def test_refresh_token_expires_in_approximately_30_days(self) -> None:
@@ -389,9 +389,9 @@ class TestJWTIssuance:
         now = datetime.now(tz=timezone.utc)
         target_seconds = 30 * 24 * 3600
         actual_seconds = (refresh_exp - now).total_seconds()
-        assert abs(actual_seconds - target_seconds) < 60, (
-            f"Expected ~30-day expiry ({target_seconds}s), got {actual_seconds:.0f}s"
-        )
+        assert (
+            abs(actual_seconds - target_seconds) < 60
+        ), f"Expected ~30-day expiry ({target_seconds}s), got {actual_seconds:.0f}s"
 
     @pytest.mark.asyncio
     async def test_access_token_carries_correct_sub_claim(self) -> None:
@@ -457,9 +457,9 @@ class TestJWTIssuance:
 
         # A JWT would have exactly 2 dots; opaque tokens have none or different structure
         dot_count = refresh_token.count(".")
-        assert dot_count == 0 or len(refresh_token.split(".")) != 3, (
-            "Refresh token must be opaque, not a JWT with header.payload.signature"
-        )
+        assert (
+            dot_count == 0 or len(refresh_token.split(".")) != 3
+        ), "Refresh token must be opaque, not a JWT with header.payload.signature"
 
 
 # ===========================================================================
@@ -686,9 +686,9 @@ class TestReplayDetection:
         assert isinstance(raised, SecurityViolationError)
         # Must NOT be a plain InvalidTokenError (a non-SecurityViolation subclass)
         if isinstance(raised, InvalidTokenError):
-            assert isinstance(raised, SecurityViolationError), (
-                "If InvalidTokenError is also raised, it must be a SecurityViolationError subclass"
-            )
+            assert isinstance(
+                raised, SecurityViolationError
+            ), "If InvalidTokenError is also raised, it must be a SecurityViolationError subclass"
 
 
 # ===========================================================================
@@ -1531,9 +1531,9 @@ class TestAuthServiceIntegration:
                         "password": self._VALID_PASSWORD,
                     },
                 )
-                assert reg_resp.status_code == 201, (
-                    f"Register failed: {reg_resp.json()}"
-                )
+                assert (
+                    reg_resp.status_code == 201
+                ), f"Register failed: {reg_resp.json()}"
                 assert "access_token" in reg_resp.json()
 
                 # Step 2: Login
@@ -1544,9 +1544,9 @@ class TestAuthServiceIntegration:
                         "password": self._VALID_PASSWORD,
                     },
                 )
-                assert login_resp.status_code == 200, (
-                    f"Login failed: {login_resp.json()}"
-                )
+                assert (
+                    login_resp.status_code == 200
+                ), f"Login failed: {login_resp.json()}"
                 login_body = login_resp.json()
                 assert "access_token" in login_body
                 assert "refresh_token" in login_body
@@ -1558,9 +1558,9 @@ class TestAuthServiceIntegration:
                         "refresh_token": login_body["refresh_token"],
                     },
                 )
-                assert refresh_resp.status_code == 200, (
-                    f"Refresh failed: {refresh_resp.json()}"
-                )
+                assert (
+                    refresh_resp.status_code == 200
+                ), f"Refresh failed: {refresh_resp.json()}"
                 refresh_body = refresh_resp.json()
                 assert refresh_body["access_token"] == new_access
                 assert refresh_body["refresh_token"] == new_refresh
@@ -1707,9 +1707,9 @@ class TestJWTExpiryBoundaries:
         """
         token, exp = create_access_token(SAMPLE_USER_ID, "user")
         lifetime = (exp - datetime.now(tz=timezone.utc)).total_seconds()
-        assert lifetime <= 30 * 60, (
-            f"Access token lifetime {lifetime}s exceeds 30 minutes"
-        )
+        assert (
+            lifetime <= 30 * 60
+        ), f"Access token lifetime {lifetime}s exceeds 30 minutes"
 
     def test_refresh_token_expiry_greater_than_29_days(self) -> None:
         """Refresh token lifetime must be at least 29 days.
@@ -1718,9 +1718,9 @@ class TestJWTExpiryBoundaries:
         """
         data = create_refresh_token()
         lifetime = (data.expires_at - datetime.now(tz=timezone.utc)).total_seconds()
-        assert lifetime >= 29 * 24 * 3600, (
-            f"Refresh token lifetime {lifetime}s is less than 29 days"
-        )
+        assert (
+            lifetime >= 29 * 24 * 3600
+        ), f"Refresh token lifetime {lifetime}s is less than 29 days"
 
     def test_expired_access_token_raises_on_verification(self) -> None:
         """verify_access_token must raise InvalidTokenError for expired tokens.

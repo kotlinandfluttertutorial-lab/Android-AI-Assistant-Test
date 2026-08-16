@@ -125,7 +125,9 @@ async def update_device_token(
 
         user.fcm_token = body.token
         await db.commit()
-        logger.info("update_device_token: FCM token updated for user=%s", str(current_user.sub))
+        logger.info(
+            "update_device_token: FCM token updated for user=%s", str(current_user.sub)
+        )
         return DeviceTokenResponse(status="updated")
 
     except HTTPException:

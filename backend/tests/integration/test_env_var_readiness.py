@@ -145,9 +145,9 @@ class TestReadyEnvVarValidation:
             ) as client:
                 response = await client.get("/ready")
 
-        assert response.status_code == 503, (
-            f"Expected 503 when {missing_var!r} is missing, got {response.status_code}"
-        )
+        assert (
+            response.status_code == 503
+        ), f"Expected 503 when {missing_var!r} is missing, got {response.status_code}"
 
     @pytest.mark.asyncio
     @pytest.mark.parametrize("missing_var", list(_BASE_ENV.keys()))
@@ -176,9 +176,9 @@ class TestReadyEnvVarValidation:
             f"Expected 'missing_env_vars' key in /ready response body when "
             f"{missing_var!r} is absent, got: {body!r}"
         )
-        assert missing_var in body["missing_env_vars"], (
-            f"Expected {missing_var!r} listed in missing_env_vars, got {body['missing_env_vars']!r}"
-        )
+        assert (
+            missing_var in body["missing_env_vars"]
+        ), f"Expected {missing_var!r} listed in missing_env_vars, got {body['missing_env_vars']!r}"
 
     @pytest.mark.asyncio
     async def test_ready_returns_503_with_status_unavailable(self) -> None:

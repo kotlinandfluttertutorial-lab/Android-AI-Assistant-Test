@@ -290,9 +290,9 @@ def test_property_24a_every_log_entry_contains_all_required_fields(
 
         # --- 4. path must be a non-empty string matching the request path ---
         logged_path = record_dict["path"]
-        assert isinstance(logged_path, str) and len(logged_path) > 0, (
-            f"Property 24A violated: path={logged_path!r} is not a non-empty string."
-        )
+        assert (
+            isinstance(logged_path, str) and len(logged_path) > 0
+        ), f"Property 24A violated: path={logged_path!r} is not a non-empty string."
         assert logged_path == path, (
             f"Property 24A violated: logged path={logged_path!r} does not match "
             f"request path={path!r}"
@@ -618,9 +618,9 @@ class TestStructuredLogFieldCompletenessEdgeCases:
         client_no_raise = TestClient(_test_app, raise_server_exceptions=False)
         client_no_raise.get("/exception")
         final = http_unhandled_exceptions_total.labels(path="/exception")._value.get()
-        assert final - initial == 1, (
-            f"Counter delta={final - initial} after 1 unhandled exception; expected 1."
-        )
+        assert (
+            final - initial == 1
+        ), f"Counter delta={final - initial} after 1 unhandled exception; expected 1."
 
     def test_unhandled_exception_does_not_emit_info_request_log(self) -> None:
         """An unhandled exception must NOT emit a normal 'request' INFO log.
@@ -704,9 +704,9 @@ class TestStructuredLogFieldCompletenessEdgeCases:
         logged_correlation_id = request_logs[0].__dict__["correlation_id"]
         header_correlation_id = response.headers.get("X-Correlation-ID")
 
-        assert header_correlation_id is not None, (
-            "X-Correlation-ID header missing from response."
-        )
+        assert (
+            header_correlation_id is not None
+        ), "X-Correlation-ID header missing from response."
         assert header_correlation_id == logged_correlation_id, (
             f"X-Correlation-ID header={header_correlation_id!r} does not match "
             f"logged correlation_id={logged_correlation_id!r}"

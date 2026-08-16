@@ -292,13 +292,13 @@ async def test_16_prompt_template_version_rollback(
 
     # Sanity-check the setup: we should have exactly N version rows numbered 1..N
     all_rows_before = repo.all_rows_for(name)
-    assert len(all_rows_before) == n, (
-        f"[Setup] Expected {n} rows before rollback, got {len(all_rows_before)}"
-    )
+    assert (
+        len(all_rows_before) == n
+    ), f"[Setup] Expected {n} rows before rollback, got {len(all_rows_before)}"
     for i, row in enumerate(all_rows_before):
-        assert row.version == i + 1, (
-            f"[Setup] Row at index {i} should have version {i + 1}, got {row.version}"
-        )
+        assert (
+            row.version == i + 1
+        ), f"[Setup] Row at index {i} should have version {i + 1}, got {row.version}"
         assert row.content == contents[i], (
             f"[Setup] Row v{i + 1} content mismatch: "
             f"expected {contents[i]!r}, got {row.content!r}"
@@ -345,9 +345,9 @@ async def test_16_prompt_template_version_rollback(
 
     # 16c: The rollback row has a version strictly greater than N
     rollback_row_version = all_rows_after[-1].version  # newest = last after sort
-    assert rollback_row_version > n, (
-        f"[Property 16c] Rollback row version {rollback_row_version} must be > N={n}"
-    )
+    assert (
+        rollback_row_version > n
+    ), f"[Property 16c] Rollback row version {rollback_row_version} must be > N={n}"
     # Specifically it should be N + 1
     assert rollback_row_version == n + 1, (
         f"[Property 16c] Rollback row version should be N+1={n + 1}, "
@@ -422,12 +422,12 @@ async def test_16_repeated_rollbacks_preserve_all_history(
         # Original N rows (1..N) must still be intact
         for i in range(n):
             row = all_rows[i]
-            assert row.version == i + 1, (
-                f"[16-repeated] Original v{i + 1} is missing after rollback"
-            )
-            assert row.content == contents[i], (
-                f"[16-repeated] Original v{i + 1} content was mutated"
-            )
+            assert (
+                row.version == i + 1
+            ), f"[16-repeated] Original v{i + 1} is missing after rollback"
+            assert (
+                row.content == contents[i]
+            ), f"[16-repeated] Original v{i + 1} content was mutated"
 
         # Active content must match the targeted historical version
         active_content = await service.get_template(name)
@@ -437,9 +437,9 @@ async def test_16_repeated_rollbacks_preserve_all_history(
         )
 
         # Exactly one row is active
-        assert repo.count_active(name) == 1, (
-            "[16-repeated] More than one active row detected after rollback"
-        )
+        assert (
+            repo.count_active(name) == 1
+        ), "[16-repeated] More than one active row detected after rollback"
 
 
 # ---------------------------------------------------------------------------

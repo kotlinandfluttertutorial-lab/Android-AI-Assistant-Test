@@ -150,7 +150,9 @@ def verify_access_token(token: str) -> TokenPayload:
     required_claims = {"sub", "role", "jti", "iat", "exp"}
     missing = required_claims - set(raw_payload.keys())
     if missing:
-        raise InvalidTokenError(f"JWT is missing required claims: {', '.join(sorted(missing))}")
+        raise InvalidTokenError(
+            f"JWT is missing required claims: {', '.join(sorted(missing))}"
+        )
 
     # Convert numeric timestamps to aware datetime objects.
     try:

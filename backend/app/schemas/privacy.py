@@ -55,7 +55,9 @@ class EpsilonResponse(BaseModel):
     Requirements: 37.2, 37.6
     """
 
-    epsilon: float = Field(description="Current differential-privacy epsilon (ε) value.")
+    epsilon: float = Field(
+        description="Current differential-privacy epsilon (ε) value."
+    )
     mechanism: str = Field(
         default="Laplace",
         description="Noise mechanism in use (always 'Laplace' in this implementation).",

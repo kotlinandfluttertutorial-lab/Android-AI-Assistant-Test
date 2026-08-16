@@ -79,7 +79,9 @@ class HabitDefinition(Base, TimestampMixin):
     # ------------------------------------------------------------------
     # Relationships
     # ------------------------------------------------------------------
-    user: Mapped[User] = relationship("User", back_populates="habit_definitions")  # noqa: F821
+    user: Mapped[User] = relationship(
+        "User", back_populates="habit_definitions"
+    )  # noqa: F821
     entries: Mapped[list[HabitEntry]] = relationship(
         "HabitEntry", back_populates="habit", cascade="all, delete-orphan"
     )
@@ -121,8 +123,12 @@ class HabitEntry(Base, TimestampMixin):
     # ------------------------------------------------------------------
     # Relationships
     # ------------------------------------------------------------------
-    habit: Mapped[HabitDefinition] = relationship("HabitDefinition", back_populates="entries")
-    user: Mapped[User] = relationship("User", back_populates="habit_entries")  # noqa: F821
+    habit: Mapped[HabitDefinition] = relationship(
+        "HabitDefinition", back_populates="entries"
+    )
+    user: Mapped[User] = relationship(
+        "User", back_populates="habit_entries"
+    )  # noqa: F821
 
     def __repr__(self) -> str:
         return (

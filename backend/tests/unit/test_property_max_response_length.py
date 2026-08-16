@@ -276,9 +276,9 @@ async def test_15a_output_tokens_within_configured_cap(
 
     await _run_stream_chat(orch, provider)
 
-    assert len(captured) == 1, (
-        f"Expected exactly one TokenUsage.create call, got {len(captured)}"
-    )
+    assert (
+        len(captured) == 1
+    ), f"Expected exactly one TokenUsage.create call, got {len(captured)}"
 
     actual_output = captured[0]["output_tokens"]
     assert actual_output <= max_output_tokens, (
@@ -413,9 +413,9 @@ async def test_15_all_six_providers_deterministic() -> None:
 
         await _run_stream_chat(orch, provider)
 
-        assert len(captured) == 1, (
-            f"Expected 1 TokenUsage.create call for {provider.value}, got {len(captured)}"
-        )
+        assert (
+            len(captured) == 1
+        ), f"Expected 1 TokenUsage.create call for {provider.value}, got {len(captured)}"
         actual_output = captured[0]["output_tokens"]
         assert actual_output <= fixed_max, (
             f"output_tokens={actual_output} must be ≤ max_output_tokens={fixed_max} "

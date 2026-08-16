@@ -277,7 +277,9 @@ class ProductivityRepository:
             conditions.append(CalendarEvent.start_time <= end_date)
 
         result = await self._db.execute(
-            select(CalendarEvent).where(*conditions).order_by(CalendarEvent.start_time.asc())
+            select(CalendarEvent)
+            .where(*conditions)
+            .order_by(CalendarEvent.start_time.asc())
         )
         return list(result.scalars().all())
 
@@ -308,7 +310,9 @@ class ProductivityRepository:
         await self._db.refresh(event)
         return event
 
-    async def delete_calendar_event(self, event_id: uuid.UUID, user_id: uuid.UUID) -> bool:
+    async def delete_calendar_event(
+        self, event_id: uuid.UUID, user_id: uuid.UUID
+    ) -> bool:
         """Delete a calendar event, scoped to the given user."""
         event = await self.get_calendar_event(event_id, user_id)
         if event is None:
@@ -351,7 +355,9 @@ class ProductivityRepository:
         await self._db.refresh(reminder)
         return reminder
 
-    async def get_reminder(self, reminder_id: uuid.UUID, user_id: uuid.UUID) -> Reminder | None:
+    async def get_reminder(
+        self, reminder_id: uuid.UUID, user_id: uuid.UUID
+    ) -> Reminder | None:
         """Return a reminder by primary key, scoped to the given user."""
         result = await self._db.execute(
             select(Reminder).where(
@@ -437,7 +443,9 @@ class ProductivityRepository:
         await self._db.refresh(habit)
         return habit
 
-    async def get_habit(self, habit_id: uuid.UUID, user_id: uuid.UUID) -> HabitDefinition | None:
+    async def get_habit(
+        self, habit_id: uuid.UUID, user_id: uuid.UUID
+    ) -> HabitDefinition | None:
         """Return a habit definition by primary key, scoped to the given user."""
         result = await self._db.execute(
             select(HabitDefinition).where(
@@ -518,7 +526,9 @@ class ProductivityRepository:
         await self._db.refresh(entry)
         return entry
 
-    async def list_habit_entries(self, habit_id: uuid.UUID, user_id: uuid.UUID) -> list[HabitEntry]:
+    async def list_habit_entries(
+        self, habit_id: uuid.UUID, user_id: uuid.UUID
+    ) -> list[HabitEntry]:
         """Return all habit entries for a specific habit, scoped to the user.
 
         Results are ordered by completed_at ASC.

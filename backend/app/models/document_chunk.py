@@ -99,7 +99,9 @@ class DocumentChunk(Base):
     # ------------------------------------------------------------------
     # Relationships
     # ------------------------------------------------------------------
-    document: Mapped[Document] = relationship("Document", back_populates="chunks")  # noqa: F821
+    document: Mapped[Document] = relationship(
+        "Document", back_populates="chunks"
+    )  # noqa: F821
 
     def __repr__(self) -> str:
         return (

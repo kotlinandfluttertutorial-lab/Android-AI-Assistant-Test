@@ -274,30 +274,30 @@ def test_property_9c_format_citations_completeness(chunks: list[dict]) -> None:
 
     for i, (citation, chunk_data) in enumerate(zip(citations, chunks)):
         # document_name must be present and non-empty
-        assert "document_name" in citation, (
-            f"Property 9C violated at index {i}: 'document_name' key missing from citation dict."
-        )
+        assert (
+            "document_name" in citation
+        ), f"Property 9C violated at index {i}: 'document_name' key missing from citation dict."
         assert citation["document_name"] != "", (
             f"Property 9C violated at index {i}: citation has empty document_name. "
             f"chunk_data={chunk_data!r}"
         )
 
         # page_number must be present and ≥ 1
-        assert "page_number" in citation, (
-            f"Property 9C violated at index {i}: 'page_number' key missing from citation dict."
-        )
+        assert (
+            "page_number" in citation
+        ), f"Property 9C violated at index {i}: 'page_number' key missing from citation dict."
         assert isinstance(citation["page_number"], int), (
             f"Property 9C violated at index {i}: page_number is not an int. "
             f"Got {type(citation['page_number']).__name__!r}: {citation['page_number']!r}"
         )
-        assert citation["page_number"] >= 1, (
-            f"Property 9C violated at index {i}: page_number={citation['page_number']} < 1."
-        )
+        assert (
+            citation["page_number"] >= 1
+        ), f"Property 9C violated at index {i}: page_number={citation['page_number']} < 1."
 
         # chunk_index must match the position in the list
-        assert "chunk_index" in citation, (
-            f"Property 9C violated at index {i}: 'chunk_index' key missing from citation dict."
-        )
+        assert (
+            "chunk_index" in citation
+        ), f"Property 9C violated at index {i}: 'chunk_index' key missing from citation dict."
         assert citation["chunk_index"] == i, (
             f"Property 9C violated at index {i}: chunk_index={citation['chunk_index']!r}, "
             f"expected {i}."
@@ -510,9 +510,9 @@ class TestRAGCitationCompletenessEdgeCases:
         ]
         context = _build_context_string("What is the capital of France?", chunks)
 
-        assert "[Source: geography.pdf, Page 42]" in context, (
-            f"Edge case failed: single-chunk context missing citation. context={context!r}"
-        )
+        assert (
+            "[Source: geography.pdf, Page 42]" in context
+        ), f"Edge case failed: single-chunk context missing citation. context={context!r}"
 
     def test_multiple_chunks_all_have_distinct_citations(self) -> None:
         """Each of multiple chunks must have its own citation in the context."""
@@ -603,9 +603,9 @@ class TestRAGCitationCompletenessEdgeCases:
         ]
         context = _build_context_string("What is in the introduction?", chunks)
 
-        assert "[Source: report.docx, Page 1]" in context, (
-            f"Edge case failed: page 1 citation not correctly formatted. context={context!r}"
-        )
+        assert (
+            "[Source: report.docx, Page 1]" in context
+        ), f"Edge case failed: page 1 citation not correctly formatted. context={context!r}"
 
     def test_high_page_number_is_cited_correctly(self) -> None:
         """Very high page numbers (e.g. 9999) must be cited accurately."""
@@ -623,9 +623,9 @@ class TestRAGCitationCompletenessEdgeCases:
         ]
         context = _build_context_string("Find appendix Z.", chunks)
 
-        assert "[Source: encyclopedia.pdf, Page 9999]" in context, (
-            f"Edge case failed: high page number citation wrong. context={context!r}"
-        )
+        assert (
+            "[Source: encyclopedia.pdf, Page 9999]" in context
+        ), f"Edge case failed: high page number citation wrong. context={context!r}"
 
     def test_query_documents_no_chunks_returns_empty_context(self) -> None:
         """When ChromaDB returns zero results, context must be empty."""
@@ -660,9 +660,9 @@ class TestRAGCitationCompletenessEdgeCases:
 
         result = asyncio.run(_run())
 
-        assert result.retrieved_chunks == [], (
-            "Expected empty retrieved_chunks for no ChromaDB results."
-        )
+        assert (
+            result.retrieved_chunks == []
+        ), "Expected empty retrieved_chunks for no ChromaDB results."
         assert result.context == "", f"Expected empty context, got {result.context!r}"
 
     def test_assemble_context_method_includes_all_citations(self) -> None:
@@ -680,9 +680,9 @@ class TestRAGCitationCompletenessEdgeCases:
         service = RAGService()
         context = service._assemble_context(chunks)
 
-        assert "[Source: source_a.pdf, Page 2]" in context, (
-            f"_assemble_context missing citation for chunk 0. context={context!r}"
-        )
-        assert "[Source: source_b.txt, Page 14]" in context, (
-            f"_assemble_context missing citation for chunk 1. context={context!r}"
-        )
+        assert (
+            "[Source: source_a.pdf, Page 2]" in context
+        ), f"_assemble_context missing citation for chunk 0. context={context!r}"
+        assert (
+            "[Source: source_b.txt, Page 14]" in context
+        ), f"_assemble_context missing citation for chunk 1. context={context!r}"

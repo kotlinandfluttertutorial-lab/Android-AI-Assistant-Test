@@ -181,9 +181,9 @@ def test_clean_output_passes_through_unchanged(text: str) -> None:
     )
 
     # No spurious redaction markers.
-    assert "[content removed]" not in result or "[content removed]" in text, (
-        f"Unexpected '[content removed]' in output for clean input {text!r}."
-    )
+    assert (
+        "[content removed]" not in result or "[content removed]" in text
+    ), f"Unexpected '[content removed]' in output for clean input {text!r}."
 
 
 # ---------------------------------------------------------------------------
@@ -350,9 +350,9 @@ def test_safety_filter_error_blocks_entire_streaming_response(harmful: str) -> N
 
     # The error message must reference the safety filter.
     error_text = error_messages[0].get("message", "")
-    assert "safety" in error_text.lower() or "blocked" in error_text.lower(), (
-        f"Error message does not mention safety/blocked. Got: {error_text!r}"
-    )
+    assert (
+        "safety" in error_text.lower() or "blocked" in error_text.lower()
+    ), f"Error message does not mention safety/blocked. Got: {error_text!r}"
 
     # The harmful token must NOT have been sent as a "token" message.
     token_messages = [m for m in sent_messages if m.get("type") == "token"]

@@ -141,12 +141,18 @@ class ContextSuggestionResponse(BaseModel):
     """
 
     id: str = Field(description="UUID string identifying this suggestion.")
-    type: SuggestionType = Field(description="The type of AI action this suggestion represents.")
-    display_text: str = Field(description="Human-readable chip label shown to the user.")
+    type: SuggestionType = Field(
+        description="The type of AI action this suggestion represents."
+    )
+    display_text: str = Field(
+        description="Human-readable chip label shown to the user."
+    )
     pre_fill_text: str = Field(
         description="Text pre-filled in the input field when the suggestion is tapped."
     )
-    target_screen_type: str = Field(description="The screen type this suggestion belongs to.")
+    target_screen_type: str = Field(
+        description="The screen type this suggestion belongs to."
+    )
 
 
 class SuggestionsResponse(BaseModel):

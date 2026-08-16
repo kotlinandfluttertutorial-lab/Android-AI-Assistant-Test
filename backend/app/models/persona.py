@@ -113,9 +113,7 @@ class Persona(Base, TimestampMixin):
     # ------------------------------------------------------------------
     # Relationships (back-populated in parent models)
     # ------------------------------------------------------------------
-    user: Mapped[User] = relationship(  # noqa: F821
-        "User", back_populates="personas"
-    )
+    user: Mapped[User] = relationship("User", back_populates="personas")  # noqa: F821
 
     def __repr__(self) -> str:
         return (

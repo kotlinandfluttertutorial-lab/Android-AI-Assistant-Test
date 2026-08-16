@@ -80,7 +80,9 @@ class ConversationUpdate(BaseModel):
         max_length=_MAX_TITLE_LEN,
         description="New conversation title.",
     )
-    is_pinned: bool | None = Field(default=None, description="Pin or unpin the conversation.")
+    is_pinned: bool | None = Field(
+        default=None, description="Pin or unpin the conversation."
+    )
 
     @field_validator("title")
     @classmethod
@@ -109,7 +111,9 @@ class ConversationListResponse(BaseModel):
     """Response schema for paginated conversation lists."""
 
     items: list[ConversationResponse]
-    total: int = Field(description="Total number of non-deleted conversations for the user.")
+    total: int = Field(
+        description="Total number of non-deleted conversations for the user."
+    )
     page: int = Field(description="Current 1-indexed page number.")
     page_size: int = Field(description="Number of items per page.")
 
@@ -151,7 +155,9 @@ class MessageListResponse(BaseModel):
 class ExportRequest(BaseModel):
     """Query parameters for POST /conversations/{id}/export."""
 
-    format: Literal["markdown", "pdf"] = Field(description="Export format: 'markdown' or 'pdf'.")
+    format: Literal["markdown", "pdf"] = Field(
+        description="Export format: 'markdown' or 'pdf'."
+    )
 
 
 # ---------------------------------------------------------------------------

@@ -417,7 +417,9 @@ def test_property_26c_oversized_valid_format_rejected_nothing_stored(
         MockDocRepo.return_value = mock_repo_instance
 
         # Patch UploadFile.read to return our fake oversized bytes
-        with patch("starlette.datastructures.UploadFile.read", new_callable=AsyncMock) as mock_read:
+        with patch(
+            "starlette.datastructures.UploadFile.read", new_callable=AsyncMock
+        ) as mock_read:
             mock_read.return_value = fake_bytes
 
             client = _get_client()

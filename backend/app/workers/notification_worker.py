@@ -135,6 +135,7 @@ async def _run_send_push_notification(
         await _log_push_failure(user_id, title, body)
         return {"status": "failed", "user_id": user_id}
 
+
 async def _log_push_failure(user_id: str, title: str, body: str) -> None:
     """Write a push notification failure record to the error_log table."""
     try:
@@ -181,9 +182,7 @@ def refresh_device_token(self, user_id: str, old_token: str, new_token: str) -> 
 
     Requirements: 16.7
     """
-    return asyncio.run(
-        _run_refresh_device_token(self, user_id, old_token, new_token)
-    )
+    return asyncio.run(_run_refresh_device_token(self, user_id, old_token, new_token))
 
 
 async def _run_refresh_device_token(
@@ -263,16 +262,16 @@ def send_message_delivery_notification_task(
         dict with ``status`` and relevant IDs.
     """
     try:
-        asyncio.run(
-            _send_delivery_notification(user_id, message_id, conversation_id)
-        )
+        asyncio.run(_send_delivery_notification(user_id, message_id, conversation_id))
         return {
             "status": "sent",
             "user_id": user_id,
             "message_id": message_id,
             "conversation_id": conversation_id,
         }
-    except Exception as exc:  # Best-effort: retry up to max_retries, then give up silently
+    except (
+        Exception
+    ) as exc:  # Best-effort: retry up to max_retries, then give up silently
         logger.warning(
             "send_message_delivery_notification_task: attempt %d failed for "
             "user=%s message=%s: %s",

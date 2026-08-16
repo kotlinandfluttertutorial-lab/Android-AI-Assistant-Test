@@ -59,14 +59,22 @@ class MetricsResponse(BaseModel):
     Requirements: 15.1
     """
 
-    active_users: int = Field(description="Number of users with sessions active in the last hour")
+    active_users: int = Field(
+        description="Number of users with sessions active in the last hour"
+    )
     messages_per_hour: int = Field(description="Total messages sent in the last hour")
-    total_tokens_consumed: int = Field(description="Cumulative tokens across all providers")
-    provider_costs: list[ProviderCost] = Field(description="Per-provider token cost breakdown")
+    total_tokens_consumed: int = Field(
+        description="Cumulative tokens across all providers"
+    )
+    provider_costs: list[ProviderCost] = Field(
+        description="Per-provider token cost breakdown"
+    )
     error_rate_per_hour: float = Field(
         description="Fraction of requests that resulted in a 5xx error in the last hour"
     )
-    snapshot_at: datetime = Field(description="UTC timestamp when metrics were collected")
+    snapshot_at: datetime = Field(
+        description="UTC timestamp when metrics were collected"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -384,7 +392,9 @@ class UsageAnalyticsItem(BaseModel):
 
     feature: str = Field(description="AI feature name, e.g. 'chat', 'rag', 'voice'")
     provider: str = Field(description="LLM provider name, e.g. 'openai'")
-    total_requests: int = Field(description="Number of completions for this feature/provider pair")
+    total_requests: int = Field(
+        description="Number of completions for this feature/provider pair"
+    )
     total_tokens: int = Field(description="Total tokens consumed (input + output)")
     cost_usd: float = Field(description="Estimated cumulative cost in USD")
 

@@ -45,7 +45,9 @@ class DocumentUploadResponse(BaseModel):
 
     model_config = ConfigDict(from_attributes=True)
 
-    document_id: uuid.UUID = Field(description="UUID of the newly created document row.")
+    document_id: uuid.UUID = Field(
+        description="UUID of the newly created document row."
+    )
     job_id: uuid.UUID = Field(description="UUID of the background ingestion job.")
     status: str = Field(
         default="pending",
@@ -62,7 +64,9 @@ class JobStatusResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     job_id: uuid.UUID = Field(description="UUID of the job.")
-    status: str = Field(description="Current job status: queued | running | completed | failed.")
+    status: str = Field(
+        description="Current job status: queued | running | completed | failed."
+    )
     document_id: uuid.UUID | None = Field(
         default=None,
         description="UUID of the related document (populated for document_ingestion jobs).",
@@ -100,7 +104,9 @@ class DocumentListResponse(BaseModel):
     Requirements: 4.3
     """
 
-    documents: list[DocumentResponse] = Field(description="List of documents owned by the user.")
+    documents: list[DocumentResponse] = Field(
+        description="List of documents owned by the user."
+    )
     total: int = Field(description="Total number of documents.")
 
 
@@ -195,8 +201,12 @@ class Citation(BaseModel):
     """
 
     document_name: str = Field(description="Original filename of the source document.")
-    page_number: int = Field(description="1-based page number where the chunk originates.")
-    chunk_index: int = Field(description="Zero-based index of the chunk within the document.")
+    page_number: int = Field(
+        description="1-based page number where the chunk originates."
+    )
+    chunk_index: int = Field(
+        description="Zero-based index of the chunk within the document."
+    )
     citation_type: str = Field(
         default="page",
         description=(
@@ -226,7 +236,9 @@ class RetrievedChunk(BaseModel):
     chunk_id: str = Field(description="ChromaDB document ID / chroma_id for the chunk.")
     document_id: str = Field(description="UUID of the parent document.")
     document_name: str = Field(description="Original filename of the source document.")
-    page_number: int = Field(description="1-based page number where the chunk originates.")
+    page_number: int = Field(
+        description="1-based page number where the chunk originates."
+    )
     content: str = Field(description="Raw chunk text.")
     similarity_score: float = Field(
         description="Cosine similarity score from the vector search (0.0 – 1.0).",
@@ -249,8 +261,12 @@ class RAGQueryResult(BaseModel):
             "Pre-formatted context string with inline citation markers, ready for LLM injection."
         )
     )
-    chunks: list[RetrievedChunk] = Field(description="List of retrieved chunks with full metadata.")
-    citations: list[Citation] = Field(description="Citation list — one entry per retrieved chunk.")
+    chunks: list[RetrievedChunk] = Field(
+        description="List of retrieved chunks with full metadata."
+    )
+    citations: list[Citation] = Field(
+        description="Citation list — one entry per retrieved chunk."
+    )
 
 
 class DocumentQueryResponse(BaseModel):
@@ -259,7 +275,9 @@ class DocumentQueryResponse(BaseModel):
     Requirements: 4.6, 4.7 (Property 9)
     """
 
-    answer: str = Field(description="AI-generated answer based on the retrieved context.")
+    answer: str = Field(
+        description="AI-generated answer based on the retrieved context."
+    )
     citations: list[Citation] = Field(
         description="Citations for every chunk used in the answer (document name + page number)."
     )
@@ -276,7 +294,9 @@ class ChunkResult(BaseModel):
 
     content: str = Field(description="Raw chunk text.")
     document_name: str = Field(description="Original filename of the source document.")
-    page_number: int = Field(description="1-based page number where the chunk originates.")
+    page_number: int = Field(
+        description="1-based page number where the chunk originates."
+    )
     citation: str = Field(
         description="Formatted citation: [Source: {document_name}, Page {page_number}]"
     )
@@ -304,7 +324,9 @@ class ChunkQueryResponse(BaseModel):
     """
 
     query: str = Field(description="The original query string.")
-    chunks: list[ChunkResult] = Field(description="List of retrieved chunks with citations.")
+    chunks: list[ChunkResult] = Field(
+        description="List of retrieved chunks with citations."
+    )
     context: str = Field(
         description=(
             "Pre-formatted context string ready for LLM injection, "

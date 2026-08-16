@@ -117,7 +117,11 @@ def _is_valid_image_magic(data: bytes) -> bool:
     if data[:4] == _MAGIC_PNG:
         return True
     # WebP: starts with RIFF....WEBP
-    if data[:4] == _MAGIC_WEBP_RIFF and len(data) >= 12 and data[8:12] == _MAGIC_WEBP_WEBP:
+    if (
+        data[:4] == _MAGIC_WEBP_RIFF
+        and len(data) >= 12
+        and data[8:12] == _MAGIC_WEBP_WEBP
+    ):
         return True
     return False
 
@@ -180,7 +184,9 @@ def _build_bounding_boxes(df) -> tuple[str, list[BoundingBox]]:  # type: ignore[
     response_model=ImageAnalyzeResponse,
 )
 async def analyze_image(
-    file: Annotated[UploadFile, File(description="JPEG, PNG, or WebP image to analyze")],
+    file: Annotated[
+        UploadFile, File(description="JPEG, PNG, or WebP image to analyze")
+    ],
     prompt: str | None = Form(None, description="Optional prompt for vision analysis"),
     provider: str = Form("openai", description="LLM provider for vision analysis"),
     current_user: TokenPayload = Depends(get_current_user),
@@ -202,7 +208,9 @@ async def analyze_image(
     if content_type not in _ALLOWED_CONTENT_TYPES:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=(f"Unsupported image format '{content_type}'. Allowed: JPEG, PNG, WebP."),
+            detail=(
+                f"Unsupported image format '{content_type}'. Allowed: JPEG, PNG, WebP."
+            ),
         )
 
     # -----------------------------------------------------------------------
@@ -290,7 +298,9 @@ async def analyze_image(
                 status_code=200,
                 content={
                     "error": "no_vision_provider",
-                    "message": ("No vision-capable LLM provider is currently configured"),
+                    "message": (
+                        "No vision-capable LLM provider is currently configured"
+                    ),
                 },
             )
 

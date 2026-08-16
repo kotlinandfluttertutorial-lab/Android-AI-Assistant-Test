@@ -119,7 +119,9 @@ def upgrade() -> None:
         sa.Column("avatar_url", sa.String(2048), nullable=True),
         sa.Column(
             "role",
-            postgresql.ENUM("user", "premium", "admin", name="user_role", create_type=False),
+            postgresql.ENUM(
+                "user", "premium", "admin", name="user_role", create_type=False
+            ),
             nullable=False,
             server_default="user",
         ),
@@ -164,7 +166,9 @@ def upgrade() -> None:
             sa.ForeignKey("users.id", ondelete="CASCADE"),
             nullable=False,
         ),
-        sa.Column("title", sa.String(512), nullable=False, server_default="New Conversation"),
+        sa.Column(
+            "title", sa.String(512), nullable=False, server_default="New Conversation"
+        ),
         sa.Column("provider", sa.String(64), nullable=False, server_default=""),
         sa.Column("is_pinned", sa.Boolean, nullable=False, server_default=sa.false()),
         sa.Column("is_deleted", sa.Boolean, nullable=False, server_default=sa.false()),
@@ -301,7 +305,9 @@ def upgrade() -> None:
             nullable=False,
         ),
     )
-    op.create_index("ix_document_chunks_document_id", "document_chunks", ["document_id"])
+    op.create_index(
+        "ix_document_chunks_document_id", "document_chunks", ["document_id"]
+    )
     op.create_index("ix_document_chunks_chroma_id", "document_chunks", ["chroma_id"])
 
     # -----------------------------------------------------------------------
@@ -325,7 +331,9 @@ def upgrade() -> None:
         sa.Column("content", sa.Text, nullable=False),
         sa.Column(
             "memory_type",
-            postgresql.ENUM("preference", "fact", "style", name="memory_type", create_type=False),
+            postgresql.ENUM(
+                "preference", "fact", "style", name="memory_type", create_type=False
+            ),
             nullable=False,
         ),
         sa.Column("chroma_id", sa.String(512), nullable=False),
@@ -454,7 +462,9 @@ def upgrade() -> None:
         ),
         sa.UniqueConstraint("name", name="uq_prompt_templates_name"),
     )
-    op.create_index("ix_prompt_templates_name", "prompt_templates", ["name"], unique=True)
+    op.create_index(
+        "ix_prompt_templates_name", "prompt_templates", ["name"], unique=True
+    )
 
     # -----------------------------------------------------------------------
     # Table: token_usage
