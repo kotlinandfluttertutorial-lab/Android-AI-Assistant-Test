@@ -6,13 +6,23 @@
 # that touches docker-compose, Nginx, Prometheus, Grafana, Loki, or
 # Alembic migration files. Also runs on pushes to main.
 #
-# Jobs:
-#   • validate-docker-compose   — docker compose config + health check logic
-#   • validate-nginx            — nginx -t config syntax
-#   • validate-prometheus       — promtool check rules + config
-#   • validate-alembic          — migration chain integrity
-#   • validate-env              — required env vars declared in .env.example
-#   • integration-stack-test    — spin up full stack, run smoke tests, tear down
+# Triggers:
+#   pull_request  →  targets main or develop; infrastructure paths only
+#   push          →  main branch; infrastructure + alembic paths
+#   workflow_dispatch  →  manual trigger
+#
+# PR Required Status Checks (configure as branch-protection rules on main):
+#   • infrastructure-validation / validate-docker-compose
+#   • infrastructure-validation / validate-nginx
+#   • infrastructure-validation / validate-prometheus
+#   • infrastructure-validation / validate-grafana
+#   • infrastructure-validation / validate-alembic
+#   • infrastructure-validation / validate-env
+#
+# Main-branch Jobs (push to main / workflow_dispatch):
+#   • infrastructure-validation / integration-stack-test
+#     — spins up the complete Docker Compose stack, runs health checks,
+#       tears down (depends on all validate-* jobs)
 # ============================================================================
 
 name: Infrastructure Validation
@@ -20,7 +30,8 @@ name: Infrastructure Validation
 on:
   pull_request:
     branches:
-      - "**"
+      - main
+      - develop
     paths:
       - "docker-compose.yml"
       - "docker-compose.override.yml"
@@ -406,7 +417,10 @@ jobs:
     needs:
       - validate-docker-compose
       - validate-nginx
+      - validate-prometheus
+      - validate-grafana
       - validate-alembic
+      - validate-env
 
     steps:
       - uses: actions/checkout@v4
