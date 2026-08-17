@@ -28,7 +28,7 @@
 #   PROD_COMPOSE_PATH      — absolute path to docker-compose.yml on prod host
 # ============================================================================
 
-name: Backend CI
+name: backend-ci
 
 on:
   pull_request:

@@ -35,7 +35,7 @@
 #   SLACK_WEBHOOK_URL          — Slack incoming webhook for notifications (optional)
 # ============================================================================
 
-name: Android CI
+name: android-ci
 
 on:
   pull_request:

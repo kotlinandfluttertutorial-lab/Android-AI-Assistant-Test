@@ -37,7 +37,7 @@
 #   SLACK_WEBHOOK_URL   — Slack incoming webhook (optional)
 # ============================================================================
 
-name: Security Scanning
+name: security-scanning
 
 on:
   push:
