@@ -298,6 +298,8 @@ jobs:
       - name: Apply all migrations (upgrade head)
         env:
           DATABASE_URL: "postgresql+asyncpg://testuser:testpass@localhost:5432/migrationtest"
+          REDIS_URL: "redis://localhost:6379/0"
+          SECRET_KEY: "ci-migration-secret-key-must-be-at-least-32-chars!"
           PYTHONPATH: "."
         run: |
           alembic upgrade head
@@ -306,6 +308,8 @@ jobs:
       - name: Verify downgrade path (head → base)
         env:
           DATABASE_URL: "postgresql+asyncpg://testuser:testpass@localhost:5432/migrationtest"
+          REDIS_URL: "redis://localhost:6379/0"
+          SECRET_KEY: "ci-migration-secret-key-must-be-at-least-32-chars!"
           PYTHONPATH: "."
         run: |
           alembic downgrade base
@@ -314,6 +318,8 @@ jobs:
       - name: Re-apply migrations after downgrade
         env:
           DATABASE_URL: "postgresql+asyncpg://testuser:testpass@localhost:5432/migrationtest"
+          REDIS_URL: "redis://localhost:6379/0"
+          SECRET_KEY: "ci-migration-secret-key-must-be-at-least-32-chars!"
           PYTHONPATH: "."
         run: |
           alembic upgrade head
@@ -322,6 +328,8 @@ jobs:
       - name: Check for multiple heads (invalid branch in migration chain)
         env:
           DATABASE_URL: "postgresql+asyncpg://testuser:testpass@localhost:5432/migrationtest"
+          REDIS_URL: "redis://localhost:6379/0"
+          SECRET_KEY: "ci-migration-secret-key-must-be-at-least-32-chars!"
           PYTHONPATH: "."
         run: |
           HEAD_COUNT=$(alembic heads 2>&1 | grep -c "head" || true)

@@ -671,6 +671,8 @@ jobs:
       - name: Run Alembic migrations
         env:
           DATABASE_URL: "postgresql+asyncpg://testuser:testpass@localhost:5432/testdb"
+          REDIS_URL: "redis://localhost:6379/0"
+          SECRET_KEY: "ci-test-secret-key-must-be-at-least-32-chars!"
           PYTHONPATH: "."
         run: alembic upgrade head
         continue-on-error: true
