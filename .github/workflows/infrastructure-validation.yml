@@ -61,7 +61,7 @@ jobs:
   # 1. Docker Compose Validation
   # ──────────────────────────────────────────────────────────────────────────
   validate-docker-compose:
-    name: Validate Docker Compose
+    name: validate-docker-compose
     runs-on: ubuntu-latest
 
     steps:
@@ -356,7 +356,7 @@ jobs:
   # 6. Environment Variables Completeness Check
   # ──────────────────────────────────────────────────────────────────────────
   validate-env:
-    name: Validate .env.example Completeness
+    name: validate-env
     runs-on: ubuntu-latest
 
     steps:

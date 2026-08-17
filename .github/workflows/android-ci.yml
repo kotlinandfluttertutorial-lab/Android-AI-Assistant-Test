@@ -75,7 +75,7 @@ jobs:
   # VALIDATION GATE — fail fast before spinning up heavier jobs
   # ──────────────────────────────────────────────────────────────────────────
   validate:
-    name: Validate Gradle Wrapper
+    name: validate
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
     steps:
@@ -88,7 +88,7 @@ jobs:
   #    (Requirements 19.2)
   # ──────────────────────────────────────────────────────────────────────────
   dependency-lint:
-    name: Module Dependency Lint
+    name: dependency-lint
     runs-on: ubuntu-latest
     needs: validate
     if: github.event_name == 'pull_request'
@@ -158,7 +158,7 @@ jobs:
   # (Requirements 30.1, 30.2, 30.4)
   # ──────────────────────────────────────────────────────────────────────────
   hilt-ksp-gate:
-    name: Hilt KSP Binding Check
+    name: hilt-ksp-gate
     runs-on: ubuntu-latest
     needs: validate
     if: github.event_name == 'pull_request'
@@ -206,7 +206,7 @@ jobs:
   # 2. Android Lint — all modules
   # ──────────────────────────────────────────────────────────────────────────
   android-lint:
-    name: Android Lint
+    name: android-lint
     runs-on: ubuntu-latest
     needs: validate
     if: github.event_name == 'pull_request'
@@ -694,7 +694,7 @@ jobs:
   #    (Requirement 20.3)
   # ──────────────────────────────────────────────────────────────────────────
   backend-unit-tests:
-    name: Backend Unit Tests
+    name: backend-unit-tests
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
 
@@ -767,7 +767,7 @@ jobs:
   #    (Requirement 20.4)
   # ──────────────────────────────────────────────────────────────────────────
   backend-integration-tests:
-    name: Backend Integration Tests
+    name: backend-integration-tests
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
 

@@ -155,7 +155,7 @@ jobs:
   # 2. Gitleaks — Secrets & Credential Leak Detection
   # ──────────────────────────────────────────────────────────────────────────
   gitleaks:
-    name: Gitleaks Secret Scan
+    name: gitleaks
     runs-on: ubuntu-latest
 
     steps:
@@ -176,7 +176,7 @@ jobs:
   # 3. Bandit — Python SAST
   # ──────────────────────────────────────────────────────────────────────────
   bandit:
-    name: Bandit Python SAST
+    name: bandit
     runs-on: ubuntu-latest
 
     steps:
@@ -371,7 +371,7 @@ jobs:
   #    pip-audit uses the OSV + PyPI Advisory databases — no account required.
   # ──────────────────────────────────────────────────────────────────────────
   safety:
-    name: Python Dependency Audit (pip-audit)
+    name: safety
     runs-on: ubuntu-latest
 
     steps:
