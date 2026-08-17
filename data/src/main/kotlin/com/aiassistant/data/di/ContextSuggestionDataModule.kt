@@ -37,7 +37,6 @@
  */
 package com.aiassistant.data.di
 
-import com.aiassistant.core.common.DispatcherProvider
 import com.aiassistant.data.repository.ContextSuggestionRepositoryImpl
 import com.aiassistant.domain.repository.ContextSuggestionRepository
 import com.aiassistant.domain.usecase.suggestions.DismissSuggestionUseCase
@@ -76,11 +75,10 @@ abstract class ContextSuggestionDataModule {
          */
         @Provides
         @Singleton
-        fun provideGetContextSuggestionsUseCase(
-            repository: ContextSuggestionRepository
-        ): GetContextSuggestionsUseCase = GetContextSuggestionsUseCase(
-            repository = repository
-        )
+        fun provideGetContextSuggestionsUseCase(repository: ContextSuggestionRepository): GetContextSuggestionsUseCase =
+            GetContextSuggestionsUseCase(
+                repository = repository
+            )
 
         /**
          * Provides the [DismissSuggestionUseCase] singleton.

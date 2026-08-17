@@ -65,9 +65,7 @@ import javax.inject.Inject
  *
  * @param repository Repository that calls the AI orchestrator for suggestions.
  */
-class GetContextSuggestionsUseCase @Inject constructor(
-    private val repository: ContextSuggestionRepository
-) {
+class GetContextSuggestionsUseCase @Inject constructor(private val repository: ContextSuggestionRepository) {
 
     /**
      * Thread-safe map of screen instance ID → timestamp (millis) of the last generation request.

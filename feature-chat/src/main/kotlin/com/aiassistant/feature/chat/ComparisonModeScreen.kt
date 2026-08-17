@@ -422,10 +422,14 @@ private fun PanelHeader(panel: ProviderPanelState, isAdopted: Boolean) {
         modifier = Modifier
             .fillMaxWidth()
             .then(
-                if (isAdopted) Modifier.background(
-                    MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f),
-                    shape = MaterialTheme.shapes.small
-                ) else Modifier
+                if (isAdopted) {
+                    Modifier.background(
+                        MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f),
+                        shape = MaterialTheme.shapes.small
+                    )
+                } else {
+                    Modifier
+                }
             ),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
