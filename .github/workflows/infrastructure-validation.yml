@@ -415,7 +415,7 @@ jobs:
         run: |
           cat > backend/.env <<'EOF'
           SECRET_KEY=ci-stack-test-secret-key-at-least-32-chars!
-          DATABASE_URL=postgresql+asyncpg://aiassistant:changeme@postgres:5432/aiassistant
+          DATABASE_URL=postgresql+asyncpg://aiassistant:aiassistant@postgres:5432/aiassistant
           REDIS_URL=redis://redis:6379/0
           OPENAI_API_KEY=sk-test-not-real
           GEMINI_API_KEY=test-gemini-not-real
@@ -434,7 +434,7 @@ jobs:
         run: |
           cat > .env <<'EOF'
           POSTGRES_USER=aiassistant
-          POSTGRES_PASSWORD=changeme
+          POSTGRES_PASSWORD=aiassistant
           POSTGRES_DB=aiassistant
           REDIS_PASSWORD=
           MINIO_ROOT_USER=minioadmin
@@ -452,7 +452,7 @@ jobs:
       - name: Run Alembic migrations
         run: |
           docker compose run --rm \
-            -e DATABASE_URL=postgresql+asyncpg://aiassistant:changeme@postgres:5432/aiassistant \
+            -e DATABASE_URL=postgresql+asyncpg://aiassistant:aiassistant@postgres:5432/aiassistant \
             backend \
             python -m alembic upgrade head
         continue-on-error: true
