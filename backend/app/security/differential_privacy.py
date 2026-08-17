@@ -83,7 +83,7 @@ class LaplaceNoiseInjector:
         # Draw independent samples — one per dimension — guaranteeing
         # per-dimension noise independence required by the Laplace mechanism.
         noise = np.random.laplace(loc=0.0, scale=scale, size=arr.shape)
-        return (arr + noise).tolist()
+        return list(map(float, (arr + noise).tolist()))
 
 
 async def get_current_epsilon(redis: object = None) -> float:
@@ -107,11 +107,13 @@ async def get_current_epsilon(redis: object = None) -> float:
     settings = get_settings()
     fallback = float(settings.DP_EPSILON)
 
-    if redis is None:
+    from redis.asyncio import Redis as AsyncRedis
+
+    if redis is None or not isinstance(redis, AsyncRedis):
         return fallback
 
     try:
-        raw: str | None = await redis.get("dp:epsilon")  # type: ignore[union-attr,no-untyped-call]
+        raw: str | None = await redis.get("dp:epsilon")
         if raw is not None:
             return float(raw)
     except Exception as exc:

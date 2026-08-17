@@ -50,7 +50,7 @@ _DRIVE_SCOPES = [
 ]
 
 
-def _build_drive_service():
+def _build_drive_service() -> Any:  # type: ignore[return]
     """Build and return a Google Drive API service client."""
     from google.oauth2 import service_account
     from googleapiclient.discovery import build

@@ -51,7 +51,7 @@ logger = logging.getLogger(__name__)
     max_retries=0,  # fire-and-forget; errors are logged but not retried
     ignore_result=True,
 )
-def check_spending_alerts_task(self) -> None:
+def check_spending_alerts_task(self: object) -> None:  # type: ignore[misc]
     """Celery beat task that checks all spending alerts every 60 seconds.
 
     Algorithm (delegated to :func:`app.services.cost_service.check_spending_alerts`):

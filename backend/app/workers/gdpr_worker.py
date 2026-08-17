@@ -32,6 +32,9 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from typing import Any
+
+from sqlalchemy import Table
 
 # Import AsyncSessionLocal at module level so tests can patch it cleanly.
 # The import is deferred-safe: the database module only reads settings on
@@ -47,13 +50,19 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 
-def _row_to_dict(obj) -> dict:
+class _OrmModel:
+    """Protocol-style stub so mypy accepts obj.__table__ access."""
+
+    __table__: Table
+
+
+def _row_to_dict(obj: _OrmModel) -> dict[str, object]:
     """Convert a SQLAlchemy ORM instance to a JSON-serialisable dict.
 
     UUIDs and datetimes are converted to strings so the result can be stored
     in the JSONB ``result_payload`` column without further processing.
     """
-    result = {}
+    result: dict[str, object] = {}
     for col in obj.__table__.columns:
         value = getattr(obj, col.name)
         if value is None:
@@ -79,7 +88,7 @@ def _row_to_dict(obj) -> dict:
     name="app.workers.gdpr_worker.export_user_data_task",
     max_retries=3,
 )
-def export_user_data_task(self, user_id: str, job_id: str) -> dict:
+def export_user_data_task(self: Any, user_id: str, job_id: str) -> dict[str, str]:  # type: ignore[misc]
     """Celery task: assemble a full JSON archive of all user data.
 
     Stores the archive in ``job.result_payload`` and marks the job
@@ -99,7 +108,7 @@ def export_user_data_task(self, user_id: str, job_id: str) -> dict:
     )
 
 
-async def _run_export(task, user_id: str, job_id: str) -> dict:
+async def _run_export(task: object, user_id: str, job_id: str) -> dict[str, str]:
     """Async implementation of the data export pipeline."""
     import uuid
 
@@ -132,7 +141,9 @@ async def _run_export(task, user_id: str, job_id: str) -> dict:
             # Collect all data for the user
             # ---------------------------------------------------------------
 
-            async def _fetch(model, filter_col="user_id"):
+            async def _fetch(
+                model: Any, filter_col: str = "user_id"
+            ) -> list[dict[str, object]]:
                 result = await db.execute(
                     select(model).where(getattr(model, filter_col) == user_uuid)
                 )
@@ -150,7 +161,7 @@ async def _run_export(task, user_id: str, job_id: str) -> dict:
 
             # Messages need to be collected via conversation IDs
             conv_ids = [c["id"] for c in conversations]
-            messages: list[dict] = []
+            messages: list[dict[str, object]] = []
             if conv_ids:
                 msg_result = await db.execute(
                     select(Message).where(
@@ -225,7 +236,7 @@ async def _run_export(task, user_id: str, job_id: str) -> dict:
     name="app.workers.gdpr_worker.delete_user_data_task",
     max_retries=3,
 )
-def delete_user_data_task(self, user_id: str) -> dict:
+def delete_user_data_task(self: Any, user_id: str) -> dict[str, str]:  # type: ignore[misc]
     """Celery task: permanently delete all data for a user.
 
     Performs:
@@ -243,7 +254,7 @@ def delete_user_data_task(self, user_id: str) -> dict:
     return asyncio.get_event_loop().run_until_complete(_run_delete(self, user_id))
 
 
-async def _run_delete(task, user_id: str) -> dict:
+async def _run_delete(task: object, user_id: str) -> dict[str, str]:
     """Async implementation of the permanent user deletion pipeline."""
     import uuid
 
@@ -266,6 +277,7 @@ async def _run_delete(task, user_id: str) -> dict:
             chroma_port = int(
                 getattr(settings, "CHROMA_PORT", None)
                 or getattr(settings, "CHROMADB_PORT", 8001)
+                or 8001
             )
             client = chromadb.HttpClient(host=chroma_host, port=chroma_port)
 

@@ -68,7 +68,7 @@ services:
       - "9000:9000"
       - "9001:9001"
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost:9000/minio/health/live || exit 1"]
+      test: ["CMD-SHELL", "curl -f http://localhost:9000/minio/health/live || exit 1"]
       interval: 15s
       timeout: 10s
       retries: 5
@@ -79,12 +79,13 @@ services:
     restart: unless-stopped
     networks:
       - ai_assistant_net
-    # CVE-2026-45829: no patch available — do NOT publish this port to the host.
-    # ChromaDB is reachable only from backend/celery_worker on the internal
-    # Docker network (chromadb:8000). Remove this comment and restore the port
-    # binding only after a patched image is available.
-    # ports:
-    #   - "8001:8000"
+    # CVE-2026-45829: no patch available — bound to localhost only (127.0.0.1)
+    # so it is NOT reachable from the network, only from this local machine.
+    # For production/shared environments remove this port binding entirely and
+    # let only the backend/celery_worker containers reach it via the internal
+    # Docker network (chromadb:8000). Re-audit when a patched image is available.
+    ports:
+      - "127.0.0.1:8001:8000"
 
   backend:
     build:
@@ -94,6 +95,12 @@ services:
     restart: unless-stopped
     env_file:
       - ./backend/.env
+    environment:
+      # Override localhost-based URLs from .env with Docker service names
+      DATABASE_URL: postgresql+asyncpg://aiassistant:aiassistant@postgres:5432/aiassistant
+      REDIS_URL: redis://redis:6379/0
+      CHROMA_HOST: chromadb
+      MINIO_ENDPOINT: minio:9000
     depends_on:
       postgres:
         condition: service_healthy
@@ -112,7 +119,11 @@ services:
       - ./backend/alembic:/app/alembic
       - ./backend/alembic.ini:/app/alembic.ini
     command: python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-    # To run alembic: docker compose exec backend alembic upgrade head
+    # NOTE: this service is NOT started by start-dev.ps1 (which runs uvicorn locally).
+    # To run migrations locally:  .\start-dev.ps1 will call alembic automatically.
+    # To run migrations in Docker (only if you start this service manually):
+    #   docker compose up -d backend
+    #   docker compose exec backend alembic upgrade head
 
   celery_worker:
     build:
@@ -122,6 +133,12 @@ services:
     restart: unless-stopped
     env_file:
       - ./backend/.env
+    environment:
+      # Override localhost-based URLs from .env with Docker service names
+      DATABASE_URL: postgresql+asyncpg://aiassistant:aiassistant@postgres:5432/aiassistant
+      REDIS_URL: redis://redis:6379/0
+      CHROMA_HOST: chromadb
+      MINIO_ENDPOINT: minio:9000
     depends_on:
       postgres:
         condition: service_healthy

@@ -43,7 +43,7 @@ if (-not $AppOnly) {
     Write-Step "Stopping Docker Compose services (postgres, redis, minio)..."
 
     if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
-        Write-Warn "Docker not found — skipping container shutdown."
+        Write-Warn "Docker not found - skipping container shutdown."
     } else {
         if ($Volumes) {
             Write-Warn "-Volumes flag set: removing containers AND volumes (data will be lost)."

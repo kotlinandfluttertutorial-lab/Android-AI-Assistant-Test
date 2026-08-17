@@ -184,4 +184,4 @@ class RefreshTokenRepository:
             )
             .values(revoked=True)
         )
-        return result.rowcount  # type: ignore[return-value]
+        return result.rowcount  # type: ignore[no-any-return]

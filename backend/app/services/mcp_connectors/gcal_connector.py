@@ -48,7 +48,7 @@ _GCAL_SCOPES = [
 ]
 
 
-def _build_gcal_service():
+def _build_gcal_service() -> Any:  # type: ignore[return]
     """Build and return a Google Calendar API service client."""
     from google.oauth2 import service_account
     from googleapiclient.discovery import build

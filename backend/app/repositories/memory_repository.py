@@ -38,6 +38,7 @@ import asyncio
 import logging
 import uuid
 from dataclasses import dataclass
+from typing import Any
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -106,7 +107,7 @@ class MemoryRepository:
         """
         return f"memories_{user_id}"
 
-    def _get_embedding_model(self):
+    def _get_embedding_model(self) -> Any:
         """Lazy-load and cache the SentenceTransformer embedding model.
 
         Returns:
@@ -131,7 +132,7 @@ class MemoryRepository:
         embeddings = model.encode(texts, show_progress_bar=False)
         return [emb.tolist() for emb in embeddings]
 
-    def _get_chroma_client(self):
+    def _get_chroma_client(self) -> Any:
         """Create a ChromaDB HTTP client.
 
         Returns:

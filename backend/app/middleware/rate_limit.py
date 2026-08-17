@@ -140,7 +140,7 @@ def _extract_client_ip(scope: Scope) -> str:
     if xff:
         try:
             # X-Forwarded-For: client, proxy1, proxy2 — take leftmost entry
-            first_ip = xff.decode("utf-8").split(",")[0].strip()
+            first_ip = str(xff.decode("utf-8")).split(",")[0].strip()
             if first_ip:
                 return first_ip
         except Exception:
@@ -367,7 +367,7 @@ class RateLimitMiddleware:
             except Exception as exc:
                 logger.warning("IP rate limit Redis check failed (fail-open): %s", exc)
 
-        return await call_next(request)  # type: ignore[return-value]
+        return await call_next(request)  # type: ignore[no-any-return]
 
     async def _get_redis(self) -> Any:
         """Return the shared async Redis client singleton."""

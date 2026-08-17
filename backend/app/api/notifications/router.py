@@ -70,7 +70,7 @@ class DeviceTokenResponse(BaseModel):
 
 
 @router.get("/")
-async def notifications_root() -> dict:
+async def notifications_root() -> dict[str, str]:
     """Placeholder endpoint — notifications router is active."""
     return {"message": "notifications router"}
 

@@ -160,7 +160,7 @@ async def get_lockout_ttl(redis: Redis, email: str) -> int:
     Returns:
         Remaining TTL in seconds (≥ 0).  Returns 0 when the key does not exist.
     """
-    ttl = await redis.ttl(_locked_key(email))
+    ttl: int = await redis.ttl(_locked_key(email))  # type: ignore[misc,no-untyped-call]
     return max(0, ttl)
 
 
@@ -212,9 +212,9 @@ async def record_failed_attempt(
 
     # Atomic attempt recording via Lua script
     attempt_count: int = int(
-        await redis.eval(  # type: ignore[no-untyped-call]
+        await redis.eval(  # type: ignore[misc,no-untyped-call]
             _RECORD_ATTEMPT_SCRIPT,
-            1,  # number of KEYS
+            1,
             _attempts_key(email),
             now_utc.isoformat(),
             cutoff_utc.isoformat(),
@@ -309,7 +309,7 @@ class AccountLockoutService:
 
     def _get_settings(self) -> Settings:
         if self._settings is None:
-            from app.config.settings import Settings, get_settings
+            from app.config.settings import get_settings
 
             self._settings = get_settings()
         return self._settings

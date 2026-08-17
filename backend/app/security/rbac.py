@@ -56,6 +56,7 @@ from __future__ import annotations
 
 import logging
 from collections.abc import Callable
+from typing import Any
 
 from fastapi import Depends, HTTPException, status
 
@@ -66,7 +67,7 @@ from app.security.jwt_handler import TokenPayload
 logger = logging.getLogger(__name__)
 
 
-def require_roles(*roles: UserRole | str) -> Callable[..., TokenPayload]:
+def require_roles(*roles: UserRole | str) -> Callable[..., Any]:
     """Return a FastAPI dependency that rejects users whose role is not in *roles*.
 
     The dependency resolves ``get_current_user`` first, so a missing or invalid
@@ -122,9 +123,9 @@ def require_roles(*roles: UserRole | str) -> Callable[..., TokenPayload]:
 # ---------------------------------------------------------------------------
 
 #: Dependency that allows only users with the ``admin`` role.
-require_admin: Callable[..., TokenPayload] = require_roles(UserRole.admin)
+require_admin: Callable[..., Any] = require_roles(UserRole.admin)
 
 #: Dependency that allows ``premium`` **and** ``admin`` users.
-require_premium_or_admin: Callable[..., TokenPayload] = require_roles(
+require_premium_or_admin: Callable[..., Any] = require_roles(
     UserRole.premium, UserRole.admin
 )

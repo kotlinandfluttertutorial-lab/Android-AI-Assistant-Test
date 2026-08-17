@@ -60,13 +60,13 @@ _FCM_RETRY_KEY_PREFIX = "fcm_token_retry:"
     retry_backoff=True,
     default_retry_delay=5,
 )
-def send_push_notification(
+def send_push_notification(  # type: ignore[misc]
     self,
     user_id: str,
     title: str,
     body: str,
-    data: dict | None = None,
-) -> dict:
+    data: dict[str, str] | None = None,
+) -> dict[str, str]:
     """Celery task: send a generic FCM push notification to a user.
 
     Args:
@@ -89,12 +89,12 @@ def send_push_notification(
 
 
 async def _run_send_push_notification(
-    task,
+    task: object,
     user_id: str,
     title: str,
     body: str,
-    data: dict,
-) -> dict:
+    data: dict[str, str],
+) -> dict[str, str]:
     """Async implementation of the push notification dispatch."""
     from app.config.settings import get_settings
 
@@ -165,7 +165,9 @@ async def _log_push_failure(user_id: str, title: str, body: str) -> None:
     max_retries=3,
     default_retry_delay=5,
 )
-def refresh_device_token(self, user_id: str, old_token: str, new_token: str) -> dict:
+def refresh_device_token(  # type: ignore[misc]
+    self, user_id: str, old_token: str, new_token: str
+) -> dict[str, str]:
     """Celery task: update a user's FCM device token in the database.
 
     On DB failure, stores a retry counter in Redis key
@@ -186,8 +188,8 @@ def refresh_device_token(self, user_id: str, old_token: str, new_token: str) -> 
 
 
 async def _run_refresh_device_token(
-    task, user_id: str, old_token: str, new_token: str
-) -> dict:
+    task: object, user_id: str, old_token: str, new_token: str
+) -> dict[str, str]:
     """Async implementation of the FCM token refresh."""
     import uuid
 
@@ -242,12 +244,12 @@ async def _set_token_retry_counter(user_id: str, new_token: str) -> None:
     max_retries=2,
     default_retry_delay=5,
 )
-def send_message_delivery_notification_task(
+def send_message_delivery_notification_task(  # type: ignore[misc]
     self,
     user_id: str,
     message_id: str,
     conversation_id: str,
-) -> dict:
+) -> dict[str, str]:
     """Celery task: send an FCM push notification for a delivered queued message.
 
     Called when a previously-failed queued message is successfully delivered.

@@ -417,7 +417,7 @@ async def get_error_summary(db: AsyncSession) -> ErrorSummaryResponse:
         summaries.append(
             ErrorSummary(
                 error_type=row.error_type,
-                count=int(row.count),
+                count=int(row.count),  # type: ignore[call-overload]
                 last_seen=row.last_seen,
                 sample_message=latest.message if latest else "",
                 stack_trace_summary=(latest.stack_trace or "")[:500] if latest else "",
