@@ -182,17 +182,21 @@ class TestWebSocketAuth:
                     f"/ws/chat/{_conversation_id()}?token={valid_token}"
                 ) as ws,
             ):
-                # Send a chat message.
                 ws.send_json({"user_message": "hello", "provider": "openai"})
-                # Collect messages.
+                # Stop collecting as soon as done/error arrives — do not spin
+                # waiting for the next heartbeat ping (default: 30 s).
                 msgs = []
-                for _ in range(10):
+                for _ in range(20):
                     try:
-                        msgs.append(ws.receive_json())
+                        msg = ws.receive_json()
+                        msgs.append(msg)
+                        if msg.get("type") in ("done", "error"):
+                            break
                     except Exception:
                         break
-                types = [m["type"] for m in msgs]
-                assert "token" in types or "done" in types
+
+        types = [m["type"] for m in msgs]
+        assert "token" in types or "done" in types
 
 
 # ===========================================================================

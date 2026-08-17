@@ -53,7 +53,8 @@ def _make_token(
 ) -> str:
     """Return a signed JWT for the given user (or a random user)."""
     uid = user_id or uuid.uuid4()
-    return create_access_token(uid, role, expires_delta=expires_delta)
+    token, _expiry = create_access_token(uid, role, expires_delta=expires_delta)
+    return token
 
 
 def _new_conv_id() -> str:

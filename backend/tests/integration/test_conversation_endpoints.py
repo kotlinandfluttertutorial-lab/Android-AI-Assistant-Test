@@ -107,7 +107,8 @@ def _make_user_id() -> uuid.UUID:
 
 def _make_token(user_id: uuid.UUID, role: str = "user") -> str:
     """Generate a valid JWT for use in Authorization headers."""
-    return create_access_token(user_id=user_id, role=role)
+    token, _exp = create_access_token(user_id=user_id, role=role)
+    return token
 
 
 # ---------------------------------------------------------------------------

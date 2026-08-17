@@ -39,6 +39,11 @@ from app.api.auth.router import router as auth_router
 from app.security.jwt_handler import create_access_token
 
 # ---------------------------------------------------------------------------
+# Shared test constant — fake expiry datetime used in mock return values
+# ---------------------------------------------------------------------------
+_FAKE_EXP = datetime(2099, 1, 1, tzinfo=timezone.utc)
+
+# ---------------------------------------------------------------------------
 # Minimal FastAPI app — only the auth router, no global middleware overhead
 # ---------------------------------------------------------------------------
 
@@ -210,7 +215,7 @@ class TestFullAuthCycle:
             patch("app.api.auth.router.hash_password", return_value="$2b$12$fakehash"),
             patch(
                 "app.api.auth.router.issue_tokens_for_user",
-                return_value=("access.token.here", "refresh.token.here"),
+                return_value=("access.token.here", _FAKE_EXP, "refresh.token.here", _FAKE_EXP),
             ) as mock_issue,
         ):
             repo = MockRepo.return_value
@@ -296,7 +301,7 @@ class TestFullAuthCycle:
             patch("app.api.auth.router.verify_password", return_value=True),
             patch(
                 "app.api.auth.router.issue_tokens_for_user",
-                return_value=("jwt.access.token", "opaque.refresh.token"),
+                return_value=("jwt.access.token", _FAKE_EXP, "opaque.refresh.token", _FAKE_EXP),
             ),
         ):
             repo = MockRepo.return_value
@@ -409,7 +414,7 @@ class TestFullAuthCycle:
         with (
             patch(
                 "app.api.auth.router.refresh_tokens",
-                return_value=(new_access, new_refresh, "user", user_id),
+                return_value=(new_access, _FAKE_EXP, new_refresh, _FAKE_EXP, "user", user_id),
             ) as mock_rt,
             patch("app.api.auth.router.AuditService") as MockAudit,
         ):
@@ -491,7 +496,7 @@ class TestFullAuthCycle:
         Requirements: 1.10, 21.2
         """
         user_id = uuid.uuid4()
-        access_token = create_access_token(user_id=user_id, role="user")
+        access_token, _exp = create_access_token(user_id=user_id, role="user")
 
         with (
             patch("app.api.auth.router.logout_user", return_value=3) as mock_logout,
