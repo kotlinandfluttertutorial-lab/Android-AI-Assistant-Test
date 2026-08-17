@@ -107,9 +107,9 @@ async def get_current_epsilon(redis: object = None) -> float:
     settings = get_settings()
     fallback = float(settings.DP_EPSILON)
 
-    from redis.asyncio import Redis as AsyncRedis
+    from redis.asyncio import Redis as AsyncRedis  # noqa: F401 — kept for type reference
 
-    if redis is None or not isinstance(redis, AsyncRedis):
+    if redis is None:
         return fallback
 
     try:

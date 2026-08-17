@@ -118,10 +118,18 @@ jobs:
               host_port = None
               for p in ports:
                   port_str = str(p)
-                  if ":" in port_str:
-                      host_port = int(port_str.split(":")[0])
+                  parts = port_str.split(":")
+                  # Handles three formats:
+                  #   "8001"                  → host port 8001
+                  #   "8001:8000"             → host port 8001
+                  #   "127.0.0.1:8001:8000"   → host port 8001 (bind IP : host port : container port)
+                  if len(parts) == 1:
+                      host_port = int(parts[0])
+                  elif len(parts) == 2:
+                      host_port = int(parts[0])
                   else:
-                      host_port = int(port_str)
+                      # ip:host_port:container_port — host port is the middle segment
+                      host_port = int(parts[1])
                   break
 
               if host_port == 8000:
