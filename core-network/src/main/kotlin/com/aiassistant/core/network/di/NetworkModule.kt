@@ -137,6 +137,9 @@ object NetworkModule {
         } else {
             HttpLoggingInterceptor.Level.NONE
         }
+        if (isDebugBuild()) {
+            redactHeader("Authorization")
+        }
     }
 
     // â”€â”€â”€ Certificate pinning interceptor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -173,6 +176,26 @@ object NetworkModule {
         .addInterceptor(certificatePinningInterceptor)
         // Authenticator is called only when the server returns HTTP 401.
         .authenticator(refreshTokenInterceptor)
+        // For binary request/response bodies (multipart uploads, PDF downloads etc.)
+        // temporarily drop the logging level to HEADERS to prevent raw bytes flooding
+        // logcat. Level is restored after the call completes.
+        .addInterceptor { chain ->
+            val isBinaryRequest = chain.request().body?.contentType()?.let { ct ->
+                ct.type == "multipart" || ct.subtype == "pdf" || ct.type == "image" ||
+                    ct.subtype == "octet-stream"
+            } ?: false
+
+            if (isBinaryRequest && loggingInterceptor.level == HttpLoggingInterceptor.Level.BODY) {
+                loggingInterceptor.level = HttpLoggingInterceptor.Level.HEADERS
+                try {
+                    chain.proceed(chain.request())
+                } finally {
+                    loggingInterceptor.level = HttpLoggingInterceptor.Level.BODY
+                }
+            } else {
+                chain.proceed(chain.request())
+            }
+        }
         // Logging last so it captures the final (possibly modified) request/response.
         .addInterceptor(loggingInterceptor)
         .connectTimeout(CONNECT_TIMEOUT_SECONDS, TimeUnit.SECONDS)

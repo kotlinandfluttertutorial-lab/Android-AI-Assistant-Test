@@ -763,48 +763,24 @@ jobs:
 
   # ──────────────────────────────────────────────────────────────────────────
   # 7. Backend Integration Tests — pytest backend/tests/integration/
-  #    Spins up PostgreSQL 16 + Redis 7 as service containers.
+  #    All tests are fully mocked — no live DB/Redis/MinIO required.
+  #    pytest-xdist distributes test files across CPU workers in parallel.
+  #    pytest-timeout kills any single test that hangs beyond 30 s.
+  #    Job-level timeout-minutes: 15 prevents the whole job from blocking CI.
   #    (Requirement 20.4)
   # ──────────────────────────────────────────────────────────────────────────
   backend-integration-tests:
     name: backend-integration-tests
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
+    timeout-minutes: 15
 
     defaults:
       run:
         working-directory: backend
 
-    services:
-      postgres:
-        image: postgres:16-alpine
-        env:
-          POSTGRES_DB: testdb
-          POSTGRES_USER: testuser
-          POSTGRES_PASSWORD: testpass
-        ports:
-          - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U testuser -d testdb"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-          --health-start-period 15s
-
-      redis:
-        image: redis:7-alpine
-        ports:
-          - 6379:6379
-        options: >-
-          --health-cmd "redis-cli ping"
-          --health-interval 10s
-          --health-timeout 5s
-          --health-retries 5
-
     steps:
       - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
       - uses: actions/setup-python@v5
         with:
@@ -820,24 +796,7 @@ jobs:
       - name: Install dependencies
         run: pip install -r requirements.txt
 
-      - name: Wait for PostgreSQL to be ready
-        run: |
-          for i in {1..30}; do
-            pg_isready -h localhost -p 5432 -U testuser -d testdb && break
-            echo "Waiting for PostgreSQL... ($i/30)"
-            sleep 2
-          done
-
-      - name: Run Alembic migrations
-        env:
-          DATABASE_URL: "postgresql+asyncpg://testuser:testpass@localhost:5432/testdb"
-          REDIS_URL: "redis://localhost:6379/0"
-          SECRET_KEY: "ci-test-secret-key-must-be-at-least-32-chars!"
-          PYTHONPATH: "."
-        run: alembic upgrade head
-        continue-on-error: true
-
-      - name: Run backend integration tests
+      - name: Run integration tests
         env:
           SECRET_KEY: "ci-test-secret-key-must-be-at-least-32-chars!"
           DATABASE_URL: "postgresql+asyncpg://testuser:testpass@localhost:5432/testdb"
@@ -857,8 +816,9 @@ jobs:
         run: |
           pytest tests/integration/ \
             --junit-xml=integration-test-results.xml \
-            -v \
-            --tb=short
+            --timeout=30 \
+            -n auto --dist=loadfile \
+            -v --tb=short
 
       - name: Publish integration test results
         if: always()
@@ -869,12 +829,14 @@ jobs:
           reporter: java-junit
           fail-on-error: false
 
-      - name: Upload integration test reports
+      - name: Upload test reports on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: backend-integration-test-reports-pr-${{ github.run_number }}
-          path: backend/.pytest_cache/
+          name: backend-integration-test-reports-${{ github.run_number }}
+          path: |
+            backend/integration-test-results.xml
+            backend/.pytest_cache/
           retention-days: 7
 
   # ──────────────────────────────────────────────────────────────────────────

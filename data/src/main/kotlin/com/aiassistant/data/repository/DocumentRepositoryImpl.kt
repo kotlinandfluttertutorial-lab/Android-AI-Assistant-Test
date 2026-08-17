@@ -82,6 +82,7 @@ import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -209,7 +210,9 @@ class DocumentRepositoryImpl @Inject constructor(
             when (val result = remoteSource.getJobStatus(jobId)) {
                 is ApiResult.Success -> {
                     val status = IngestionStatus.fromValue(result.data.status)
-                    updateLocalStatus(documentId, status)
+                    // Persist the error message alongside the status so the UI can show
+                    // a human-readable failure reason without an extra network call.
+                    updateLocalStatus(documentId, status, result.data.errorMessage)
                     ApiResult.Success(status)
                 }
                 is ApiResult.Error -> result
@@ -274,20 +277,24 @@ class DocumentRepositoryImpl @Inject constructor(
     }
 
     /** Resolves the Celery job ID stored in the local Room record for a document. */
-    private suspend fun resolveJobId(documentId: String): String? {
-        var jobId: String? = null
-        documentDao.getDocumentById(documentId)
-            .collect { entity -> jobId = entity?.jobId }
-        return jobId
-    }
+    private suspend fun resolveJobId(documentId: String): String? =
+        // firstOrNull() terminates the flow after the first emission, avoiding
+        // the infinite collect bug where collect {} never returns on a Room flow.
+        documentDao.getDocumentById(documentId).firstOrNull()?.jobId
 
-    /** Updates the [ingestionStatus] of a document in Room to the given [status]. */
-    private suspend fun updateLocalStatus(documentId: String, status: IngestionStatus) {
-        documentDao.getDocumentById(documentId).collect { entity ->
-            if (entity != null) {
-                documentDao.updateDocument(entity.copy(ingestionStatus = status.value))
-            }
-        }
+    /** Updates the [ingestionStatus] (and optionally [errorMessage]) of a document in Room. */
+    private suspend fun updateLocalStatus(
+        documentId: String,
+        status: IngestionStatus,
+        errorMessage: String? = null
+    ) {
+        val entity = documentDao.getDocumentById(documentId).firstOrNull() ?: return
+        documentDao.updateDocument(
+            entity.copy(
+                ingestionStatus = status.value,
+                errorMessage = if (status == IngestionStatus.FAILED) errorMessage else null
+            )
+        )
     }
 
     /** Resolves the authenticated user's ID from [SecureStorage]. */

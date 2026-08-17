@@ -87,7 +87,7 @@ import com.aiassistant.core.database.entity.UserEntity
         ConversationFtsEntity::class,
         MessageFtsEntity::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = true
 )
 @TypeConverters(DatabaseConverters::class)
