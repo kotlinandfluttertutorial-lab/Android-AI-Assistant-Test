@@ -55,6 +55,7 @@ import retrofit2.http.DELETE
 import retrofit2.http.GET
 import retrofit2.http.PATCH
 import retrofit2.http.POST
+import retrofit2.http.PUT
 
 /**
  * Remote DTO representing the user profile returned by the backend.
@@ -92,9 +93,10 @@ data class UpdateThemeModeRequest(@SerialName("theme_mode") val themeMode: Strin
 
 /**
  * Request DTO for registering the device's FCM push notification token.
+ * Maps to the backend's DeviceTokenRequest: {"token": "..."}
  */
 @Serializable
-data class UpdateFcmTokenRequest(@SerialName("fcm_token") val fcmToken: String)
+data class UpdateFcmTokenRequest(@SerialName("token") val fcmToken: String)
 
 /**
  * Retrofit service interface for user profile endpoints.
@@ -131,9 +133,9 @@ interface UserApiService {
 
     /**
      * Registers or updates the device's FCM push notification token.
-     * PATCH /users/me/fcm-token
+     * PUT /notifications/device-token
      */
-    @PATCH("users/me/fcm-token")
+    @PUT("notifications/device-token")
     suspend fun updateFcmToken(@Body request: UpdateFcmTokenRequest)
 
     /**

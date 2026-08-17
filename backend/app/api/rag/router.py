@@ -435,6 +435,8 @@ async def query_documents(
     answer = ""
     if result.retrieved_chunks:
         try:
+            import asyncio as _asyncio
+
             from app.services.ai_orchestrator import (
                 AIOrchestrator,
                 LLMProvider,
@@ -463,11 +465,16 @@ async def query_documents(
             except ValueError:
                 provider = LLMProvider.openai
 
-            completion = await orchestrator.complete(
-                prompt=rag_prompt,
-                provider=provider,
-                max_tokens=1024,
-                user_id=str(user_id),
+            # 30s hard timeout — prevents a slow/rate-limited provider from
+            # blocking the response for 50+ seconds (fail fast to context fallback).
+            completion = await _asyncio.wait_for(
+                orchestrator.complete(
+                    prompt=rag_prompt,
+                    provider=provider,
+                    max_tokens=1024,
+                    user_id=str(user_id),
+                ),
+                timeout=30.0,
             )
             answer = completion.text
 
@@ -564,6 +571,8 @@ async def query_document_by_id(
     answer = ""
     if result.retrieved_chunks:
         try:
+            import asyncio as _asyncio
+
             from app.services.ai_orchestrator import (
                 AIOrchestrator,
                 LLMProvider,
@@ -589,11 +598,16 @@ async def query_document_by_id(
             except ValueError:
                 provider = LLMProvider.openai
 
-            completion = await orchestrator.complete(
-                prompt=rag_prompt,
-                provider=provider,
-                max_tokens=1024,
-                user_id=str(user_id),
+            # 30s hard timeout — prevents a slow/rate-limited provider from
+            # blocking the response for 50+ seconds (fail fast to context fallback).
+            completion = await _asyncio.wait_for(
+                orchestrator.complete(
+                    prompt=rag_prompt,
+                    provider=provider,
+                    max_tokens=1024,
+                    user_id=str(user_id),
+                ),
+                timeout=30.0,
             )
             answer = completion.text
 
