@@ -83,3 +83,16 @@ fingerprint = "a4d958bdf08bcf6ebe7a248535dfb1b8aa061cdc:docs/API_SPECIFICATION.m
 [[allowlist.findings]]
 # CI test ENCRYPTION_KEY in docs/DEVOPS_GUIDE.md line 212
 fingerprint = "a4d958bdf08bcf6ebe7a248535dfb1b8aa061cdc:docs/DEVOPS_GUIDE.md:generic-api-key:212"
+
+[[allowlist.findings]]
+# CI placeholder AES_ENCRYPTION_KEY in android-ci.yml (backend-unit-tests job)
+# Value is a base64-encoded test string — not a real key, rotated or otherwise
+fingerprint = "41db3754e88a3c9883b7bfbeb5faeb4f01463182:.github/workflows/android-ci.yml:generic-api-key:728"
+
+[[allowlist.findings]]
+# CI placeholder AES_ENCRYPTION_KEY in android-ci.yml (backend-integration-tests job)
+fingerprint = "41db3754e88a3c9883b7bfbeb5faeb4f01463182:.github/workflows/android-ci.yml:generic-api-key:844"
+
+[[allowlist.findings]]
+# CI placeholder AES_ENCRYPTION_KEY in backend-ci.yml (unit-tests job)
+fingerprint = "41db3754e88a3c9883b7bfbeb5faeb4f01463182:.github/workflows/backend-ci.yml:generic-api-key:151"
