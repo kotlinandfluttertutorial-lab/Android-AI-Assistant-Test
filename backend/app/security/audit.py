@@ -113,7 +113,11 @@ class AuditService:
         """
         entry = AuditLog(
             user_id=user_id,
-            event_type=event_type if isinstance(event_type, str) else event_type.value,
+            event_type=(
+                event_type.value
+                if isinstance(event_type, AuditEventType)
+                else event_type
+            ),
             ip_address=ip_address or "",
             user_agent=user_agent or "",
             metadata_=metadata or {},

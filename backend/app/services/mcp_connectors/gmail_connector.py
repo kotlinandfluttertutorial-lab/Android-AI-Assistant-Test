@@ -51,7 +51,7 @@ _GMAIL_SCOPES = [
 ]
 
 
-def _build_gmail_service():
+def _build_gmail_service() -> Any:  # type: ignore[return]
     """Build and return a Gmail API service client."""
     from google.oauth2 import service_account
     from googleapiclient.discovery import build

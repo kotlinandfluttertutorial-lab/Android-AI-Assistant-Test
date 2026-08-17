@@ -56,7 +56,10 @@
             </intent-filter>
 
             <!-- Deep link: aiassistant://open/chat -->
-            <intent-filter android:autoVerify="true">
+            <!-- autoVerify is intentionally omitted: this uses a custom URI scheme
+                 (aiassistant://) not an HTTPS App Link, so DAL verification does
+                 not apply and would produce AppLinkUrlError. -->
+            <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
@@ -64,7 +67,7 @@
             </intent-filter>
 
             <!-- Deep link: aiassistant://open/rag -->
-            <intent-filter android:autoVerify="true">
+            <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
@@ -72,7 +75,7 @@
             </intent-filter>
 
             <!-- Deep link: aiassistant://open/voice -->
-            <intent-filter android:autoVerify="true">
+            <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
@@ -80,7 +83,7 @@
             </intent-filter>
 
             <!-- Deep link: aiassistant://open/meeting -->
-            <intent-filter android:autoVerify="true">
+            <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
@@ -88,7 +91,7 @@
             </intent-filter>
 
             <!-- Deep link: aiassistant://open/translator -->
-            <intent-filter android:autoVerify="true">
+            <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
@@ -96,7 +99,7 @@
             </intent-filter>
 
             <!-- Deep link: aiassistant://open/productivity -->
-            <intent-filter android:autoVerify="true">
+            <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />

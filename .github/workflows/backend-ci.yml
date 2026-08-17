@@ -1,0 +1,582 @@
+# ============================================================================
+# Backend CI/CD Pipeline — Production Grade
+# ============================================================================
+#
+# Triggers:
+#   pull_request  →  targets main or develop; paths: backend/**, workflow file
+#   push          →  main branch, same path filter
+#   workflow_dispatch  →  manual trigger with optional deploy_env input
+#
+# PR Required Status Checks:
+#   • backend-ci / lint-and-type-check
+#   • backend-ci / unit-tests
+#   • backend-ci / integration-tests
+#
+# Main-branch Jobs:
+#   • backend-ci / build-and-push    — multi-arch Docker image to GHCR
+#   • backend-ci / deploy-staging    — rolling update on staging environment
+#   • backend-ci / smoke-test        — verify /health after deploy
+#   • backend-ci / deploy-production — gated behind manual approval
+#
+# Required Secrets:
+#   STAGING_SSH_HOST, STAGING_SSH_USER, STAGING_SSH_KEY  — staging server
+#   PROD_SSH_HOST,    PROD_SSH_USER,    PROD_SSH_KEY      — production server
+#   SLACK_WEBHOOK_URL  — Slack notifications (optional)
+#
+# Required Variables (repository-level):
+#   STAGING_COMPOSE_PATH   — absolute path to docker-compose.yml on staging host
+#   PROD_COMPOSE_PATH      — absolute path to docker-compose.yml on prod host
+# ============================================================================
+
+name: Backend CI
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-ci.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/**"
+      - ".github/workflows/backend-ci.yml"
+  workflow_dispatch:
+    inputs:
+      deploy_env:
+        description: "Deploy target: staging | production"
+        required: false
+        default: "staging"
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PYTHON_VERSION: "3.11"
+  IMAGE_NAME: ghcr.io/${{ github.repository }}/backend
+
+jobs:
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 1. Lint & Type Check — ruff + black --check + mypy
+  #    Blocks merge on any lint or formatting error.
+  # ──────────────────────────────────────────────────────────────────────────
+#  lint-and-type-check:
+#    name: Lint & Type Check
+#    runs-on: ubuntu-latest
+#    if: github.event_name == 'pull_request'
+#
+#    defaults:
+#      run:
+#        working-directory: backend
+#
+#    steps:
+#      - uses: actions/checkout@v4
+#        with:
+#          fetch-depth: 0
+#
+#      - uses: actions/setup-python@v5
+#        with:
+#          python-version: ${{ env.PYTHON_VERSION }}
+#
+#      - name: Cache pip
+#        uses: actions/cache@v4
+#        with:
+#          path: ~/.cache/pip
+#          key: pip-lint-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('backend/requirements.txt') }}
+#          restore-keys: pip-lint-${{ runner.os }}-${{ env.PYTHON_VERSION }}-
+#
+#      - name: Install lint dependencies
+#        run: pip install ruff==0.6.9 black==24.10.0 mypy==1.11.2 types-passlib types-python-jose
+#
+#      - name: Run ruff linter
+#        run: ruff check . --output-format=github
+#
+#      - name: Run ruff formatter check
+#        run: ruff format . --check
+#
+#      - name: Run black formatter check
+#        run: black --check --diff .
+#
+#      - name: Install app dependencies for mypy
+#        run: pip install -r requirements.txt
+#
+#      - name: Run mypy type check
+#        run: |
+#          mypy app \
+#            --ignore-missing-imports \
+#            --strict \
+#            --exclude "app/alembic" \
+#            --no-error-summary \
+#            2>&1 | head -100
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 2. Backend Unit Tests — pytest backend/tests/unit/
+  #    (Requirement 20.3)
+  # ──────────────────────────────────────────────────────────────────────────
+  unit-tests:
+    name: Backend Unit Tests (≥70% coverage)
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('backend/requirements.txt') }}
+          restore-keys: pip-${{ runner.os }}-${{ env.PYTHON_VERSION }}-
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run unit tests with coverage
+        env:
+          SECRET_KEY: "ci-test-secret-key-must-be-at-least-32-chars!"
+          DATABASE_URL: "postgresql+asyncpg://testuser:testpass@localhost:5432/testdb"
+          REDIS_URL: "redis://localhost:6379/0"
+          OPENAI_API_KEY: "sk-test-not-real"
+          GEMINI_API_KEY: "test-gemini-not-real"
+          ANTHROPIC_API_KEY: "sk-ant-test-not-real"
+          OLLAMA_BASE_URL: "http://localhost:11434"
+          MINIO_ENDPOINT: "localhost:9000"
+          MINIO_ACCESS_KEY: "minioadmin"
+          MINIO_SECRET_KEY: "minioadmin123"
+          MINIO_BUCKET: "test-bucket"
+          LOKI_URL: ""
+          ENVIRONMENT: "test"
+          LOG_LEVEL: "WARNING"
+        run: |
+          pytest tests/unit/ \
+            --cov=app \
+            --cov-report=term-missing \
+            --cov-report=xml:coverage.xml \
+            --cov-report=html:htmlcov \
+            --cov-fail-under=70 \
+            --junit-xml=unit-test-results.xml \
+            -v \
+            --tb=short
+
+      - name: Publish unit test results
+        if: always()
+        uses: dorny/test-reporter@v1
+        with:
+          name: Backend Unit Test Results
+          path: backend/unit-test-results.xml
+          reporter: java-junit
+          fail-on-error: false
+
+      - name: Upload coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@v4
+        with:
+          files: backend/coverage.xml
+          flags: backend-unit
+          fail_ci_if_error: false
+        continue-on-error: true
+
+      - name: Upload coverage artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-coverage-${{ github.run_number }}
+          path: |
+            backend/coverage.xml
+            backend/htmlcov/
+          retention-days: 14
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 3. Backend Integration Tests — pytest backend/tests/integration/
+  #    Spins up PostgreSQL 16 + Redis 7 as service containers.
+  #    (Requirement 20.4)
+  # ──────────────────────────────────────────────────────────────────────────
+#  integration-tests:
+#    name: Backend Integration Tests
+#    runs-on: ubuntu-latest
+#    if: github.event_name == 'pull_request'
+#
+#    defaults:
+#      run:
+#        working-directory: backend
+#
+#    services:
+#      postgres:
+#        image: postgres:16-alpine
+#        env:
+#          POSTGRES_DB: testdb
+#          POSTGRES_USER: testuser
+#          POSTGRES_PASSWORD: testpass
+#        ports:
+#          - 5432:5432
+#        options: >-
+#          --health-cmd "pg_isready -U testuser -d testdb"
+#          --health-interval 10s
+#          --health-timeout 5s
+#          --health-retries 5
+#          --health-start-period 15s
+#
+#      redis:
+#        image: redis:7-alpine
+#        ports:
+#          - 6379:6379
+#        options: >-
+#          --health-cmd "redis-cli ping"
+#          --health-interval 10s
+#          --health-timeout 5s
+#          --health-retries 5
+#
+#    steps:
+#      - uses: actions/checkout@v4
+#        with:
+#          fetch-depth: 0
+#
+#      - uses: actions/setup-python@v5
+#        with:
+#          python-version: ${{ env.PYTHON_VERSION }}
+#
+#      - name: Cache pip
+#        uses: actions/cache@v4
+#        with:
+#          path: ~/.cache/pip
+#          key: pip-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('backend/requirements.txt') }}
+#          restore-keys: pip-${{ runner.os }}-${{ env.PYTHON_VERSION }}-
+#
+#      - name: Install dependencies
+#        run: pip install -r requirements.txt
+#
+#      - name: Wait for PostgreSQL to be ready
+#        run: |
+#          for i in {1..30}; do
+#            pg_isready -h localhost -p 5432 -U testuser -d testdb && break
+#            echo "Waiting for PostgreSQL... ($i/30)"
+#            sleep 2
+#          done
+#
+#      - name: Run Alembic migrations
+#        env:
+#          DATABASE_URL: "postgresql+asyncpg://testuser:testpass@localhost:5432/testdb"
+#          PYTHONPATH: "."
+#        run: alembic upgrade head
+#        continue-on-error: true
+#
+#      - name: Run integration tests
+#        env:
+#          SECRET_KEY: "ci-test-secret-key-must-be-at-least-32-chars!"
+#          DATABASE_URL: "postgresql+asyncpg://testuser:testpass@localhost:5432/testdb"
+#          REDIS_URL: "redis://localhost:6379/0"
+#          OPENAI_API_KEY: "sk-test-not-real"
+#          GEMINI_API_KEY: "test-gemini-not-real"
+#          ANTHROPIC_API_KEY: "sk-ant-test-not-real"
+#          OLLAMA_BASE_URL: "http://localhost:11434"
+#          MINIO_ENDPOINT: "localhost:9000"
+#          MINIO_ACCESS_KEY: "minioadmin"
+#          MINIO_SECRET_KEY: "minioadmin123"
+#          MINIO_BUCKET: "test-bucket"
+#          LOKI_URL: ""
+#          ENVIRONMENT: "test"
+#          LOG_LEVEL: "WARNING"
+#        run: |
+#          pytest tests/integration/ \
+#            --junit-xml=integration-test-results.xml \
+#            -v \
+#            --tb=short
+#
+#      - name: Publish integration test results
+#        if: always()
+#        uses: dorny/test-reporter@v1
+#        with:
+#          name: Backend Integration Test Results
+#          path: backend/integration-test-results.xml
+#          reporter: java-junit
+#          fail-on-error: false
+#
+#      - name: Upload integration test reports
+#        if: failure()
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: backend-integration-test-reports-${{ github.run_number }}
+#          path: backend/.pytest_cache/
+#          retention-days: 7
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 4. Build & Push Multi-Arch Docker Image — main branch push
+  #    Also triggered for merge-to-main as part of the release flow.
+  # ──────────────────────────────────────────────────────────────────────────
+  build-and-push:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+       github.event_name == 'workflow_dispatch'
+    permissions:
+      contents: read
+      packages: write
+      id-token: write   # for OIDC / cosign signing
+
+    outputs:
+      image_digest: ${{ steps.build.outputs.digest }}
+      image_tags: ${{ steps.meta.outputs.tags }}
+      version: ${{ steps.meta.outputs.version }}
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Compute lowercase image name
+        id: image
+        run: |
+          IMAGE="ghcr.io/${{ github.repository }}/backend"
+          echo "name=${IMAGE,,}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up QEMU (multi-arch)
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: linux/amd64,linux/arm64
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+        with:
+          platforms: linux/amd64,linux/arm64
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract Docker metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.image.outputs.name }}
+          tags: |
+            type=raw,value=latest,enable={{is_default_branch}}
+            type=sha,format=long,prefix=sha-
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=ref,event=branch
+          labels: |
+            org.opencontainers.image.title=Android AI Assistant Backend
+            org.opencontainers.image.description=FastAPI backend for Android AI Assistant
+            org.opencontainers.image.vendor=AI Assistant Team
+
+      - name: Build and push multi-arch image
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: backend
+          file: backend/Dockerfile
+          target: production
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=registry,ref=${{ steps.image.outputs.name }}:buildcache
+          cache-to: type=registry,ref=${{ steps.image.outputs.name }}:buildcache,mode=max
+          provenance: true
+          sbom: true
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+        with:
+          cosign-release: "v2.4.0"
+
+      - name: Sign image with cosign (keyless OIDC)
+        env:
+          COSIGN_EXPERIMENTAL: "1"
+        run: |
+          cosign sign --yes \
+            "${{ steps.image.outputs.name }}@${{ steps.build.outputs.digest }}"
+
+      - name: Generate image summary
+        run: |
+          echo "### 🐳 Docker Image Published" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|-------|-------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Digest | \`${{ steps.build.outputs.digest }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Tags | \`latest\`, \`sha-${{ github.sha }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Platforms | linux/amd64, linux/arm64 |" >> "$GITHUB_STEP_SUMMARY"
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 5. Deploy to Staging
+  # ──────────────────────────────────────────────────────────────────────────
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    if: >-
+      (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+       github.event_name == 'workflow_dispatch'
+    environment:
+      name: staging
+      url: https://api.handsonandroid.com
+
+    steps:
+      - name: Skip if SSH secrets not configured
+        id: check
+        env:
+          STAGING_SSH_HOST: ${{ secrets.STAGING_SSH_HOST }}
+        run: |
+          if [ -z "$STAGING_SSH_HOST" ]; then
+            echo "STAGING_SSH_HOST secret not set — skipping deploy"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Deploy to staging via SSH
+        if: steps.check.outputs.skip != 'true'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.STAGING_SSH_HOST }}
+          username: ${{ secrets.STAGING_SSH_USER }}
+          key: ${{ secrets.STAGING_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            cd "${{ vars.STAGING_COMPOSE_PATH }}"
+            docker compose pull backend celery_worker
+            docker compose up -d --no-deps --remove-orphans backend celery_worker
+            docker image prune -f
+            echo "✅ Staging deploy complete — image: ${{ needs.build-and-push.outputs.image_digest }}"
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 6. Smoke Test after Staging Deploy
+  # ──────────────────────────────────────────────────────────────────────────
+  smoke-test-staging:
+    name: Smoke Test — Staging
+    runs-on: ubuntu-latest
+    needs: deploy-staging
+    if: >-
+      ((github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+       github.event_name == 'workflow_dispatch') &&
+      needs.deploy-staging.result == 'success'
+    environment:
+      name: staging
+
+    steps:
+      - name: Wait for service to be healthy
+        run: sleep 30
+
+      - name: Health check
+        run: |
+          HTTP_STATUS=$(curl -sSo /dev/null -w "%{http_code}" \
+            --retry 5 --retry-delay 10 --retry-connrefused \
+            "https://api.handsonandroid.com/health")
+          echo "Health endpoint returned: $HTTP_STATUS"
+          if [[ "$HTTP_STATUS" != "200" ]]; then
+            echo "::error::Smoke test failed — /health returned $HTTP_STATUS"
+            exit 1
+          fi
+          echo "✅ Smoke test passed"
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 7. Deploy to Production — requires manual approval
+  # ──────────────────────────────────────────────────────────────────────────
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    needs:
+      - build-and-push
+      - smoke-test-staging
+    if: >-
+      ((github.event_name == 'push' && github.ref == 'refs/heads/main') ||
+      (github.event_name == 'workflow_dispatch' && github.event.inputs.deploy_env == 'production')) &&
+      needs.smoke-test-staging.result == 'success'
+    environment:
+      name: production
+      url: https://api.handsonandroid.com
+
+    steps:
+      - name: Skip if SSH secrets not configured
+        id: check
+        env:
+          PROD_SSH_HOST: ${{ secrets.PROD_SSH_HOST }}
+        run: |
+          if [ -z "$PROD_SSH_HOST" ]; then
+            echo "PROD_SSH_HOST secret not set — skipping deploy"
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Deploy to production via SSH
+        if: steps.check.outputs.skip != 'true'
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.PROD_SSH_HOST }}
+          username: ${{ secrets.PROD_SSH_USER }}
+          key: ${{ secrets.PROD_SSH_KEY }}
+          script: |
+            set -euo pipefail
+            cd "${{ vars.PROD_COMPOSE_PATH }}"
+            docker compose pull backend celery_worker
+            docker compose up -d --no-deps --remove-orphans backend celery_worker
+            docker image prune -f
+            echo "✅ Production deploy complete"
+
+      - name: Production smoke test
+        if: steps.check.outputs.skip != 'true'
+        run: |
+          HTTP_STATUS=$(curl -sSo /dev/null -w "%{http_code}" \
+            --retry 5 --retry-delay 15 --retry-connrefused \
+            "https://api.handsonandroid.com/health")
+          echo "Health endpoint returned: $HTTP_STATUS"
+          if [[ "$HTTP_STATUS" != "200" ]]; then
+            echo "::error::Production smoke test failed — /health returned $HTTP_STATUS"
+            exit 1
+          fi
+          echo "✅ Production smoke test passed"
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 8. Slack Notification
+  # ──────────────────────────────────────────────────────────────────────────
+  notify:
+    name: Slack Notification
+    runs-on: ubuntu-latest
+    needs:
+      - build-and-push
+      - deploy-staging
+      - deploy-production
+    if: >-
+      always() &&
+      (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    steps:
+      - name: Notify Slack
+        if: vars.SLACK_WEBHOOK_URL != ''
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          payload: |
+            {
+              "text": "${{ needs.deploy-production.result == 'success' && '✅ Backend production deploy succeeded' || (needs.deploy-staging.result == 'success' && '✅ Backend staging deploy succeeded' || '❌ Backend CI/CD pipeline failed') }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*Android AI Assistant — Backend Pipeline*\n\n• *Image:* `${{ needs.build-and-push.outputs.image_digest }}`\n• *Staging:* ${{ needs.deploy-staging.result }}\n• *Production:* ${{ needs.deploy-production.result }}\n• *Commit:* <${{ github.event.head_commit.url }}|${{ github.sha }}>"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK

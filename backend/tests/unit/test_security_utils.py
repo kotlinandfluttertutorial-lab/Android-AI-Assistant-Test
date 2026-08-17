@@ -21,9 +21,11 @@ os.environ.setdefault("SECRET_KEY", "test-secret-key-at-least-32-chars-long!!")
 os.environ.setdefault("DATABASE_URL", "postgresql+asyncpg://test:test@localhost/test")
 os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
 
-# Generate a valid AES-256 key for tests
+# Generate a valid AES-256 key for tests.
+# Force-set it here AND patch at import time to guarantee a clean 32-byte key
+# regardless of which other test module runs first.
 _TEST_AES_KEY = base64.b64encode(os.urandom(32)).decode()
-os.environ.setdefault("AES_ENCRYPTION_KEY", _TEST_AES_KEY)
+os.environ["AES_ENCRYPTION_KEY"] = _TEST_AES_KEY
 
 from app.security.encryption import decrypt_api_key, encrypt_api_key
 from app.security.password import hash_password, verify_password
@@ -82,6 +84,12 @@ class TestVerifyPassword:
 
 
 class TestEncryptDecryptApiKey:
+    @pytest.fixture(autouse=True)
+    def patch_aes_key(self, monkeypatch):
+        """Guarantee a valid 32-byte AES key for every test in this class."""
+        valid_key = base64.b64encode(os.urandom(32)).decode()
+        monkeypatch.setenv("AES_ENCRYPTION_KEY", valid_key)
+
     def test_round_trip(self) -> None:
         """encrypt then decrypt must return original plaintext."""
         plaintext = "sk-abc-test-key-12345"

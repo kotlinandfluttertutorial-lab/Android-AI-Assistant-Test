@@ -75,13 +75,13 @@ import androidx.navigation.navigation
  */
 object NotesRoute {
     /** Notes root navigation graph route. */
-    const val Graph = "notes"
+    const val GRAPH = "notes"
 
     /** Notes list screen route. */
-    const val List = "notes/list"
+    const val LIST = "notes/list"
 
-    /** Note editor screen route â€” [noteId] query param is optional. */
-    const val Editor = "notes/editor?noteId={noteId}"
+    /** Note editor screen route — [noteId] query param is optional. */
+    const val EDITOR = "notes/editor?noteId={noteId}"
 }
 
 /**
@@ -102,13 +102,13 @@ fun NavGraphBuilder.notesNavGraph(
     onNavigateUp: () -> Unit = { navController.popBackStack() }
 ) {
     navigation(
-        startDestination = NotesRoute.List,
-        route = NotesRoute.Graph
+        startDestination = NotesRoute.LIST,
+        route = NotesRoute.GRAPH
     ) {
-        // â”€â”€ Notes List â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        composable(route = NotesRoute.List) { backStackEntry ->
+        // ── Notes List ────────────────────────────────────────────────────────────
+        composable(route = NotesRoute.LIST) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(NotesRoute.Graph)
+                navController.getBackStackEntry(NotesRoute.GRAPH)
             }
             val viewModel: NotesViewModel = hiltViewModel(parentEntry)
             val uiState by viewModel.uiState.collectAsState()
@@ -128,9 +128,9 @@ fun NavGraphBuilder.notesNavGraph(
             )
         }
 
-        // â”€â”€ Note Editor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── Note Editor ───────────────────────────────────────────────────────────
         composable(
-            route = NotesRoute.Editor,
+            route = NotesRoute.EDITOR,
             arguments = listOf(
                 navArgument("noteId") {
                     type = NavType.StringType
@@ -140,24 +140,23 @@ fun NavGraphBuilder.notesNavGraph(
             )
         ) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(NotesRoute.Graph)
+                navController.getBackStackEntry(NotesRoute.GRAPH)
             }
             val viewModel: NotesViewModel = hiltViewModel(parentEntry)
             val uiState by viewModel.uiState.collectAsState()
 
             NoteEditorScreen(
                 uiState = uiState,
-                onTitleChange = { /* handled via onUpdateDraft */ },
                 onUpdateDraft = { title, content, tags ->
                     viewModel.updateDraft(title, content, tags)
                 },
                 onSave = { note ->
                     viewModel.saveNote(note)
-                    navController.popBackStack()
+                    onNavigateUp()
                 },
                 onBack = {
                     viewModel.backToList()
-                    navController.popBackStack()
+                    onNavigateUp()
                 },
                 onTogglePreview = { viewModel.togglePreviewMode() },
                 onSummarize = { noteId -> viewModel.summarizeNote(noteId) },

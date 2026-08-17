@@ -519,9 +519,9 @@ class TestExportWorkerTask:
             (c for c in update_status_calls if c[1] == JobStatus.completed),
             None,
         )
-        assert completed_call is not None, (
-            "job_repo.update_status was never called with JobStatus.completed"
-        )
+        assert (
+            completed_call is not None
+        ), "job_repo.update_status was never called with JobStatus.completed"
 
         archive = completed_call[2].get("result_payload", {})
         expected_keys = {

@@ -373,18 +373,26 @@ async def google_auth(
     db: AsyncSession = Depends(get_db),
     redis: Redis = Depends(get_redis),
 ) -> GoogleAuthResponse:
-    """Authenticate (or register) a user via Google OAuth2 ID token.
+    """Authenticate (or register) a user via Google OAuth2 ID token."""
+    try:
+        return await _google_auth_impl(body, request, db, redis)
+    except HTTPException:
+        raise
+    except Exception as exc:
+        logger.exception("Unhandled error in google_auth")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Internal server error during Google authentication.",
+        ) from exc
 
-    Workflow:
-    1. Verify the Google ID token with Google's public keys.
-    2. Look up user by ``google_id`` — if found, issue tokens.
-    3. Look up user by email — if found, link the Google account and issue tokens.
-    4. Otherwise create a new user and issue tokens.
 
-    HTTP response status is determined by the caller via ``is_new_user``.
-
-    Requirements: 1.6
-    """
+async def _google_auth_impl(
+    body: GoogleAuthRequest,
+    request: Request,
+    db: AsyncSession,
+    redis: Redis,
+) -> GoogleAuthResponse:
+    """Implementation of Google OAuth2 authentication workflow."""
     from app.config.settings import get_settings
 
     user_repo = UserRepository(db)
@@ -400,7 +408,7 @@ async def google_auth(
         import google.auth.transport.requests as g_requests
         import google.oauth2.id_token as g_id_token
 
-        loop = asyncio.get_event_loop()
+        loop = asyncio.get_running_loop()
         http_request = g_requests.Request()
 
         def _verify() -> dict:
@@ -424,9 +432,9 @@ async def google_auth(
             detail="Could not verify Google ID token.",
         ) from exc
 
-    google_sub: str = id_info.get("sub", "")
-    email: str = id_info.get("email", "").lower().strip()
-    display_name: str = id_info.get("name", "")
+    google_sub: str = str(id_info.get("sub") or "")
+    email: str = str(id_info.get("email") or "").lower().strip()
+    display_name: str = str(id_info.get("name") or "")
     avatar_url: str | None = id_info.get("picture") or None
 
     if not google_sub or not email:

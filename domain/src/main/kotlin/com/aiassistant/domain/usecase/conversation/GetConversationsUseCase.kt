@@ -1,23 +1,3 @@
-﻿/*
- * ============================================================
- * Android AI Assistant (Enterprise Edition)
- * ============================================================
- * Module     : domain
- * File       : GetConversationsUseCase.kt
- * Purpose    : Encapsulates the 'GetConversations' business operation
- *
- * Architecture Layer : Domain
- * Pattern Used       : Clean Architecture Use Case
- *
- * Key Concepts:
- *   - Clean Architecture with strict layer separation
- *   - Hilt dependency injection
- *
- * Dependencies:
- *   - See import statements below
- * ============================================================
- */
-
 /*
  * ============================================================
  * Android AI Assistant (Enterprise Edition)
@@ -104,7 +84,7 @@ class GetConversationsUseCase @Inject constructor(private val conversationReposi
             }
         }
 
-    // â”€â”€â”€ Internal helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─── Internal helpers ──────────────────────────────────────────────────────
 
     /**
      * Partitions [conversations] (already sorted by [Conversation.updatedAt] descending)

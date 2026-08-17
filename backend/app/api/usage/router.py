@@ -102,8 +102,7 @@ def _assert_no_foreign_user(
     """
     if claimed_user_id is not None and claimed_user_id != authenticated_user_id:
         logger.warning(
-            "Per-user cost data isolation violation attempt: "
-            "authenticated=%s claimed=%s",
+            "Per-user cost data isolation violation attempt: authenticated=%s claimed=%s",
             authenticated_user_id,
             claimed_user_id,
         )

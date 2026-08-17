@@ -52,13 +52,13 @@ import com.aiassistant.domain.model.Conversation
  */
 object HistoryRoute {
     /** History root navigation graph route. */
-    const val Graph = "history"
+    const val GRAPH = "history"
 
     /** History list screen route. */
-    const val List = "history/list"
+    const val LIST = "history/list"
 
     /** Search history screen route. */
-    const val Search = "history/search"
+    const val SEARCH = "history/search"
 }
 
 /**
@@ -70,11 +70,11 @@ object HistoryRoute {
  * list remains permanently visible in the left pane.
  *
  * **Phone layout (<600 dp):** Standard single-pane navigation. The list is the start
- * destination; tapping the search icon navigates to [HistoryRoute.Search].
+ * destination; tapping the search icon navigates to [HistoryRoute.SEARCH].
  *
  * Usage in the app module's root [NavHost]:
  * ```kotlin
- * NavHost(navController = navController, startDestination = HistoryRoute.List) {
+ * NavHost(navController = navController, startDestination = HistoryRoute.LIST) {
  *     historyNavGraph(
  *         navController = navController,
  *         onConversationClick = { conversationId -> ... },
@@ -96,13 +96,13 @@ fun NavGraphBuilder.historyNavGraph(
     windowSizeClass: WindowSizeClass? = null
 ) {
     navigation(
-        startDestination = HistoryRoute.List,
-        route = HistoryRoute.Graph
+        startDestination = HistoryRoute.LIST,
+        route = HistoryRoute.GRAPH
     ) {
-        // -- History List (also acts as the two-pane host on tablets) ----------
-        composable(route = HistoryRoute.List) { backStackEntry ->
+        // ── History List (also acts as the two-pane host on tablets) ──────────
+        composable(route = HistoryRoute.LIST) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(HistoryRoute.Graph)
+                navController.getBackStackEntry(HistoryRoute.GRAPH)
             }
             val viewModel: HistoryViewModel = hiltViewModel(parentEntry)
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -126,7 +126,7 @@ fun NavGraphBuilder.historyNavGraph(
             var showDetailPane by rememberSaveable { mutableStateOf(false) }
 
             if (isTablet) {
-                // -- Tablet: two-pane side-by-side layout (Requirement 24.4) ------
+                // ── Tablet: two-pane side-by-side layout (Requirement 24.4) ──────
                 TwoPaneLayout(
                     listPane = {
                         HistoryListScreen(
@@ -184,13 +184,13 @@ fun NavGraphBuilder.historyNavGraph(
                     windowSizeClass = resolvedWindowSizeClass
                 )
             } else {
-                // -- Phone: single-pane list only -----------------------------------
+                // ── Phone: single-pane list only ───────────────────────────────────
                 HistoryListScreen(
                     uiState = uiState,
                     pagedItems = pagedItems,
                     isOffline = isOffline,
                     onSearchClick = {
-                        navController.navigate(HistoryRoute.Search)
+                        navController.navigate(HistoryRoute.SEARCH)
                     },
                     onConversationClick = onConversationClick,
                     onPinConversation = { id, pinned ->
@@ -212,10 +212,10 @@ fun NavGraphBuilder.historyNavGraph(
             }
         }
 
-        // -- Search History (phone only; tablet uses inline detail pane) ---------
-        composable(route = HistoryRoute.Search) { backStackEntry ->
+        // ── Search History (phone only; tablet uses inline detail pane) ─────────
+        composable(route = HistoryRoute.SEARCH) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(HistoryRoute.Graph)
+                navController.getBackStackEntry(HistoryRoute.GRAPH)
             }
             val viewModel: HistoryViewModel = hiltViewModel(parentEntry)
             val uiState by viewModel.uiState.collectAsStateWithLifecycle()

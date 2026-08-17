@@ -16,7 +16,9 @@
 #   - See import statements below
 # ============================================================
 
-"""RAG ingestion and query service — document validation, extraction, chunking, embedding, storage, and retrieval.
+"""RAG ingestion and query service.
+
+Document validation, extraction, chunking, embedding, storage, and retrieval.
 
 This service implements the complete ingestion pipeline:
   validate → store in MinIO → extract text → chunk → embed → store in ChromaDB/PostgreSQL
@@ -209,7 +211,8 @@ class RAGService:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail=(
-                    f"File size {size_bytes} bytes exceeds the {self._settings.MAX_FILE_SIZE_MB} MB limit."
+                    f"File size {size_bytes} bytes exceeds the "
+                    f"{self._settings.MAX_FILE_SIZE_MB} MB limit."
                 ),
             )
 
@@ -248,7 +251,8 @@ class RAGService:
             raise HTTPException(
                 status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
                 detail=(
-                    f"File size {size_bytes} bytes exceeds the {self._settings.MAX_FILE_SIZE_MB} MB limit."
+                    f"File size {size_bytes} bytes exceeds the "
+                    f"{self._settings.MAX_FILE_SIZE_MB} MB limit."
                 ),
             )
 
@@ -380,7 +384,7 @@ class RAGService:
 
         try:
             await asyncio.to_thread(_delete)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("MinIO delete failed for key '%s': %s", minio_key, exc)
 
     # ------------------------------------------------------------------
@@ -393,9 +397,9 @@ class RAGService:
         """Dispatch to the appropriate extractor and return (text, page_count).
 
         Supported MIME types:
-        - ``application/pdf``                                       → pypdf (native) / pytesseract (scanned)
-        - ``application/vnd.openxmlformats-...wordprocessingml...`` → python-docx
-        - ``text/plain`` / ``text/markdown``                        → UTF-8 decode
+        - ``application/pdf``                    → pypdf (native) / pytesseract (scanned)
+        - ``application/vnd.openxmlformats-...`` → python-docx
+        - ``text/plain`` / ``text/markdown``     → UTF-8 decode
 
         Args:
             file_bytes: Raw file content.
@@ -722,7 +726,7 @@ class RAGService:
                     ],
                 )
                 return ids
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning(
                     "ChromaDB storage failed (graceful degradation): %s", exc
                 )
@@ -738,7 +742,7 @@ class RAGService:
 
         repo = DocumentRepository(db)
         doc_uuid = uuid.UUID(document_id)
-        for i, (chunk, chroma_id) in enumerate(zip(chunks, chroma_ids)):
+        for i, (chunk, chroma_id) in enumerate(zip(chunks, chroma_ids, strict=True)):
             await repo.create_chunk(
                 document_id=doc_uuid,
                 chunk_index=i,
@@ -770,15 +774,15 @@ class RAGService:
                 try:
                     collection = client.get_collection(collection_name)
                     collection.delete(where={"document_id": {"$eq": document_id}})
-                except Exception:  # noqa: BLE001
+                except Exception:
                     # Collection may not exist if embedding storage previously failed
                     pass
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("ChromaDB delete failed (graceful degradation): %s", exc)
 
         try:
             await asyncio.to_thread(_delete)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("ChromaDB delete failed (graceful degradation): %s", exc)
 
     # ------------------------------------------------------------------
@@ -856,7 +860,7 @@ class RAGService:
                 )
                 try:
                     collection = client.get_collection(collection_name)
-                except Exception:  # noqa: BLE001
+                except Exception:
                     # Collection does not exist — user has no ingested documents
                     return []
 
@@ -883,7 +887,7 @@ class RAGService:
                     }
                     for i in range(len(ids))
                 ]
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("ChromaDB query failed (graceful degradation): %s", exc)
                 return []
 
@@ -1123,7 +1127,7 @@ class RAGService:
                     user_id,
                     document_id,
                 )
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("FCM failure push notification failed: %s", exc)
 
         await asyncio.to_thread(_send)
@@ -1173,7 +1177,7 @@ class RAGService:
                     user_id,
                     document_id,
                 )
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("FCM push notification failed: %s", exc)
 
         await asyncio.to_thread(_send)
@@ -1228,7 +1232,7 @@ def _build_token_char_offsets(enc, tokens: list, text: str) -> list:
         # Advance by the character length of the decoded token
         try:
             token_str = token_bytes.decode("utf-8", errors="replace")
-        except Exception:  # noqa: BLE001
+        except Exception:
             token_str = ""
         current_pos += len(token_str)
     offsets.append(current_pos)  # end of last token

@@ -38,11 +38,16 @@ from __future__ import annotations
 import enum
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import BigInteger, DateTime, Enum, ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, uuid_pk
+
+if TYPE_CHECKING:
+    from app.models.document_chunk import DocumentChunk
+    from app.models.user import User
 
 
 class IngestionStatus(str, enum.Enum):
@@ -105,8 +110,8 @@ class Document(Base):
     # ------------------------------------------------------------------
     # Relationships
     # ------------------------------------------------------------------
-    user: Mapped[User] = relationship("User", back_populates="documents")  # noqa: F821
-    chunks: Mapped[list[DocumentChunk]] = relationship(  # noqa: F821
+    user: Mapped[User] = relationship("User", back_populates="documents")
+    chunks: Mapped[list[DocumentChunk]] = relationship(
         "DocumentChunk", back_populates="document", cascade="all, delete-orphan"
     )
 

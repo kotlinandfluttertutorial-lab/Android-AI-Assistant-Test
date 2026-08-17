@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AI Assistant - Welcome</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">tailwind.config = {darkMode: "class", theme: {extend: {colors: {"tertiary-fixed": "#ffdf93", "on-secondary": "#ffffff", "surface-dark": "#0F0F0F", "secondary-container": "#e4ddea", "on-primary-fixed-variant": "#4f378a", "on-surface": "#1c1b1f", "surface-container-high": "#ebe7ec", outline: "#7a7582", "primary-fixed-dim": "#cfbcff", "on-secondary-container": "#65616b", "on-surface-variant": "#494551", "surface-bright": "#fdf8fd", "secondary-fixed": "#e7e0ec", error: "#ba1a1a", tertiary: "#765b00", "surface-dim": "#ddd9de", "inverse-surface": "#313034", "on-primary": "#ffffff", "on-secondary-fixed": "#1d1a23", "surface-container-lowest": "#ffffff", background: "#fdf8fd", "inverse-primary": "#cfbcff", "primary-fixed": "#e9ddff", "on-error": "#ffffff", "surface-container-low": "#f7f2f8", "on-tertiary-container": "#503d00", "surface-container": "#f1ecf2", "on-secondary-fixed-variant": "#49454f", secondary: "#615c67", "on-tertiary": "#ffffff", "on-tertiary-fixed": "#241a00", "tertiary-fixed-dim": "#e7c365", "on-error-container": "#93000a", "secondary-fixed-dim": "#cbc4d0", "primary-container": "#6750a4", "tertiary-container": "#c9a74d", "outline-variant": "#cbc4d2", "error-container": "#ffdad6", primary: "#4f378a", surface: "#fdf8fd", "on-primary-container": "#e0d2ff", "on-background": "#1c1b1f", "surface-variant": "#e5e1e7", "on-tertiary-fixed-variant": "#594400", "surface-tint": "#6750a4", "inverse-on-surface": "#f4eff5", "surface-light": "#FFFBFD", "surface-container-highest": "#e5e1e7", "on-primary-fixed": "#22005d"}, borderRadius: {DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px"}, spacing: {sm: "8px", xs: "4px", "margin-desktop": "24px", md: "16px", gutter: "16px", base: "8px", xl: "32px", lg: "24px", "margin-mobile": "16px"}, fontFamily: {"headline-lg": ["Inter"], "title-lg": ["Inter"], "body-md": ["Inter"], "display-lg": ["Inter"], "label-lg": ["Inter"], "headline-lg-mobile": ["Inter"], "body-lg": ["Inter"], "label-md": ["Inter"], headline: ["Inter"], display: ["Inter"], body: ["Inter"], label: ["Inter"]}, fontSize: {"headline-lg": ["32px", {lineHeight: "40px", fontWeight: "600"}], "title-lg": ["22px", {lineHeight: "28px", fontWeight: "500"}], "body-md": ["14px", {lineHeight: "20px", letterSpacing: "0.25px", fontWeight: "400"}], "display-lg": ["57px", {lineHeight: "64px", letterSpacing: "-0.25px", fontWeight: "400"}], "label-lg": ["14px", {lineHeight: "20px", letterSpacing: "0.1px", fontWeight: "500"}], "headline-lg-mobile": ["28px", {lineHeight: "36px", fontWeight: "600"}], "body-lg": ["16px", {lineHeight: "24px", letterSpacing: "0.5px", fontWeight: "400"}], "label-md": ["12px", {lineHeight: "16px", letterSpacing: "0.5px", fontWeight: "500"}]}}}};</script>
+<style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fdf8fd;
+            overflow: hidden;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .floating-spark {
+            animation: float 6s ease-in-out infinite;
+        }
+        @keyframes float {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-20px) rotate(5deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+        .reveal-up {
+            animation: revealUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+        @keyframes revealUp {
+            from { opacity: 0; transform: translateY(40px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .bg-mesh {
+            background-color: #fdf8fd;
+            background-image: 
+                radial-gradient(at 0% 0%, rgba(103, 80, 164, 0.05) 0px, transparent 50%),
+                radial-gradient(at 100% 0%, rgba(232, 222, 248, 0.3) 0px, transparent 50%);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-mesh min-h-screen flex flex-col items-center justify-center p-6">
+<!-- Main Onboarding Container -->
+<main class="w-full max-w-[440px] h-[800px] bg-surface-container-lowest rounded-2xl flex flex-col relative overflow-hidden shadow-sm">
+<!-- Top Skip Button (Transactional/Focused Flow: Suppress Nav Shell) -->
+<div class="absolute top-6 right-6 z-10">
+<button class="px-4 py-2 text-primary font-label-lg text-label-lg hover:bg-surface-container-high rounded-full transition-all active:scale-95">
+                Skip
+            </button>
+</div>
+<!-- Illustration Section -->
+<div class="flex-1 flex flex-col items-center justify-center px-10 pt-12 relative overflow-hidden">
+<div class="w-full aspect-square relative flex items-center justify-center">
+<!-- Atmospheric Background Glow -->
+<div class="absolute inset-0 bg-primary/5 rounded-full blur-3xl"></div>
+<!-- Friendly AI Spark Illustration -->
+<div class="floating-spark w-64 h-64 relative z-0">
+<img class="w-full h-full object-contain" data-alt="A sophisticated and friendly 3D digital illustration of a glowing AI spark entity. The character features a soft, translucent violet core with crystalline geometric facets that catch the light. It is surrounded by orbiting golden particle trails and soft-focus bokeh lights, set against a pristine, minimalist light-mode background. The aesthetic is high-end, clean, and optimistic, utilizing a professional Material 3 color palette of deep purples and warm ambers." src="https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg"/>
+</div>
+</div>
+</div>
+<!-- Text Content Area -->
+<div class="flex-1 bg-surface-container-low p-8 rounded-t-[32px] flex flex-col items-center text-center reveal-up">
+<div class="mt-4">
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-on-surface mb-4">
+                    Welcome to AI Assistant
+                </h1>
+<p class="font-body-lg text-body-lg text-on-surface-variant max-w-[280px] mx-auto">
+                    Your personal companion for creative tasks, complex planning, and everyday questions.
+                </p>
+</div>
+<!-- Spacer -->
+<div class="flex-grow"></div>
+<!-- Footer Section: Progress & Next -->
+<div class="w-full flex flex-col items-center gap-8 mb-4">
+<!-- Progress Dots -->
+<div class="flex gap-2">
+<div class="w-6 h-2 rounded-full bg-primary transition-all duration-300"></div>
+<div class="w-2 h-2 rounded-full bg-outline-variant hover:bg-outline transition-all cursor-pointer"></div>
+<div class="w-2 h-2 rounded-full bg-outline-variant hover:bg-outline transition-all cursor-pointer"></div>
+</div>
+<!-- Primary Action Button -->
+<button class="w-full py-4 px-8 bg-primary text-on-primary font-label-lg text-label-lg rounded-full flex items-center justify-center gap-2 shadow-sm hover:bg-primary-container hover:text-on-primary-container transition-all active:scale-95 group">
+                    Next
+                    <span class="material-symbols-outlined text-[20px] group-hover:translate-x-1 transition-transform">arrow_forward</span>
+</button>
+</div>
+</div>
+<!-- Decorative Subtle Lines -->
+<div class="absolute bottom-0 left-0 w-full h-[2px] bg-gradient-to-r from-transparent via-primary/10 to-transparent"></div>
+</main>
+<!-- Background Micro-interactions (Particles) -->
+<script>
+        // Simple particle effect for extra "Premium" feel
+        const createParticle = () => {
+            const particle = document.createElement('div');
+            const size = Math.random() * 4 + 2;
+            const x = Math.random() * window.innerWidth;
+            const duration = Math.random() * 10 + 10;
+            
+            particle.className = 'fixed bg-primary/10 rounded-full pointer-events-none z-[-1]';
+            particle.style.width = `${size}px`;
+            particle.style.height = `${size}px`;
+            particle.style.left = `${x}px`;
+            particle.style.bottom = '-10px';
+            particle.style.opacity = '0';
+            
+            document.body.appendChild(particle);
+            
+            const animation = particle.animate([
+                { transform: 'translateY(0) scale(1)', opacity: 0 },
+                { transform: `translateY(-${window.innerHeight + 100}px) scale(1.5)`, opacity: 0.5, offset: 0.5 },
+                { transform: `translateY(-${window.innerHeight + 200}px) scale(0)`, opacity: 0 }
+            ], {
+                duration: duration * 1000,
+                easing: 'linear'
+            });
+            
+            animation.onfinish = () => particle.remove();
+        };
+
+        setInterval(createParticle, 2000);
+
+        // Interactive "Next" logic placeholder
+        document.querySelector('button.bg-primary').addEventListener('click', function() {
+            // Animating content out before transition (mock)
+            const content = document.querySelector('.reveal-up');
+            content.style.transition = 'opacity 0.4s ease, transform 0.4s ease';
+            content.style.opacity = '0';
+            content.style.transform = 'translateX(-20px)';
+            
+            setTimeout(() => {
+                alert('Transitioning to slide 2...');
+                // Reset for demo purposes
+                content.style.opacity = '1';
+                content.style.transform = 'translateX(0)';
+            }, 600);
+        });
+    </script>
+</body></html>

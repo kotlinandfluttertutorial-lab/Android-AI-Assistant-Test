@@ -35,6 +35,6 @@ router = APIRouter(
 
 
 @router.get("/")
-async def analytics_root() -> dict:
+async def analytics_root() -> dict[str, str]:
     """Placeholder endpoint — analytics router is active."""
     return {"message": "analytics router"}

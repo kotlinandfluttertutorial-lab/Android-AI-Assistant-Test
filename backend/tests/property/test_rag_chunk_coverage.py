@@ -118,9 +118,9 @@ def _assert_full_coverage(text: str, chunks: list[str]) -> None:
 
     # Additionally verify each chunk is non-empty
     for idx, chunk in enumerate(chunks):
-        assert len(chunk) > 0, (
-            f"Property 7 violated: chunk {idx} is empty for non-empty source text."
-        )
+        assert (
+            len(chunk) > 0
+        ), f"Property 7 violated: chunk {idx} is empty for non-empty source text."
 
 
 # ===========================================================================
@@ -182,27 +182,27 @@ class TestChunkCoverageEdgeCases:
     def test_whitespace_only_returns_no_chunks(self) -> None:
         """Whitespace-only text is treated the same as empty (stripped)."""
         chunks = _chunk_text_default("   \n\t  ")
-        assert chunks == [], (
-            f"Expected empty list for whitespace-only text, got {chunks!r}"
-        )
+        assert (
+            chunks == []
+        ), f"Expected empty list for whitespace-only text, got {chunks!r}"
 
     def test_single_character_covered(self) -> None:
         """A single-character document must be fully covered by the one chunk."""
         text = "A"
         chunks = _chunk_text_default(text)
         assert len(chunks) == 1, f"Expected 1 chunk for single char, got {len(chunks)}"
-        assert "A" in chunks[0], (
-            f"Single character 'A' not found in chunk: {chunks[0]!r}"
-        )
+        assert (
+            "A" in chunks[0]
+        ), f"Single character 'A' not found in chunk: {chunks[0]!r}"
 
     def test_string_shorter_than_chunk_size_fully_covered(self) -> None:
         """A document shorter than chunk_size must fit in exactly one chunk."""
         # 100 ASCII chars ≪ 512 tokens
         text = "Hello world. " * 7  # ~91 chars, ~25 tokens
         chunks = _chunk_text_default(text)
-        assert len(chunks) == 1, (
-            f"Text shorter than chunk_size should produce 1 chunk, got {len(chunks)}"
-        )
+        assert (
+            len(chunks) == 1
+        ), f"Text shorter than chunk_size should produce 1 chunk, got {len(chunks)}"
         _assert_full_coverage(text, chunks)
 
     def test_string_exactly_chunk_size_covered(self) -> None:
@@ -223,9 +223,9 @@ class TestChunkCoverageEdgeCases:
         ) * 20  # ~2 000 chars, well above 512 tokens
 
         tokens = enc.encode(seed_text)
-        assert len(tokens) >= target_tokens, (
-            f"Setup issue: seed text only has {len(tokens)} tokens, need ≥{target_tokens}"
-        )
+        assert (
+            len(tokens) >= target_tokens
+        ), f"Setup issue: seed text only has {len(tokens)} tokens, need ≥{target_tokens}"
         text = enc.decode(tokens[:target_tokens])
         # Re-encode to confirm token count is stable after decode round-trip
         actual_count = len(enc.encode(text))
@@ -246,9 +246,9 @@ class TestChunkCoverageEdgeCases:
         # ~3000 tokens (≈6× chunk_size): triggers many sliding-window iterations
         text = ("The quick brown fox jumps over the lazy dog. " * 150).strip()
         chunks = _chunk_text_default(text)
-        assert len(chunks) > 1, (
-            f"Long document should produce multiple chunks, got {len(chunks)}"
-        )
+        assert (
+            len(chunks) > 1
+        ), f"Long document should produce multiple chunks, got {len(chunks)}"
         _assert_full_coverage(text, chunks)
 
     def test_overlap_produces_contiguous_coverage(self) -> None:
@@ -268,15 +268,15 @@ class TestChunkCoverageEdgeCases:
             "Pack my box with five dozen liquor jugs. "
         ) * 30
         tokens = enc.encode(seed_text)
-        assert len(tokens) >= n_tokens, (
-            f"Setup issue: seed text only has {len(tokens)} tokens, need ≥{n_tokens}"
-        )
+        assert (
+            len(tokens) >= n_tokens
+        ), f"Setup issue: seed text only has {len(tokens)} tokens, need ≥{n_tokens}"
         text = enc.decode(tokens[:n_tokens])
 
         chunks = _chunk_text_default(text)
-        assert len(chunks) >= 2, (
-            f"Expected ≥2 chunks for text longer than chunk_size, got {len(chunks)}"
-        )
+        assert (
+            len(chunks) >= 2
+        ), f"Expected ≥2 chunks for text longer than chunk_size, got {len(chunks)}"
         _assert_full_coverage(text, chunks)
 
     def test_unicode_text_fully_covered(self) -> None:

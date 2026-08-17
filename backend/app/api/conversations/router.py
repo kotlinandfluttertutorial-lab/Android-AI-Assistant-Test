@@ -37,6 +37,7 @@ from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
+from app.models.conversation import Conversation
 from app.models.message import MessageRole
 from app.repositories.conversation_repository import ConversationRepository
 from app.repositories.message_repository import MessageRepository
@@ -49,7 +50,8 @@ from app.schemas.conversations import (
     MessageResponse,
     RegenerateResponse,
 )
-from app.security.dependencies import TokenPayload, get_current_user
+from app.security.dependencies import get_current_user
+from app.security.jwt_handler import TokenPayload
 
 router = APIRouter(
     prefix="/conversations",
@@ -71,7 +73,7 @@ async def _get_owned_conversation(
     conversation_id: uuid.UUID,
     current_user: TokenPayload,
     db: AsyncSession,
-):
+) -> Conversation:
     """Fetch a conversation and verify it belongs to the current user.
 
     Returns the :class:`~app.models.conversation.Conversation` on success.
@@ -195,7 +197,7 @@ async def update_conversation(
     await _get_owned_conversation(conversation_id, current_user, db)
 
     repo = ConversationRepository(db)
-    updates: dict = {}
+    updates: dict[str, object] = {}
     if body.title is not None:
         updates["title"] = body.title
     if body.is_pinned is not None:

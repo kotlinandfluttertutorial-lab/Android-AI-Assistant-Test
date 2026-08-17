@@ -279,9 +279,10 @@ async def test_property_29c_permanent_failure_marks_document_failed_and_notifies
         result = await _run_ingestion(mock_task, document_id, user_id)
 
     # Should return failed status
-    assert result == {"status": "failed", "document_id": document_id}, (
-        f"Property 29C violated: expected failed result dict, got {result!r}"
-    )
+    assert result == {
+        "status": "failed",
+        "document_id": document_id,
+    }, f"Property 29C violated: expected failed result dict, got {result!r}"
 
     # doc_repo.update_status must have been called with IngestionStatus.failed
     update_calls = mock_doc_repo.update_status.call_args_list

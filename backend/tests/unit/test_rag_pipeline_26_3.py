@@ -460,14 +460,17 @@ class TestCeleryJobStatusTransitions:
             return job
 
         with (
-            patch("app.database.AsyncSessionLocal") as MockSession,
+            patch("app.workers.rag_worker._make_session_factory") as MockFactory,
             patch("app.services.rag_service.rag_service") as mock_svc,
         ):
             mock_db = _make_mock_db()
             mock_ctx = AsyncMock()
             mock_ctx.__aenter__ = AsyncMock(return_value=mock_db)
             mock_ctx.__aexit__ = AsyncMock(return_value=False)
-            MockSession.return_value = mock_ctx
+            mock_session_factory = MagicMock(return_value=mock_ctx)
+            mock_engine = MagicMock()
+            mock_engine.dispose = AsyncMock()
+            MockFactory.return_value = (mock_engine, mock_session_factory)
 
             mock_doc_repo = AsyncMock()
             mock_doc_repo.get_by_id = AsyncMock(return_value=doc)
@@ -501,12 +504,12 @@ class TestCeleryJobStatusTransitions:
                 result = await _run_ingestion(mock_task, str(doc_id), str(user_id))
 
         assert result["status"] == "completed"
-        assert "running" in status_log, (
-            f"Expected 'running' in status log: {status_log}"
-        )
-        assert "completed" in status_log, (
-            f"Expected 'completed' in status log: {status_log}"
-        )
+        assert (
+            "running" in status_log
+        ), f"Expected 'running' in status log: {status_log}"
+        assert (
+            "completed" in status_log
+        ), f"Expected 'completed' in status log: {status_log}"
         assert status_log.index("running") < status_log.index("completed")
 
     @pytest.mark.asyncio
@@ -541,14 +544,17 @@ class TestCeleryJobStatusTransitions:
             return doc
 
         with (
-            patch("app.database.AsyncSessionLocal") as MockSession,
+            patch("app.workers.rag_worker._make_session_factory") as MockFactory,
             patch("app.services.rag_service.rag_service") as mock_svc,
         ):
             mock_db = _make_mock_db()
             mock_ctx = AsyncMock()
             mock_ctx.__aenter__ = AsyncMock(return_value=mock_db)
             mock_ctx.__aexit__ = AsyncMock(return_value=False)
-            MockSession.return_value = mock_ctx
+            mock_session_factory = MagicMock(return_value=mock_ctx)
+            mock_engine = MagicMock()
+            mock_engine.dispose = AsyncMock()
+            MockFactory.return_value = (mock_engine, mock_session_factory)
 
             mock_doc_repo = AsyncMock()
             mock_doc_repo.get_by_id = AsyncMock(return_value=doc)
@@ -1137,9 +1143,9 @@ class TestCrossUserIsolation:
             await service.query_documents(user_id=user_a, query="sensitive data")
 
         for name in queried_collections:
-            assert name != f"documents_{user_b}", (
-                f"User B collection '{name}' was queried during user A's search"
-            )
+            assert (
+                name != f"documents_{user_b}"
+            ), f"User B collection '{name}' was queried during user A's search"
 
     @pytest.mark.asyncio
     async def test_embed_and_store_scoped_to_user_collection(self) -> None:

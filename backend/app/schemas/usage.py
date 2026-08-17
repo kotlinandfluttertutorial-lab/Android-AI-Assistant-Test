@@ -20,7 +20,7 @@ Covers:
 - DELETE /usage/alerts/{id} — remove spending alert (Req 34.4)
 - GET  /usage/alerts       — list spending alerts for the current user (Req 34.4)
 
-Requirements: 34.1, 34.2, 34.4, 34.7
+Requirements: 34.1, 34.2, 34.4, 34.7, 34.8
 """
 
 from __future__ import annotations

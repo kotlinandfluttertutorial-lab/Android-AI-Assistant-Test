@@ -149,7 +149,7 @@ def record_token_usage(
         llm_token_cost_usd_total.labels(provider=provider).inc(cost_usd)
         llm_input_tokens_total.labels(provider=provider).inc(input_tokens)
         llm_output_tokens_total.labels(provider=provider).inc(output_tokens)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("record_token_usage: failed to increment metrics: %s", exc)
 
 
@@ -158,7 +158,12 @@ def record_token_usage(
 # ---------------------------------------------------------------------------
 
 
-def _on_task_failure(sender=None, task_id=None, exception=None, **kwargs) -> None:
+def _on_task_failure(
+    sender: object = None,
+    task_id: str | None = None,
+    exception: BaseException | None = None,
+    **kwargs: object,
+) -> None:
     """Celery ``task_failure`` signal handler — increments the failure counter."""
     task_name = (
         getattr(sender, "name", str(sender)) if sender is not None else "unknown"
@@ -166,11 +171,15 @@ def _on_task_failure(sender=None, task_id=None, exception=None, **kwargs) -> Non
     logger.debug("celery metrics: task_failure signal for task=%s", task_name)
     try:
         celery_failed_tasks_total.labels(task_name=task_name).inc()
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("celery metrics: failed to record task_failure metric: %s", exc)
 
 
-def _on_task_success(sender=None, result=None, **kwargs) -> None:
+def _on_task_success(
+    sender: object = None,
+    result: object = None,
+    **kwargs: object,
+) -> None:
     """Celery ``task_success`` signal handler — increments the completed counter."""
     task_name = (
         getattr(sender, "name", str(sender)) if sender is not None else "unknown"
@@ -178,11 +187,15 @@ def _on_task_success(sender=None, result=None, **kwargs) -> None:
     logger.debug("celery metrics: task_success signal for task=%s", task_name)
     try:
         celery_completed_tasks_total.labels(task_name=task_name).inc()
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("celery metrics: failed to record task_success metric: %s", exc)
 
 
-def _on_task_retry(sender=None, reason=None, **kwargs) -> None:
+def _on_task_retry(
+    sender: object = None,
+    reason: object = None,
+    **kwargs: object,
+) -> None:
     """Celery ``task_retry`` signal handler — logs the retry event."""
     task_name = (
         getattr(sender, "name", str(sender)) if sender is not None else "unknown"
@@ -199,7 +212,7 @@ def _on_task_retry(sender=None, reason=None, **kwargs) -> None:
 # ---------------------------------------------------------------------------
 
 
-def setup_celery_metrics(app) -> None:
+def setup_celery_metrics(app: object) -> None:
     """Connect Prometheus metric collectors to Celery signals.
 
     Call this once at application startup, after the Celery app is created.

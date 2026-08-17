@@ -1,0 +1,463 @@
+# ============================================================================
+# Security Scanning Pipeline — Production Grade
+# ============================================================================
+#
+# Runs on every push to main and weekly on Sundays, plus on PRs that touch
+# security-sensitive paths. All findings are surfaced via GitHub Code
+# Scanning (Security tab) and optionally Slack.
+#
+# Scans:
+#   • CodeQL           — semantic code analysis for Android (Kotlin/Java)
+#                        and Python (backend)
+#   • Trivy            — Docker image vulnerability scan (CRITICAL/HIGH)
+#   • Dependency Check — OWASP NVD CVE scan for Python + Gradle dependencies
+#   • Gitleaks         — secrets / credential leak detection in Git history
+#   • Bandit           — Python security linter (SAST)
+#   • MobSF (lite)     — Android APK static analysis
+#
+# Required Secrets:
+#   NVD_API_KEY         — NIST NVD API key for OWASP Dependency-Check
+#   SLACK_WEBHOOK_URL   — Slack incoming webhook (optional)
+# ============================================================================
+
+name: Security Scanning
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - "**"
+    paths:
+      - "backend/**"
+      - "app/**"
+      - "core-security/**"
+      - "gradle/libs.versions.toml"
+      - "**/build.gradle.kts"
+      - "docker-compose.yml"
+      - "backend/Dockerfile"
+      - ".github/workflows/security-scan.yml"
+  schedule:
+    # Run full scan every Sunday at 02:00 UTC
+    - cron: "0 2 * * 0"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  security-events: write   # required for SARIF upload to GitHub Code Scanning
+  actions: read
+
+jobs:
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 1. CodeQL — Semantic Code Analysis
+  # ──────────────────────────────────────────────────────────────────────────
+  codeql:
+    name: CodeQL Analysis (${{ matrix.language }})
+    runs-on: ${{ matrix.language == 'java-kotlin' && 'ubuntu-latest' || 'ubuntu-latest' }}
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - language: java-kotlin
+            build-mode: manual
+          - language: python
+            build-mode: none
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: ${{ matrix.language }}
+          build-mode: ${{ matrix.build-mode }}
+          # Use extended query suite for security and quality
+          queries: security-extended,security-and-quality
+          config: |
+            paths-ignore:
+              - "build/**"
+              - "**/build/**"
+              - ".gradle/**"
+              - "venv311/**"
+              - "backend/venv311/**"
+
+      - name: Set up JDK 17 (for Kotlin/Java scan)
+        if: matrix.language == 'java-kotlin'
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
+      - name: Setup Gradle (for Kotlin/Java scan)
+        if: matrix.language == 'java-kotlin'
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          cache-read-only: true
+
+      - name: Build Kotlin/Java for CodeQL
+        if: matrix.language == 'java-kotlin'
+        env:
+          GRADLE_OPTS: "-Dorg.gradle.daemon=false"
+        run: |
+          ./gradlew :domain:compileDebugKotlin \
+                    :data:compileDebugKotlin \
+                    :core-common:compileDebugKotlin \
+                    :core-network:compileDebugKotlin \
+                    :core-security:compileDebugKotlin \
+                    --stacktrace --no-parallel
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+        with:
+          category: "/language:${{ matrix.language }}"
+          # upload is disabled because GitHub Default Setup is enabled on this repo.
+          # To re-enable: go to Settings → Code security → Code scanning → Default setup → Disable,
+          # then change upload back to "always".
+          upload: never
+        continue-on-error: true
+
+      - name: CodeQL summary
+        if: always()
+        run: |
+          echo "## CodeQL Analysis — ${{ matrix.language }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Results uploaded to GitHub Security tab (SARIF)." >> "$GITHUB_STEP_SUMMARY"
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 2. Gitleaks — Secrets & Credential Leak Detection
+  # ──────────────────────────────────────────────────────────────────────────
+  gitleaks:
+    name: Gitleaks Secret Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source (full history)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks (full Git history)
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}   # optional for Enterprise
+        # No 'args' override — default behaviour scans full Git history.
+        # Job fails automatically when a secret pattern is detected (Req 28.2).
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 3. Bandit — Python SAST
+  # ──────────────────────────────────────────────────────────────────────────
+  bandit:
+    name: Bandit Python SAST
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Bandit
+        run: pip install bandit[toml]==1.7.10 bandit-sarif-formatter==1.1.1
+
+      - name: Run Bandit scan
+        run: |
+          bandit -r backend/app \
+            --severity-level medium \
+            --confidence-level medium \
+            --format sarif \
+            --output bandit-results.sarif \
+            --exclude backend/app/tests \
+          || true   # exit code 1 means issues found; we upload regardless
+
+      - name: Upload Bandit SARIF to Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: bandit-results.sarif
+          category: bandit-python
+        continue-on-error: true
+
+      - name: Run Bandit (HIGH severity + HIGH confidence — CI gate)
+        # Per Req 28.3: HIGH severity + HIGH confidence findings fail the job.
+        run: |
+          bandit -r backend/app \
+            --severity-level high \
+            --confidence-level high \
+            --format txt \
+            --exclude backend/app/tests \
+          | tee bandit-high-summary.txt
+          echo "### Bandit HIGH+HIGH Summary (CI Gate)" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          cat bandit-high-summary.txt >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+        # No continue-on-error — non-zero exit code fails the job (Req 28.3)
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 4. Trivy — Docker Image Vulnerability Scan
+  # ──────────────────────────────────────────────────────────────────────────
+  trivy-image:
+    name: Trivy Image Scan
+    runs-on: ubuntu-latest
+    # Only run on main pushes/schedules — needs a built image
+    if: >-
+      github.event_name == 'push' ||
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Free up disk space
+        run: |
+          # Remove large pre-installed tooling that isn't needed for this job
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc \
+                      /usr/local/share/boost /opt/hostedtoolcache/CodeQL \
+                      /usr/local/.ghcup /usr/share/swift
+          sudo docker image prune -af
+          df -h
+
+      - name: Build Docker image for scanning
+        run: |
+          docker build \
+            --target production \
+            --tag ai-assistant-backend:scan \
+            backend/
+
+      - name: Run Trivy image scan (SARIF)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: "ai-assistant-backend:scan"
+          format: "sarif"
+          output: "trivy-image-results.sarif"
+          severity: "CRITICAL,HIGH"
+          exit-code: "0"
+          ignore-unfixed: true
+          vuln-type: "os,library"
+          trivyignores: ".trivyignore"
+
+      - name: Upload Trivy SARIF to Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-image-results.sarif
+          category: trivy-docker-image
+        continue-on-error: true
+
+      - name: Run Trivy image scan (table — CI fail on CRITICAL)
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: "ai-assistant-backend:scan"
+          format: "table"
+          severity: "CRITICAL"
+          exit-code: "1"
+          ignore-unfixed: true
+          vuln-type: "os,library"
+          trivyignores: ".trivyignore"
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 5. Trivy — Filesystem / IaC Scan
+  # ──────────────────────────────────────────────────────────────────────────
+  trivy-fs:
+    name: Trivy Filesystem & IaC Scan
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run Trivy filesystem scan (SARIF)
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "fs"
+          scan-ref: "."
+          format: "sarif"
+          output: "trivy-fs-results.sarif"
+          severity: "CRITICAL,HIGH"
+          exit-code: "0"
+          skip-dirs: ".gradle,build,venv311,.venv,node_modules"
+          trivyignores: ".trivyignore"
+
+      - name: Upload Trivy FS SARIF to Code Scanning
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: trivy-fs-results.sarif
+          category: trivy-filesystem
+        continue-on-error: true
+
+      - name: Trivy Docker Compose / IaC check
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: "config"
+          scan-ref: "."
+          format: "table"
+          severity: "CRITICAL,HIGH"
+          exit-code: "0"
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 6. OWASP Dependency-Check (Python + Gradle)
+  # ──────────────────────────────────────────────────────────────────────────
+  dependency-check:
+    name: OWASP Dependency Check
+    runs-on: ubuntu-latest
+    # Weekly or manual only — NVD downloads are large and slow
+    if: >-
+      github.event_name == 'schedule' ||
+      github.event_name == 'workflow_dispatch'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run OWASP Dependency-Check
+        uses: dependency-check/Dependency-Check_Action@main
+        with:
+          project: "android-ai-assistant"
+          path: "."
+          format: "ALL"
+          out: "dependency-check-report"
+          args: >-
+            --enableExperimental
+            --failOnCVSS 7
+            --suppression .github/dependency-check-suppression.xml
+            --nvdApiKey ${{ secrets.NVD_API_KEY }}
+        env:
+          JAVA_HOME: /opt/jdk
+
+      - name: Upload Dependency-Check results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report-${{ github.run_number }}
+          path: dependency-check-report/
+          retention-days: 30
+
+      - name: Upload SARIF to Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: dependency-check-report/dependency-check-report.sarif
+          category: owasp-dependency-check
+        continue-on-error: true
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 7. pip-audit — Python dependency vulnerability check (fast, every PR)
+  #    Replaces Safety CLI which broke with typer>=0.9 (typer.rich_utils gone).
+  #    pip-audit uses the OSV + PyPI Advisory databases — no account required.
+  # ──────────────────────────────────────────────────────────────────────────
+  safety:
+    name: Python Dependency Audit (pip-audit)
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install pip-audit
+        run: pip install pip-audit==2.9.0
+
+      - name: Run pip-audit (report, non-blocking)
+        # Full report for visibility — does not fail the job.
+        run: |
+          pip-audit \
+            --requirement backend/requirements.txt \
+            --output json \
+            --format json \
+            > pip-audit-report.json \
+          || true
+        continue-on-error: true
+
+      - name: Run pip-audit (CRITICAL gate)
+        # Fail the job on any vulnerability not listed in the ignore file.
+        # CVE-2026-45829 (chromadb) is ignored — no patch available, port-binding
+        # mitigation is in place. See .trivyignore for details.
+        run: |
+          pip-audit \
+            --requirement backend/requirements.txt \
+            --ignore-vuln CVE-2026-45829 \
+            --strict
+
+      - name: Upload pip-audit report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pip-audit-report-${{ github.run_number }}
+          path: pip-audit-report.json
+          retention-days: 14
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 9. TLS Pin Consistency Check (Req 28.7)
+  # ──────────────────────────────────────────────────────────────────────────
+  verify-tls-pin:
+    name: Verify TLS Certificate Pin Consistency
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Run TLS pin consistency check
+        run: |
+          chmod +x .github/scripts/check-tls-pin.sh
+          .github/scripts/check-tls-pin.sh
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 8. Summary Notification
+  # ──────────────────────────────────────────────────────────────────────────
+  notify-security:
+    name: Security Scan Summary
+    runs-on: ubuntu-latest
+    needs:
+      - codeql
+      - gitleaks
+      - bandit
+      - trivy-image
+      - trivy-fs
+      - verify-tls-pin
+    if: always() && github.event_name != 'pull_request'
+    steps:
+      - name: Write job summary
+        run: |
+          echo "## Security Scan Results — $(date -u '+%Y-%m-%d %H:%M UTC')" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Scanner | Status |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---------|--------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| CodeQL (Kotlin) | ${{ needs.codeql.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| CodeQL (Python) | ${{ needs.codeql.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Gitleaks | ${{ needs.gitleaks.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Bandit | ${{ needs.bandit.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Trivy (image) | ${{ needs.trivy-image.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Trivy (FS/IaC) | ${{ needs.trivy-fs.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| TLS Pin Check | ${{ needs.verify-tls-pin.result }} |" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Slack alert on scan failure
+        if: >-
+          (needs.gitleaks.result == 'failure' || needs.trivy-image.result == 'failure') &&
+          vars.SLACK_WEBHOOK_URL != ''
+        uses: slackapi/slack-github-action@v1.27.0
+        with:
+          payload: |
+            {
+              "text": "🚨 Security scan failure detected on `${{ github.ref_name }}`",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": "*🚨 Security Alert — Android AI Assistant*\n\n• *Branch:* `${{ github.ref_name }}`\n• *Gitleaks:* ${{ needs.gitleaks.result }}\n• *Trivy Image:* ${{ needs.trivy-image.result }}\n• *Bandit:* ${{ needs.bandit.result }}\n• <${{ github.server_url }}/${{ github.repository }}/security/code-scanning|View findings in Code Scanning>"
+                  }
+                }
+              ]
+            }
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK

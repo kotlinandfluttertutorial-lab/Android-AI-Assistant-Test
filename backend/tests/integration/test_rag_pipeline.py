@@ -1359,9 +1359,9 @@ class TestFullPipelineCycle:
                     _run_ingestion(mock_task, str(doc_id), str(user_id))
                 )
 
-        assert ingest_result["status"] == "completed", (
-            f"Ingestion failed: {ingest_result}"
-        )
+        assert (
+            ingest_result["status"] == "completed"
+        ), f"Ingestion failed: {ingest_result}"
 
         # ---------------------------------------------------------------
         # Phase 4 — Check job is completed via GET /jobs/{job_id}

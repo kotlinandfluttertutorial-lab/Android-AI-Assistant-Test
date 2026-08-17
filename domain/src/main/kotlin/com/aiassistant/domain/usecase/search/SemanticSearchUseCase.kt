@@ -8,6 +8,7 @@
  *
  * Requirements: 36.1, 36.3, 36.8
  */
+
 package com.aiassistant.domain.usecase.search
 
 import com.aiassistant.core.common.ApiResult

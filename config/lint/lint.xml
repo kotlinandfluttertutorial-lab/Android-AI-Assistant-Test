@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Shared Android Lint configuration for all modules.
+
+  Rules disabled here are either:
+    - Version-update noise handled by Renovate/Dependabot
+    - False positives in a multi-module Compose project
+    - Issues already managed by dedicated tools (Detekt, ktlint)
+
+  Per-module overrides belong in that module's own lint.xml or build.gradle.kts
+  lint {} block — do not add module-specific suppressions here.
+-->
+<lint>
+    <!-- Handled by Renovate / Dependabot — not actionable during code review -->
+    <issue id="GradleDependency" severity="ignore" />
+    <issue id="NewerVersionAvailable" severity="ignore" />
+
+    <!--
+      OutdatedLibrary: same rationale as above; version pinning is intentional.
+    -->
+    <issue id="OutdatedLibrary" severity="ignore" />
+
+    <!--
+      UnusedResources: multi-module projects often have resources consumed by
+      other modules; lint cannot see cross-module usage without checkDependencies.
+    -->
+    <issue id="UnusedResources" severity="ignore" />
+
+    <!--
+      IconMissingDensityFolder: app module handles launcher icons; library
+      modules legitimately have no density-specific drawables.
+    -->
+    <issue id="IconMissingDensityFolder" severity="ignore" />
+
+    <!--
+      AppLinkUrlError: custom URI scheme deep links (e.g. aiassistant://) do not
+      use Digital Asset Link verification, so autoVerify is not applicable.
+      The manifest has been corrected to remove autoVerify; this entry prevents
+      regression from future tooling changes.
+    -->
+    <issue id="AppLinkUrlError" severity="ignore" />
+</lint>

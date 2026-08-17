@@ -70,9 +70,11 @@ MAX_EMAIL_LENGTH = 254  # per RFC 5321
 
 # Compiled once at import time for performance.
 _XSS_PATTERNS: list[re.Pattern[str]] = [
-    # <script ...> tags (opening or closing)
-    re.compile(r"<\s*script[^>]*>", re.IGNORECASE | re.DOTALL),
-    re.compile(r"<\s*/\s*script\s*>", re.IGNORECASE),
+    # <script ...> tags (opening or closing).
+    # Use [\s\S]*? instead of [^>]* so that whitespace and attributes inside
+    # the tag (e.g. </script >, </script\n>) are matched correctly.
+    re.compile(r"<\s*script[\s\S]*?>", re.IGNORECASE),
+    re.compile(r"<\s*/\s*script[\s\S]*?>", re.IGNORECASE),
     # javascript: or vbscript: protocol in attribute values
     re.compile(r"\bjavascript\s*:", re.IGNORECASE),
     re.compile(r"\bvbscript\s*:", re.IGNORECASE),
@@ -113,7 +115,7 @@ _SQL_PATTERNS: list[re.Pattern[str]] = [
     re.compile(r"\b(?:SLEEP|WAITFOR\s+DELAY|BENCHMARK)\s*\(", re.IGNORECASE),
     # Error-based extraction: EXTRACTVALUE, UPDATEXML, GROUP BY x HAVING
     re.compile(r"\b(?:EXTRACTVALUE|UPDATEXML)\s*\(", re.IGNORECASE),
-    # xp_cmdshell and other MSSQL exploits
+    # xp_cmdshell and other prototype exploits
     re.compile(r"\bxp_cmdshell\b", re.IGNORECASE),
     # Boolean-based: ' AND '1'='1
     re.compile(r"'\s*AND\s+'?\d+'?\s*=\s*'?\d+", re.IGNORECASE),
@@ -242,7 +244,7 @@ def sanitize_string(value: str) -> str:
     return value
 
 
-def sanitize_user_string(cls, value: str) -> str:
+def sanitize_user_string(cls: type, value: str) -> str:
     """Pydantic v2 ``field_validator`` compatible sanitization function.
 
     Designed to be used with ``@field_validator`` or ``model_validator``::

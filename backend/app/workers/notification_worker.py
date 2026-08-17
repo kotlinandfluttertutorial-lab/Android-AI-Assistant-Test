@@ -34,6 +34,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from typing import Any
 
 from celery.exceptions import MaxRetriesExceededError
 
@@ -52,7 +53,7 @@ _FCM_RETRY_KEY_PREFIX = "fcm_token_retry:"
 # ---------------------------------------------------------------------------
 
 
-@celery_app.task(
+@celery_app.task(  # type: ignore[misc]
     bind=True,
     name="app.workers.notification_worker.send_push_notification",
     autoretry_for=(Exception,),
@@ -61,12 +62,12 @@ _FCM_RETRY_KEY_PREFIX = "fcm_token_retry:"
     default_retry_delay=5,
 )
 def send_push_notification(
-    self,
+    self: Any,
     user_id: str,
     title: str,
     body: str,
-    data: dict | None = None,
-) -> dict:
+    data: dict[str, str] | None = None,
+) -> dict[str, str]:
     """Celery task: send a generic FCM push notification to a user.
 
     Args:
@@ -83,18 +84,18 @@ def send_push_notification(
 
     Requirements: 16.1, 16.2, 16.5, 16.6
     """
-    return asyncio.get_event_loop().run_until_complete(
+    return asyncio.run(
         _run_send_push_notification(self, user_id, title, body, data or {})
     )
 
 
 async def _run_send_push_notification(
-    task,
+    task: object,
     user_id: str,
     title: str,
     body: str,
-    data: dict,
-) -> dict:
+    data: dict[str, str],
+) -> dict[str, str]:
     """Async implementation of the push notification dispatch."""
     from app.config.settings import get_settings
 
@@ -150,7 +151,7 @@ async def _log_push_failure(user_id: str, title: str, body: str) -> None:
                 {"user_id": user_id, "message": f"Push failed: {title} — {body}"},
             )
             await db.commit()
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("_log_push_failure: could not write to error_log: %s", exc)
 
 
@@ -159,13 +160,15 @@ async def _log_push_failure(user_id: str, title: str, body: str) -> None:
 # ---------------------------------------------------------------------------
 
 
-@celery_app.task(
+@celery_app.task(  # type: ignore[misc]
     bind=True,
     name="app.workers.notification_worker.refresh_device_token",
     max_retries=3,
     default_retry_delay=5,
 )
-def refresh_device_token(self, user_id: str, old_token: str, new_token: str) -> dict:
+def refresh_device_token(
+    self: Any, user_id: str, old_token: str, new_token: str
+) -> dict[str, str]:
     """Celery task: update a user's FCM device token in the database.
 
     On DB failure, stores a retry counter in Redis key
@@ -182,14 +185,12 @@ def refresh_device_token(self, user_id: str, old_token: str, new_token: str) -> 
 
     Requirements: 16.7
     """
-    return asyncio.get_event_loop().run_until_complete(
-        _run_refresh_device_token(self, user_id, old_token, new_token)
-    )
+    return asyncio.run(_run_refresh_device_token(self, user_id, old_token, new_token))
 
 
 async def _run_refresh_device_token(
-    task, user_id: str, old_token: str, new_token: str
-) -> dict:
+    task: object, user_id: str, old_token: str, new_token: str
+) -> dict[str, str]:
     """Async implementation of the FCM token refresh."""
     import uuid
 
@@ -211,7 +212,7 @@ async def _run_refresh_device_token(
             else:
                 logger.warning("refresh_device_token: user=%s not found in DB", user_id)
         return {"status": "updated", "user_id": user_id}
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.error(
             "refresh_device_token: DB update failed for user=%s: %s", user_id, exc
         )
@@ -232,24 +233,24 @@ async def _set_token_retry_counter(user_id: str, new_token: str) -> None:
         logger.info(
             "_set_token_retry_counter: Redis retry counter set for user=%s", user_id
         )
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning(
             "_set_token_retry_counter: could not set Redis retry counter: %s", exc
         )
 
 
-@celery_app.task(
+@celery_app.task(  # type: ignore[misc]
     bind=True,
     name="app.workers.notification_worker.send_message_delivery_notification_task",
     max_retries=2,
     default_retry_delay=5,
 )
 def send_message_delivery_notification_task(
-    self,
+    self: Any,
     user_id: str,
     message_id: str,
     conversation_id: str,
-) -> dict:
+) -> dict[str, str]:
     """Celery task: send an FCM push notification for a delivered queued message.
 
     Called when a previously-failed queued message is successfully delivered.
@@ -264,17 +265,16 @@ def send_message_delivery_notification_task(
         dict with ``status`` and relevant IDs.
     """
     try:
-        asyncio.get_event_loop().run_until_complete(
-            _send_delivery_notification(user_id, message_id, conversation_id)
-        )
+        asyncio.run(_send_delivery_notification(user_id, message_id, conversation_id))
         return {
             "status": "sent",
             "user_id": user_id,
             "message_id": message_id,
             "conversation_id": conversation_id,
         }
-    except Exception as exc:  # noqa: BLE001
-        # Best-effort: retry up to max_retries, then give up silently
+    except (
+        Exception
+    ) as exc:  # Best-effort: retry up to max_retries, then give up silently
         logger.warning(
             "send_message_delivery_notification_task: attempt %d failed for "
             "user=%s message=%s: %s",
@@ -285,7 +285,7 @@ def send_message_delivery_notification_task(
         )
         try:
             raise self.retry(exc=exc, countdown=5, max_retries=2)
-        except Exception:  # noqa: BLE001
+        except Exception:
             # All retries exhausted — log and swallow; never propagate
             logger.error(
                 "send_message_delivery_notification_task: all retries exhausted "

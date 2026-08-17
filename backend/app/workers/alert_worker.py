@@ -39,19 +39,20 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from typing import Any
 
 from app.workers.celery_app import celery_app
 
 logger = logging.getLogger(__name__)
 
 
-@celery_app.task(
+@celery_app.task(  # type: ignore[misc]
     name="app.workers.alert_worker.check_spending_alerts_task",
     bind=True,
-    max_retries=0,  # fire-and-forget; errors are logged but not retried
+    max_retries=0,
     ignore_result=True,
 )
-def check_spending_alerts_task(self) -> None:
+def check_spending_alerts_task(self: Any) -> None:
     """Celery beat task that checks all spending alerts every 60 seconds.
 
     Algorithm (delegated to :func:`app.services.cost_service.check_spending_alerts`):
@@ -78,10 +79,10 @@ def check_spending_alerts_task(self) -> None:
 
 async def _run_alert_check() -> None:
     """Async inner function that obtains a DB session and invokes the alert checker."""
-    from app.database import async_session_factory
+    from app.database import AsyncSessionLocal
     from app.services.cost_service import check_spending_alerts
 
-    async with async_session_factory() as db:
+    async with AsyncSessionLocal() as db:
         try:
             await check_spending_alerts(db=db)
             await db.commit()

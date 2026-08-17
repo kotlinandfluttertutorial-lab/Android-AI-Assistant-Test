@@ -42,10 +42,15 @@ import json
 import logging
 import math
 import time
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any
 
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 from starlette.types import ASGIApp, Receive, Scope, Send
+
+if TYPE_CHECKING:
+    from app.config.settings import Settings
 
 logger = logging.getLogger(__name__)
 
@@ -98,7 +103,7 @@ def _extract_user_id_from_header(authorization: str | None) -> str | None:
 
         payload = json.loads(base64.urlsafe_b64decode(payload_b64))
         return str(payload["sub"]) if payload.get("sub") else None
-    except Exception:  # noqa: BLE001
+    except Exception:
         return None
 
 
@@ -111,7 +116,7 @@ def _extract_user_id_from_scope(scope: Scope) -> str | None:
 
     try:
         return _extract_user_id_from_header(authorization.decode("utf-8"))
-    except Exception:  # noqa: BLE001
+    except Exception:
         return None
 
 
@@ -135,15 +140,15 @@ def _extract_client_ip(scope: Scope) -> str:
     if xff:
         try:
             # X-Forwarded-For: client, proxy1, proxy2 — take leftmost entry
-            first_ip = xff.decode("utf-8").split(",")[0].strip()
+            first_ip = str(xff.decode("utf-8")).split(",")[0].strip()
             if first_ip:
                 return first_ip
-        except Exception:  # noqa: BLE001
+        except Exception:
             pass
 
     # Fall back to the ASGI client tuple (host, port)
     client = scope.get("client")
-    if client and isinstance(client, (tuple, list)) and len(client) >= 1:
+    if client and isinstance(client, tuple | list) and len(client) >= 1:
         return str(client[0])
 
     return "unknown"
@@ -168,9 +173,9 @@ class RateLimitMiddleware:
 
     def __init__(self, app: ASGIApp) -> None:
         self.app = app
-        self._settings = None  # lazy
+        self._settings: Settings | None = None  # lazy
 
-    def _get_settings(self):
+    def _get_settings(self) -> Settings:
         if self._settings is None:
             from app.config.settings import get_settings
 
@@ -189,9 +194,9 @@ class RateLimitMiddleware:
 
         async def call_next(req: Request) -> Response:
             response_started = False
-            response_body = []
+            response_body: list[bytes] = []
 
-            async def send_wrapper(message) -> None:
+            async def send_wrapper(message: dict[str, Any]) -> None:
                 nonlocal response_started
                 if message["type"] == "http.response.start":
                     response_started = True
@@ -200,7 +205,7 @@ class RateLimitMiddleware:
                     response_body.append(message.get("body", b""))
                 await send(message)
 
-            await self.app(scope, receive, send_wrapper)
+            await self.app(scope, receive, send_wrapper)  # type: ignore[arg-type]
             # Return a synthetic Response so dispatch() can return it
             status_code = scope.get("_response_started", {}).get("status", 200)
             return Response(
@@ -240,7 +245,7 @@ class RateLimitMiddleware:
                     )
                     await response(scope, receive, send)
                     return
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("Rate limit Redis check failed (fail-open): %s", exc)
         else:
             # Tier 2 — unauthenticated IP rate limit
@@ -266,12 +271,16 @@ class RateLimitMiddleware:
                     )
                     await response(scope, receive, send)
                     return
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("IP rate limit Redis check failed (fail-open): %s", exc)
 
         await self.app(scope, receive, send)
 
-    async def dispatch(self, request: Request, call_next) -> Response:
+    async def dispatch(
+        self,
+        request: Request,
+        call_next: Callable[[Request], Any],
+    ) -> Response:
         """Handle a single HTTP request with rate limiting.
 
         This method follows the Starlette BaseHTTPMiddleware ``dispatch``
@@ -321,7 +330,7 @@ class RateLimitMiddleware:
                         },
                         headers={"Retry-After": str(retry_after)},
                     )
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("Rate limit Redis check failed (fail-open): %s", exc)
         else:
             # Tier 2 — unauthenticated IP rate limit
@@ -355,12 +364,12 @@ class RateLimitMiddleware:
                         },
                         headers={"Retry-After": str(retry_after)},
                     )
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning("IP rate limit Redis check failed (fail-open): %s", exc)
 
-        return await call_next(request)
+        return await call_next(request)  # type: ignore[no-any-return]
 
-    async def _get_redis(self):
+    async def _get_redis(self) -> Any:
         """Return the shared async Redis client singleton."""
         from app.database.redis import get_redis_client
 

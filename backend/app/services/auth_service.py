@@ -36,7 +36,7 @@ Requirements: 1.2, 1.3, 1.4, 1.5, 1.10
 from __future__ import annotations
 
 import uuid
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -121,7 +121,8 @@ async def refresh_tokens(
         raw_refresh_token:  The refresh token string submitted by the client.
 
     Returns:
-        A 6-tuple of ``(new_access_token, access_exp, new_refresh_token, refresh_exp, role, user_id)``.
+        A 6-tuple of
+        ``(new_access_token, access_exp, new_refresh_token, refresh_exp, role, user_id)``.
 
     Raises:
         :class:`~app.security.exceptions.InvalidTokenError`: Token not found,
@@ -144,7 +145,7 @@ async def refresh_tokens(
         raise InvalidTokenError("refresh token has been revoked")
 
     # Check expiry (Python-level check; the database clock is authoritative)
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
     if record.expires_at <= now:
         raise InvalidTokenError("refresh token has expired")
 

@@ -55,9 +55,7 @@ package com.aiassistant.data.local
 import androidx.paging.PagingSource
 import com.aiassistant.core.common.DispatcherProvider
 import com.aiassistant.core.database.dao.ConversationDao
-import com.aiassistant.core.database.dao.MessageDao
 import com.aiassistant.core.database.entity.ConversationEntity
-import com.aiassistant.core.database.entity.MessageEntity
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
@@ -70,13 +68,11 @@ import kotlinx.coroutines.withContext
  * the suspend functions that mutate state are wrapped in [DispatcherProvider.io].
  *
  * @param conversationDao DAO for [ConversationEntity] CRUD operations and FTS search.
- * @param messageDao      DAO for [MessageEntity] operations (used for FTS search join).
  * @param dispatchers     Injectable dispatcher provider for suspend mutations.
  */
 @Singleton
 class ConversationLocalDataSource @Inject constructor(
     private val conversationDao: ConversationDao,
-    private val messageDao: MessageDao,
     private val dispatchers: DispatcherProvider
 ) {
 

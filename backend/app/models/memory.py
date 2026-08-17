@@ -43,14 +43,18 @@ from __future__ import annotations
 import enum
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, Enum, ForeignKey, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, uuid_pk
 
+if TYPE_CHECKING:
+    from app.models.user import User
 
-class MemoryType(str, enum.Enum):
+
+class MemoryType(enum.StrEnum):
     """Classification of a stored memory fragment."""
 
     preference = "preference"
@@ -94,10 +98,7 @@ class Memory(Base):
     # ------------------------------------------------------------------
     # Relationships
     # ------------------------------------------------------------------
-    user: Mapped[User] = relationship("User", back_populates="memories")  # noqa: F821
+    user: Mapped[User] = relationship("User", back_populates="memories")
 
     def __repr__(self) -> str:
-        return (
-            f"<Memory id={self.id!s} user_id={self.user_id!s} "
-            f"type={self.memory_type.value!r}>"
-        )
+        return f"<Memory id={self.id!s} user_id={self.user_id!s} type={self.memory_type.value!r}>"

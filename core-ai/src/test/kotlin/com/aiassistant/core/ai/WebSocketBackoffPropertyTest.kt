@@ -27,7 +27,6 @@ import io.kotest.property.checkAll
 // ─── Mirror of AIStreamClientImpl constants (keep in sync) ───────────────────
 
 private const val MAX_RECONNECT_ATTEMPTS = 5
-private const val INITIAL_BACKOFF_MS = 1_000L
 private const val MAX_BACKOFF_MS = 30_000L
 
 // ─── Pure backoff formula helper ─────────────────────────────────────────────
@@ -35,7 +34,7 @@ private const val MAX_BACKOFF_MS = 30_000L
 /**
  * Pure helper that mirrors the backoff expression used inside [AIStreamClientImpl]:
  * ```
- * minOf(INITIAL_BACKOFF_MS shl (attempt - 1), MAX_BACKOFF_MS)
+ * minOf(1_000L shl (attempt - 1), MAX_BACKOFF_MS)
  * ```
  */
 fun computeBackoffMs(attempt: Int): Long = minOf(1_000L shl (attempt - 1), 30_000L)

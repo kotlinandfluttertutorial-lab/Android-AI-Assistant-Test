@@ -85,11 +85,11 @@ import com.aiassistant.feature.voice.VoiceRoute
 private data class BottomNavItem(val label: String, val icon: ImageVector, val route: String)
 
 private val bottomNavItems = listOf(
-    BottomNavItem("Chat", Icons.Outlined.Forum, ChatRoute.List),
-    BottomNavItem("History", Icons.Outlined.History, HistoryRoute.Graph),
-    BottomNavItem("Voice", Icons.Outlined.Mic, VoiceRoute.Graph),
-    BottomNavItem("Notes", Icons.Outlined.NoteAlt, NotesRoute.Graph),
-    BottomNavItem("Tasks", Icons.Outlined.TaskAlt, ProductivityRoute.Graph)
+    BottomNavItem("Chat", Icons.Outlined.Forum, ChatRoute.LIST),
+    BottomNavItem("History", Icons.Outlined.History, HistoryRoute.GRAPH),
+    BottomNavItem("Voice", Icons.Outlined.Mic, VoiceRoute.GRAPH),
+    BottomNavItem("Notes", Icons.Outlined.NoteAlt, NotesRoute.GRAPH),
+    BottomNavItem("Tasks", Icons.Outlined.TaskAlt, ProductivityRoute.GRAPH)
 )
 
 // â”€â”€â”€ Feature card items (grid) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -97,15 +97,15 @@ private val bottomNavItems = listOf(
 private data class FeatureCardItem(val label: String, val icon: ImageVector, val route: String)
 
 private val featureCards = listOf(
-    FeatureCardItem("Documents\n& RAG", Icons.AutoMirrored.Outlined.LibraryBooks, RAGRoute.DocumentList),
+    FeatureCardItem("Documents\n& RAG", Icons.AutoMirrored.Outlined.LibraryBooks, RAGRoute.DOCUMENT_LIST),
     FeatureCardItem("Camera\n& Vision", Icons.Outlined.Camera, CAMERA_ROUTE),
-    FeatureCardItem("Code\nAssistant", Icons.Outlined.Code, CodeRoute.Graph),
-    FeatureCardItem("Resume\nBuilder", Icons.Outlined.Description, ResumeRoute.Graph),
-    FeatureCardItem("Email\nComposer", Icons.Outlined.Email, EmailRoute.Graph),
+    FeatureCardItem("Code\nAssistant", Icons.Outlined.Code, CodeRoute.GRAPH),
+    FeatureCardItem("Resume\nBuilder", Icons.Outlined.Description, ResumeRoute.GRAPH),
+    FeatureCardItem("Email\nComposer", Icons.Outlined.Email, EmailRoute.GRAPH),
     FeatureCardItem("Meeting\nRecorder", Icons.Outlined.MeetingRoom, meetingRoute()),
     FeatureCardItem("Translator", Icons.Outlined.GTranslate, TRANSLATOR_ROUTE),
     FeatureCardItem("Settings", Icons.Outlined.Settings, SettingsRoute.SCREEN),
-    FeatureCardItem("Profile", Icons.Outlined.Person, ProfileRoute.Screen)
+    FeatureCardItem("Profile", Icons.Outlined.Person, ProfileRoute.SCREEN)
 )
 
 /**

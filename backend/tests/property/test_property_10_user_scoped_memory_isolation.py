@@ -593,9 +593,9 @@ class TestUserScopedMemoryIsolationEdgeCases:
                 f"new user (should return empty list). exception={exc!r}"
             )
 
-        assert result == [], (
-            f"Edge case failed: expected empty list for new user, got {result!r}"
-        )
+        assert (
+            result == []
+        ), f"Edge case failed: expected empty list for new user, got {result!r}"
 
     def test_prompt_context_for_user_b_excludes_user_a_memories(self) -> None:
         """_build_prompt for user B must not include any of user A's memory strings."""
@@ -648,12 +648,12 @@ class TestUserScopedMemoryIsolationEdgeCases:
 
         all_text = " ".join(msg.content for msg in context.messages)
 
-        assert "dark mode" not in all_text, (
-            "Edge case failed: user A's 'dark mode' preference found in user B's prompt."
-        )
-        assert "AcmeCorp" not in all_text, (
-            "Edge case failed: user A's 'AcmeCorp' fact found in user B's prompt."
-        )
-        assert "User A secret preference" not in all_text, (
-            "Edge case failed: user A's memory content found verbatim in user B's prompt."
-        )
+        assert (
+            "dark mode" not in all_text
+        ), "Edge case failed: user A's 'dark mode' preference found in user B's prompt."
+        assert (
+            "AcmeCorp" not in all_text
+        ), "Edge case failed: user A's 'AcmeCorp' fact found in user B's prompt."
+        assert (
+            "User A secret preference" not in all_text
+        ), "Edge case failed: user A's memory content found verbatim in user B's prompt."

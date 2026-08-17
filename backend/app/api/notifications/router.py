@@ -70,7 +70,7 @@ class DeviceTokenResponse(BaseModel):
 
 
 @router.get("/")
-async def notifications_root() -> dict:
+async def notifications_root() -> dict[str, str]:
     """Placeholder endpoint — notifications router is active."""
     return {"message": "notifications router"}
 
@@ -132,7 +132,7 @@ async def update_device_token(
 
     except HTTPException:
         raise
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.error(
             "update_device_token: DB update failed for user=%s: %s",
             str(current_user.sub),
@@ -152,5 +152,5 @@ async def _store_redis_retry(user_id: str, new_token: str) -> None:
         key = f"fcm_token_retry:{user_id}"
         await redis_client.set(key, 10)
         logger.info("_store_redis_retry: retry counter set for user=%s", user_id)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning("_store_redis_retry: could not set Redis key: %s", exc)

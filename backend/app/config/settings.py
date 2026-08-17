@@ -31,21 +31,28 @@ Requirements: 20.6
 from __future__ import annotations
 
 from functools import lru_cache
+from pathlib import Path
 
 from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+# Resolve the .env path relative to this file (backend/app/config/settings.py)
+# so it is found correctly regardless of the working directory uvicorn is
+# launched from.  Falls back to the CWD-relative ".env" when running tests
+# that spin up a separate FastAPI instance without the full directory tree.
+_ENV_FILE = Path(__file__).resolve().parents[2] / ".env"  # backend/.env
 
 
 class Settings(BaseSettings):
     """All application configuration loaded from environment variables.
 
     Variables are case-insensitive; underscores and dots are treated as
-    equivalent separators.  A `.env` file in the working directory is read
-    automatically at startup (lower priority than actual env vars).
+    equivalent separators.  A `.env` file in backend/ is read automatically
+    at startup (lower priority than actual env vars).
     """
 
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=str(_ENV_FILE) if _ENV_FILE.exists() else ".env",
         env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",  # ignore unknown env vars — keeps deployment flexible

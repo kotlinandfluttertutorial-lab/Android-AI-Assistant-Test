@@ -51,9 +51,13 @@ Requirements: 9.7
 from __future__ import annotations
 
 import logging
+from typing import TYPE_CHECKING, Any
 
 from starlette.responses import JSONResponse
 from starlette.types import ASGIApp, Receive, Scope, Send
+
+if TYPE_CHECKING:
+    from app.config.settings import Settings
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +82,7 @@ class RequestBodySizeLimitMiddleware:
 
     def __init__(self, app: ASGIApp) -> None:
         self.app = app
-        self._settings = None  # lazy
+        self._settings: Settings | None = None  # lazy
 
     def _get_limit(self) -> int:
         """Return the configured max body size, falling back to the default."""
@@ -87,7 +91,7 @@ class RequestBodySizeLimitMiddleware:
                 from app.config.settings import get_settings
 
                 self._settings = get_settings()
-            except Exception:  # noqa: BLE001
+            except Exception:
                 return _DEFAULT_LIMIT_BYTES
         return getattr(self._settings, "MAX_REQUEST_BODY_SIZE", _DEFAULT_LIMIT_BYTES)
 
@@ -155,10 +159,10 @@ class RequestBodySizeLimitMiddleware:
                 return
 
         # Patch the receive callable so the app can read the buffered messages.
-        async def buffered_receive() -> dict:
+        async def buffered_receive() -> dict[str, Any]:
             if messages:
-                return messages.pop(0)
-            return await receive()
+                return messages.pop(0)  # type: ignore[return-value]
+            return await receive()  # type: ignore[return-value]
 
         await self.app(scope, buffered_receive, send)
 
@@ -166,12 +170,13 @@ class RequestBodySizeLimitMiddleware:
         self, scope: Scope, receive: Receive, send: Send, limit: int
     ) -> None:
         """Helper to send a 413 response over raw ASGI."""
+        # JSONResponse's constructor doesn't take 'scope', 'receive', 'send'.
+        # It's an ASGI application, so we call it with them.
         response = JSONResponse(
             status_code=413,
             content={
                 "detail": (
-                    f"Request body too large. "
-                    f"Maximum allowed size is {limit // 1024} KiB."
+                    f"Request body too large. Maximum allowed size is {limit // 1024} KiB."
                 )
             },
         )

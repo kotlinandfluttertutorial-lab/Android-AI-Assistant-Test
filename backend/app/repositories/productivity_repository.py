@@ -267,7 +267,8 @@ class ProductivityRepository:
             end_date:   Optional upper bound for start_time (inclusive).
 
         Returns:
-            List of :class:`~app.models.calendar_event.CalendarEvent` ordered by start_time ASC.
+            List of :class:`~app.models.calendar_event.CalendarEvent` ordered
+            by start_time ASC.
         """
         conditions = [CalendarEvent.user_id == user_id]
         if start_date is not None:
@@ -484,7 +485,7 @@ class ProductivityRepository:
         return habit
 
     async def delete_habit(self, habit_id: uuid.UUID, user_id: uuid.UUID) -> bool:
-        """Delete a habit definition (and cascade-deletes all entries)."""
+        """Delete a habit definition (and cascade-deletes all entries).."""
         habit = await self.get_habit(habit_id, user_id)
         if habit is None:
             return False

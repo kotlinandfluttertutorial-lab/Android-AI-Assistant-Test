@@ -61,11 +61,14 @@ import time
 from abc import ABC, abstractmethod
 from collections.abc import AsyncIterator
 from decimal import Decimal
+from typing import Any, cast
 
 import google.generativeai as genai
 import httpx
 from anthropic import AsyncAnthropic
+from anthropic.types import TextBlock
 from openai import AsyncOpenAI
+from openai.types.chat import ChatCompletionMessageParam
 
 from app.config.settings import get_settings
 
@@ -169,7 +172,7 @@ class _ProviderRateLimiter:
 
         try:
             redis_client = await self._get_redis()
-            count: int = await redis_client.incr(key)  # type: ignore[assignment]
+            count: int = await redis_client.incr(key)  # type: ignore[no-untyped-call, assignment]
             if count == 1:
                 await redis_client.expire(key, _RATE_KEY_TTL_SECONDS)
 
@@ -188,7 +191,7 @@ class _ProviderRateLimiter:
                 raise RateLimitError(self._provider, retry_after)
         except RateLimitError:
             raise
-        except Exception as exc:  # noqa: BLE001 — Redis unavailable; fail-open
+        except Exception as exc:  # Redis unavailable; fail-open
             logger.warning(
                 "LLM provider rate-limit Redis check failed (fail-open) "
                 "for provider '%s': %s",
@@ -197,11 +200,11 @@ class _ProviderRateLimiter:
             )
 
     @staticmethod
-    async def _get_redis():
+    async def _get_redis() -> Any:
         import redis.asyncio as aioredis
 
         settings = get_settings()
-        return aioredis.from_url(settings.REDIS_URL, decode_responses=True)
+        return aioredis.from_url(settings.REDIS_URL, decode_responses=True)  # type: ignore[no-untyped-call]
 
 
 # ---------------------------------------------------------------------------
@@ -247,7 +250,7 @@ class BaseLLMClient(ABC):
     # ------------------------------------------------------------------
 
     @abstractmethod
-    async def stream(self, context: PromptContext) -> AsyncIterator[str]:
+    def stream(self, context: PromptContext) -> AsyncIterator[str]:
         """Stream completion tokens incrementally.
 
         Implementations MUST call ``await self._rate_limiter.check(context.user_id)``
@@ -405,9 +408,11 @@ class OpenAIClient(BaseLLMClient):
         """
         await self._rate_limiter.check(context.user_id)
 
-        messages = [{"role": "system", "content": context.system_prompt}]
-        for role, content in context.messages:
-            messages.append({"role": role, "content": content})
+        messages: list[ChatCompletionMessageParam] = cast(
+            list[ChatCompletionMessageParam],
+            [{"role": "system", "content": context.system_prompt}]
+            + [{"role": r, "content": c} for r, c in context.messages],
+        )
 
         stream = await self.client.chat.completions.create(
             model=self.model,
@@ -428,13 +433,15 @@ class OpenAIClient(BaseLLMClient):
         """
         await self._rate_limiter.check(context.user_id)
 
-        messages = [{"role": "system", "content": context.system_prompt}]
-        for role, content in context.messages:
-            messages.append({"role": role, "content": content})
+        messages2: list[ChatCompletionMessageParam] = cast(
+            list[ChatCompletionMessageParam],
+            [{"role": "system", "content": context.system_prompt}]
+            + [{"role": r, "content": c} for r, c in context.messages],
+        )
 
         response = await self.client.chat.completions.create(
             model=self.model,
-            messages=messages,
+            messages=messages2,
             max_tokens=context.max_tokens,
             temperature=context.temperature,
             stream=False,
@@ -546,7 +553,7 @@ class GeminiClient(BaseLLMClient):
             stream=False,
         )
 
-        return response.text
+        return str(response.text)
 
     @property
     def max_context_tokens(self) -> int:
@@ -609,8 +616,11 @@ class ClaudeClient(BaseLLMClient):
         """
         await self._rate_limiter.check(context.user_id)
 
-        messages = [
-            {"role": role, "content": content} for role, content in context.messages
+        from anthropic.types import MessageParam
+
+        claude_messages: list[MessageParam] = [
+            {"role": role, "content": content}  # type: ignore[typeddict-item]
+            for role, content in context.messages
         ]
 
         async with self.client.messages.stream(
@@ -618,7 +628,7 @@ class ClaudeClient(BaseLLMClient):
             max_tokens=context.max_tokens,
             temperature=context.temperature,
             system=context.system_prompt,
-            messages=messages,
+            messages=claude_messages,
         ) as stream:
             async for text in stream.text_stream:
                 yield text
@@ -630,8 +640,11 @@ class ClaudeClient(BaseLLMClient):
         """
         await self._rate_limiter.check(context.user_id)
 
-        messages = [
-            {"role": role, "content": content} for role, content in context.messages
+        from anthropic.types import MessageParam
+
+        claude_messages2: list[MessageParam] = [
+            {"role": role, "content": content}  # type: ignore[typeddict-item]
+            for role, content in context.messages
         ]
 
         response = await self.client.messages.create(
@@ -639,10 +652,11 @@ class ClaudeClient(BaseLLMClient):
             max_tokens=context.max_tokens,
             temperature=context.temperature,
             system=context.system_prompt,
-            messages=messages,
+            messages=claude_messages2,
         )
 
-        return response.content[0].text
+        first_block = response.content[0]
+        return first_block.text if isinstance(first_block, TextBlock) else ""
 
     @property
     def max_context_tokens(self) -> int:
@@ -766,7 +780,7 @@ class OllamaClient(BaseLLMClient):
         response = await self.client.post("/api/generate", json=payload)
         response.raise_for_status()
         data = response.json()
-        return data.get("response", "")
+        return str(data.get("response", ""))
 
     @property
     def max_context_tokens(self) -> int:

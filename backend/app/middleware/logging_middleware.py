@@ -42,9 +42,13 @@ import json
 import logging
 import time
 import uuid
+from typing import TYPE_CHECKING, Any
 
 from prometheus_client import Counter
 from starlette.types import ASGIApp, Receive, Scope, Send
+
+if TYPE_CHECKING:
+    from app.config.settings import Settings
 
 logger = logging.getLogger(__name__)
 
@@ -106,9 +110,9 @@ class RequestLoggingMiddleware:
 
     def __init__(self, app: ASGIApp) -> None:
         self.app = app
-        self._settings = None  # lazy
+        self._settings: Settings | None = None  # lazy
 
-    def _get_settings(self):
+    def _get_settings(self) -> Settings:
         if self._settings is None:
             from app.config.settings import get_settings
 
@@ -153,7 +157,7 @@ class RequestLoggingMiddleware:
         start_time = time.perf_counter()
         status_code = [500]  # Default to 500 if not caught
 
-        async def wrapped_send(message: dict) -> None:
+        async def wrapped_send(message: dict[str, Any]) -> None:
             if message["type"] == "http.response.start":
                 status_code[0] = message["status"]
 
@@ -166,7 +170,7 @@ class RequestLoggingMiddleware:
 
         unhandled_exception = False
         try:
-            await self.app(scope, receive, wrapped_send)
+            await self.app(scope, receive, wrapped_send)  # type: ignore[arg-type]
         except Exception:
             unhandled_exception = True
             elapsed_ms = (time.perf_counter() - start_time) * 1000.0

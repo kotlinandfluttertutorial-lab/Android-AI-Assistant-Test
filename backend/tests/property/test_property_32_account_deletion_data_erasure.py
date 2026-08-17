@@ -486,9 +486,9 @@ class TestAccountDeletionEdgeCases:
             result = _run_async(_run_delete(MagicMock(), user_id_str))
 
         # Should complete (not fail) even when user is not found
-        assert result["status"] == "completed", (
-            f"Expected status='completed' when user not found, got {result['status']!r}"
-        )
+        assert (
+            result["status"] == "completed"
+        ), f"Expected status='completed' when user not found, got {result['status']!r}"
 
         # db.delete() must NOT have been called (nothing to delete)
         mock_db.delete.assert_not_called()
@@ -544,9 +544,9 @@ class TestAccountDeletionEdgeCases:
         )
 
         # db.delete() must still have been called for the user row
-        assert len(deleted_users) == 1, (
-            f"Expected db.delete() called once, got {len(deleted_users)} times"
-        )
+        assert (
+            len(deleted_users) == 1
+        ), f"Expected db.delete() called once, got {len(deleted_users)} times"
         assert deleted_users[0] is mock_user
 
     def test_two_users_only_target_deleted(self) -> None:
@@ -603,17 +603,17 @@ class TestAccountDeletionEdgeCases:
 
         prefix = f"users/{user_id_str}/"
         for key in minio_keys:
-            assert key.startswith(prefix), (
-                f"minio_key '{key}' does not start with '{prefix}'"
-            )
+            assert key.startswith(
+                prefix
+            ), f"minio_key '{key}' does not start with '{prefix}'"
 
         # Verify that a different user's prefix would NOT match
         other_user_id = uuid.UUID("dddddddd-dddd-dddd-dddd-dddddddddddd")
         other_prefix = f"users/{other_user_id}/"
         for key in minio_keys:
-            assert not key.startswith(other_prefix), (
-                f"minio_key '{key}' incorrectly matched other user prefix '{other_prefix}'"
-            )
+            assert not key.startswith(
+                other_prefix
+            ), f"minio_key '{key}' incorrectly matched other user prefix '{other_prefix}'"
 
     def test_chromadb_not_configured_skips_collection_deletion(self) -> None:
         """When CHROMA_HOST is None/empty, delete_collection must NOT be called
@@ -657,9 +657,9 @@ class TestAccountDeletionEdgeCases:
             result = _run_async(_run_delete(MagicMock(), user_id_str))
 
         # Task must still complete
-        assert result["status"] == "completed", (
-            f"Expected 'completed' without ChromaDB, got {result['status']!r}"
-        )
+        assert (
+            result["status"] == "completed"
+        ), f"Expected 'completed' without ChromaDB, got {result['status']!r}"
 
         # PostgreSQL deletion still happens
         assert len(deleted_users) == 1

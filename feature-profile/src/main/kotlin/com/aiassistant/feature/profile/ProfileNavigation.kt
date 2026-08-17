@@ -51,7 +51,7 @@ import androidx.navigation.compose.composable
  */
 object ProfileRoute {
     /** Profile screen route — navigated to from HomeDashboard and Settings. */
-    const val Screen = "profile"
+    const val SCREEN = "profile"
 }
 
 /**
@@ -89,7 +89,7 @@ fun NavGraphBuilder.profileNavGraph(
         }
     }
 ) {
-    composable(route = ProfileRoute.Screen) {
+    composable(route = ProfileRoute.SCREEN) {
         val viewModel: ProfileViewModel = hiltViewModel()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 

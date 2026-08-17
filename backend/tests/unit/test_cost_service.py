@@ -630,9 +630,9 @@ class TestUsageRouterPerUserScoping:
             headers={"Authorization": f"Bearer {token}"},
         )
 
-        assert response.status_code == 403, (
-            f"Expected HTTP 403 when foreign user_id supplied, got {response.status_code}"
-        )
+        assert (
+            response.status_code == 403
+        ), f"Expected HTTP 403 when foreign user_id supplied, got {response.status_code}"
 
     @pytest.mark.asyncio
     async def test_get_cost_allows_own_user_id_in_query(self) -> None:
@@ -667,9 +667,9 @@ class TestUsageRouterPerUserScoping:
             )
 
         # Must NOT be 403 (own user_id is OK)
-        assert response.status_code != 403, (
-            "Unexpectedly got HTTP 403 when supplying own user_id"
-        )
+        assert (
+            response.status_code != 403
+        ), "Unexpectedly got HTTP 403 when supplying own user_id"
 
 
 # ===========================================================================
@@ -711,9 +711,9 @@ class TestUsageRouterAlertLimit:
                 json={"threshold_usd": "5.00"},
             )
 
-        assert response.status_code == 422, (
-            f"Expected HTTP 422 when alert limit is reached, got {response.status_code}"
-        )
+        assert (
+            response.status_code == 422
+        ), f"Expected HTTP 422 when alert limit is reached, got {response.status_code}"
 
     @pytest.mark.asyncio
     async def test_delete_alerts_endpoint(self) -> None:

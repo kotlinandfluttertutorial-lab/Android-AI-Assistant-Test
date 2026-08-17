@@ -40,6 +40,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import uuid
+from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -117,11 +118,12 @@ class SearchService:
             embeddings = model.encode([query], show_progress_bar=False)
             emb = embeddings[0]
             # Support both numpy ndarray (.tolist()) and plain list
-            return emb.tolist() if hasattr(emb, "tolist") else list(emb)
+            result: list[float] = emb.tolist() if hasattr(emb, "tolist") else list(emb)
+            return result
 
         try:
             query_embedding = await asyncio.to_thread(_encode_query)
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning("Embedding generation failed for semantic search: %s", exc)
             return []
 
@@ -147,7 +149,7 @@ class SearchService:
     # Private helpers
     # ------------------------------------------------------------------
 
-    def _get_embedding_model(self):
+    def _get_embedding_model(self) -> Any:
         """Lazy-load and cache the SentenceTransformer embedding model."""
         if self._embedding_model is None:
             from sentence_transformers import SentenceTransformer
@@ -155,7 +157,7 @@ class SearchService:
             self._embedding_model = SentenceTransformer("all-MiniLM-L6-v2")
         return self._embedding_model
 
-    def _get_chroma_client(self):
+    def _get_chroma_client(self) -> Any:
         """Create a ChromaDB HTTP client."""
         import chromadb
 
@@ -171,28 +173,15 @@ class SearchService:
         user_id: uuid.UUID,
         query_embedding: list[float],
     ) -> list[SemanticSearchResultItem]:
-        """Query a single ChromaDB collection and return filtered results.
+        """Query a single ChromaDB collection and return filtered results."""
 
-        Skips the collection entirely if it does not exist or has 0 embeddings
-        (empty group omission per Requirement 36.5).
-
-        Args:
-            collection_name: The ChromaDB collection to query.
-            source_type: The logical content type ("conversation", "note", etc.).
-            user_id: UUID of the user — used for deep-link construction.
-            query_embedding: Pre-computed query embedding vector.
-
-        Returns:
-            List of :class:`SemanticSearchResultItem` for results with distance ≤ 0.5.
-        """
-
-        def _do_query() -> list[dict]:
+        def _do_query() -> list[dict[str, Any]]:
             """Execute the ChromaDB query synchronously."""
             try:
                 client = self._get_chroma_client()
                 try:
                     collection = client.get_collection(collection_name)
-                except Exception:  # noqa: BLE001
+                except Exception:
                     # Collection does not exist — skip
                     return []
 
@@ -225,7 +214,7 @@ class SearchService:
                     }
                     for i in range(len(ids_list))
                 ]
-            except Exception as exc:  # noqa: BLE001
+            except Exception as exc:
                 logger.warning(
                     "ChromaDB query failed for collection %s: %s",
                     collection_name,

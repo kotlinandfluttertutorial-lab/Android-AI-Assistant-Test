@@ -47,7 +47,8 @@ from app.repositories.prompt_template_repository import (
     TemplateNotFoundError,
 )
 
-# Re-export so callers can ``from app.services.prompt_template_service import TemplateNotFoundError``
+# Re-export so callers can:
+#   ``from app.services.prompt_template_service import TemplateNotFoundError``
 __all__ = ["PromptTemplateService", "TemplateNotFoundError"]
 
 

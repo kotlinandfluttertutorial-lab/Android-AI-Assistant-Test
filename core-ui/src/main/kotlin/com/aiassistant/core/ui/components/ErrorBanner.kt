@@ -73,9 +73,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Surface
@@ -104,6 +106,7 @@ import com.aiassistant.core.ui.spacing
 fun ErrorBanner(
     message: String,
     onRetry: (() -> Unit)? = null,
+    onDismiss: (() -> Unit)? = null,
     contentDescription: String? = null,
     modifier: Modifier = Modifier
 ) {
@@ -160,6 +163,20 @@ fun ErrorBanner(
                             style = MaterialTheme.typography.labelMedium
                         )
                     }
+                }
+            }
+
+            if (onDismiss != null) {
+                IconButton(
+                    onClick = onDismiss,
+                    modifier = Modifier.semantics { this.contentDescription = "Dismiss error" }
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Close,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onErrorContainer,
+                        modifier = Modifier.size(18.dp)
+                    )
                 }
             }
         }

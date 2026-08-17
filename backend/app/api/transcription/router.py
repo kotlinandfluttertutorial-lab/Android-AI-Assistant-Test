@@ -36,6 +36,7 @@ Requirements: 5.6, 20.3
 from __future__ import annotations
 
 import logging
+from typing import Annotated
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 
@@ -159,7 +160,7 @@ def _generate_stub_transcript(
     response_model=TranscriptionResponse,
 )
 async def transcribe_audio(
-    audio_file: UploadFile = File(..., description="Audio file to transcribe"),
+    audio_file: Annotated[UploadFile, File(description="Audio file to transcribe")],
     language: str = Form("en", description="Language code (default: en)"),
     current_user: TokenPayload = Depends(get_current_user),
 ) -> TranscriptionResponse:
@@ -201,7 +202,10 @@ async def transcribe_audio(
     if len(audio_bytes) > _MAX_AUDIO_BYTES:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=f"Audio file exceeds maximum allowed size of {_MAX_AUDIO_BYTES // (1024 * 1024)} MB.",
+            detail=(
+                f"Audio file exceeds maximum allowed size of "
+                f"{_MAX_AUDIO_BYTES // (1024 * 1024)} MB."
+            ),
         )
 
     # -----------------------------------------------------------------------

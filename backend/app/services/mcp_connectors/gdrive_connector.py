@@ -50,7 +50,7 @@ _DRIVE_SCOPES = [
 ]
 
 
-def _build_drive_service():
+def _build_drive_service() -> Any:  # type: ignore[return]
     """Build and return a Google Drive API service client."""
     from google.oauth2 import service_account
     from googleapiclient.discovery import build
@@ -86,7 +86,10 @@ class GDriveReadConnector(MCPToolConnector):
     def get_schema(self) -> MCPToolSchema:
         return MCPToolSchema(
             tool_name="gdrive_read",
-            description="Read from Google Drive: list files, get metadata, search, download content.",
+            description=(
+                "Read from Google Drive: list files, get metadata,"
+                " search, download content."
+            ),
             parameters={
                 "type": "object",
                 "properties": {
@@ -114,7 +117,10 @@ class GDriveReadConnector(MCPToolConnector):
                     },
                     "mime_type": {
                         "type": "string",
-                        "description": "Export MIME type (for download_file, e.g. text/plain). Default: text/plain.",
+                        "description": (
+                            "Export MIME type (for download_file,"
+                            " e.g. text/plain). Default: text/plain."
+                        ),
                     },
                 },
                 "required": ["action"],

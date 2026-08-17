@@ -79,6 +79,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.SwapHoriz
 import androidx.compose.material3.Button
@@ -391,6 +392,9 @@ private fun LanguageDropdown(
             SupportedLanguages.all.forEach { (code, name) ->
                 DropdownMenuItem(
                     text = { Text(name) },
+                    leadingIcon = if (code == selectedCode) {
+                        { Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                    } else null,
                     onClick = {
                         onLanguageSelected(code, name)
                         expanded = false

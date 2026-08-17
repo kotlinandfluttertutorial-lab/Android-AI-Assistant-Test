@@ -60,11 +60,15 @@ Requirements: 1.5
 from __future__ import annotations
 
 import logging
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
+from typing import TYPE_CHECKING
 
 from redis.asyncio import Redis
 
 from app.security.email_service import send_failed_login_email
+
+if TYPE_CHECKING:
+    from app.config.settings import Settings
 
 logger = logging.getLogger(__name__)
 
@@ -156,7 +160,7 @@ async def get_lockout_ttl(redis: Redis, email: str) -> int:
     Returns:
         Remaining TTL in seconds (≥ 0).  Returns 0 when the key does not exist.
     """
-    ttl = await redis.ttl(_locked_key(email))
+    ttl: int = await redis.ttl(_locked_key(email))  # type: ignore[misc,no-untyped-call]
     return max(0, ttl)
 
 
@@ -202,18 +206,20 @@ async def record_failed_attempt(
     """
     already_locked = await is_locked(redis, email)
 
-    now_utc = datetime.now(tz=timezone.utc)
+    now_utc = datetime.now(tz=UTC)
     cutoff_utc = now_utc - timedelta(minutes=window_minutes)
     window_ttl_seconds = window_minutes * 60
 
     # Atomic attempt recording via Lua script
-    attempt_count: int = await redis.eval(  # type: ignore[assignment]
-        _RECORD_ATTEMPT_SCRIPT,
-        1,  # number of KEYS
-        _attempts_key(email),
-        now_utc.isoformat(),
-        cutoff_utc.isoformat(),
-        str(window_ttl_seconds),
+    attempt_count: int = int(
+        await redis.eval(  # type: ignore[misc,no-untyped-call]
+            _RECORD_ATTEMPT_SCRIPT,
+            1,
+            _attempts_key(email),
+            now_utc.isoformat(),
+            cutoff_utc.isoformat(),
+            str(window_ttl_seconds),
+        )
     )
 
     just_locked = False
@@ -299,9 +305,9 @@ class AccountLockoutService:
             redis: Async Redis client shared with the request lifecycle.
         """
         self._redis = redis
-        self._settings = None  # lazy
+        self._settings: Settings | None = None  # lazy
 
-    def _get_settings(self):
+    def _get_settings(self) -> Settings:
         if self._settings is None:
             from app.config.settings import get_settings
 

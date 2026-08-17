@@ -1,23 +1,3 @@
-﻿/*
- * ============================================================
- * Android AI Assistant (Enterprise Edition)
- * ============================================================
- * Module     : domain
- * File       : CodeAnalysis.kt
- * Purpose    : CodeAnalysis — domain module component
- *
- * Architecture Layer : Domain
- * Pattern Used       : Kotlin Class
- *
- * Key Concepts:
- *   - Clean Architecture with strict layer separation
- *   - Hilt dependency injection
- *
- * Dependencies:
- *   - See import statements below
- * ============================================================
- */
-
 /*
  * ============================================================
  * Android AI Assistant (Enterprise Edition)
@@ -47,6 +27,7 @@
  *
  * Requirements: 12.1, 12.2, 12.3, 12.4, 12.6
  */
+
 package com.aiassistant.domain.model
 
 /**

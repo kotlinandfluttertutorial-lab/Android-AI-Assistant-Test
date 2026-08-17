@@ -1,23 +1,3 @@
-﻿/*
- * ============================================================
- * Android AI Assistant (Enterprise Edition)
- * ============================================================
- * Module     : domain
- * File       : Memory.kt
- * Purpose    : Memory — domain module component
- *
- * Architecture Layer : Domain
- * Pattern Used       : Kotlin Class
- *
- * Key Concepts:
- *   - Clean Architecture with strict layer separation
- *   - Hilt dependency injection
- *
- * Dependencies:
- *   - See import statements below
- * ============================================================
- */
-
 /*
  * ============================================================
  * Android AI Assistant (Enterprise Edition)

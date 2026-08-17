@@ -254,9 +254,9 @@ def test_property_35_semantic_search_round_trip(
     """
     # Verify minimum 10 words (test setup invariant)
     word_count = len(excerpt.split())
-    assert word_count >= 10, (
-        f"Setup error: excerpt has fewer than 10 words: {word_count}"
-    )
+    assert (
+        word_count >= 10
+    ), f"Setup error: excerpt has fewer than 10 words: {word_count}"
 
     user_id = uuid.uuid4()
 
@@ -319,9 +319,9 @@ class TestSemanticSearchRoundTripEdgeCases:
         )
 
         assert len(results) > 0, "10-word excerpt should produce at least one result."
-        assert results[0].relevance_score >= _ROUND_TRIP_MIN_SCORE, (
-            f"Score {results[0].relevance_score} below minimum {_ROUND_TRIP_MIN_SCORE}."
-        )
+        assert (
+            results[0].relevance_score >= _ROUND_TRIP_MIN_SCORE
+        ), f"Score {results[0].relevance_score} below minimum {_ROUND_TRIP_MIN_SCORE}."
 
     def test_conversation_source_type_round_trip(self) -> None:
         """Round-trip must work for conversation source type."""
@@ -389,9 +389,9 @@ class TestSemanticSearchRoundTripEdgeCases:
         )
 
         assert len(results) > 0
-        assert results[0].relevance_score >= _ROUND_TRIP_MIN_SCORE, (
-            f"Boundary score {results[0].relevance_score} must be ≥ {_ROUND_TRIP_MIN_SCORE}."
-        )
+        assert (
+            results[0].relevance_score >= _ROUND_TRIP_MIN_SCORE
+        ), f"Boundary score {results[0].relevance_score} must be ≥ {_ROUND_TRIP_MIN_SCORE}."
 
     def test_excerpt_with_numeric_tokens_round_trip(self) -> None:
         """Excerpts with numeric tokens are retrievable with score ≥ 0.90."""

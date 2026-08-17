@@ -98,7 +98,10 @@ async def create_memory(
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=f"Invalid memory_type '{body.memory_type}'. Must be one of: preference, fact, style.",
+            detail=(
+                f"Invalid memory_type '{body.memory_type}'. "
+                "Must be one of: preference, fact, style."
+            ),
         )
 
     service = MemoryService(db)
@@ -112,14 +115,14 @@ async def create_memory(
     if memory is None:
         # Privacy mode is active — return a stub so the client knows the API call succeeded
         import uuid as _uuid
-        from datetime import datetime, timezone
+        from datetime import UTC, datetime
 
         logger.info("Memory capture skipped for user %s (privacy mode)", user_id)
         return MemoryResponse(
             id=_uuid.uuid4(),
             content=body.content,
             memory_type=body.memory_type,
-            created_at=datetime.now(tz=timezone.utc),
+            created_at=datetime.now(tz=UTC),
         )
 
     return MemoryResponse(
@@ -175,7 +178,6 @@ async def search_memories(
     Requirements: 7.2, 7.5
     """
     user_id = uuid.UUID(current_user.sub)
-    service = MemoryService(db)
 
     # Retrieve from memory repository via semantic search
     from sqlalchemy import select
@@ -205,11 +207,9 @@ async def search_memories(
     search_results = []
     for r in results:
         pg_memory = pg_map.get(r.memory_id)
-        from datetime import datetime, timezone
+        from datetime import UTC, datetime
 
-        created_at = (
-            pg_memory.created_at if pg_memory else datetime.now(tz=timezone.utc)
-        )
+        created_at = pg_memory.created_at if pg_memory else datetime.now(tz=UTC)
         search_results.append(
             MemorySearchResult(
                 id=r.memory_id,

@@ -443,7 +443,7 @@ class ProductivityRepositoryImpl @Inject constructor(
      *
      * Silently swallows errors so the local-first flow is never blocked by MCP failures.
      */
-    private suspend fun mergeGoogleCalendarEvents(userId: String, range: DateRange) {
+    private suspend fun mergeGoogleCalendarEvents(@Suppress("UnusedParameter") userId: String, range: DateRange) {
         if (!connectivityObserver.isConnected()) return
         when (val result = remoteSource.getGoogleCalendarEvents(range.start, range.end)) {
             is ApiResult.Success -> {

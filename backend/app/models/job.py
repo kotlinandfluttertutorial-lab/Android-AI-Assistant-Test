@@ -44,12 +44,16 @@ from __future__ import annotations
 
 import enum
 import uuid
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Enum, ForeignKey, Integer, String
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin, uuid_pk
+
+if TYPE_CHECKING:
+    from app.models.user import User
 
 
 class JobStatus(str, enum.Enum):
@@ -98,7 +102,7 @@ class Job(Base, TimestampMixin):
         nullable=True,
         comment="Celery task UUID assigned when the job is dispatched to a worker",
     )
-    result_payload: Mapped[dict | None] = mapped_column(
+    result_payload: Mapped[dict[str, object] | None] = mapped_column(
         JSONB,
         nullable=True,
         comment="Structured result returned by the worker on successful completion",
@@ -118,7 +122,7 @@ class Job(Base, TimestampMixin):
     # ------------------------------------------------------------------
     # Relationships
     # ------------------------------------------------------------------
-    user: Mapped[User] = relationship("User", back_populates="jobs")  # noqa: F821
+    user: Mapped[User] = relationship("User", back_populates="jobs")
 
     def __repr__(self) -> str:
         return (

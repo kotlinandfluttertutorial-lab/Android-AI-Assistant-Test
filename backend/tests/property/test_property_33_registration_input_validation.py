@@ -199,12 +199,12 @@ def test_property_33a_valid_email_and_password_accepted(
     # After successful parsing the email must be non-empty (normalised)
     assert req.email, "Property 33A violated: Parsed email is empty after validation."
     # Password must be preserved
-    assert len(req.password) >= 12, (
-        f"Property 33A violated: Parsed password length {len(req.password)} < 12."
-    )
-    assert len(req.password) <= 128, (
-        f"Property 33A violated: Parsed password length {len(req.password)} > 128."
-    )
+    assert (
+        len(req.password) >= 12
+    ), f"Property 33A violated: Parsed password length {len(req.password)} < 12."
+    assert (
+        len(req.password) <= 128
+    ), f"Property 33A violated: Parsed password length {len(req.password)} > 128."
 
 
 # ===========================================================================

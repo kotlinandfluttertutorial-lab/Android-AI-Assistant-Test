@@ -303,9 +303,9 @@ private fun IngestionStatus.displayLabel(): String = when (this) {
 /** Formats [Long] bytes as a human-readable string (e.g. "1.2 MB"). */
 internal fun Long.formatFileSize(): String = when {
     this < 1_024L -> "$this B"
-    this < 1_024L * 1_024L -> String.format("%.1f KB", this / 1_024.0)
-    this < 1_024L * 1_024L * 1_024L -> String.format("%.1f MB", this / (1_024.0 * 1_024.0))
-    else -> String.format("%.1f GB", this / (1_024.0 * 1_024.0 * 1_024.0))
+    this < 1_024L * 1_024L -> String.format(java.util.Locale.getDefault(), "%.1f KB", this / 1_024.0)
+    this < 1_024L * 1_024L * 1_024L -> String.format(java.util.Locale.getDefault(), "%.1f MB", this / (1_024.0 * 1_024.0))
+    else -> String.format(java.util.Locale.getDefault(), "%.1f GB", this / (1_024.0 * 1_024.0 * 1_024.0))
 }
 
 /** Formats an epoch-milliseconds timestamp as "MMM d, yyyy". */

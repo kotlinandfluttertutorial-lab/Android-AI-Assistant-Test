@@ -296,9 +296,9 @@ def test_property_6_rag_round_trip_verbatim_phrase_retrieval(
     document_text = _build_document_text(phrase, filler_before, filler_after)
 
     # Sanity: the phrase must actually appear in the document we built
-    assert phrase in document_text, (
-        f"Setup error: phrase {phrase!r} not found in constructed document text."
-    )
+    assert (
+        phrase in document_text
+    ), f"Setup error: phrase {phrase!r} not found in constructed document text."
 
     result = _run_round_trip(phrase, document_text, document_name)
 
@@ -350,15 +350,15 @@ class TestRAGRoundTripEdgeCases:
 
         result = _run_round_trip(phrase, document_text, document_name)
 
-        assert len(result.retrieved_chunks) > 0, (
-            "Short document should produce at least one retrieved chunk."
-        )
-        assert any(phrase in c.content for c in result.retrieved_chunks), (
-            f"Phrase {phrase!r} not found in any chunk of short document."
-        )
-        assert any(c.document_name == document_name for c in result.retrieved_chunks), (
-            f"Document name '{document_name}' not found in retrieved chunks."
-        )
+        assert (
+            len(result.retrieved_chunks) > 0
+        ), "Short document should produce at least one retrieved chunk."
+        assert any(
+            phrase in c.content for c in result.retrieved_chunks
+        ), f"Phrase {phrase!r} not found in any chunk of short document."
+        assert any(
+            c.document_name == document_name for c in result.retrieved_chunks
+        ), f"Document name '{document_name}' not found in retrieved chunks."
 
     def test_phrase_at_start_of_document(self) -> None:
         """A verbatim phrase at the very start of the document must be retrieved."""
@@ -368,12 +368,12 @@ class TestRAGRoundTripEdgeCases:
 
         result = _run_round_trip(phrase, document_text, document_name)
 
-        assert len(result.retrieved_chunks) > 0, (
-            "Phrase at start of document should produce retrieved chunks."
-        )
-        assert any(phrase in c.content for c in result.retrieved_chunks), (
-            f"Phrase at document start {phrase!r} not found in retrieved chunks."
-        )
+        assert (
+            len(result.retrieved_chunks) > 0
+        ), "Phrase at start of document should produce retrieved chunks."
+        assert any(
+            phrase in c.content for c in result.retrieved_chunks
+        ), f"Phrase at document start {phrase!r} not found in retrieved chunks."
 
     def test_phrase_at_end_of_document(self) -> None:
         """A verbatim phrase at the very end of the document must be retrieved."""
@@ -383,12 +383,12 @@ class TestRAGRoundTripEdgeCases:
 
         result = _run_round_trip(phrase, document_text, document_name)
 
-        assert len(result.retrieved_chunks) > 0, (
-            "Phrase at end of document should produce retrieved chunks."
-        )
-        assert any(phrase in c.content for c in result.retrieved_chunks), (
-            f"Phrase at document end {phrase!r} not found in retrieved chunks."
-        )
+        assert (
+            len(result.retrieved_chunks) > 0
+        ), "Phrase at end of document should produce retrieved chunks."
+        assert any(
+            phrase in c.content for c in result.retrieved_chunks
+        ), f"Phrase at document end {phrase!r} not found in retrieved chunks."
 
     def test_phrase_spans_overlap_region(self) -> None:
         """A phrase placed near the chunk boundary must still be retrievable.
@@ -413,12 +413,12 @@ class TestRAGRoundTripEdgeCases:
 
         result = _run_round_trip(phrase, document_text, document_name)
 
-        assert len(result.retrieved_chunks) > 0, (
-            "Phrase near chunk boundary should produce retrieved chunks."
-        )
-        assert any(phrase in c.content for c in result.retrieved_chunks), (
-            f"Phrase near chunk boundary {phrase!r} not found in retrieved chunks."
-        )
+        assert (
+            len(result.retrieved_chunks) > 0
+        ), "Phrase near chunk boundary should produce retrieved chunks."
+        assert any(
+            phrase in c.content for c in result.retrieved_chunks
+        ), f"Phrase near chunk boundary {phrase!r} not found in retrieved chunks."
 
     def test_multi_word_phrase_with_punctuation(self) -> None:
         """A phrase containing internal punctuation must be retrievable verbatim."""
@@ -428,12 +428,12 @@ class TestRAGRoundTripEdgeCases:
 
         result = _run_round_trip(phrase, document_text, document_name)
 
-        assert len(result.retrieved_chunks) > 0, (
-            "Phrase with punctuation should produce retrieved chunks."
-        )
-        assert any(phrase in c.content for c in result.retrieved_chunks), (
-            f"Phrase with punctuation {phrase!r} not found in retrieved chunks."
-        )
+        assert (
+            len(result.retrieved_chunks) > 0
+        ), "Phrase with punctuation should produce retrieved chunks."
+        assert any(
+            phrase in c.content for c in result.retrieved_chunks
+        ), f"Phrase with punctuation {phrase!r} not found in retrieved chunks."
 
     def test_phrase_appearing_in_multiple_chunks(self) -> None:
         """A phrase that repeats across the document should appear in >= 1 chunk."""
@@ -444,12 +444,12 @@ class TestRAGRoundTripEdgeCases:
 
         result = _run_round_trip(phrase, document_text, document_name)
 
-        assert len(result.retrieved_chunks) > 0, (
-            "Repeatedly occurring phrase should produce retrieved chunks."
-        )
-        assert any(phrase in c.content for c in result.retrieved_chunks), (
-            f"Repeated phrase {phrase!r} not found in any retrieved chunk."
-        )
+        assert (
+            len(result.retrieved_chunks) > 0
+        ), "Repeatedly occurring phrase should produce retrieved chunks."
+        assert any(
+            phrase in c.content for c in result.retrieved_chunks
+        ), f"Repeated phrase {phrase!r} not found in any retrieved chunk."
 
     def test_query_result_preserves_original_query(self) -> None:
         """The QueryResult.query field must preserve the original verbatim phrase."""
@@ -473,12 +473,12 @@ class TestRAGRoundTripEdgeCases:
 
         result = _run_round_trip(phrase, document_text, document_name)
 
-        assert len(result.retrieved_chunks) > 0, (
-            "Phrase in middle of long document should produce retrieved chunks."
-        )
-        assert any(phrase in c.content for c in result.retrieved_chunks), (
-            f"Phrase in middle of long document {phrase!r} not found in retrieved chunks."
-        )
-        assert any(c.document_name == document_name for c in result.retrieved_chunks), (
-            f"Document name '{document_name}' not found in retrieved chunks."
-        )
+        assert (
+            len(result.retrieved_chunks) > 0
+        ), "Phrase in middle of long document should produce retrieved chunks."
+        assert any(
+            phrase in c.content for c in result.retrieved_chunks
+        ), f"Phrase in middle of long document {phrase!r} not found in retrieved chunks."
+        assert any(
+            c.document_name == document_name for c in result.retrieved_chunks
+        ), f"Document name '{document_name}' not found in retrieved chunks."

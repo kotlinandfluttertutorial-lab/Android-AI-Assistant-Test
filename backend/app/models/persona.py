@@ -37,12 +37,16 @@ from __future__ import annotations
 
 import enum
 import uuid
+from typing import TYPE_CHECKING
 
 from sqlalchemy import Boolean, Enum, ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin, uuid_pk
+
+if TYPE_CHECKING:
+    from app.models.user import User
 
 
 class PersonaTone(str, enum.Enum):
@@ -113,9 +117,7 @@ class Persona(Base, TimestampMixin):
     # ------------------------------------------------------------------
     # Relationships (back-populated in parent models)
     # ------------------------------------------------------------------
-    user: Mapped[User] = relationship(  # noqa: F821
-        "User", back_populates="personas"
-    )
+    user: Mapped[User] = relationship("User", back_populates="personas")
 
     def __repr__(self) -> str:
         return (

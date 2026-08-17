@@ -162,7 +162,7 @@ class RefreshTokenRepository:
             .where(RefreshToken.family_id == family_id)
             .values(revoked=True)
         )
-        return result.rowcount  # type: ignore[return-value]
+        return result.rowcount  # type: ignore[no-any-return]
 
     async def revoke_all_for_user(self, user_id: uuid.UUID) -> int:
         """Revoke all active refresh tokens for a specific user.
@@ -180,8 +180,8 @@ class RefreshTokenRepository:
             update(RefreshToken)
             .where(
                 RefreshToken.user_id == user_id,
-                RefreshToken.revoked == False,
+                ~RefreshToken.revoked,
             )
             .values(revoked=True)
         )
-        return result.rowcount  # type: ignore[return-value]
+        return result.rowcount  # type: ignore[no-any-return]

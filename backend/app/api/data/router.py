@@ -56,7 +56,7 @@ from __future__ import annotations
 
 import logging
 import uuid
-from datetime import datetime, timedelta, timezone
+from datetime import UTC, datetime, timedelta
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -132,7 +132,7 @@ async def export_user_data(
 
     logger.info("data/export: enqueued export job=%s for user=%s", job.id, user_id)
 
-    estimated = (datetime.now(tz=timezone.utc) + timedelta(hours=24)).isoformat()
+    estimated = (datetime.now(tz=UTC) + timedelta(hours=24)).isoformat()
 
     # DataExportResponse uses Pydantic v2 — all fields are type-validated and
     # JSON-encoded before being returned; no user-supplied content is reflected
@@ -210,7 +210,7 @@ async def delete_user_account(
 
     delete_user_data_task.delay(str(user_id))
 
-    scheduled_at = datetime.now(tz=timezone.utc)
+    scheduled_at = datetime.now(tz=UTC)
     estimated = (scheduled_at + timedelta(hours=72)).isoformat()
 
     logger.info(

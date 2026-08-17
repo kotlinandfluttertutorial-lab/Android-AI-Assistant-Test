@@ -30,13 +30,24 @@ Requirements: 9.3, 9.10
 from __future__ import annotations
 
 import asyncio
+import sys
 from logging.config import fileConfig
+from pathlib import Path
 
 from sqlalchemy import pool
 from sqlalchemy.engine import Connection
 from sqlalchemy.ext.asyncio import create_async_engine
 
 from alembic import context
+
+# ---------------------------------------------------------------------------
+# Ensure the backend/ directory is on sys.path so that 'app.*' imports work
+# regardless of the working directory alembic is invoked from.
+# env.py lives at backend/alembic/env.py, so parents[1] == backend/.
+# ---------------------------------------------------------------------------
+_BACKEND_DIR = str(Path(__file__).resolve().parents[1])
+if _BACKEND_DIR not in sys.path:
+    sys.path.insert(0, _BACKEND_DIR)
 
 # ---------------------------------------------------------------------------
 # Alembic Config object — provides access to values in alembic.ini

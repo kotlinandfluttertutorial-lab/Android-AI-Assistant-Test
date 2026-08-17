@@ -73,7 +73,10 @@ class PushNotificationService : FirebaseMessagingService() {
      *
      * Steps:
      *   1. Save the token to encrypted local storage (marks it as pending-sync).
-     *   2. Immediately attempt to upload it to the backend.
+     *   2. Only attempt an immediate upload if the user is already authenticated
+     *      (a stored refresh token indicates an active session). On a cold start
+     *      before login, skip the upload — [UserRepositoryImpl.maybeSyncFcmToken]
+     *      will piggyback the retry on the first successful authenticated API call.
      *   3. On failure the pending-sync flag stays set; [UserRepositoryImpl] piggybacks
      *      the retry on the next 10 successful authenticated API calls. (Req 16.7)
      *
@@ -84,6 +87,15 @@ class PushNotificationService : FirebaseMessagingService() {
         Timber.d("PushNotificationService: FCM token refreshed — storing and uploading")
 
         secureStorage.saveFcmToken(token)
+
+        // Only attempt an immediate upload when the user is already authenticated.
+        // On cold start / before login there is no valid access token, so the
+        // request would 401. The piggyback mechanism in UserRepositoryImpl will
+        // pick up the pending-sync flag after the first successful login API call.
+        if (secureStorage.getRefreshToken() == null) {
+            Timber.d("PushNotificationService: no active session — FCM token will sync after login")
+            return
+        }
 
         serviceScope.launch {
             try {

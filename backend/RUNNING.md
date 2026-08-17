@@ -45,11 +45,11 @@ copy .env.example .env
 Open `backend\.env` and fill in at minimum the three required values:
 
 ```env
-# Required — PostgreSQL connection
-DATABASE_URL=postgresql+asyncpg://aiassistant:changeme@localhost:5432/aiassistant
+# Required — PostgreSQL connection (use the Docker service name, not localhost)
+DATABASE_URL=postgresql+asyncpg://aiassistant:aiassistant@postgres:5432/aiassistant
 
-# Required — Redis connection
-REDIS_URL=redis://localhost:6379/0
+# Required — Redis connection (use the Docker service name, not localhost)
+REDIS_URL=redis://redis:6379/0
 
 # Required — JWT signing secret (generate a strong random value)
 SECRET_KEY=<run: python -c "import secrets; print(secrets.token_hex(32))">
@@ -75,7 +75,17 @@ Starts the entire stack in containers: FastAPI · Celery worker · PostgreSQL ·
 
 ```cmd
 rem From the project root (where docker-compose.yml lives)
+
+.\start-dev.ps1
+
 docker compose up -d
+
+
+docker compose build --no-cache backend
+docker compose up -d backend
+docker compose exec backend alembic upgrade head
+
+
 ```
 
 Wait for all containers to become healthy (about 30–60 s), then run migrations:
@@ -88,6 +98,7 @@ docker compose exec backend alembic upgrade head
 
 ```cmd
 curl http://localhost/health
+curl http://localhost:8000/health
 ```
 
 Expected response: `{"status": "ok", ...}`
@@ -199,8 +210,6 @@ celery -A app.workers.celery_app worker --loglevel=info --concurrency=4
 
 cloudflared tunnel --config "C:\Users\admin\.cloudflared\config.yml" run mybackend
 ````
-
-
 
 ngrok http 8000
 

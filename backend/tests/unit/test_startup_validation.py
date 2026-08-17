@@ -177,9 +177,9 @@ class TestGetMissingEnvVars:
 
         with patch.dict(os.environ, _env_without(missing_var), clear=True):
             result = get_missing_env_vars()
-        assert missing_var in result, (
-            f"Expected {missing_var!r} in missing vars, got {result!r}"
-        )
+        assert (
+            missing_var in result
+        ), f"Expected {missing_var!r} in missing vars, got {result!r}"
 
     def test_returns_multiple_missing_vars(self) -> None:
         """Reports all missing variables when more than one is absent.

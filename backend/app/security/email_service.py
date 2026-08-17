@@ -114,8 +114,10 @@ async def send_failed_login_email(
     <p>We detected a failed login attempt on your account (<em>{to_email}</em>).</p>
     <table>
       <tr><td><strong>Failed attempts in window:</strong></td><td>{attempt_count}</td></tr>
-      <tr><td><strong>Account locked for:</strong></td><td>{lockout_duration_minutes} minutes</td></tr>
-      <tr><td><strong>Approx. time remaining:</strong></td><td>{remaining_minutes} minute(s)</td></tr>
+      <tr><td><strong>Account locked for:</strong></td>
+          <td>{lockout_duration_minutes} minutes</td></tr>
+      <tr><td><strong>Approx. time remaining:</strong></td>
+          <td>{remaining_minutes} minute(s)</td></tr>
     </table>
     <p>
       If this was you, please wait until the lockout period expires and then

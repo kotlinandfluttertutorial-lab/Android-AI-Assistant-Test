@@ -47,7 +47,8 @@ from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
-from app.security.dependencies import TokenPayload, get_current_user
+from app.security.dependencies import get_current_user
+from app.security.jwt_handler import TokenPayload
 from app.services.safety_service import InjectionDetector, PromptInjectionError
 
 logger = logging.getLogger(__name__)
@@ -104,7 +105,7 @@ def get_injection_detector() -> InjectionDetector:
 
 
 @router.get("/")
-async def chat_root() -> dict:
+async def chat_root() -> dict[str, str]:
     """Liveness stub — confirms the chat router is registered."""
     return {"message": "chat router"}
 

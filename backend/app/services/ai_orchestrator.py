@@ -242,8 +242,10 @@ def _detect_prompt_injection_static(text: str) -> bool:
 # This is a lightweight placeholder; a production system would integrate a
 # dedicated content-moderation API (e.g. OpenAI Moderation API).
 _HARMFUL_OUTPUT_PATTERNS: list[re.Pattern[str]] = [
-    # Placeholder patterns — extend as needed
-    re.compile(r"<script\b[^>]*>.*?</script>", re.IGNORECASE | re.DOTALL),
+    # Placeholder patterns — extend as needed.
+    # Match <script ...>...</script> including variants like </script > or
+    # </script\n> where the closing tag may contain whitespace/attributes.
+    re.compile(r"<\s*script[\s\S]*?>[\s\S]*?<\s*/\s*script[\s\S]*?>", re.IGNORECASE),
     re.compile(r"javascript\s*:", re.IGNORECASE),
 ]
 
@@ -385,7 +387,7 @@ class AIOrchestrator:
 
         # Step 2 — Persist the user message first (so it's included in history
         # on the NEXT turn; for this turn it's appended to context directly)
-        user_msg = await self._message_repo.create(
+        await self._message_repo.create(
             conversation_id=conv_uuid,
             role=MessageRole.user,
             content=user_message,
@@ -536,7 +538,7 @@ class AIOrchestrator:
                 output_tokens=output_tokens,
                 cost_usd=float(cost_usd),
             )
-        except Exception as metrics_exc:  # noqa: BLE001
+        except Exception as metrics_exc:
             logger.warning(
                 "Failed to record token usage Prometheus metrics: %s", metrics_exc
             )
@@ -659,8 +661,7 @@ class AIOrchestrator:
             fallback = LLMProvider(fallback_value)
         except ValueError:
             logger.warning(
-                "LLM_FALLBACK_PROVIDER '%s' is not a valid LLM provider; "
-                "ignoring fallback.",
+                "LLM_FALLBACK_PROVIDER '%s' is not a valid LLM provider; ignoring fallback.",
                 fallback_value,
             )
             return None
@@ -728,7 +729,7 @@ class AIOrchestrator:
                 top_k=3,
             )
             memory_entries = [mem.content for mem in memories]
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             # Requirement 7.2: proceed without memories on failure
             logger.warning(
                 "Memory retrieval failed; building prompt without memories. Error: %s",
@@ -754,9 +755,9 @@ class AIOrchestrator:
 
         # Step 3 — Load conversation history from the database
         # Exclude messages created in this same request (user_message not yet committed)
-        history_messages: list[
-            Message
-        ] = await self._message_repo.get_by_conversation_id(conv_uuid)
+        history_messages: list[Message] = (
+            await self._message_repo.get_by_conversation_id(conv_uuid)
+        )
 
         # Filter to only user and assistant messages (exclude any system-injected rows)
         history_messages = [
@@ -862,7 +863,7 @@ class AIOrchestrator:
                 user_id=user_id,
             )
             summary_text = result.text
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             # If summarization fails, fall back to keeping only recent messages
             logger.warning(
                 "Conversation summarization failed; keeping recent messages only. Error: %s",
@@ -1025,7 +1026,7 @@ class AIOrchestrator:
 
             return persona_prompt
 
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning(
                 "Failed to load persona id=%s for user %s; "
                 "falling back to default system prompt. Error: %s",

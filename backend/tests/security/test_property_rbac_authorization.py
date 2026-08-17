@@ -220,16 +220,16 @@ def test_insufficient_role_always_returns_403(
     # The error detail should not leak internal role names or the user sub.
     try:
         body = response.json()
-    except Exception:  # noqa: BLE001
+    except Exception:
         body = {}
 
     if isinstance(body, dict):
         detail = str(body.get("detail", ""))
         # Ensure we don't leak the specific user UUID or role values beyond
         # the generic "Insufficient permissions" message.
-        assert str(_SAMPLE_USER_ID) not in detail, (
-            f"Response detail leaks user UUID: {detail!r}"
-        )
+        assert (
+            str(_SAMPLE_USER_ID) not in detail
+        ), f"Response detail leaks user UUID: {detail!r}"
         # The generic message is acceptable; internal role set enumeration is not.
         # Allowed: "Insufficient permissions". Not allowed: "must be admin", etc.
         # We simply verify the user-sub is not present — role names in a generic

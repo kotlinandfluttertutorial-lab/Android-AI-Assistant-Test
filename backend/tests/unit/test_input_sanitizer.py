@@ -49,6 +49,12 @@ class TestDetectXss:
     def test_closing_script_tag_detected(self) -> None:
         assert detect_xss("</script>") is True
 
+    def test_closing_script_tag_with_trailing_space_detected(self) -> None:
+        # CodeQL: closing tags like </script > must also be caught
+        assert detect_xss("</script >") is True
+        assert detect_xss("</SCRIPT >") is True
+        assert detect_xss("</script\t>") is True
+
     def test_javascript_colon_detected(self) -> None:
         assert detect_xss("javascript:void(0)") is True
 

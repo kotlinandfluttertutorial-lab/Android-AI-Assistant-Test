@@ -180,7 +180,7 @@ async def _ingest_document(
             celery_task_id=celery_result.id,
         )
         await db.commit()
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         # Non-fatal: the job row exists, the user can check status later
         logger.warning("Failed to dispatch Celery task: %s", exc)
 
@@ -329,7 +329,7 @@ async def upload_document(
             celery_task_id=celery_result.id,
         )
         await db.commit()
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         # Non-fatal: the job row exists, the user can check status later
         logger.warning("Failed to dispatch Celery task: %s", exc)
 
@@ -346,7 +346,7 @@ async def upload_document(
 
 
 @router.get(
-    "/",
+    "",
     response_model=DocumentListResponse,
     summary="List user's documents",
 )
@@ -435,6 +435,8 @@ async def query_documents(
     answer = ""
     if result.retrieved_chunks:
         try:
+            import asyncio as _asyncio
+
             from app.services.ai_orchestrator import (
                 AIOrchestrator,
                 LLMProvider,
@@ -463,15 +465,20 @@ async def query_documents(
             except ValueError:
                 provider = LLMProvider.openai
 
-            completion = await orchestrator.complete(
-                prompt=rag_prompt,
-                provider=provider,
-                max_tokens=1024,
-                user_id=str(user_id),
+            # 30s hard timeout — prevents a slow/rate-limited provider from
+            # blocking the response for 50+ seconds (fail fast to context fallback).
+            completion = await _asyncio.wait_for(
+                orchestrator.complete(
+                    prompt=rag_prompt,
+                    provider=provider,
+                    max_tokens=1024,
+                    user_id=str(user_id),
+                ),
+                timeout=30.0,
             )
             answer = completion.text
 
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning(
                 "AI Orchestrator unavailable for RAG query; returning context only. Error: %s",
                 exc,
@@ -564,6 +571,8 @@ async def query_document_by_id(
     answer = ""
     if result.retrieved_chunks:
         try:
+            import asyncio as _asyncio
+
             from app.services.ai_orchestrator import (
                 AIOrchestrator,
                 LLMProvider,
@@ -589,17 +598,23 @@ async def query_document_by_id(
             except ValueError:
                 provider = LLMProvider.openai
 
-            completion = await orchestrator.complete(
-                prompt=rag_prompt,
-                provider=provider,
-                max_tokens=1024,
-                user_id=str(user_id),
+            # 30s hard timeout — prevents a slow/rate-limited provider from
+            # blocking the response for 50+ seconds (fail fast to context fallback).
+            completion = await _asyncio.wait_for(
+                orchestrator.complete(
+                    prompt=rag_prompt,
+                    provider=provider,
+                    max_tokens=1024,
+                    user_id=str(user_id),
+                ),
+                timeout=30.0,
             )
             answer = completion.text
 
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.warning(
-                "AI Orchestrator unavailable for per-document RAG query; returning context only. Error: %s",
+                "AI Orchestrator unavailable for per-document RAG query; "
+                "returning context only. Error: %s",
                 exc,
             )
             answer = result.context
@@ -654,7 +669,7 @@ async def delete_document(
     # Remove embeddings from ChromaDB (best-effort, graceful degradation)
     try:
         await rag_service.delete_embeddings(str(document_id), str(user_id))
-    except Exception:  # noqa: BLE001
+    except Exception:
         logger.warning(
             "ChromaDB embedding deletion failed for document %s (best-effort)",
             document_id,
@@ -663,7 +678,7 @@ async def delete_document(
     # Remove file from MinIO (best-effort, graceful degradation)
     try:
         await rag_service.delete_file_minio(minio_key)
-    except Exception:  # noqa: BLE001
+    except Exception:
         logger.warning(
             "MinIO file deletion failed for document %s (best-effort)", document_id
         )

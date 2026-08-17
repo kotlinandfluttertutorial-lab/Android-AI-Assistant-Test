@@ -44,7 +44,7 @@
  *          exposing HabitListScreen, HabitEditorScreen, and HabitInsightsScreen backed
  *          by a shared HabitViewModel scoped to the nav graph.
  *
- * Architecture: feature-productivity â€” Navigation layer; consumed by the productivity
+ * Architecture: feature-productivity — Navigation layer; consumed by the productivity
  *               feature nav graph or the app module's root NavHost.
  * Dependencies: HabitViewModel (Hilt), HabitListScreen, HabitEditorScreen,
  *               HabitInsightsScreen, AndroidX Navigation Compose.
@@ -67,16 +67,16 @@ import androidx.navigation.navigation
  */
 object HabitRoute {
     /** Habit tracker root navigation graph route. */
-    const val Graph = "habits"
+    const val GRAPH = "habits"
 
     /** Habit list screen route. */
-    const val List = "habits/list"
+    const val LIST = "habits/list"
 
     /** Habit editor screen route. */
-    const val Editor = "habits/editor"
+    const val EDITOR = "habits/editor"
 
     /** Habit insights screen route. */
-    const val Insights = "habits/insights"
+    const val INSIGHTS = "habits/insights"
 }
 
 /**
@@ -93,13 +93,13 @@ fun NavGraphBuilder.habitsNavGraph(
     onNavigateUp: () -> Unit = { navController.popBackStack() }
 ) {
     navigation(
-        startDestination = HabitRoute.List,
-        route = HabitRoute.Graph
+        startDestination = HabitRoute.LIST,
+        route = HabitRoute.GRAPH
     ) {
-        // â”€â”€ Habit list â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        composable(route = HabitRoute.List) { backStackEntry ->
+        // ── Habit list ───────────────────────────────────────────────────────────
+        composable(route = HabitRoute.LIST) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(HabitRoute.Graph)
+                navController.getBackStackEntry(HabitRoute.GRAPH)
             }
             val viewModel: HabitViewModel = hiltViewModel(parentEntry)
             val uiState by viewModel.uiState.collectAsState()
@@ -108,17 +108,17 @@ fun NavGraphBuilder.habitsNavGraph(
                 uiState = uiState,
                 onHabitClick = { habit ->
                     viewModel.openEditHabit(habit)
-                    navController.navigate(HabitRoute.Editor)
+                    navController.navigate(HabitRoute.EDITOR)
                 },
                 onNewHabit = {
                     viewModel.openNewHabit()
-                    navController.navigate(HabitRoute.Editor)
+                    navController.navigate(HabitRoute.EDITOR)
                 },
                 onDeleteHabit = { habitId -> viewModel.deleteHabit(habitId) },
                 onLogCompletion = { habitId -> viewModel.logCompletion(habitId) },
                 onViewInsights = { habit ->
                     viewModel.openInsights(habit)
-                    navController.navigate(HabitRoute.Insights)
+                    navController.navigate(HabitRoute.INSIGHTS)
                 },
                 streakCalculator = { entries, recurrence ->
                     viewModel.calculateStreak(entries, recurrence)
@@ -129,10 +129,10 @@ fun NavGraphBuilder.habitsNavGraph(
             )
         }
 
-        // â”€â”€ Habit editor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        composable(route = HabitRoute.Editor) { backStackEntry ->
+        // ── Habit editor ─────────────────────────────────────────────────────────
+        composable(route = HabitRoute.EDITOR) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(HabitRoute.Graph)
+                navController.getBackStackEntry(HabitRoute.GRAPH)
             }
             val viewModel: HabitViewModel = hiltViewModel(parentEntry)
             val uiState by viewModel.uiState.collectAsState()
@@ -154,20 +154,20 @@ fun NavGraphBuilder.habitsNavGraph(
                     if (currentState !is HabitUiState.HabitEditor ||
                         currentState.nameError == null
                     ) {
-                        navController.popBackStack()
+                        onNavigateUp()
                     }
                 },
                 onBack = {
                     viewModel.backToList()
-                    navController.popBackStack()
+                    onNavigateUp()
                 }
             )
         }
 
-        // â”€â”€ Habit insights â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        composable(route = HabitRoute.Insights) { backStackEntry ->
+        // ── Habit insights ───────────────────────────────────────────────────────
+        composable(route = HabitRoute.INSIGHTS) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(HabitRoute.Graph)
+                navController.getBackStackEntry(HabitRoute.GRAPH)
             }
             val viewModel: HabitViewModel = hiltViewModel(parentEntry)
             val uiState by viewModel.uiState.collectAsState()
@@ -176,7 +176,7 @@ fun NavGraphBuilder.habitsNavGraph(
                 uiState = uiState,
                 onBack = {
                     viewModel.backToList()
-                    navController.popBackStack()
+                    onNavigateUp()
                 },
                 onRetry = {
                     // Re-fetch insights for the current habit

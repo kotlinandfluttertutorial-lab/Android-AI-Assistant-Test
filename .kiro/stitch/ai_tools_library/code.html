@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AI Tools Explorer</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">tailwind.config = {darkMode: "class", theme: {extend: {colors: {"tertiary-fixed": "#ffdf93", "on-secondary": "#ffffff", "surface-dark": "#0F0F0F", "secondary-container": "#e4ddea", "on-primary-fixed-variant": "#4f378a", "on-surface": "#1c1b1f", "surface-container-high": "#ebe7ec", outline: "#7a7582", "primary-fixed-dim": "#cfbcff", "on-secondary-container": "#65616b", "on-surface-variant": "#494551", "surface-bright": "#fdf8fd", "secondary-fixed": "#e7e0ec", error: "#ba1a1a", tertiary: "#765b00", "surface-dim": "#ddd9de", "inverse-surface": "#313034", "on-primary": "#ffffff", "on-secondary-fixed": "#1d1a23", "surface-container-lowest": "#ffffff", background: "#fdf8fd", "inverse-primary": "#cfbcff", "primary-fixed": "#e9ddff", "on-error": "#ffffff", "surface-container-low": "#f7f2f8", "on-tertiary-container": "#503d00", "surface-container": "#f1ecf2", "on-secondary-fixed-variant": "#49454f", secondary: "#615c67", "on-tertiary": "#ffffff", "on-tertiary-fixed": "#241a00", "tertiary-fixed-dim": "#e7c365", "on-error-container": "#93000a", "secondary-fixed-dim": "#cbc4d0", "primary-container": "#6750a4", "tertiary-container": "#c9a74d", "outline-variant": "#cbc4d2", "error-container": "#ffdad6", primary: "#4f378a", surface: "#fdf8fd", "on-primary-container": "#e0d2ff", "on-background": "#1c1b1f", "surface-variant": "#e5e1e7", "on-tertiary-fixed-variant": "#594400", "surface-tint": "#6750a4", "inverse-on-surface": "#f4eff5", "surface-light": "#FFFBFD", "surface-container-highest": "#e5e1e7", "on-primary-fixed": "#22005d"}, borderRadius: {DEFAULT: "0.25rem", lg: "0.5rem", xl: "0.75rem", full: "9999px"}, spacing: {sm: "8px", xs: "4px", "margin-desktop": "24px", md: "16px", gutter: "16px", base: "8px", xl: "32px", lg: "24px", "margin-mobile": "16px"}, fontFamily: {"headline-lg": ["Inter"], "title-lg": ["Inter"], "body-md": ["Inter"], "display-lg": ["Inter"], "label-lg": ["Inter"], "headline-lg-mobile": ["Inter"], "body-lg": ["Inter"], "label-md": ["Inter"], headline: ["Inter"], display: ["Inter"], body: ["Inter"], label: ["Inter"]}, fontSize: {"headline-lg": ["32px", {lineHeight: "40px", fontWeight: "600"}], "title-lg": ["22px", {lineHeight: "28px", fontWeight: "500"}], "body-md": ["14px", {lineHeight: "20px", letterSpacing: "0.25px", fontWeight: "400"}], "display-lg": ["57px", {lineHeight: "64px", letterSpacing: "-0.25px", fontWeight: "400"}], "label-lg": ["14px", {lineHeight: "20px", letterSpacing: "0.1px", fontWeight: "500"}], "headline-lg-mobile": ["28px", {lineHeight: "36px", fontWeight: "600"}], "body-lg": ["16px", {lineHeight: "24px", letterSpacing: "0.5px", fontWeight: "400"}], "label-md": ["12px", {lineHeight: "16px", letterSpacing: "0.5px", fontWeight: "500"}]}}}};</script>
+<style>
+        body { background-color: #fdf8fd; color: #1c1b1f; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .tool-card-hover:hover {
+            transform: translateY(-4px);
+            background-color: #f1ecf2;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="font-body-md text-body-md overflow-x-hidden pb-24">
+<!-- Top App Bar -->
+<header class="w-full top-0 sticky bg-surface flex justify-between items-center h-16 px-margin-mobile z-40">
+<div class="flex items-center gap-4">
+<button class="material-symbols-outlined text-primary hover:bg-surface-container-high transition-colors p-2 rounded-full">menu</button>
+<h1 class="font-headline-lg-mobile text-headline-lg-mobile text-primary">AI Assistant</h1>
+</div>
+<div class="flex items-center gap-2">
+<button class="material-symbols-outlined text-primary hover:bg-surface-container-high transition-colors p-2 rounded-full">account_circle</button>
+</div>
+</header>
+<main class="max-w-[1440px] mx-auto px-margin-mobile md:px-margin-desktop space-y-lg pt-4">
+<!-- Search Section -->
+<section class="w-full">
+<div class="relative group">
+<div class="absolute inset-y-0 left-4 flex items-center pointer-events-none">
+<span class="material-symbols-outlined text-on-surface-variant">search</span>
+</div>
+<input class="w-full h-14 pl-12 pr-4 bg-surface-container border-none rounded-full focus:ring-2 focus:ring-primary text-body-lg font-body-lg placeholder:text-on-surface-variant/60 transition-all" placeholder="Search for AI tools..." type="text"/>
+</div>
+</section>
+<!-- Featured Card -->
+<section class="w-full">
+<div class="relative h-64 md:h-80 rounded-[24px] overflow-hidden group cursor-pointer shadow-sm">
+<div class="absolute inset-0 bg-cover bg-center" data-alt="A sophisticated abstract digital visualization of flowing neural networks and glowing data particles in shades of deep purple and soft lavender. The scene is illuminated with a cinematic, ethereal light that emphasizes a clean, high-end AI aesthetic. Minimalist lines converge at a central focal point, suggesting intelligence and connectivity. The atmosphere is calm, professional, and technologically advanced, fitting a premium AI assistant interface." style="background-image: url('https://www.gstatic.com/labs-code/stitch/stitch-placeholder-300x300.svg')"></div>
+<div class="absolute inset-0 bg-gradient-to-t from-primary/90 to-transparent"></div>
+<div class="absolute bottom-0 left-0 p-lg w-full md:w-2/3">
+<div class="inline-flex items-center px-3 py-1 bg-tertiary-fixed text-on-tertiary-fixed rounded-full mb-base font-label-md text-label-md">
+<span class="material-symbols-outlined mr-1 !text-sm">star</span> Featured
+                    </div>
+<h2 class="font-headline-lg text-headline-lg text-white mb-xs">Advanced Resume Builder</h2>
+<p class="text-white/80 font-body-lg text-body-lg mb-md">Craft the perfect career narrative with our AI-driven optimization engine. Instantly tailor your resume to any job description.</p>
+<button class="bg-primary-container text-on-primary-container px-6 py-2 rounded-full font-label-lg text-label-lg active:scale-95 transition-all">Try Now</button>
+</div>
+</div>
+</section>
+<!-- Grid of Tools -->
+<section class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-md md:gap-lg">
+<!-- Card 1: Summarizer -->
+<div class="tool-card-hover flex flex-col p-lg bg-surface-container-low rounded-[24px] border border-outline-variant/10 transition-all duration-300 cursor-pointer active:scale-95">
+<div class="w-12 h-12 bg-primary-container/20 rounded-xl flex items-center justify-center mb-md">
+<span class="material-symbols-outlined text-primary">auto_stories</span>
+</div>
+<h3 class="font-title-lg text-title-lg text-on-surface mb-xs">Summarizer</h3>
+<p class="text-on-surface-variant font-body-md text-body-md">Condense long documents into key actionable insights.</p>
+</div>
+<!-- Card 2: Translator -->
+<div class="tool-card-hover flex flex-col p-lg bg-surface-container-low rounded-[24px] border border-outline-variant/10 transition-all duration-300 cursor-pointer active:scale-95">
+<div class="w-12 h-12 bg-secondary-container rounded-xl flex items-center justify-center mb-md">
+<span class="material-symbols-outlined text-secondary">translate</span>
+</div>
+<h3 class="font-title-lg text-title-lg text-on-surface mb-xs">Translator</h3>
+<p class="text-on-surface-variant font-body-md text-body-md">Seamlessly translate text across 100+ languages instantly.</p>
+</div>
+<!-- Card 3: Grammar Checker -->
+<div class="tool-card-hover flex flex-col p-lg bg-surface-container-low rounded-[24px] border border-outline-variant/10 transition-all duration-300 cursor-pointer active:scale-95">
+<div class="w-12 h-12 bg-tertiary-container/30 rounded-xl flex items-center justify-center mb-md">
+<span class="material-symbols-outlined text-tertiary">spellcheck</span>
+</div>
+<h3 class="font-title-lg text-title-lg text-on-surface mb-xs">Grammar</h3>
+<p class="text-on-surface-variant font-body-md text-body-md">Polish your writing with advanced syntax correction.</p>
+</div>
+<!-- Card 4: Code Assistant -->
+<div class="tool-card-hover flex flex-col p-lg bg-surface-container-low rounded-[24px] border border-outline-variant/10 transition-all duration-300 cursor-pointer active:scale-95">
+<div class="w-12 h-12 bg-primary-fixed rounded-xl flex items-center justify-center mb-md">
+<span class="material-symbols-outlined text-primary">terminal</span>
+</div>
+<h3 class="font-title-lg text-title-lg text-on-surface mb-xs">Code Pilot</h3>
+<p class="text-on-surface-variant font-body-md text-body-md">Generate, debug, and explain complex code blocks.</p>
+</div>
+<!-- Card 5: Image Gen -->
+<div class="tool-card-hover flex flex-col p-lg bg-surface-container-low rounded-[24px] border border-outline-variant/10 transition-all duration-300 cursor-pointer active:scale-95">
+<div class="w-12 h-12 bg-secondary-fixed rounded-xl flex items-center justify-center mb-md">
+<span class="material-symbols-outlined text-secondary">image_search</span>
+</div>
+<h3 class="font-title-lg text-title-lg text-on-surface mb-xs">Visualizer</h3>
+<p class="text-on-surface-variant font-body-md text-body-md">Convert text descriptions into stunning 4K visuals.</p>
+</div>
+<!-- Card 6: Meeting Notes -->
+<div class="tool-card-hover flex flex-col p-lg bg-surface-container-low rounded-[24px] border border-outline-variant/10 transition-all duration-300 cursor-pointer active:scale-95">
+<div class="w-12 h-12 bg-error-container/30 rounded-xl flex items-center justify-center mb-md">
+<span class="material-symbols-outlined text-error">mic</span>
+</div>
+<h3 class="font-title-lg text-title-lg text-on-surface mb-xs">Transcriber</h3>
+<p class="text-on-surface-variant font-body-md text-body-md">Automated meeting minutes and action item detection.</p>
+</div>
+<!-- Card 7: Data Analyst -->
+<div class="tool-card-hover flex flex-col p-lg bg-surface-container-low rounded-[24px] border border-outline-variant/10 transition-all duration-300 cursor-pointer active:scale-95">
+<div class="w-12 h-12 bg-tertiary-fixed/40 rounded-xl flex items-center justify-center mb-md">
+<span class="material-symbols-outlined text-tertiary">query_stats</span>
+</div>
+<h3 class="font-title-lg text-title-lg text-on-surface mb-xs">Insights</h3>
+<p class="text-on-surface-variant font-body-md text-body-md">Analyze CSV datasets and find hidden market trends.</p>
+</div>
+<!-- Card 8: Email Drafter -->
+<div class="tool-card-hover flex flex-col p-lg bg-surface-container-low rounded-[24px] border border-outline-variant/10 transition-all duration-300 cursor-pointer active:scale-95">
+<div class="w-12 h-12 bg-primary-container/20 rounded-xl flex items-center justify-center mb-md">
+<span class="material-symbols-outlined text-primary">mail</span>
+</div>
+<h3 class="font-title-lg text-title-lg text-on-surface mb-xs">Smart Mail</h3>
+<p class="text-on-surface-variant font-body-md text-body-md">Draft professional replies with contextual tone adjustment.</p>
+</div>
+<!-- Card 9: Content Planner -->
+<div class="tool-card-hover flex flex-col p-lg bg-surface-container-low rounded-[24px] border border-outline-variant/10 transition-all duration-300 cursor-pointer active:scale-95">
+<div class="w-12 h-12 bg-secondary-container rounded-xl flex items-center justify-center mb-md">
+<span class="material-symbols-outlined text-secondary">calendar_month</span>
+</div>
+<h3 class="font-title-lg text-title-lg text-on-surface mb-xs">Planner</h3>
+<p class="text-on-surface-variant font-body-md text-body-md">Generate 30-day social media strategy calendars.</p>
+</div>
+<!-- Card 10: Legal Review -->
+<div class="tool-card-hover flex flex-col p-lg bg-surface-container-low rounded-[24px] border border-outline-variant/10 transition-all duration-300 cursor-pointer active:scale-95">
+<div class="w-12 h-12 bg-tertiary-container/30 rounded-xl flex items-center justify-center mb-md">
+<span class="material-symbols-outlined text-tertiary">gavel</span>
+</div>
+<h3 class="font-title-lg text-title-lg text-on-surface mb-xs">Legal Lab</h3>
+<p class="text-on-surface-variant font-body-md text-body-md">Identify risks and clauses in standard contracts.</p>
+</div>
+<!-- Card 11: SEO Optimizer -->
+<div class="tool-card-hover flex flex-col p-lg bg-surface-container-low rounded-[24px] border border-outline-variant/10 transition-all duration-300 cursor-pointer active:scale-95">
+<div class="w-12 h-12 bg-primary-fixed rounded-xl flex items-center justify-center mb-md">
+<span class="material-symbols-outlined text-primary">search_insights</span>
+</div>
+<h3 class="font-title-lg text-title-lg text-on-surface mb-xs">SEO Pro</h3>
+<p class="text-on-surface-variant font-body-md text-body-md">Optimize web content for search engine dominance.</p>
+</div>
+<!-- Card 12: Quiz Maker -->
+<div class="tool-card-hover flex flex-col p-lg bg-surface-container-low rounded-[24px] border border-outline-variant/10 transition-all duration-300 cursor-pointer active:scale-95">
+<div class="w-12 h-12 bg-secondary-fixed rounded-xl flex items-center justify-center mb-md">
+<span class="material-symbols-outlined text-secondary">quiz</span>
+</div>
+<h3 class="font-title-lg text-title-lg text-on-surface mb-xs">Educator</h3>
+<p class="text-on-surface-variant font-body-md text-body-md">Turn any text into an interactive learning quiz.</p>
+</div>
+</section>
+<!-- Suggestion Chips (Micro-interaction example) -->
+<section class="flex gap-sm overflow-x-auto pb-4 no-scrollbar">
+<span class="px-4 py-2 bg-surface-variant/30 border border-outline-variant rounded-full text-label-lg font-label-lg whitespace-nowrap cursor-pointer hover:bg-primary-container/10 transition-colors">All Tools</span>
+<span class="px-4 py-2 bg-surface-container text-on-surface rounded-full text-label-lg font-label-lg whitespace-nowrap cursor-pointer hover:bg-primary-container/10 transition-colors">Writing</span>
+<span class="px-4 py-2 bg-surface-container text-on-surface rounded-full text-label-lg font-label-lg whitespace-nowrap cursor-pointer hover:bg-primary-container/10 transition-colors">Productivity</span>
+<span class="px-4 py-2 bg-surface-container text-on-surface rounded-full text-label-lg font-label-lg whitespace-nowrap cursor-pointer hover:bg-primary-container/10 transition-colors">Development</span>
+<span class="px-4 py-2 bg-surface-container text-on-surface rounded-full text-label-lg font-label-lg whitespace-nowrap cursor-pointer hover:bg-primary-container/10 transition-colors">Marketing</span>
+<span class="px-4 py-2 bg-surface-container text-on-surface rounded-full text-label-lg font-label-lg whitespace-nowrap cursor-pointer hover:bg-primary-container/10 transition-colors">Analysis</span>
+</section>
+</main>
+<!-- Floating Action Button (FAB) -->
+<button class="fixed bottom-24 right-margin-mobile w-14 h-14 bg-primary text-on-primary rounded-2xl flex items-center justify-center shadow-lg hover:shadow-xl active:scale-90 transition-all z-50">
+<span class="material-symbols-outlined">add</span>
+</button>
+<!-- Bottom Navigation Bar -->
+<nav class="fixed bottom-0 w-full z-50 h-20 bg-surface-container flex justify-around items-center px-4 pb-2">
+<div class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-variant transition-all active:scale-90 duration-200 cursor-pointer">
+<span class="material-symbols-outlined">home</span>
+<span class="font-label-md text-label-md">Home</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-variant transition-all active:scale-90 duration-200 cursor-pointer">
+<span class="material-symbols-outlined">chat</span>
+<span class="font-label-md text-label-md">Chats</span>
+</div>
+<!-- Active Tab: AI Tools -->
+<div class="flex flex-col items-center justify-center bg-secondary-container text-on-secondary-container rounded-full px-4 py-1 active:scale-90 duration-200 cursor-pointer">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">smart_toy</span>
+<span class="font-label-md text-label-md">AI Tools</span>
+</div>
+<div class="flex flex-col items-center justify-center text-on-surface-variant px-4 py-1 hover:bg-surface-variant transition-all active:scale-90 duration-200 cursor-pointer">
+<span class="material-symbols-outlined">person</span>
+<span class="font-label-md text-label-md">Profile</span>
+</div>
+</nav>
+<script>
+        // Micro-interaction for search bar focus
+        const searchInput = document.querySelector('input[type="text"]');
+        searchInput.addEventListener('focus', () => {
+            searchInput.parentElement.classList.add('ring-2', 'ring-primary/20');
+        });
+        searchInput.addEventListener('blur', () => {
+            searchInput.parentElement.classList.remove('ring-2', 'ring-primary/20');
+        });
+
+        // Simple filtering simulation for chips
+        const chips = document.querySelectorAll('section.flex.gap-sm span');
+        chips.forEach(chip => {
+            chip.addEventListener('click', () => {
+                chips.forEach(c => c.classList.remove('bg-surface-variant/30', 'border-outline-variant'));
+                chips.forEach(c => c.classList.add('bg-surface-container'));
+                chip.classList.remove('bg-surface-container');
+                chip.classList.add('bg-surface-variant/30', 'border-outline-variant');
+            });
+        });
+    </script>
+</body></html>

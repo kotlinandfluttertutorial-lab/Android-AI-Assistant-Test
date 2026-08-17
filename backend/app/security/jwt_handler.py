@@ -1,7 +1,7 @@
 """JWT issuance and verification for the Android AI Assistant backend.
 
 This module is the **single authoritative place** for all JWT operations.
-No other module should call ``python-jose`` directly — always go through the
+No other module should call ``PyJWT`` directly — always go through the
 functions defined here.
 
 Access token (JWT)
@@ -29,13 +29,17 @@ from __future__ import annotations
 import hashlib
 import secrets
 import uuid
-from datetime import datetime, timedelta, timezone
-from typing import Any
+from datetime import UTC, datetime, timedelta
+from typing import TYPE_CHECKING, Any
 
-from jose import JWTError, jwt
+import jwt
+from jwt.exceptions import PyJWTError as JWTError
 from pydantic import BaseModel
 
 from app.security.exceptions import InvalidTokenError
+
+if TYPE_CHECKING:
+    from app.config.settings import Settings
 
 # ---------------------------------------------------------------------------
 # Token payload schema
@@ -57,8 +61,8 @@ class TokenPayload(BaseModel):
 # ---------------------------------------------------------------------------
 
 
-def _get_settings():
-    from app.config.settings import get_settings
+def _get_settings() -> Settings:
+    from app.config.settings import Settings, get_settings  # noqa: F401
 
     return get_settings()
 
@@ -84,7 +88,7 @@ def create_access_token(
     Requirements: 1.2
     """
     settings = _get_settings()
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
 
     if expires_delta is None:
         expires_delta = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
@@ -144,7 +148,7 @@ def verify_access_token(token: str) -> TokenPayload:
     except JWTError as exc:
         raise InvalidTokenError(f"JWT validation failed: {exc}") from exc
 
-    # Manually verify required claims (python-jose's 'require' option may
+    # Manually verify required claims (PyJWT's 'require' option may
     # not enforce missing claims in all versions).
     required_claims = {"sub", "role", "jti", "iat", "exp"}
     missing = required_claims - set(raw_payload.keys())
@@ -155,8 +159,8 @@ def verify_access_token(token: str) -> TokenPayload:
 
     # Convert numeric timestamps to aware datetime objects.
     try:
-        iat = datetime.fromtimestamp(raw_payload["iat"], tz=timezone.utc)
-        exp = datetime.fromtimestamp(raw_payload["exp"], tz=timezone.utc)
+        iat = datetime.fromtimestamp(raw_payload["iat"], tz=UTC)
+        exp = datetime.fromtimestamp(raw_payload["exp"], tz=UTC)
     except (TypeError, ValueError, OSError) as exc:
         raise InvalidTokenError(f"JWT timestamp conversion failed: {exc}") from exc
 
@@ -226,7 +230,7 @@ def create_refresh_token(
     Requirements: 1.2
     """
     settings = _get_settings()
-    now = datetime.now(tz=timezone.utc)
+    now = datetime.now(tz=UTC)
 
     if expires_delta is None:
         expires_delta = timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)

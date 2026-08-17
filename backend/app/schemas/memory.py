@@ -116,8 +116,7 @@ class MemorySearchResult(BaseModel):
     memory_type: str = Field(description="Classification of the memory.")
     relevance_score: float = Field(
         description=(
-            "Semantic similarity distance from ChromaDB. "
-            "Lower values indicate higher relevance."
+            "Semantic similarity distance from ChromaDB. Lower values indicate higher relevance."
         )
     )
     created_at: datetime = Field(

@@ -71,7 +71,8 @@ def _build_notes_prompt(payload: ScreenContextPayload) -> str:
     note_content = payload.note_content or ""
     return (
         "You are helping a user with their note. Based on the following note content, "
-        "suggest 1-3 actionable AI suggestions from this list: summarize, expand, add_action_items. "
+        "suggest 1-3 actionable AI suggestions from this list: "
+        "summarize, expand, add_action_items. "
         "Return ONLY a JSON array like:\n"
         '[{"type": "summarize", "display_text": "Summarize this note", '
         '"pre_fill_text": "Please summarize this note concisely."}]\n'
@@ -290,7 +291,7 @@ class SuggestionsService:
                 user_id,
             )
             return []
-        except Exception as exc:  # noqa: BLE001
+        except Exception as exc:
             logger.debug(
                 "SuggestionsService: AI completion failed for user %s: %s; "
                 "returning empty suggestions",

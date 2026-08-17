@@ -43,7 +43,7 @@
  * Purpose: Navigation graph for the productivity feature, exposing TodoList and
  *          TodoEditor screens backed by a single shared ProductivityViewModel scoped
  *          to the nav graph.
- * Architecture: feature-productivity â€” Navigation layer; consumed by the app module's
+ * Architecture: feature-productivity — Navigation layer; consumed by the app module's
  *               root NavHost.
  * Dependencies: feature-productivity screens, ProductivityViewModel (Hilt),
  *               AndroidX Navigation Compose.
@@ -78,13 +78,13 @@ import androidx.navigation.navigation
  */
 object ProductivityRoute {
     /** Productivity root navigation graph route. */
-    const val Graph = "productivity"
+    const val GRAPH = "productivity"
 
     /** Todo list screen route. */
-    const val TodoList = "productivity/todos"
+    const val TODO_LIST = "productivity/todos"
 
-    /** Todo editor screen route â€” [todoId] query param is optional. */
-    const val TodoEditor = "productivity/todos/editor?todoId={todoId}"
+    /** Todo editor screen route — [todoId] query param is optional. */
+    const val TODO_EDITOR = "productivity/todos/editor?todoId={todoId}"
 }
 
 /**
@@ -105,13 +105,13 @@ fun NavGraphBuilder.productivityNavGraph(
     onNavigateUp: () -> Unit = { navController.popBackStack() }
 ) {
     navigation(
-        startDestination = ProductivityRoute.TodoList,
-        route = ProductivityRoute.Graph
+        startDestination = ProductivityRoute.TODO_LIST,
+        route = ProductivityRoute.GRAPH
     ) {
-        // â”€â”€ Todo List â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        composable(route = ProductivityRoute.TodoList) { backStackEntry ->
+        // ── Todo List ────────────────────────────────────────────────────────────
+        composable(route = ProductivityRoute.TODO_LIST) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(ProductivityRoute.Graph)
+                navController.getBackStackEntry(ProductivityRoute.GRAPH)
             }
             val viewModel: ProductivityViewModel = hiltViewModel(parentEntry)
             val uiState by viewModel.uiState.collectAsState()
@@ -134,9 +134,9 @@ fun NavGraphBuilder.productivityNavGraph(
             )
         }
 
-        // â”€â”€ Todo Editor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── Todo Editor ──────────────────────────────────────────────────────────
         composable(
-            route = ProductivityRoute.TodoEditor,
+            route = ProductivityRoute.TODO_EDITOR,
             arguments = listOf(
                 navArgument("todoId") {
                     type = NavType.StringType
@@ -146,7 +146,7 @@ fun NavGraphBuilder.productivityNavGraph(
             )
         ) { backStackEntry ->
             val parentEntry = remember(backStackEntry) {
-                navController.getBackStackEntry(ProductivityRoute.Graph)
+                navController.getBackStackEntry(ProductivityRoute.GRAPH)
             }
             val viewModel: ProductivityViewModel = hiltViewModel(parentEntry)
             val uiState by viewModel.uiState.collectAsState()
@@ -158,11 +158,11 @@ fun NavGraphBuilder.productivityNavGraph(
                 },
                 onSave = { todo ->
                     viewModel.saveTodo(todo)
-                    navController.popBackStack()
+                    onNavigateUp()
                 },
                 onBack = {
                     viewModel.backToList()
-                    navController.popBackStack()
+                    onNavigateUp()
                 }
             )
         }

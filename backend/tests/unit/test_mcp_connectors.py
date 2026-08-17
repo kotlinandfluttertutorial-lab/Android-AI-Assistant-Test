@@ -160,9 +160,9 @@ class TestRequiresConfirmation:
     def test_all_write_connector_schemas_have_requires_confirmation_true(self) -> None:
         for connector, _ in WRITE_CONNECTORS:
             schema = connector.get_schema()
-            assert schema.requires_confirmation is True, (
-                f"{connector.tool_name} schema mismatch"
-            )
+            assert (
+                schema.requires_confirmation is True
+            ), f"{connector.tool_name} schema mismatch"
 
 
 # ---------------------------------------------------------------------------

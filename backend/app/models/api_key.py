@@ -54,12 +54,16 @@ from __future__ import annotations
 import base64
 import os
 import uuid
+from typing import TYPE_CHECKING
 
 from cryptography.hazmat.primitives.ciphers.aead import AESGCM
 from sqlalchemy import ForeignKey, LargeBinary, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin, uuid_pk
+
+if TYPE_CHECKING:
+    from app.models.user import User
 
 # GCM nonce size (12 bytes is the NIST recommended default for AESGCM)
 _NONCE_SIZE = 12
@@ -83,8 +87,7 @@ def _load_aes_key() -> bytes:
     key = base64.b64decode(raw)
     if len(key) != 32:
         raise ValueError(
-            f"AES_ENCRYPTION_KEY must decode to exactly 32 bytes (AES-256); "
-            f"got {len(key)} bytes."
+            f"AES_ENCRYPTION_KEY must decode to exactly 32 bytes (AES-256); got {len(key)} bytes."
         )
     return key
 
@@ -170,7 +173,7 @@ class APIKey(Base, TimestampMixin):
     # ------------------------------------------------------------------
     # Relationships
     # ------------------------------------------------------------------
-    user: Mapped[User] = relationship("User", back_populates="api_keys")  # noqa: F821
+    user: Mapped[User] = relationship("User", back_populates="api_keys")
 
     # ------------------------------------------------------------------
     # Convenience properties
@@ -191,7 +194,4 @@ class APIKey(Base, TimestampMixin):
         self.encrypted_key = encrypt_api_key(value)
 
     def __repr__(self) -> str:
-        return (
-            f"<APIKey id={self.id!s} user_id={self.user_id!s} "
-            f"provider={self.provider!r}>"
-        )
+        return f"<APIKey id={self.id!s} user_id={self.user_id!s} provider={self.provider!r}>"

@@ -43,7 +43,7 @@ private val SAMPLE_DOCUMENT = Document(
 private const val VALID_FILE_URI = "content://media/external/file/1"
 private const val VALID_FILE_NAME = "test-file.pdf"
 private const val VALID_MIME_TYPE = "application/pdf"
-private val VALID_SIZE_BYTES = 1L * 1024L * 1024L // 1 MB — well under 50 MB limit
+private const val VALID_SIZE_BYTES = 1L * 1024L * 1024L // 1 MB — well under 50 MB limit
 
 // ─── UploadDocumentUseCase ─────────────────────────────────────────────────────
 

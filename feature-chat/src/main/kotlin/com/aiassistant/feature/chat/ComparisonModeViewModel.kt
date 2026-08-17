@@ -1,4 +1,4 @@
-/*
+﻿/*
  * ============================================================
  * Android AI Assistant (Enterprise Edition)
  * ============================================================
@@ -337,12 +337,11 @@ class ComparisonModeViewModel @Inject constructor(
 
     /**
      * Response length component (0–40 pts).
-     * Linearly proportional to character count, capped at 2000 characters.
+     * Linearly proportional to character count, capped at MAX_SCORE_CHARS characters.
      */
     internal fun computeLengthScore(responseText: String): Int {
-        val maxChars = 2000
-        val capped = min(responseText.length, maxChars)
-        return ((capped.toDouble() / maxChars) * 40).roundToInt()
+        val capped = min(responseText.length, MAX_SCORE_CHARS)
+        return ((capped.toDouble() / MAX_SCORE_CHARS) * LENGTH_MAX_SCORE).roundToInt()
     }
 
     /**
@@ -351,13 +350,10 @@ class ComparisonModeViewModel @Inject constructor(
      * Heuristic: score is higher when:
      * - Average sentence length is in the "readable" range (10–30 words).
      * - The response contains multiple paragraphs (structured content).
-     *
-     * This avoids a secondary LLM call while still rewarding well-structured output.
      */
     internal fun computeCoherenceScore(responseText: String): Int {
         if (responseText.isBlank()) return 0
 
-        // Split into sentences naively on '. ', '? ', '! '
         val sentences = responseText.split(Regex("[.?!]+\\s+")).filter { it.isNotBlank() }
         val paragraphs = responseText.split(Regex("\\n{2,}")).filter { it.isNotBlank() }
 
@@ -367,41 +363,37 @@ class ComparisonModeViewModel @Inject constructor(
             0.0
         }
 
-        // Sentence length score: peak at 15–25 words, falls off outside that range
         val sentenceLengthScore = when {
-            avgSentenceWordCount < 5 -> 10
-            avgSentenceWordCount in 5.0..10.0 -> 20
-            avgSentenceWordCount in 10.0..25.0 -> 40
-            avgSentenceWordCount in 25.0..35.0 -> 25
-            else -> 10
+            avgSentenceWordCount < SENTENCE_SHORT_THRESHOLD -> COHERENCE_LOW_SCORE
+            avgSentenceWordCount in SENTENCE_SHORT_THRESHOLD..SENTENCE_MEDIUM_THRESHOLD -> COHERENCE_MID_SCORE
+            avgSentenceWordCount in SENTENCE_MEDIUM_THRESHOLD..SENTENCE_LONG_THRESHOLD -> COHERENCE_MAX_SCORE
+            avgSentenceWordCount in SENTENCE_LONG_THRESHOLD..SENTENCE_VERY_LONG_THRESHOLD -> COHERENCE_MID_HIGH_SCORE
+            else -> COHERENCE_LOW_SCORE
         }
 
-        // Paragraph bonus: up to +8 pts for having ≥2 paragraphs
-        val paragraphBonus = min(paragraphs.size - 1, 2) * 4
-
-        return min(sentenceLengthScore + paragraphBonus, 40)
+        val paragraphBonus = min(paragraphs.size - 1, PARAGRAPH_BONUS_CAP) * PARAGRAPH_BONUS_PER_EXTRA
+        return min(sentenceLengthScore + paragraphBonus, COHERENCE_MAX_SCORE)
     }
 
     /**
      * Latency component (0–20 pts).
-     * 20 pts at ≤500 ms; scales linearly to 0 pts at ≥5000 ms.
-     * Returns 10 pts when latency is unknown (-1).
+     * 20 pts at ≤MIN_LATENCY_MS; scales linearly to 0 pts at ≥MAX_LATENCY_MS.
+     * Returns LATENCY_UNKNOWN_SCORE pts when latency is unknown (-1).
      */
     internal fun computeLatencyScore(latencyMs: Long): Int {
-        if (latencyMs < 0) return 10
-        val minLatencyMs = 500L
-        val maxLatencyMs = 5000L
+        if (latencyMs < 0) return LATENCY_UNKNOWN_SCORE
         return when {
-            latencyMs <= minLatencyMs -> 20
-            latencyMs >= maxLatencyMs -> 0
+            latencyMs <= MIN_LATENCY_MS -> LATENCY_MAX_SCORE
+            latencyMs >= MAX_LATENCY_MS -> 0
             else -> {
-                val fraction = (maxLatencyMs - latencyMs).toDouble() / (maxLatencyMs - minLatencyMs)
-                (fraction * 20).roundToInt()
+                val fraction = (MAX_LATENCY_MS - latencyMs).toDouble() / (MAX_LATENCY_MS - MIN_LATENCY_MS)
+                (fraction * LATENCY_MAX_SCORE).roundToInt()
             }
         }
     }
 
     // ─── Helpers ─────────────────────────────────────────────────────────────
+
 
     private fun updatePanel(providerId: String, transform: (ProviderPanelState) -> ProviderPanelState) {
         _uiState.update { state ->
@@ -428,5 +420,28 @@ class ComparisonModeViewModel @Inject constructor(
         super.onCleared()
         cancelActiveJobs()
         streamClient.disconnect()
+    }
+companion object {
+        // Length scoring constants
+        internal const val MAX_SCORE_CHARS = 2000
+        internal const val LENGTH_MAX_SCORE = 40
+
+        // Coherence scoring constants
+        internal const val COHERENCE_MAX_SCORE = 40
+        internal const val COHERENCE_MID_HIGH_SCORE = 25
+        internal const val COHERENCE_MID_SCORE = 20
+        internal const val COHERENCE_LOW_SCORE = 10
+        internal const val SENTENCE_SHORT_THRESHOLD = 5.0
+        internal const val SENTENCE_MEDIUM_THRESHOLD = 10.0
+        internal const val SENTENCE_LONG_THRESHOLD = 25.0
+        internal const val SENTENCE_VERY_LONG_THRESHOLD = 35.0
+        internal const val PARAGRAPH_BONUS_CAP = 2
+        internal const val PARAGRAPH_BONUS_PER_EXTRA = 4
+
+        // Latency scoring constants
+        internal const val LATENCY_MAX_SCORE = 20
+        internal const val LATENCY_UNKNOWN_SCORE = 10
+        internal const val MIN_LATENCY_MS = 500L
+        internal const val MAX_LATENCY_MS = 5000L
     }
 }

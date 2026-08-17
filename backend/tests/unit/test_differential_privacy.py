@@ -114,9 +114,9 @@ class TestLaplaceNoiseInjector:
 
         # Compute Pearson correlation between the two noise dimensions
         correlation = float(np.corrcoef(noise_dim0, noise_dim1)[0, 1])
-        assert abs(correlation) < 0.1, (
-            f"Noise dimensions should be independent (|r| < 0.1), got r={correlation:.4f}"
-        )
+        assert (
+            abs(correlation) < 0.1
+        ), f"Noise dimensions should be independent (|r| < 0.1), got r={correlation:.4f}"
 
     def test_output_length_matches_input(self) -> None:
         """add_noise returns a list of the same length as the input embedding.
@@ -169,9 +169,9 @@ class TestLaplaceNoiseInjector:
 
         noise_tight = np.mean(np.abs(np.array(noised_tight) - np.array(embedding)))
         noise_loose = np.mean(np.abs(np.array(noised_loose) - np.array(embedding)))
-        assert noise_tight > noise_loose, (
-            "Smaller epsilon should produce larger noise magnitude."
-        )
+        assert (
+            noise_tight > noise_loose
+        ), "Smaller epsilon should produce larger noise magnitude."
 
 
 # ---------------------------------------------------------------------------

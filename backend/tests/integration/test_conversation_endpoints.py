@@ -444,9 +444,9 @@ class TestPaginationBoundaries:
 
         resp1_id_set = {item["id"] for item in resp1_items}
         resp2_id_set = {item["id"] for item in resp2_items}
-        assert resp1_id_set.isdisjoint(resp2_id_set), (
-            "Page 1 and page 2 items overlap — pagination boundary is broken"
-        )
+        assert resp1_id_set.isdisjoint(
+            resp2_id_set
+        ), "Page 1 and page 2 items overlap — pagination boundary is broken"
 
     def test_beyond_last_page_returns_empty_items(self) -> None:
         """Requesting a page beyond the total returns empty items array.
@@ -511,9 +511,7 @@ class TestPaginationBoundaries:
         user_id = _make_user_id()
         token = _make_token(user_id)
 
-        with (
-            patch("app.security.dependencies._is_jti_revoked", return_value=False),
-        ):
+        with (patch("app.security.dependencies._is_jti_revoked", return_value=False),):
             with TestClient(_app) as client:
                 resp = client.get(
                     "/conversations?page=0",

@@ -23,49 +23,64 @@ import os
 import sys
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
-from prometheus_fastapi_instrumentator import Instrumentator
-from sqlalchemy import text
 
-from app.api.admin.router import router as admin_router
-from app.api.analytics.router import router as analytics_router
+# ---------------------------------------------------------------------------
+# Load .env early — before any os.environ reads or pydantic-settings init.
+# Using an absolute path anchored to this file means uvicorn can be launched
+# from any working directory and still pick up backend/.env correctly.
+# ---------------------------------------------------------------------------
+_ENV_FILE = Path(__file__).resolve().parents[1] / ".env"  # backend/.env
+if _ENV_FILE.exists():
+    from dotenv import load_dotenv
+
+    load_dotenv(
+        dotenv_path=_ENV_FILE, override=False
+    )  # env vars already set take priority
+
+from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
+from fastapi.responses import JSONResponse  # noqa: E402
+from prometheus_fastapi_instrumentator import Instrumentator  # noqa: E402
+from sqlalchemy import text  # noqa: E402
+
+from app.api.admin.router import router as admin_router  # noqa: E402
+from app.api.analytics.router import router as analytics_router  # noqa: E402
 
 # ---------------------------------------------------------------------------
 # API sub-router imports (stubs — full implementation in subsequent tasks)
 # ---------------------------------------------------------------------------
-from app.api.auth.router import router as auth_router
-from app.api.chat.router import router as chat_router
-from app.api.conversations.router import router as conversations_router
-from app.api.data.router import router as data_router
-from app.api.generation.router import (
+from app.api.auth.router import router as auth_router  # noqa: E402
+from app.api.chat.router import router as chat_router  # noqa: E402
+from app.api.conversations.router import router as conversations_router  # noqa: E402
+from app.api.data.router import router as data_router  # noqa: E402
+from app.api.generation.router import (  # noqa: E402
     covers_router,
     emails_router,
     resumes_router,
 )
-from app.api.images.router import router as images_router
-from app.api.mcp.router import router as mcp_router
-from app.api.memory.router import router as memory_router
-from app.api.notifications.router import router as notifications_router
-from app.api.personas.router import router as personas_router
-from app.api.productivity.router import router as productivity_router
-from app.api.prompts.router import router as prompts_router
-from app.api.rag.router import jobs_router as rag_jobs_router
-from app.api.rag.router import router as rag_router
-from app.api.search.router import router as search_router
-from app.api.suggestions.router import router as suggestions_router
-from app.api.transcription.router import router as transcription_router
-from app.api.translation.router import router as translation_router
-from app.api.usage.router import router as usage_router
-from app.api.users.router import router as users_router
-from app.api.websocket.router import router as websocket_router
-from app.config.settings import get_settings
-from app.middleware.data_residency import DataResidencyMiddleware
-from app.middleware.logging_middleware import RequestLoggingMiddleware
-from app.middleware.rate_limit import RateLimitMiddleware
-from app.middleware.request_size import RequestBodySizeLimitMiddleware
+from app.api.images.router import router as images_router  # noqa: E402
+from app.api.mcp.router import router as mcp_router  # noqa: E402
+from app.api.memory.router import router as memory_router  # noqa: E402
+from app.api.notifications.router import router as notifications_router  # noqa: E402
+from app.api.personas.router import router as personas_router  # noqa: E402
+from app.api.productivity.router import router as productivity_router  # noqa: E402
+from app.api.prompts.router import router as prompts_router  # noqa: E402
+from app.api.rag.router import jobs_router as rag_jobs_router  # noqa: E402
+from app.api.rag.router import router as rag_router  # noqa: E402
+from app.api.search.router import router as search_router  # noqa: E402
+from app.api.suggestions.router import router as suggestions_router  # noqa: E402
+from app.api.transcription.router import router as transcription_router  # noqa: E402
+from app.api.translation.router import router as translation_router  # noqa: E402
+from app.api.usage.router import router as usage_router  # noqa: E402
+from app.api.users.router import router as users_router  # noqa: E402
+from app.api.websocket.router import router as websocket_router  # noqa: E402
+from app.config.settings import get_settings  # noqa: E402
+from app.middleware.data_residency import DataResidencyMiddleware  # noqa: E402
+from app.middleware.logging_middleware import RequestLoggingMiddleware  # noqa: E402
+from app.middleware.rate_limit import RateLimitMiddleware  # noqa: E402
+from app.middleware.request_size import RequestBodySizeLimitMiddleware  # noqa: E402
 
 logger = logging.getLogger(__name__)
 
@@ -165,6 +180,55 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     from app.workers.metrics import setup_celery_metrics
 
     setup_celery_metrics(celery_app)
+
+    # Warm up the SentenceTransformer embedding model so the first real
+    # request doesn't pay the 30-40 s cold-start cost of loading the model
+    # from disk and running a JIT compilation pass.
+    try:
+        import asyncio as _asyncio
+
+        from app.services.rag_service import rag_service as _rag_service
+
+        def _warmup() -> None:
+            model = _rag_service._get_embedding_model()
+            # Encode a short dummy sentence to trigger any lazy JIT compilation.
+            model.encode(["warmup"], show_progress_bar=False)
+
+        await _asyncio.to_thread(_warmup)
+        logger.info("STARTUP: embedding model warmed up successfully.")
+    except Exception as _exc:
+        # Non-fatal: the model will still load on the first real request.
+        logger.warning("STARTUP: embedding model warmup failed (non-fatal): %s", _exc)
+
+    # Check ChromaDB connectivity and log a clear warning if unreachable.
+    # This surfaces misconfiguration (wrong host/port) immediately at startup
+    # rather than silently returning empty results on every query.
+    try:
+        import asyncio as _asyncio
+
+        from app.config.settings import get_settings as _get_settings
+
+        def _check_chroma() -> None:
+            import chromadb
+
+            s = _get_settings()
+            client = chromadb.HttpClient(host=s.CHROMA_HOST, port=s.CHROMA_PORT)
+            client.heartbeat()
+
+        await _asyncio.to_thread(_check_chroma)
+        logger.info(
+            "STARTUP: ChromaDB reachable at %s:%s.",
+            get_settings().CHROMA_HOST,
+            get_settings().CHROMA_PORT,
+        )
+    except Exception as _exc:
+        logger.warning(
+            "STARTUP: ChromaDB NOT reachable at %s:%s — RAG queries will return "
+            "empty results until ChromaDB is available. Error: %s",
+            get_settings().CHROMA_HOST,
+            get_settings().CHROMA_PORT,
+            _exc,
+        )
 
     yield
     # Shutdown cleanup (if needed in future) goes here.

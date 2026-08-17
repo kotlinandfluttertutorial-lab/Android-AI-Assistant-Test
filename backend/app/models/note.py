@@ -41,12 +41,16 @@ Requirements: 9.3, 9.10
 from __future__ import annotations
 
 import uuid
+from typing import TYPE_CHECKING
 
 from sqlalchemy import ForeignKey, String, Text
 from sqlalchemy.dialects.postgresql import ARRAY
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin, uuid_pk
+
+if TYPE_CHECKING:
+    from app.models.user import User
 
 
 class Note(Base, TimestampMixin):
@@ -82,7 +86,7 @@ class Note(Base, TimestampMixin):
     # ------------------------------------------------------------------
     # Relationships
     # ------------------------------------------------------------------
-    user: Mapped[User] = relationship("User", back_populates="notes")  # noqa: F821
+    user: Mapped[User] = relationship("User", back_populates="notes")
 
     def __repr__(self) -> str:
         return f"<Note id={self.id!s} user_id={self.user_id!s} title={self.title!r}>"

@@ -83,10 +83,10 @@ class LaplaceNoiseInjector:
         # Draw independent samples — one per dimension — guaranteeing
         # per-dimension noise independence required by the Laplace mechanism.
         noise = np.random.laplace(loc=0.0, scale=scale, size=arr.shape)
-        return (arr + noise).tolist()
+        return list(map(float, (arr + noise).tolist()))
 
 
-async def get_current_epsilon(redis=None) -> float:
+async def get_current_epsilon(redis: object = None) -> float:
     """Return the current differential privacy ε value.
 
     Precedence:
@@ -107,14 +107,16 @@ async def get_current_epsilon(redis=None) -> float:
     settings = get_settings()
     fallback = float(settings.DP_EPSILON)
 
+    from redis.asyncio import Redis as AsyncRedis  # noqa: F401 — kept for type reference
+
     if redis is None:
         return fallback
 
     try:
-        raw = await redis.get("dp:epsilon")
+        raw: str | None = await redis.get("dp:epsilon")
         if raw is not None:
             return float(raw)
-    except Exception as exc:  # noqa: BLE001
+    except Exception as exc:
         logger.warning(
             "Failed to read dp:epsilon from Redis; falling back to settings: %s",
             exc,

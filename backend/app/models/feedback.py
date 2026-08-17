@@ -27,11 +27,15 @@ Requirements: 15.7
 from __future__ import annotations
 
 import uuid
+from typing import TYPE_CHECKING
 
 from sqlalchemy import ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin, uuid_pk
+
+if TYPE_CHECKING:
+    from app.models.user import User
 
 
 class Feedback(Base, TimestampMixin):
@@ -62,10 +66,7 @@ class Feedback(Base, TimestampMixin):
     # ------------------------------------------------------------------
     # Relationships
     # ------------------------------------------------------------------
-    user: Mapped[User | None] = relationship("User")  # noqa: F821
+    user: Mapped[User | None] = relationship("User")
 
     def __repr__(self) -> str:
-        return (
-            f"<Feedback id={self.id!s} user_id={self.user_id!s} "
-            f"category={self.category!r}>"
-        )
+        return f"<Feedback id={self.id!s} user_id={self.user_id!s} category={self.category!r}>"

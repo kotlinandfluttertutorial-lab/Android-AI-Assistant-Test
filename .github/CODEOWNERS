@@ -1,0 +1,41 @@
+# CODEOWNERS — defines required reviewers for each path.
+# GitHub uses this to automatically request reviews on PRs.
+# Syntax: <pattern> <@owner or @org/team>
+#
+# More specific patterns override less specific ones (last match wins).
+# https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# ── Default owners for all files ─────────────────────────────────────────────
+*                           @your-org/android-ai-team
+
+# ── CI/CD & Infrastructure ────────────────────────────────────────────────────
+.github/                    @your-org/devops-team
+docker-compose.yml          @your-org/devops-team
+docker-compose.override.yml @your-org/devops-team
+infrastructure/             @your-org/devops-team
+backend/Dockerfile          @your-org/devops-team
+
+# ── Security-sensitive paths ──────────────────────────────────────────────────
+core-security/              @your-org/security-team
+backend/app/security/       @your-org/security-team
+backend/app/middleware/     @your-org/security-team
+app/src/main/res/xml/network_security_config.xml  @your-org/security-team
+.github/security-scan.yml   @your-org/security-team
+
+# ── Backend ───────────────────────────────────────────────────────────────────
+backend/                    @your-org/backend-team
+
+# ── Android core modules ──────────────────────────────────────────────────────
+core-*/                     @your-org/android-core-team
+domain/                     @your-org/android-core-team
+data/                       @your-org/android-core-team
+
+# ── Android feature modules ───────────────────────────────────────────────────
+feature-*/                  @your-org/android-feature-team
+
+# ── Database migrations ───────────────────────────────────────────────────────
+backend/alembic/            @your-org/backend-team @your-org/devops-team
+
+# ── Dependency files ──────────────────────────────────────────────────────────
+gradle/libs.versions.toml   @your-org/android-core-team
+backend/requirements.txt    @your-org/backend-team @your-org/security-team

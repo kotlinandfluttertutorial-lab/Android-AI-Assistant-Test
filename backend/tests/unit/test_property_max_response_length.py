@@ -173,6 +173,7 @@ def _make_orchestrator(
         input_tokens: int,
         output_tokens: int,
         cost_usd: Decimal = Decimal(0),
+        feature=None,  # added: ai_orchestrator now passes feature kwarg (Req 34.1)
     ):
         captured_calls.append(
             {
@@ -195,7 +196,7 @@ def _make_orchestrator(
     orch._provider_cache[provider] = mock_client
 
     # Stub _build_prompt to return a context with controlled estimated_tokens
-    async def _fake_build_prompt(conversation_id, user_id, message):
+    async def _fake_build_prompt(conversation_id, user_id, message, **kwargs):
         return PromptContext(
             messages=[PromptMessage(role="system", content="sys")],
             estimated_tokens=input_tokens,
@@ -275,9 +276,9 @@ async def test_15a_output_tokens_within_configured_cap(
 
     await _run_stream_chat(orch, provider)
 
-    assert len(captured) == 1, (
-        f"Expected exactly one TokenUsage.create call, got {len(captured)}"
-    )
+    assert (
+        len(captured) == 1
+    ), f"Expected exactly one TokenUsage.create call, got {len(captured)}"
 
     actual_output = captured[0]["output_tokens"]
     assert actual_output <= max_output_tokens, (
@@ -412,9 +413,9 @@ async def test_15_all_six_providers_deterministic() -> None:
 
         await _run_stream_chat(orch, provider)
 
-        assert len(captured) == 1, (
-            f"Expected 1 TokenUsage.create call for {provider.value}, got {len(captured)}"
-        )
+        assert (
+            len(captured) == 1
+        ), f"Expected 1 TokenUsage.create call for {provider.value}, got {len(captured)}"
         actual_output = captured[0]["output_tokens"]
         assert actual_output <= fixed_max, (
             f"output_tokens={actual_output} must be ≤ max_output_tokens={fixed_max} "

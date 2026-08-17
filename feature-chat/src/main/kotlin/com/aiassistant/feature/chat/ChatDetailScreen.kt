@@ -626,6 +626,7 @@ private fun RetryBanner(errorMessage: String, onRetry: () -> Unit, onDismiss: ()
     com.aiassistant.core.ui.components.ErrorBanner(
         message = errorMessage,
         onRetry = onRetry,
+        onDismiss = onDismiss,
         contentDescription = "Streaming interrupted: $errorMessage. Tap Retry to reconnect.",
         modifier = Modifier.fillMaxWidth()
     )

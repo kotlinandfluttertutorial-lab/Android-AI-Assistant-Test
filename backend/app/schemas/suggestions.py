@@ -37,7 +37,7 @@ from pydantic import BaseModel, Field
 # ---------------------------------------------------------------------------
 
 
-class ScreenType(str, enum.Enum):
+class ScreenType(enum.StrEnum):
     """Screen context types that can request suggestions.
 
     Requirements: 33.1
@@ -48,7 +48,7 @@ class ScreenType(str, enum.Enum):
     chat = "chat"
 
 
-class SuggestionType(str, enum.Enum):
+class SuggestionType(enum.StrEnum):
     """AI suggestion action types.
 
     Requirements: 33.2

@@ -31,11 +31,15 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
+from typing import TYPE_CHECKING
 
 from sqlalchemy import DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.models.base import Base, TimestampMixin, uuid_pk
+
+if TYPE_CHECKING:
+    from app.models.user import User
 
 
 class HabitDefinition(Base, TimestampMixin):
@@ -79,7 +83,7 @@ class HabitDefinition(Base, TimestampMixin):
     # ------------------------------------------------------------------
     # Relationships
     # ------------------------------------------------------------------
-    user: Mapped[User] = relationship("User", back_populates="habit_definitions")  # noqa: F821
+    user: Mapped[User] = relationship("User", back_populates="habit_definitions")
     entries: Mapped[list[HabitEntry]] = relationship(
         "HabitEntry", back_populates="habit", cascade="all, delete-orphan"
     )
@@ -124,7 +128,7 @@ class HabitEntry(Base, TimestampMixin):
     habit: Mapped[HabitDefinition] = relationship(
         "HabitDefinition", back_populates="entries"
     )
-    user: Mapped[User] = relationship("User", back_populates="habit_entries")  # noqa: F821
+    user: Mapped[User] = relationship("User", back_populates="habit_entries")
 
     def __repr__(self) -> str:
         return (
