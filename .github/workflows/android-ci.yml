@@ -325,6 +325,16 @@ jobs:
   # ──────────────────────────────────────────────────────────────────────────
   # 4. ktlint + Detekt — block merge on any error in changed Kotlin files
   #    (Requirements 19.5, 19.6)
+  #
+  #    Strategy:
+  #      • Both tools run on the full source tree (required for correct
+  #        cross-file rule evaluation in Detekt).
+  #      • After each tool run we filter its XML/Checkstyle report to the
+  #        set of changed .kt files and emit GitHub "error" annotations only
+  #        for those files.  The job fails (exit 1) when any changed file has
+  #        at least one violation, blocking the merge.
+  #      • The SARIF upload sends full-tree results to GitHub Code Scanning
+  #        for historical tracking (informational only, non-blocking).
   # ──────────────────────────────────────────────────────────────────────────
   ktlint-detekt:
     name: ktlint + Detekt
@@ -366,23 +376,168 @@ jobs:
           EOF
           fi
 
+      # ── Compute the set of changed .kt files for this PR ──────────────────
       - name: Compute changed Kotlin files
+        id: changed_kt
         run: |
           git diff --name-only origin/${{ github.base_ref }}...HEAD \
             | grep '\.kt$' > changed_kt_files.txt || true
-          echo "Changed .kt files:"
-          cat changed_kt_files.txt
 
+          COUNT=$(wc -l < changed_kt_files.txt | tr -d ' ')
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+
+          if [ "$COUNT" -gt 0 ]; then
+            echo "Changed .kt files ($COUNT):"
+            cat changed_kt_files.txt
+          else
+            echo "No changed .kt files — checks will still run (full tree) but cannot fail on changed-file scope."
+          fi
+
+      # ── ktlint — full tree, Checkstyle XML output ─────────────────────────
       - name: Run ktlint check
+        id: ktlint
         run: ./gradlew ktlintCheck --stacktrace
+        continue-on-error: true   # parse results before deciding pass/fail
 
+      # ── Annotate PR: ktlint violations in changed files ───────────────────
+      - name: Annotate changed files — ktlint violations
+        id: ktlint_annotate
+        if: steps.changed_kt.outputs.count != '0'
+        run: |
+          VIOLATIONS=0
+          # ktlint emits Checkstyle XML: build/reports/ktlint/**/*.xml
+          while IFS= read -r ktfile; do
+            ABS="$GITHUB_WORKSPACE/$ktfile"
+            # Find the matching Checkstyle report for this file
+            while IFS= read -r xml; do
+              # Extract <error> nodes whose filename attribute matches our file
+              python3 - "$xml" "$ABS" <<'PYEOF'
+          import sys, xml.etree.ElementTree as ET
+          report, target = sys.argv[1], sys.argv[2]
+          try:
+              tree = ET.parse(report)
+          except Exception:
+              sys.exit(0)
+          for fnode in tree.findall('file'):
+              if fnode.get('name') == target:
+                  for err in fnode.findall('error'):
+                      line = err.get('line', '1')
+                      col  = err.get('column', '1')
+                      msg  = err.get('message', '')
+                      src  = err.get('source', 'ktlint')
+                      print(f"::error file={target},line={line},col={col}::[ktlint] {msg} ({src})")
+          PYEOF
+            done < <(find . -path "*/build/reports/ktlint/*.xml" -type f 2>/dev/null)
+
+            # Check if any violations were emitted for this file
+            MATCH=$(find . -path "*/build/reports/ktlint/*.xml" -exec \
+              grep -l "$(basename "$ABS")" {} \; 2>/dev/null | head -1)
+            if [ -n "$MATCH" ]; then
+              HIT=$(python3 -c "
+          import xml.etree.ElementTree as ET, sys
+          tree = ET.parse('$MATCH')
+          hits = [f for f in tree.findall('file') if f.get('name') == '$ABS' and f.findall('error')]
+          print(len(hits))
+          " 2>/dev/null || echo 0)
+              VIOLATIONS=$((VIOLATIONS + HIT))
+            fi
+          done < changed_kt_files.txt
+          echo "ktlint_violations=$VIOLATIONS" >> "$GITHUB_OUTPUT"
+          if [ "$VIOLATIONS" -gt 0 ]; then
+            echo "::error::ktlint found $VIOLATIONS violation(s) in changed Kotlin files. Fix them before merging."
+          fi
+
+      # ── Detekt — full tree ─────────────────────────────────────────────────
       - name: Run Detekt
+        id: detekt
         run: ./gradlew detekt --stacktrace
+        continue-on-error: true   # parse results before deciding pass/fail
 
-      - name: Annotate changed files with Detekt issues
-        if: ${{ hashFiles('changed_kt_files.txt') != '' }}
-        run: echo "Detekt ran on full source tree — changed files are included in the report."
+      # ── Annotate PR: Detekt violations in changed files ───────────────────
+      - name: Annotate changed files — Detekt violations
+        id: detekt_annotate
+        if: steps.changed_kt.outputs.count != '0'
+        run: |
+          VIOLATIONS=0
+          while IFS= read -r ktfile; do
+            ABS="$GITHUB_WORKSPACE/$ktfile"
+            while IFS= read -r xml; do
+              python3 - "$xml" "$ABS" <<'PYEOF'
+          import sys, xml.etree.ElementTree as ET
+          report, target = sys.argv[1], sys.argv[2]
+          try:
+              tree = ET.parse(report)
+          except Exception:
+              sys.exit(0)
+          for fnode in tree.findall('file'):
+              if fnode.get('name') == target:
+                  for err in fnode.findall('error'):
+                      line = err.get('line', '1')
+                      col  = err.get('column', '1')
+                      msg  = err.get('message', '')
+                      src  = err.get('source', 'detekt')
+                      sev  = err.get('severity', 'error')
+                      level = 'warning' if sev == 'warning' else 'error'
+                      print(f"::{level} file={target},line={line},col={col}::[detekt/{src.split('.')[-1]}] {msg}")
+          PYEOF
+            done < <(find . -path "*/build/reports/detekt/*.xml" -type f 2>/dev/null)
 
+            MATCH=$(find . -path "*/build/reports/detekt/*.xml" -exec \
+              grep -l "$(basename "$ABS")" {} \; 2>/dev/null | head -1)
+            if [ -n "$MATCH" ]; then
+              HIT=$(python3 -c "
+          import xml.etree.ElementTree as ET
+          tree = ET.parse('$MATCH')
+          hits = [f for f in tree.findall('file')
+                  if f.get('name') == '$ABS'
+                  and any(e.get('severity','error') == 'error' for e in f.findall('error'))]
+          print(len(hits))
+          " 2>/dev/null || echo 0)
+              VIOLATIONS=$((VIOLATIONS + HIT))
+            fi
+          done < changed_kt_files.txt
+          echo "detekt_violations=$VIOLATIONS" >> "$GITHUB_OUTPUT"
+          if [ "$VIOLATIONS" -gt 0 ]; then
+            echo "::error::Detekt found $VIOLATIONS file(s) with error-level violations in changed Kotlin files. Fix them before merging."
+          fi
+
+      # ── Fail the job when either tool found violations in changed files ────
+      - name: Block merge on violations in changed Kotlin files
+        run: |
+          KTLINT_FAIL="${{ steps.ktlint.outcome }}"
+          DETEKT_FAIL="${{ steps.detekt.outcome }}"
+          KT_VIOL="${{ steps.ktlint_annotate.outputs.ktlint_violations || '0' }}"
+          DK_VIOL="${{ steps.detekt_annotate.outputs.detekt_violations || '0' }}"
+          CHANGED="${{ steps.changed_kt.outputs.count }}"
+
+          echo "ktlint outcome  : $KTLINT_FAIL"
+          echo "detekt outcome  : $DETEKT_FAIL"
+          echo "ktlint violations in changed files : $KT_VIOL"
+          echo "detekt violations in changed files : $DK_VIOL"
+
+          FAIL=0
+
+          # If there are changed files, fail only when those files have violations.
+          if [ "$CHANGED" -gt 0 ]; then
+            [ "$KT_VIOL" -gt 0 ] && FAIL=1
+            [ "$DK_VIOL" -gt 0 ] && FAIL=1
+          else
+            # No changed .kt files — still fail if either tool exited non-zero
+            # (catches configuration / compilation errors)
+            [ "$KTLINT_FAIL" = "failure" ] && FAIL=1
+            [ "$DETEKT_FAIL" = "failure" ] && FAIL=1
+          fi
+
+          if [ "$FAIL" -eq 1 ]; then
+            echo ""
+            echo "❌ ktlint + Detekt gate FAILED — resolve the violations above before merging."
+            exit 1
+          fi
+
+          echo ""
+          echo "✅ ktlint + Detekt gate PASSED — no violations in changed Kotlin files."
+
+      # ── SARIF upload (informational, non-blocking) ─────────────────────────
       - name: Upload Detekt SARIF to GitHub Code Scanning
         if: always()
         uses: github/codeql-action/upload-sarif@v3
@@ -390,6 +545,7 @@ jobs:
           sarif_file: "**/build/reports/detekt/*.sarif"
         continue-on-error: true   # SARIF upload is informational
 
+      # ── Artifact uploads for investigation ────────────────────────────────
       - name: Upload ktlint reports
         if: failure()
         uses: actions/upload-artifact@v4
