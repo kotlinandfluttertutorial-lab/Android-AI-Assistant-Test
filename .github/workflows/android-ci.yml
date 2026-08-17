@@ -326,85 +326,85 @@ jobs:
   # 4. ktlint + Detekt — block merge on any error in changed Kotlin files
   #    (Requirements 19.5, 19.6)
   # ──────────────────────────────────────────────────────────────────────────
-#  ktlint-detekt:
-#    name: ktlint + Detekt
-#    runs-on: ubuntu-latest
-#    needs: validate
-#    if: github.event_name == 'pull_request'
-#    permissions:
-#      security-events: write   # for SARIF upload to GitHub Code Scanning
-#
-#    steps:
-#      - name: Checkout source
-#        uses: actions/checkout@v4
-#        with:
-#          fetch-depth: 0
-#
-#      - name: Set up JDK ${{ env.JAVA_VERSION }}
-#        uses: actions/setup-java@v4
-#        with:
-#          java-version: ${{ env.JAVA_VERSION }}
-#          distribution: ${{ env.JAVA_DISTRIBUTION }}
-#
-#      - name: Setup Gradle
-#        uses: gradle/actions/setup-gradle@v3
-#        with:
-#          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
-#
-#      - name: Ensure gradlew is executable
-#        run: chmod +x gradlew
-#
-#      - name: Write google-services.json
-#        env:
-#          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
-#        run: |
-#          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
-#            echo "$GOOGLE_SERVICES_JSON" | base64 --decode > app/google-services.json
-#          elif [ ! -f app/google-services.json ]; then
-#            cat > app/google-services.json << 'EOF'
-#          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
-#          EOF
-#          fi
-#
-#      - name: Compute changed Kotlin files
-#        run: |
-#          git diff --name-only origin/${{ github.base_ref }}...HEAD \
-#            | grep '\.kt$' > changed_kt_files.txt || true
-#          echo "Changed .kt files:"
-#          cat changed_kt_files.txt
-#
-#      - name: Run ktlint check
-#        run: ./gradlew ktlintCheck --stacktrace
-#
-#      - name: Run Detekt
-#        run: ./gradlew detekt --stacktrace
-#
-#      - name: Annotate changed files with Detekt issues
-#        if: ${{ hashFiles('changed_kt_files.txt') != '' }}
-#        run: echo "Detekt ran on full source tree — changed files are included in the report."
-#
-#      - name: Upload Detekt SARIF to GitHub Code Scanning
-#        if: always()
-#        uses: github/codeql-action/upload-sarif@v3
-#        with:
-#          sarif_file: "**/build/reports/detekt/*.sarif"
-#        continue-on-error: true   # SARIF upload is informational
-#
-#      - name: Upload ktlint reports
-#        if: failure()
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: ktlint-reports-${{ github.run_number }}
-#          path: "**/build/reports/ktlint/"
-#          retention-days: 7
-#
-#      - name: Upload Detekt HTML reports
-#        if: failure()
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: detekt-reports-${{ github.run_number }}
-#          path: "**/build/reports/detekt/"
-#          retention-days: 7
+  ktlint-detekt:
+    name: ktlint + Detekt
+    runs-on: ubuntu-latest
+    needs: validate
+    if: github.event_name == 'pull_request'
+    permissions:
+      security-events: write   # for SARIF upload to GitHub Code Scanning
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          java-version: ${{ env.JAVA_VERSION }}
+          distribution: ${{ env.JAVA_DISTRIBUTION }}
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          cache-read-only: ${{ github.ref != 'refs/heads/main' }}
+
+      - name: Ensure gradlew is executable
+        run: chmod +x gradlew
+
+      - name: Write google-services.json
+        env:
+          GOOGLE_SERVICES_JSON: ${{ secrets.GOOGLE_SERVICES_JSON }}
+        run: |
+          if [ -n "$GOOGLE_SERVICES_JSON" ]; then
+            echo "$GOOGLE_SERVICES_JSON" | base64 --decode > app/google-services.json
+          elif [ ! -f app/google-services.json ]; then
+            cat > app/google-services.json << 'EOF'
+          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
+          EOF
+          fi
+
+      - name: Compute changed Kotlin files
+        run: |
+          git diff --name-only origin/${{ github.base_ref }}...HEAD \
+            | grep '\.kt$' > changed_kt_files.txt || true
+          echo "Changed .kt files:"
+          cat changed_kt_files.txt
+
+      - name: Run ktlint check
+        run: ./gradlew ktlintCheck --stacktrace
+
+      - name: Run Detekt
+        run: ./gradlew detekt --stacktrace
+
+      - name: Annotate changed files with Detekt issues
+        if: ${{ hashFiles('changed_kt_files.txt') != '' }}
+        run: echo "Detekt ran on full source tree — changed files are included in the report."
+
+      - name: Upload Detekt SARIF to GitHub Code Scanning
+        if: always()
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: "**/build/reports/detekt/*.sarif"
+        continue-on-error: true   # SARIF upload is informational
+
+      - name: Upload ktlint reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ktlint-reports-${{ github.run_number }}
+          path: "**/build/reports/ktlint/"
+          retention-days: 7
+
+      - name: Upload Detekt HTML reports
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: detekt-reports-${{ github.run_number }}
+          path: "**/build/reports/detekt/"
+          retention-days: 7
 
   # ──────────────────────────────────────────────────────────────────────────
   # 5. JaCoCo Gate — combined domain + data coverage ≥ 70%
@@ -808,6 +808,13 @@ jobs:
             -Pandroid.injected.signing.key.password="$KEY_PASSWORD" \
             --stacktrace
 
+      - name: Locate signed APK
+        id: apk
+        run: |
+          APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" | head -1)
+          echo "path=$APK_PATH" >> "$GITHUB_OUTPUT"
+          echo "Found APK: $APK_PATH"
+
       - name: Upload signed APK artifact
         uses: actions/upload-artifact@v4
         with:
@@ -816,13 +823,44 @@ jobs:
           retention-days: 30
           if-no-files-found: error
 
+      - name: Build release notes for Firebase
+        id: release_notes
+        run: |
+          PREVIOUS_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
+          if [[ -n "$PREVIOUS_TAG" ]]; then
+            NOTES=$(git log "${PREVIOUS_TAG}..HEAD" \
+              --pretty=format:"• %s" \
+              --no-merges | head -20)
+          else
+            NOTES="• Build #${{ github.run_number }} from main branch"
+          fi
+          CUSTOM_NOTES="${{ github.event.inputs.release_notes }}"
+          if [[ -n "$CUSTOM_NOTES" ]]; then
+            FULL_NOTES="$CUSTOM_NOTES"$'\n\n'"$NOTES"
+          else
+            FULL_NOTES="v${{ steps.version.outputs.version_name }} — main branch"$'\n\n'"$NOTES"
+          fi
+          echo "$FULL_NOTES" > firebase-release-notes.txt
+          echo "Release notes:"
+          cat firebase-release-notes.txt
+
+      - name: Distribute APK via Firebase App Distribution
+        id: firebase_distribute
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: ${{ secrets.FIREBASE_APP_ID }}
+          serviceCredentialsFileContent: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+          groups: ${{ secrets.FIREBASE_TESTER_GROUPS }}
+          file: ${{ steps.apk.outputs.path }}
+          releaseNotesFile: firebase-release-notes.txt
+
       - name: Clean up keystore
         if: always()
         run: rm -f app/release.keystore
 
       - name: Write build summary
         run: |
-          echo "### ✅ Signed APK Built — v${{ steps.version.outputs.version_name }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "### ✅ Signed APK Built & Distributed — v${{ steps.version.outputs.version_name }}" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
           echo "|-------|-------|" >> "$GITHUB_STEP_SUMMARY"
@@ -830,6 +868,8 @@ jobs:
           echo "| Version Code | \`${{ steps.version.outputs.version_code }}\` |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Commit | \`${{ github.sha }}\` |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Artifact | release-apk-${{ steps.version.outputs.version_name }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Firebase Account | kotlinfiroj@gmail.com |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Tester Groups | \`${{ secrets.FIREBASE_TESTER_GROUPS }}\` |" >> "$GITHUB_STEP_SUMMARY"
 
   # ──────────────────────────────────────────────────────────────────────────
   # 9. Instrumented / Compose UI Tests on Android Emulator (optional, PR)
@@ -949,14 +989,38 @@ jobs:
         with:
           payload: |
             {
-              "text": "${{ needs.build-signed-apk.result == 'success' && '✅ Android release APK built and uploaded' || '❌ Android CI pipeline failed on main' }}",
+              "text": "${{ needs.build-signed-apk.result == 'success' && '✅ Android APK built and distributed via Firebase' || '❌ Android CI pipeline failed on main' }}",
               "blocks": [
                 {
-                  "type": "section",
+                  "type": "header",
                   "text": {
-                    "type": "mrkdwn",
-                    "text": "*Android AI Assistant — CI Pipeline (main)*\n\n• *APK Build:* ${{ needs.build-signed-apk.result }}\n• *Commit:* <${{ github.event.head_commit.url }}|${{ github.sha }}>"
+                    "type": "plain_text",
+                    "text": "${{ needs.build-signed-apk.result == 'success' && '🚀 Android CI — Build & Firebase Distribution' || '❌ Android CI — main branch failure' }}"
                   }
+                },
+                {
+                  "type": "section",
+                  "fields": [
+                    { "type": "mrkdwn", "text": "*APK Build:*\n${{ needs.build-signed-apk.result }}" },
+                    { "type": "mrkdwn", "text": "*Firebase Distribution:*\n${{ needs.build-signed-apk.result }}" },
+                    { "type": "mrkdwn", "text": "*Firebase Account:*\nkotlinfiroj@gmail.com" },
+                    { "type": "mrkdwn", "text": "*Commit:*\n<${{ github.event.head_commit.url }}|${{ github.sha }}>" }
+                  ]
+                },
+                {
+                  "type": "actions",
+                  "elements": [
+                    {
+                      "type": "button",
+                      "text": { "type": "plain_text", "text": "View Workflow" },
+                      "url": "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+                    },
+                    {
+                      "type": "button",
+                      "text": { "type": "plain_text", "text": "Firebase Console" },
+                      "url": "https://console.firebase.google.com"
+                    }
+                  ]
                 }
               ]
             }

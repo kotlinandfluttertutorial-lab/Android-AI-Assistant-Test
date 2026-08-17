@@ -20,7 +20,7 @@ from alembic import op
 # Revision identifiers, used by Alembic.
 # ---------------------------------------------------------------------------
 revision: str = "0008_add_fcm_token_to_users"
-down_revision: Union[str, None] = "0007_usage_feature_and_spending_alerts"
+down_revision: Union[str, None] = "0007_usage_feature_alerts"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
