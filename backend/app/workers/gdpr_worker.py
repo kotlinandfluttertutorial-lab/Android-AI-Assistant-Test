@@ -83,12 +83,12 @@ def _row_to_dict(obj: _OrmModel) -> dict[str, object]:
 # ---------------------------------------------------------------------------
 
 
-@celery_app.task(
+@celery_app.task(  # type: ignore[misc]
     bind=True,
     name="app.workers.gdpr_worker.export_user_data_task",
     max_retries=3,
 )
-def export_user_data_task(self: Any, user_id: str, job_id: str) -> dict[str, str]:  # type: ignore[misc]
+def export_user_data_task(self: Any, user_id: str, job_id: str) -> dict[str, str]:
     """Celery task: assemble a full JSON archive of all user data.
 
     Stores the archive in ``job.result_payload`` and marks the job
@@ -160,7 +160,7 @@ async def _run_export(task: object, user_id: str, job_id: str) -> dict[str, str]
             habit_entries = await _fetch(HabitEntry)
 
             # Messages need to be collected via conversation IDs
-            conv_ids = [c["id"] for c in conversations]
+            conv_ids = [str(c["id"]) for c in conversations]
             messages: list[dict[str, object]] = []
             if conv_ids:
                 msg_result = await db.execute(
@@ -170,9 +170,12 @@ async def _run_export(task: object, user_id: str, job_id: str) -> dict[str, str]
                         )
                     )
                 )
-                messages = [_row_to_dict(row) for row in msg_result.scalars().all()]
+                messages = [
+                    _row_to_dict(row)  # type: ignore[arg-type]
+                    for row in msg_result.scalars().all()
+                ]
 
-            archive = {
+            archive: dict[str, object] = {
                 "user_id": user_id,
                 "conversations": conversations,
                 "messages": messages,
@@ -231,12 +234,12 @@ async def _run_export(task: object, user_id: str, job_id: str) -> dict[str, str]
 # ---------------------------------------------------------------------------
 
 
-@celery_app.task(
+@celery_app.task(  # type: ignore[misc]
     bind=True,
     name="app.workers.gdpr_worker.delete_user_data_task",
     max_retries=3,
 )
-def delete_user_data_task(self: Any, user_id: str) -> dict[str, str]:  # type: ignore[misc]
+def delete_user_data_task(self: Any, user_id: str) -> dict[str, str]:
     """Celery task: permanently delete all data for a user.
 
     Performs:

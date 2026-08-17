@@ -39,19 +39,20 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from typing import Any
 
 from app.workers.celery_app import celery_app
 
 logger = logging.getLogger(__name__)
 
 
-@celery_app.task(
+@celery_app.task(  # type: ignore[misc]
     name="app.workers.alert_worker.check_spending_alerts_task",
     bind=True,
-    max_retries=0,  # fire-and-forget; errors are logged but not retried
+    max_retries=0,
     ignore_result=True,
 )
-def check_spending_alerts_task(self: object) -> None:  # type: ignore[misc]
+def check_spending_alerts_task(self: Any) -> None:
     """Celery beat task that checks all spending alerts every 60 seconds.
 
     Algorithm (delegated to :func:`app.services.cost_service.check_spending_alerts`):

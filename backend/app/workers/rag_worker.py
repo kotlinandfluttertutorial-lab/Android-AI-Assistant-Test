@@ -23,6 +23,7 @@ import asyncio
 import json
 import logging
 import uuid
+from typing import Any
 
 from celery.exceptions import MaxRetriesExceededError
 
@@ -31,7 +32,7 @@ from app.workers.celery_app import celery_app
 logger = logging.getLogger(__name__)
 
 
-def _make_session_factory():
+def _make_session_factory() -> Any:
     """Create a fresh async engine + session factory.
 
     Called once per task execution so each task gets its own connection pool
@@ -60,12 +61,12 @@ def _make_session_factory():
     return engine, session_factory
 
 
-@celery_app.task(
+@celery_app.task(  # type: ignore[misc]
     bind=True,
     name="app.workers.rag_worker.ingest_document_task",
     max_retries=3,
 )
-def ingest_document_task(self, document_id: str, user_id: str) -> dict:
+def ingest_document_task(self: Any, document_id: str, user_id: str) -> dict[str, str]:
     """Celery task: full RAG ingestion pipeline for a single document."""
     try:
         return asyncio.run(_run_ingestion(self, document_id, user_id))
@@ -80,7 +81,7 @@ def ingest_document_task(self, document_id: str, user_id: str) -> dict:
         return {"status": "failed", "document_id": document_id}
 
 
-async def _run_ingestion(task, document_id: str, user_id: str) -> dict:
+async def _run_ingestion(task: Any, document_id: str, user_id: str) -> dict[str, str]:
     """Async ingestion pipeline — creates a fresh DB engine per invocation."""
     from app.models.document import IngestionStatus
     from app.models.job import Job, JobStatus

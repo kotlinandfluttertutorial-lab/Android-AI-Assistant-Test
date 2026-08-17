@@ -72,8 +72,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # pip itself is NOT copied — only the site-packages and scripts.
 COPY --from=builder /install /usr/local
 
-# Create a non-root user for security
-RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
+# Create a non-root user for security.
+# --home /home/appuser ensures $HOME is a real, writable directory (the
+# default --system home is /nonexistent, which breaks huggingface_hub cache).
+RUN addgroup --system appgroup \
+    && adduser --system --ingroup appgroup --home /home/appuser appuser \
+    && mkdir -p /home/appuser/.cache \
+    && chown -R appuser:appgroup /home/appuser
 
 WORKDIR /app
 
@@ -82,6 +87,12 @@ COPY app/ ./app/
 
 # Ensure the non-root user owns the app directory
 RUN chown -R appuser:appgroup /app
+
+# Point HuggingFace / sentence-transformers cache to a writable path.
+# HF_HOME overrides the default ~/.cache/huggingface location, so model
+# downloads work even if $HOME resolution is unexpected.
+ENV HF_HOME=/home/appuser/.cache/huggingface \
+    TRANSFORMERS_CACHE=/home/appuser/.cache/huggingface
 
 USER appuser
 

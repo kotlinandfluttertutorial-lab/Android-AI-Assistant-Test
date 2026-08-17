@@ -61,7 +61,7 @@ import time
 from abc import ABC, abstractmethod
 from collections.abc import AsyncIterator
 from decimal import Decimal
-from typing import Any
+from typing import Any, cast
 
 import google.generativeai as genai
 import httpx

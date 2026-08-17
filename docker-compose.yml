@@ -119,11 +119,6 @@ services:
       - ./backend/alembic:/app/alembic
       - ./backend/alembic.ini:/app/alembic.ini
     command: python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
-    # NOTE: this service is NOT started by start-dev.ps1 (which runs uvicorn locally).
-    # To run migrations locally:  .\start-dev.ps1 will call alembic automatically.
-    # To run migrations in Docker (only if you start this service manually):
-    #   docker compose up -d backend
-    #   docker compose exec backend alembic upgrade head
 
   celery_worker:
     build:

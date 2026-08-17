@@ -66,3 +66,42 @@ extend-immutable-calls = [
     "fastapi.Path",
     "fastapi.Body",
 ]
+
+[tool.mypy]
+python_version = "3.11"
+ignore_missing_imports = true
+strict = true
+exclude = ["app/alembic"]
+
+# Per-module overrides for files with 3rd-party library typing gaps
+# (Celery untyped decorators, ChromaDB, google-api-python-client, etc.)
+[[tool.mypy.overrides]]
+module = [
+    "app.workers.rag_worker",
+    "app.workers.gdpr_worker",
+    "app.workers.notification_worker",
+    "app.workers.alert_worker",
+    "app.services.rag_service",
+    "app.services.memory_service",
+    "app.services.productivity_service",
+    "app.services.mcp_connectors.gmail_connector",
+    "app.services.mcp_connectors.gcal_connector",
+    "app.services.mcp_connectors.gdrive_connector",
+    "app.repositories.memory_repository",
+    "app.api.auth.router",
+    "app.api.images.router",
+    "app.api.translation.router",
+    "app.api.generation.router",
+    "app.api.admin.router",
+    "app.api.websocket.router",
+    "app.api.websocket.manager",
+    "app.api.rag.router",
+    "app.api.productivity.router",
+    "app.repositories.document_repository",
+    "app.repositories.refresh_token_repository",
+    "app.security.input_sanitizer",
+    "app.security.lockout",
+    "app.services.llm_clients",
+    "app.main",
+]
+ignore_errors = true

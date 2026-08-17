@@ -34,6 +34,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+from typing import Any
 
 from celery.exceptions import MaxRetriesExceededError
 
@@ -52,7 +53,7 @@ _FCM_RETRY_KEY_PREFIX = "fcm_token_retry:"
 # ---------------------------------------------------------------------------
 
 
-@celery_app.task(
+@celery_app.task(  # type: ignore[misc]
     bind=True,
     name="app.workers.notification_worker.send_push_notification",
     autoretry_for=(Exception,),
@@ -60,8 +61,8 @@ _FCM_RETRY_KEY_PREFIX = "fcm_token_retry:"
     retry_backoff=True,
     default_retry_delay=5,
 )
-def send_push_notification(  # type: ignore[misc]
-    self,
+def send_push_notification(
+    self: Any,
     user_id: str,
     title: str,
     body: str,
@@ -159,14 +160,14 @@ async def _log_push_failure(user_id: str, title: str, body: str) -> None:
 # ---------------------------------------------------------------------------
 
 
-@celery_app.task(
+@celery_app.task(  # type: ignore[misc]
     bind=True,
     name="app.workers.notification_worker.refresh_device_token",
     max_retries=3,
     default_retry_delay=5,
 )
-def refresh_device_token(  # type: ignore[misc]
-    self, user_id: str, old_token: str, new_token: str
+def refresh_device_token(
+    self: Any, user_id: str, old_token: str, new_token: str
 ) -> dict[str, str]:
     """Celery task: update a user's FCM device token in the database.
 
@@ -238,14 +239,14 @@ async def _set_token_retry_counter(user_id: str, new_token: str) -> None:
         )
 
 
-@celery_app.task(
+@celery_app.task(  # type: ignore[misc]
     bind=True,
     name="app.workers.notification_worker.send_message_delivery_notification_task",
     max_retries=2,
     default_retry_delay=5,
 )
-def send_message_delivery_notification_task(  # type: ignore[misc]
-    self,
+def send_message_delivery_notification_task(
+    self: Any,
     user_id: str,
     message_id: str,
     conversation_id: str,
