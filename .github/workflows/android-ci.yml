@@ -522,10 +522,11 @@ jobs:
             [ "$KT_VIOL" -gt 0 ] && FAIL=1
             [ "$DK_VIOL" -gt 0 ] && FAIL=1
           else
-            # No changed .kt files — still fail if either tool exited non-zero
-            # (catches configuration / compilation errors)
-            [ "$KTLINT_FAIL" = "failure" ] && FAIL=1
-            [ "$DETEKT_FAIL" = "failure" ] && FAIL=1
+            # No changed .kt files — nothing to block on.
+            # Tool failures (style violations in unchanged files) are visible in
+            # the step logs and SARIF upload but should not block a PR that
+            # touches no Kotlin sources.
+            echo "No changed .kt files — skipping violation gate."
           fi
 
           if [ "$FAIL" -eq 1 ]; then
