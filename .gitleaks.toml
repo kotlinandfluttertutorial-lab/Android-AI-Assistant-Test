@@ -31,6 +31,7 @@ description = "Historical commits where GCP API keys were exposed before rotatio
 commits = [
     "14bacc6365685d8bd06fb391cde6bc85c10582b1",
     "71f353df7dfa91352b1983050728a8d29313c9cc",
+    "41db3754e88a3c9883b7bfbeb5faeb4f01463182",  # CI test AES_ENCRYPTION_KEY — test-only value, now moved to secret
 ]
 
 regexes = [

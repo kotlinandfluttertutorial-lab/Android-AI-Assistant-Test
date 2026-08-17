@@ -149,7 +149,7 @@ jobs:
           SECRET_KEY: "ci-test-secret-key-must-be-at-least-32-chars!"
           DATABASE_URL: "postgresql+asyncpg://testuser:testpass@localhost:5432/testdb"
           REDIS_URL: "redis://localhost:6379/0"
-          AES_ENCRYPTION_KEY: "dGVzdC1hZXMtMjU2LWtleS0zMi1ieXRlcy1iYXNlNjQh"
+          AES_ENCRYPTION_KEY: ${{ secrets.AES_ENCRYPTION_KEY_CI }}
           OPENAI_API_KEY: "sk-test-not-real"
           GEMINI_API_KEY: "test-gemini-not-real"
           ANTHROPIC_API_KEY: "sk-ant-test-not-real"
