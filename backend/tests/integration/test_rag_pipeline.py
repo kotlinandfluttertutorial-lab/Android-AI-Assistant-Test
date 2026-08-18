@@ -175,6 +175,25 @@ def _make_mock_db_session() -> AsyncMock:
     return session
 
 
+def _make_session_factory_patch(mock_db: AsyncMock):
+    """Return a mock (engine, session_factory) tuple for patching _make_session_factory.
+
+    ``_run_ingestion`` calls ``_make_session_factory()`` to create a brand-new
+    SQLAlchemy engine + session factory per task invocation.  We intercept that
+    call here so no real PostgreSQL connection is attempted.
+    """
+    mock_engine = AsyncMock()
+    mock_engine.dispose = AsyncMock()
+
+    mock_ctx = AsyncMock()
+    mock_ctx.__aenter__ = AsyncMock(return_value=mock_db)
+    mock_ctx.__aexit__ = AsyncMock(return_value=False)
+
+    mock_session_factory = MagicMock(return_value=mock_ctx)
+
+    return mock_engine, mock_session_factory
+
+
 def _override_get_db(mock_session: AsyncMock):
     """Return a FastAPI dependency override yielding the mock session."""
 
@@ -342,15 +361,13 @@ class TestFullRoundTrip:
             )
 
         with (
-            patch("app.database.AsyncSessionLocal") as MockSession,
+            patch("app.workers.rag_worker._make_session_factory") as MockSessionFactory,
             patch("app.services.rag_service.rag_service") as mock_svc,
         ):
             # Set up mock DB session context manager
             mock_db = _make_mock_db_session()
-            mock_ctx = AsyncMock()
-            mock_ctx.__aenter__ = AsyncMock(return_value=mock_db)
-            mock_ctx.__aexit__ = AsyncMock(return_value=False)
-            MockSession.return_value = mock_ctx
+            mock_engine, mock_session_factory = _make_session_factory_patch(mock_db)
+            MockSessionFactory.return_value = (mock_engine, mock_session_factory)
 
             # Mock repositories inside the worker
 
@@ -530,16 +547,14 @@ class TestJobLifecycle:
                 return job_running
             return job_completed
 
-        # AsyncSessionLocal is imported locally inside _run_ingestion; patch at module level
+        # _run_ingestion creates its own engine via _make_session_factory; patch at worker level
         with (
-            patch("app.database.AsyncSessionLocal") as MockSession,
+            patch("app.workers.rag_worker._make_session_factory") as MockSessionFactory,
             patch("app.services.rag_service.rag_service") as mock_svc,
         ):
             mock_db = _make_mock_db_session()
-            mock_ctx = AsyncMock()
-            mock_ctx.__aenter__ = AsyncMock(return_value=mock_db)
-            mock_ctx.__aexit__ = AsyncMock(return_value=False)
-            MockSession.return_value = mock_ctx
+            mock_engine, mock_session_factory = _make_session_factory_patch(mock_db)
+            MockSessionFactory.return_value = (mock_engine, mock_session_factory)
 
             mock_doc_repo = AsyncMock()
             mock_doc_repo.get_by_id = AsyncMock(return_value=doc)
@@ -1135,16 +1150,14 @@ class TestExtractionFailure:
             )
             return job
 
-        # AsyncSessionLocal is imported locally inside _run_ingestion; patch at module level
+        # _run_ingestion creates its own engine via _make_session_factory; patch at worker level
         with (
-            patch("app.database.AsyncSessionLocal") as MockSession,
+            patch("app.workers.rag_worker._make_session_factory") as MockSessionFactory,
             patch("app.services.rag_service.rag_service") as mock_svc,
         ):
             mock_db = _make_mock_db_session()
-            mock_ctx = AsyncMock()
-            mock_ctx.__aenter__ = AsyncMock(return_value=mock_db)
-            mock_ctx.__aexit__ = AsyncMock(return_value=False)
-            MockSession.return_value = mock_ctx
+            mock_engine, mock_session_factory = _make_session_factory_patch(mock_db)
+            MockSessionFactory.return_value = (mock_engine, mock_session_factory)
 
             mock_doc_repo = AsyncMock()
             mock_doc_repo.get_by_id = AsyncMock(return_value=doc)
@@ -1315,16 +1328,14 @@ class TestFullPipelineCycle:
         mock_task = MagicMock()
         mock_task.request.retries = 0
 
-        # AsyncSessionLocal is imported locally; patch at app.database module level
+        # _run_ingestion creates its own engine via _make_session_factory; patch at worker level
         with (
-            patch("app.database.AsyncSessionLocal") as MockSession,
+            patch("app.workers.rag_worker._make_session_factory") as MockSessionFactory,
             patch("app.services.rag_service.rag_service") as mock_worker_svc,
         ):
             mock_db3 = _make_mock_db_session()
-            mock_ctx = AsyncMock()
-            mock_ctx.__aenter__ = AsyncMock(return_value=mock_db3)
-            mock_ctx.__aexit__ = AsyncMock(return_value=False)
-            MockSession.return_value = mock_ctx
+            mock_engine3, mock_sf3 = _make_session_factory_patch(mock_db3)
+            MockSessionFactory.return_value = (mock_engine3, mock_sf3)
 
             mock_doc_repo3 = AsyncMock()
             mock_doc_repo3.get_by_id = AsyncMock(return_value=doc)

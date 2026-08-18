@@ -540,7 +540,7 @@ class TestFullAuthCycle:
         Requirements: 1.10, 21.2
         """
         user_id = uuid.uuid4()
-        access_token = create_access_token(user_id=user_id, role="user")
+        access_token, _exp = create_access_token(user_id=user_id, role="user")
         old_refresh = "session.refresh.token"
 
         # Logout step — succeeds and revokes 1 token
@@ -625,12 +625,15 @@ class TestGoogleOAuthFlow:
             "picture": _GOOGLE_AVATAR,
         }
 
+        mock_db = _make_mock_db_session()
+        mock_redis = _make_mock_redis()
+
         with (
             patch("app.api.auth.router.UserRepository") as MockRepo,
             patch("app.api.auth.router.AuditService") as MockAudit,
             patch(
                 "app.api.auth.router.issue_tokens_for_user",
-                return_value=("google.access.token", "google.refresh.token"),
+                return_value=("google.access.token", _FAKE_EXP, "google.refresh.token", _FAKE_EXP),
             ),
             patch("google.oauth2.id_token.verify_oauth2_token", return_value=id_info),
             patch("google.auth.transport.requests.Request", return_value=MagicMock()),
@@ -644,10 +647,19 @@ class TestGoogleOAuthFlow:
 
             MockAudit.return_value.log_login = AsyncMock()
 
+            _app.dependency_overrides[
+                __import__("app.database", fromlist=["get_db"]).get_db
+            ] = _override_get_db(mock_db)
+            _app.dependency_overrides[
+                __import__("app.database.redis", fromlist=["get_redis"]).get_redis
+            ] = _override_get_redis(mock_redis)
+
             with TestClient(_app) as client:
                 resp = client.post(
                     "/auth/google", json={"id_token": "mock.google.id.token"}
                 )
+
+        _app.dependency_overrides.clear()
 
         assert resp.status_code == 200
         body = resp.json()
@@ -676,12 +688,15 @@ class TestGoogleOAuthFlow:
             "picture": _GOOGLE_AVATAR,
         }
 
+        mock_db = _make_mock_db_session()
+        mock_redis = _make_mock_redis()
+
         with (
             patch("app.api.auth.router.UserRepository") as MockRepo,
             patch("app.api.auth.router.AuditService") as MockAudit,
             patch(
                 "app.api.auth.router.issue_tokens_for_user",
-                return_value=("access.token.v2", "refresh.token.v2"),
+                return_value=("access.token.v2", _FAKE_EXP, "refresh.token.v2", _FAKE_EXP),
             ),
             patch("google.oauth2.id_token.verify_oauth2_token", return_value=id_info),
             patch("google.auth.transport.requests.Request", return_value=MagicMock()),
@@ -692,10 +707,19 @@ class TestGoogleOAuthFlow:
 
             MockAudit.return_value.log_login = AsyncMock()
 
+            _app.dependency_overrides[
+                __import__("app.database", fromlist=["get_db"]).get_db
+            ] = _override_get_db(mock_db)
+            _app.dependency_overrides[
+                __import__("app.database.redis", fromlist=["get_redis"]).get_redis
+            ] = _override_get_redis(mock_redis)
+
             with TestClient(_app) as client:
                 resp = client.post(
                     "/auth/google", json={"id_token": "mock.google.id.token"}
                 )
+
+        _app.dependency_overrides.clear()
 
         assert resp.status_code == 200
         body = resp.json()
@@ -726,12 +750,15 @@ class TestGoogleOAuthFlow:
             "picture": None,
         }
 
+        mock_db = _make_mock_db_session()
+        mock_redis = _make_mock_redis()
+
         with (
             patch("app.api.auth.router.UserRepository") as MockRepo,
             patch("app.api.auth.router.AuditService") as MockAudit,
             patch(
                 "app.api.auth.router.issue_tokens_for_user",
-                return_value=("linked.access", "linked.refresh"),
+                return_value=("linked.access", _FAKE_EXP, "linked.refresh", _FAKE_EXP),
             ),
             patch("google.oauth2.id_token.verify_oauth2_token", return_value=id_info),
             patch("google.auth.transport.requests.Request", return_value=MagicMock()),
@@ -745,10 +772,19 @@ class TestGoogleOAuthFlow:
 
             MockAudit.return_value.log_login = AsyncMock()
 
+            _app.dependency_overrides[
+                __import__("app.database", fromlist=["get_db"]).get_db
+            ] = _override_get_db(mock_db)
+            _app.dependency_overrides[
+                __import__("app.database.redis", fromlist=["get_redis"]).get_redis
+            ] = _override_get_redis(mock_redis)
+
             with TestClient(_app) as client:
                 resp = client.post(
                     "/auth/google", json={"id_token": "mock.google.id.token"}
                 )
+
+        _app.dependency_overrides.clear()
 
         assert resp.status_code == 200
         body = resp.json()
