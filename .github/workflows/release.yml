@@ -319,8 +319,18 @@ jobs:
           echo "Release notes:"
           cat firebase-release-notes.txt
 
+      - name: Check Firebase credentials
+        id: firebase_check
+        run: |
+          if [[ -z "${{ secrets.FIREBASE_APP_ID }}" || -z "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" ]]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+            echo "⚠️  FIREBASE_APP_ID or FIREBASE_SERVICE_ACCOUNT secret is not set — skipping Firebase distribution"
+          else
+            echo "skip=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Distribute APK via Firebase App Distribution
-        if: github.event.inputs.skip_firebase != 'true'
+        if: github.event.inputs.skip_firebase != 'true' && steps.firebase_check.outputs.skip != 'true'
         uses: wzieba/Firebase-Distribution-Github-Action@v1
         with:
           appId: ${{ secrets.FIREBASE_APP_ID }}
