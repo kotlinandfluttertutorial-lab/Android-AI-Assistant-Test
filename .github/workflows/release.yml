@@ -321,8 +321,11 @@ jobs:
 
       - name: Check Firebase credentials
         id: firebase_check
+        env:
+          FIREBASE_APP_ID: ${{ secrets.FIREBASE_APP_ID }}
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
         run: |
-          if [[ -z "${{ secrets.FIREBASE_APP_ID }}" || -z "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}" ]]; then
+          if [[ -z "$FIREBASE_APP_ID" || -z "$FIREBASE_SERVICE_ACCOUNT" ]]; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
             echo "⚠️  FIREBASE_APP_ID or FIREBASE_SERVICE_ACCOUNT secret is not set — skipping Firebase distribution"
           else
