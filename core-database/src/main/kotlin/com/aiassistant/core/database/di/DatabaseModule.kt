@@ -53,6 +53,7 @@ import com.aiassistant.core.database.dao.NoteDao
 import com.aiassistant.core.database.dao.ReminderDao
 import com.aiassistant.core.database.dao.TodoItemDao
 import com.aiassistant.core.database.dao.UserDao
+import com.aiassistant.core.database.migrations.DatabaseMigrations
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -70,7 +71,9 @@ object DatabaseModule {
         context,
         AppDatabase::class.java,
         "ai_assistant_database"
-    ).build()
+    )
+        .addMigrations(DatabaseMigrations.MIGRATION_1_2)
+        .build()
 
     @Provides
     fun provideUserDao(db: AppDatabase): UserDao = db.userDao()

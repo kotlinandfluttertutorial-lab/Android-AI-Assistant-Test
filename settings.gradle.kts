@@ -29,7 +29,7 @@ dependencyResolutionManagement {
     // No explicit create("libs") { from(...) } needed — that would call from() twice and fail.
 }
 
-rootProject.name = "Android-AI-Assistant"
+rootProject.name = "DevelopMain_Android-AI"
 
 // Application module
 include(":app")

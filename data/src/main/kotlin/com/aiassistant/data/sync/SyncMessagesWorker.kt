@@ -130,6 +130,7 @@ private const val MAX_DELIVERY_ATTEMPTS = 3
  * Per-message retries within a single worker run are separate and handled inline.
  */
 private const val BACKOFF_DELAY_SECONDS = 1L
+
 @Suppress("UnusedPrivateProperty") // reserved for future WorkManager exponential-backoff cap
 private const val BACKOFF_CAP_SECONDS = 30L
 

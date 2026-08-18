@@ -2,9 +2,11 @@
 # Security Scanning Pipeline — Production Grade
 # ============================================================================
 #
-# Runs on every push to main and weekly on Sundays, plus on PRs that touch
-# security-sensitive paths. All findings are surfaced via GitHub Code
-# Scanning (Security tab) and optionally Slack.
+# Triggers:
+#   pull_request  →  targets main or develop; security-sensitive paths only
+#   push          →  main branch only
+#   schedule      →  every Sunday at 02:00 UTC (full scan including OWASP)
+#   workflow_dispatch  →  manual trigger
 #
 # Scans:
 #   • CodeQL           — semantic code analysis for Android (Kotlin/Java)
@@ -13,14 +15,29 @@
 #   • Dependency Check — OWASP NVD CVE scan for Python + Gradle dependencies
 #   • Gitleaks         — secrets / credential leak detection in Git history
 #   • Bandit           — Python security linter (SAST)
-#   • MobSF (lite)     — Android APK static analysis
+#   • pip-audit        — Python dependency CVE check (OSV + PyPI advisories)
+#   • TLS Pin Check    — certificate pin consistency across source files
+#
+# PR Required Status Checks (configure as branch-protection rules on main):
+#   • security-scanning / codeql (java-kotlin)
+#   • security-scanning / codeql (python)
+#   • security-scanning / gitleaks
+#   • security-scanning / bandit
+#   • security-scanning / trivy-fs
+#   • security-scanning / safety
+#   • security-scanning / verify-tls-pin
+#
+# Main-branch Jobs (push to main / schedule / workflow_dispatch):
+#   • security-scanning / trivy-image  — builds & scans Docker image
+#   • security-scanning / dependency-check — schedule/manual only
+#   • security-scanning / notify-security  — aggregated Slack alert
 #
 # Required Secrets:
 #   NVD_API_KEY         — NIST NVD API key for OWASP Dependency-Check
 #   SLACK_WEBHOOK_URL   — Slack incoming webhook (optional)
 # ============================================================================
 
-name: Security Scanning
+name: security-scanning
 
 on:
   push:
@@ -28,7 +45,9 @@ on:
       - main
   pull_request:
     branches:
-      - "**"
+      - main
+      - develop
+      - Develop_Main
     paths:
       - "backend/**"
       - "app/**"
@@ -77,7 +96,7 @@ jobs:
           fetch-depth: 0
 
       - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
         with:
           languages: ${{ matrix.language }}
           build-mode: ${{ matrix.build-mode }}
@@ -117,7 +136,7 @@ jobs:
                     --stacktrace --no-parallel
 
       - name: Perform CodeQL Analysis
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4
         with:
           category: "/language:${{ matrix.language }}"
           # upload is disabled because GitHub Default Setup is enabled on this repo.
@@ -136,7 +155,7 @@ jobs:
   # 2. Gitleaks — Secrets & Credential Leak Detection
   # ──────────────────────────────────────────────────────────────────────────
   gitleaks:
-    name: Gitleaks Secret Scan
+    name: gitleaks
     runs-on: ubuntu-latest
 
     steps:
@@ -146,7 +165,7 @@ jobs:
           fetch-depth: 0
 
       - name: Run Gitleaks (full Git history)
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v3
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}   # optional for Enterprise
@@ -157,7 +176,7 @@ jobs:
   # 3. Bandit — Python SAST
   # ──────────────────────────────────────────────────────────────────────────
   bandit:
-    name: Bandit Python SAST
+    name: bandit
     runs-on: ubuntu-latest
 
     steps:
@@ -181,7 +200,7 @@ jobs:
           || true   # exit code 1 means issues found; we upload regardless
 
       - name: Upload Bandit SARIF to Code Scanning
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: bandit-results.sarif
           category: bandit-python
@@ -246,7 +265,7 @@ jobs:
           trivyignores: ".trivyignore"
 
       - name: Upload Trivy SARIF to Code Scanning
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: trivy-image-results.sarif
           category: trivy-docker-image
@@ -286,7 +305,7 @@ jobs:
           trivyignores: ".trivyignore"
 
       - name: Upload Trivy FS SARIF to Code Scanning
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: trivy-fs-results.sarif
           category: trivy-filesystem
@@ -340,7 +359,7 @@ jobs:
 
       - name: Upload SARIF to Code Scanning
         if: always()
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: dependency-check-report/dependency-check-report.sarif
           category: owasp-dependency-check
@@ -352,7 +371,7 @@ jobs:
   #    pip-audit uses the OSV + PyPI Advisory databases — no account required.
   # ──────────────────────────────────────────────────────────────────────────
   safety:
-    name: Python Dependency Audit (pip-audit)
+    name: safety
     runs-on: ubuntu-latest
 
     steps:
@@ -422,6 +441,7 @@ jobs:
       - bandit
       - trivy-image
       - trivy-fs
+      - safety
       - verify-tls-pin
     if: always() && github.event_name != 'pull_request'
     steps:
@@ -437,11 +457,12 @@ jobs:
           echo "| Bandit | ${{ needs.bandit.result }} |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Trivy (image) | ${{ needs.trivy-image.result }} |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Trivy (FS/IaC) | ${{ needs.trivy-fs.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| pip-audit | ${{ needs.safety.result }} |" >> "$GITHUB_STEP_SUMMARY"
           echo "| TLS Pin Check | ${{ needs.verify-tls-pin.result }} |" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Slack alert on scan failure
         if: >-
-          (needs.gitleaks.result == 'failure' || needs.trivy-image.result == 'failure') &&
+          (needs.gitleaks.result == 'failure' || needs.trivy-image.result == 'failure' || needs.safety.result == 'failure') &&
           vars.SLACK_WEBHOOK_URL != ''
         uses: slackapi/slack-github-action@v1.27.0
         with:
@@ -453,7 +474,7 @@ jobs:
                   "type": "section",
                   "text": {
                     "type": "mrkdwn",
-                    "text": "*🚨 Security Alert — Android AI Assistant*\n\n• *Branch:* `${{ github.ref_name }}`\n• *Gitleaks:* ${{ needs.gitleaks.result }}\n• *Trivy Image:* ${{ needs.trivy-image.result }}\n• *Bandit:* ${{ needs.bandit.result }}\n• <${{ github.server_url }}/${{ github.repository }}/security/code-scanning|View findings in Code Scanning>"
+                    "text": "*🚨 Security Alert — Android AI Assistant*\n\n• *Branch:* `${{ github.ref_name }}`\n• *Gitleaks:* ${{ needs.gitleaks.result }}\n• *Trivy Image:* ${{ needs.trivy-image.result }}\n• *Bandit:* ${{ needs.bandit.result }}\n• *pip-audit:* ${{ needs.safety.result }}\n• <${{ github.server_url }}/${{ github.repository }}/security/code-scanning|View findings in Code Scanning>"
                   }
                 }
               ]

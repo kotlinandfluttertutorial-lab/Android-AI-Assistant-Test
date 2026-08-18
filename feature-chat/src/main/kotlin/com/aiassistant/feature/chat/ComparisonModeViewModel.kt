@@ -394,7 +394,6 @@ class ComparisonModeViewModel @Inject constructor(
 
     // ─── Helpers ─────────────────────────────────────────────────────────────
 
-
     private fun updatePanel(providerId: String, transform: (ProviderPanelState) -> ProviderPanelState) {
         _uiState.update { state ->
             state.copy(
@@ -421,7 +420,7 @@ class ComparisonModeViewModel @Inject constructor(
         cancelActiveJobs()
         streamClient.disconnect()
     }
-companion object {
+    companion object {
         // Length scoring constants
         internal const val MAX_SCORE_CHARS = 2000
         internal const val LENGTH_MAX_SCORE = 40

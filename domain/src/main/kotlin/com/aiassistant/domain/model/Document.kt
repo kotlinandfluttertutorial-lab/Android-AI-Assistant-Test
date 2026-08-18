@@ -79,5 +79,7 @@ data class Document(
     val ingestionStatus: IngestionStatus = IngestionStatus.PENDING,
     val jobId: String? = null,
     val pageCount: Int? = null,
-    val createdAt: Long
+    val createdAt: Long,
+    /** Failure reason returned by the backend, populated only when [ingestionStatus] is [IngestionStatus.FAILED]. */
+    val errorMessage: String? = null
 )

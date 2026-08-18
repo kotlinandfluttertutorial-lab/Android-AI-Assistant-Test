@@ -394,7 +394,9 @@ private fun LanguageDropdown(
                     text = { Text(name) },
                     leadingIcon = if (code == selectedCode) {
                         { Icon(Icons.Filled.Check, contentDescription = null, modifier = Modifier.size(16.dp)) }
-                    } else null,
+                    } else {
+                        null
+                    },
                     onClick = {
                         onLanguageSelected(code, name)
                         expanded = false

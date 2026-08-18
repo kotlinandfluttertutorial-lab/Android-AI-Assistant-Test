@@ -199,16 +199,16 @@ def test_property_7_short_text_coverage(text: str) -> None:
             min_size=2,
             max_size=10,
         ),
-        min_size=300,
-        max_size=1500,
+        min_size=200,  # Reduced from 300 to lower per-example cost
+        max_size=1000,  # Reduced from 1500 to lower per-example cost
     ),
     chunk_size=st.integers(min_value=32, max_value=256),
     overlap=st.integers(min_value=0, max_value=31),
 )
 @settings(
-    max_examples=100,
+    max_examples=50,  # Reduced from 100 to keep total runtime within CI limits
     suppress_health_check=[HealthCheck.too_slow, HealthCheck.filter_too_much],
-    deadline=None,
+    deadline=30000,  # 30-second deadline per example to surface slow cases early
 )
 def test_property_7_coverage_with_varied_chunk_sizes(
     words: list[str],

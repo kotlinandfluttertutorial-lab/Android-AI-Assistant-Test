@@ -53,6 +53,12 @@ def _create_celery_app() -> Celery:
         # "solo" pool so tasks run in-process without subprocess spawning.
         # On Linux/macOS the default prefork pool is used instead.
         worker_pool="solo" if sys.platform == "win32" else "prefork",
+        # Hard kill after 10 minutes; soft warning at 8 minutes so the task can
+        # clean up before being terminated.  Large PDFs (> ~50 pages) can take
+        # several minutes to extract and embed; these limits prevent a runaway
+        # task from blocking the worker indefinitely.
+        task_time_limit=600,
+        task_soft_time_limit=480,
         # Auto-discover tasks from the workers package
         include=[
             "app.workers.rag_worker",

@@ -21,7 +21,7 @@ Retention: token_usage rows must be retained for ≥ 90 days (Requirement 34.1).
 The ``created_at`` index on ``token_usage`` was already created in migration
 0001 to support the 90-day window query efficiently.
 
-Revision ID: 0007_usage_feature_and_spending_alerts
+Revision ID: 0007_usage_feature_alerts
 Revises: 0006_add_privacy_mode_to_users
 Create Date: 2024-01-07 00:00:00.000000
 
@@ -41,7 +41,7 @@ from alembic import op
 # Revision identifiers, used by Alembic.
 # ---------------------------------------------------------------------------
 
-revision: str = "0007_usage_feature_and_spending_alerts"
+revision: str = "0007_usage_feature_alerts"
 down_revision: str | None = "0006_add_privacy_mode_to_users"
 branch_labels: str | Sequence[str] | None = None
 depends_on: str | Sequence[str] | None = None

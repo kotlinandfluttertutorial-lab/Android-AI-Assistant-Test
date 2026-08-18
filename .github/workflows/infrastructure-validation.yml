@@ -6,21 +6,33 @@
 # that touches docker-compose, Nginx, Prometheus, Grafana, Loki, or
 # Alembic migration files. Also runs on pushes to main.
 #
-# Jobs:
-#   • validate-docker-compose   — docker compose config + health check logic
-#   • validate-nginx            — nginx -t config syntax
-#   • validate-prometheus       — promtool check rules + config
-#   • validate-alembic          — migration chain integrity
-#   • validate-env              — required env vars declared in .env.example
-#   • integration-stack-test    — spin up full stack, run smoke tests, tear down
+# Triggers:
+#   pull_request  →  targets main or develop; infrastructure paths only
+#   push          →  main branch; infrastructure + alembic paths
+#   workflow_dispatch  →  manual trigger
+#
+# PR Required Status Checks (configure as branch-protection rules on main):
+#   • infrastructure-validation / validate-docker-compose
+#   • infrastructure-validation / validate-nginx
+#   • infrastructure-validation / validate-prometheus
+#   • infrastructure-validation / validate-grafana
+#   • infrastructure-validation / validate-alembic
+#   • infrastructure-validation / validate-env
+#
+# Main-branch Jobs (push to main / workflow_dispatch):
+#   • infrastructure-validation / integration-stack-test
+#     — spins up the complete Docker Compose stack, runs health checks,
+#       tears down (depends on all validate-* jobs)
 # ============================================================================
 
-name: Infrastructure Validation
+name: infrastructure-validation
 
 on:
   pull_request:
     branches:
-      - "**"
+      - main
+      - develop
+      - Develop_Main
     paths:
       - "docker-compose.yml"
       - "docker-compose.override.yml"
@@ -49,7 +61,7 @@ jobs:
   # 1. Docker Compose Validation
   # ──────────────────────────────────────────────────────────────────────────
   validate-docker-compose:
-    name: Validate Docker Compose
+    name: validate-docker-compose
     runs-on: ubuntu-latest
 
     steps:
@@ -298,6 +310,8 @@ jobs:
       - name: Apply all migrations (upgrade head)
         env:
           DATABASE_URL: "postgresql+asyncpg://testuser:testpass@localhost:5432/migrationtest"
+          REDIS_URL: "redis://localhost:6379/0"
+          SECRET_KEY: "ci-migration-secret-key-must-be-at-least-32-chars!"
           PYTHONPATH: "."
         run: |
           alembic upgrade head
@@ -306,6 +320,8 @@ jobs:
       - name: Verify downgrade path (head → base)
         env:
           DATABASE_URL: "postgresql+asyncpg://testuser:testpass@localhost:5432/migrationtest"
+          REDIS_URL: "redis://localhost:6379/0"
+          SECRET_KEY: "ci-migration-secret-key-must-be-at-least-32-chars!"
           PYTHONPATH: "."
         run: |
           alembic downgrade base
@@ -314,6 +330,8 @@ jobs:
       - name: Re-apply migrations after downgrade
         env:
           DATABASE_URL: "postgresql+asyncpg://testuser:testpass@localhost:5432/migrationtest"
+          REDIS_URL: "redis://localhost:6379/0"
+          SECRET_KEY: "ci-migration-secret-key-must-be-at-least-32-chars!"
           PYTHONPATH: "."
         run: |
           alembic upgrade head
@@ -322,6 +340,8 @@ jobs:
       - name: Check for multiple heads (invalid branch in migration chain)
         env:
           DATABASE_URL: "postgresql+asyncpg://testuser:testpass@localhost:5432/migrationtest"
+          REDIS_URL: "redis://localhost:6379/0"
+          SECRET_KEY: "ci-migration-secret-key-must-be-at-least-32-chars!"
           PYTHONPATH: "."
         run: |
           HEAD_COUNT=$(alembic heads 2>&1 | grep -c "head" || true)
@@ -336,7 +356,7 @@ jobs:
   # 6. Environment Variables Completeness Check
   # ──────────────────────────────────────────────────────────────────────────
   validate-env:
-    name: Validate .env.example Completeness
+    name: validate-env
     runs-on: ubuntu-latest
 
     steps:
@@ -398,7 +418,10 @@ jobs:
     needs:
       - validate-docker-compose
       - validate-nginx
+      - validate-prometheus
+      - validate-grafana
       - validate-alembic
+      - validate-env
 
     steps:
       - uses: actions/checkout@v4
@@ -407,7 +430,7 @@ jobs:
         run: |
           cat > backend/.env <<'EOF'
           SECRET_KEY=ci-stack-test-secret-key-at-least-32-chars!
-          DATABASE_URL=postgresql+asyncpg://aiassistant:changeme@postgres:5432/aiassistant
+          DATABASE_URL=postgresql+asyncpg://aiassistant:aiassistant@postgres:5432/aiassistant
           REDIS_URL=redis://redis:6379/0
           OPENAI_API_KEY=sk-test-not-real
           GEMINI_API_KEY=test-gemini-not-real
@@ -426,7 +449,7 @@ jobs:
         run: |
           cat > .env <<'EOF'
           POSTGRES_USER=aiassistant
-          POSTGRES_PASSWORD=changeme
+          POSTGRES_PASSWORD=aiassistant
           POSTGRES_DB=aiassistant
           REDIS_PASSWORD=
           MINIO_ROOT_USER=minioadmin
@@ -444,7 +467,7 @@ jobs:
       - name: Run Alembic migrations
         run: |
           docker compose run --rm \
-            -e DATABASE_URL=postgresql+asyncpg://aiassistant:changeme@postgres:5432/aiassistant \
+            -e DATABASE_URL=postgresql+asyncpg://aiassistant:aiassistant@postgres:5432/aiassistant \
             backend \
             python -m alembic upgrade head
         continue-on-error: true

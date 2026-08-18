@@ -53,7 +53,8 @@ def _make_token(
 ) -> str:
     """Return a signed JWT for the given user (or a random user)."""
     uid = user_id or uuid.uuid4()
-    return create_access_token(uid, role, expires_delta=expires_delta)
+    token, _expiry = create_access_token(uid, role, expires_delta=expires_delta)
+    return token
 
 
 def _new_conv_id() -> str:
@@ -186,8 +187,6 @@ class TestValidJwtTokenStreaming:
         token = _make_token()
         conv_id = _new_conv_id()
         expected_tokens = ["The ", "answer ", "is ", "42."]
-        # Expected messages: N token events + 1 done event.
-        total_expected = len(expected_tokens) + 1
 
         mock_orch = _make_mock_orchestrator(tokens=expected_tokens)
         mock_redis = _fake_redis()
@@ -205,7 +204,9 @@ class TestValidJwtTokenStreaming:
             client.websocket_connect(f"/ws/chat/{conv_id}?token={token}") as ws,
         ):
             ws.send_json({"user_message": "What is the answer?", "provider": "openai"})
-            received_msgs = _collect_n_messages(ws, total_expected)
+            # Use _drain_until_done so interspersed heartbeat pings don't
+            # consume slots and cause a count mismatch.
+            received_msgs = _drain_until_done(ws)
 
         token_msgs = [m for m in received_msgs if m.get("type") == "token"]
         done_msgs = [m for m in received_msgs if m.get("type") == "done"]
@@ -272,8 +273,9 @@ class TestValidJwtTokenStreaming:
             client.websocket_connect(f"/ws/chat/{conv_id}?token={token}") as ws,
         ):
             ws.send_json({"user_message": "x", "provider": "openai"})
-            # 1 token + 1 done
-            msgs = _collect_n_messages(ws, 2)
+            # Use _drain_until_done so interspersed heartbeat pings don't
+            # consume slots and cause the done event to be missed.
+            msgs = _drain_until_done(ws)
 
         done_msgs = [m for m in msgs if m.get("type") == "done"]
         assert done_msgs, "No done event received"

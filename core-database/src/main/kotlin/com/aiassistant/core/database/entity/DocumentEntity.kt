@@ -52,5 +52,7 @@ data class DocumentEntity(
     val ingestionStatus: String, // "pending" | "processing" | "ready" | "failed"
     val jobId: String?,
     val pageCount: Int?,
-    val createdAt: Long
+    val createdAt: Long,
+    /** Human-readable failure reason from the backend job, null when not failed. */
+    val errorMessage: String? = null
 )

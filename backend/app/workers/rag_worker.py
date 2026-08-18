@@ -190,6 +190,34 @@ async def _run_ingestion(task: Any, document_id: str, user_id: str) -> dict[str,
             } or document.file_name.lower().endswith((".txt", ".md"))
             chunks = rag_service.chunk_text(extracted_text, is_plain_text=is_plain_text)
 
+            # Guard: if extraction yielded no usable text (e.g. image-only PDF
+            # with no OCR library available) fail fast with a clear error instead
+            # of passing empty chunks to the embedder.
+            if not chunks:
+                logger.warning(
+                    "No text extracted from document %s (possible image-only PDF "
+                    "or unsupported format).",
+                    document_id,
+                )
+                await doc_repo.update_status(doc_uuid, IngestionStatus.failed)
+                if job is not None:
+                    await job_repo.update_status(
+                        job.id,
+                        JobStatus.failed,
+                        error_message=json.dumps(
+                            {
+                                "error": "extraction_empty",
+                                "detail": (
+                                    "No text could be extracted from the document. "
+                                    "The file may be image-only (scanned PDF) and "
+                                    "OCR is not available, or the file is corrupt."
+                                ),
+                            }
+                        ),
+                    )
+                await db.commit()
+                return {"status": "failed", "document_id": document_id}
+
             # Step 5 — embed and store
             try:
                 await rag_service.embed_and_store(chunks, document_id, user_id, db)

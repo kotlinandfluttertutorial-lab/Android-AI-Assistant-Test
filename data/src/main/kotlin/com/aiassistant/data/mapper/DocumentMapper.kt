@@ -72,7 +72,8 @@ fun DocumentEntity.toDomain(): Document = Document(
     ingestionStatus = IngestionStatus.fromValue(ingestionStatus),
     jobId = jobId,
     pageCount = pageCount,
-    createdAt = createdAt
+    createdAt = createdAt,
+    errorMessage = errorMessage
 )
 
 /**
@@ -87,7 +88,8 @@ fun Document.toEntity(): DocumentEntity = DocumentEntity(
     ingestionStatus = ingestionStatus.value,
     jobId = jobId,
     pageCount = pageCount,
-    createdAt = createdAt
+    createdAt = createdAt,
+    errorMessage = errorMessage
 )
 
 // ─── DTO → Entity ─────────────────────────────────────────────────────────────
