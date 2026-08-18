@@ -177,9 +177,10 @@ jobs:
         uses: dorny/test-reporter@v3
         with:
           name: Backend Unit Test Results
-          path: backend/unit-test-results.xml
+          path: "**/unit-test-results.xml"
           reporter: java-junit
           fail-on-error: false
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload coverage to Codecov
         if: always()
@@ -301,9 +302,10 @@ jobs:
         uses: dorny/test-reporter@v3
         with:
           name: Backend Integration Test Results
-          path: backend/integration-test-results.xml
+          path: "**/integration-test-results.xml"
           reporter: java-junit
           fail-on-error: false
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload integration test reports
         if: failure()
