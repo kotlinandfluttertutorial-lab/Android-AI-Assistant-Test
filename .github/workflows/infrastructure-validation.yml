@@ -474,7 +474,7 @@ jobs:
 
       - name: Start backend services
         run: |
-          docker compose up -d backend celery_worker nginx
+          docker compose up -d backend celery_worker
           echo "Waiting for backend to be healthy…"
           for i in {1..20}; do
             if docker compose ps backend | grep -q "healthy"; then
@@ -489,7 +489,7 @@ jobs:
         run: |
           HTTP=$(curl -sSo /dev/null -w "%{http_code}" \
             --retry 5 --retry-delay 10 --retry-connrefused \
-            http://localhost/health)
+            http://localhost:8000/health)
           echo "/health → $HTTP"
           [[ "$HTTP" == "200" ]] || (echo "::error::Health check failed ($HTTP)" && exit 1)
 
