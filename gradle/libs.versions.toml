@@ -1,4 +1,4 @@
-[versions]
+﻿[versions]
 # Build tools
 agp = "8.8.0"
 kotlin = "2.0.21"
@@ -53,6 +53,8 @@ firebaseCrashlyticsPlugin = "3.0.2"
 # Google Services
 googleServices = "4.4.2"
 googleAuth = "21.2.0"
+credentialManager = "1.3.0"
+googleIdentity = "1.1.1"
 
 # ML Kit / Speech
 mlkitTextRecognition = "16.0.0"
@@ -180,6 +182,9 @@ firebase-config = { group = "com.google.firebase", name = "firebase-config" }
 
 # Google Auth
 google-auth = { group = "com.google.android.gms", name = "play-services-auth", version.ref = "googleAuth" }
+credentials = { group = "androidx.credentials", name = "credentials", version.ref = "credentialManager" }
+credentials-play-services-auth = { group = "androidx.credentials", name = "credentials-play-services-auth", version.ref = "credentialManager" }
+google-identity-googleid = { group = "com.google.android.libraries.identity.googleid", name = "googleid", version.ref = "googleIdentity" }
 
 # ML Kit
 mlkit-text-recognition = { group = "com.google.mlkit", name = "text-recognition", version.ref = "mlkitTextRecognition" }

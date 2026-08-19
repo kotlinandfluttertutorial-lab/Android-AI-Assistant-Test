@@ -75,6 +75,10 @@ dependencies {
 
     // Google Sign-In
     implementation(libs.google.auth)
+    // Credential Manager — Sign in with Google (replaces deprecated GoogleSignInClient)
+    implementation(libs.credentials)
+    implementation(libs.credentials.play.services.auth)
+    implementation(libs.google.identity.googleid)
 
     // Coroutines
     implementation(libs.bundles.coroutines)

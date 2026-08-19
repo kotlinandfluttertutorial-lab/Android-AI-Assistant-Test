@@ -15,7 +15,57 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
 
-        buildConfigField("String", "CERTIFICATE_PINS", "\"\"")
+        // Certificate pins are read from the Gradle property `cert_pins` at build time.
+        // Pass them as a semicolon-separated list of Base64 SHA-256 SPKI hashes:
+        //   ./gradlew assembleRelease -Pcert_pins="hash1;hash2"
+        // In CI, set the CERT_PINS environment variable (or Gradle property) before building.
+        // An empty value here is intentional for debug builds — pinning is bypassed in debug.
+        buildConfigField(
+            "String",
+            "CERTIFICATE_PINS",
+            "\"${project.findProperty("cert_pins") ?: ""}\""
+        )
+
+        // Base URL for Retrofit. Override per build variant below.
+        // Default here is the emulator localhost so `defaultConfig` alone does not
+        // accidentally talk to production.
+        buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:8000/\"")
+    }
+
+    buildTypes {
+        debug {
+            // Emulator localhost — override with local WiFi IP when testing on a device:
+            //   ./gradlew assembleDebug -Pbase_url="http://192.168.x.x:8000/"
+            buildConfigField(
+                "String",
+                "BASE_URL",
+                "\"${project.findProperty("base_url") ?: "http://10.0.2.2:8000/"}\""
+            )
+            // Certificate pinning is bypassed in debug builds (see NetworkModule).
+            buildConfigField("String", "CERTIFICATE_PINS", "\"\"")
+        }
+        release {
+            // Production Cloud Run URL. Override via Gradle property or CI env var:
+            //   ./gradlew assembleRelease -Pbase_url="https://api.handsonandroid.com/"
+            buildConfigField(
+                "String",
+                "BASE_URL",
+                "\"${project.findProperty("base_url") ?: "https://api.handsonandroid.com/"}\""
+            )
+            // Production TLS pin(s). Set via:
+            //   ./gradlew assembleRelease -Pcert_pins="<sha256-base64-hash>"
+            // To get the pin for api.handsonandroid.com:
+            //   openssl s_client -connect api.handsonandroid.com:443 2>/dev/null |
+            //     openssl x509 -pubkey -noout |
+            //     openssl pkey -pubin -outform DER |
+            //     openssl dgst -sha256 -binary | base64
+            // IMPORTANT: always include a backup pin in case of certificate rotation.
+            buildConfigField(
+                "String",
+                "CERTIFICATE_PINS",
+                "\"${project.findProperty("cert_pins") ?: ""}\""
+            )
+        }
     }
 
     compileOptions {

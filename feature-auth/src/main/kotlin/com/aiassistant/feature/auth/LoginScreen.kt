@@ -65,12 +65,14 @@ package com.aiassistant.feature.auth
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
@@ -93,42 +95,63 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.credentials.CredentialManager
+import androidx.credentials.GetCredentialRequest
+import androidx.credentials.exceptions.GetCredentialCancellationException
+import androidx.credentials.exceptions.GetCredentialException
 import com.aiassistant.core.ui.components.ErrorBanner
 import com.aiassistant.core.ui.spacing
+import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
+import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
+import kotlinx.coroutines.launch
 
 /**
  * Login screen composable.
  *
- * Renders an email + password form with inline validation, Google sign-in,
- * and optional biometric login. Navigation and state mutations are delegated
- * to callbacks so this composable remains stateless (parameters drive rendering).
+ * Renders an email + password form with inline validation, Google Sign-In via
+ * Credential Manager (one-tap / Sign in with Google), and optional biometric login.
+ * Navigation and state mutations are delegated to callbacks so this composable
+ * remains stateless (parameters drive rendering).
+ *
+ * Google Sign-In uses the Credential Manager API with [GetSignInWithGoogleOption],
+ * which replaces the deprecated [com.google.android.gms.auth.api.signin.GoogleSignIn]
+ * flow. The Web Client ID must be configured in strings.xml as
+ * `google_web_client_id` (obtained from Firebase Console → Project Settings → Web API key,
+ * or Google Cloud Console → OAuth 2.0 → Web application client ID).
  *
  * @param uiState             Current auth UI state from [AuthViewModel].
  * @param onLogin             Invoked with (email, password) when the user taps "Sign In".
  * @param onNavigateToRegister Called when the user taps "Create Account".
- * @param onGoogleSignIn       Called when the user taps "Sign in with Google".
+ * @param onGoogleSignIn       Called with the Google ID token when sign-in succeeds.
  * @param onBiometricLogin     Called when the user taps the biometric icon button.
  * @param isBiometricAvailable Whether biometric hardware is available on this device.
+ * @param googleWebClientId   Web Client ID from Firebase/Google Cloud Console.
+ *                            Defaults to the value in `R.string.google_web_client_id`
+ *                            when the string resource is present.
  */
 @Composable
 fun LoginScreen(
     uiState: AuthUiState,
     onLogin: (String, String) -> Unit,
     onNavigateToRegister: () -> Unit,
-    onGoogleSignIn: () -> Unit,
+    onGoogleSignIn: (String) -> Unit,
     onBiometricLogin: () -> Unit,
-    isBiometricAvailable: Boolean = false
+    isBiometricAvailable: Boolean = false,
+    googleWebClientId: String = ""
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -257,17 +280,14 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(MaterialTheme.spacing.sm))
 
-            // â”€â”€ Google sign-in button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-            OutlinedButton(
-                onClick = onGoogleSignIn,
+            // -- Google sign-in button ---------------------------------------------------------
+            // Uses Credential Manager (Sign in with Google) instead of deprecated GoogleSignInClient.
+            // The onGoogleSignIn callback receives the Google ID token for backend exchange.
+            GoogleSignInButton(
+                googleWebClientId = googleWebClientId,
                 enabled = !isLoading,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .semantics { contentDescription = "Sign in with Google button" }
-            ) {
-                // Using a text placeholder per task spec â€” no play-services-auth dependency
-                Text("G  Sign in with Google")
-            }
+                onTokenReceived = onGoogleSignIn
+            )
 
             Spacer(modifier = Modifier.height(MaterialTheme.spacing.md))
 
@@ -316,6 +336,93 @@ fun LoginScreen(
                     )
                 }
             }
+        }
+    }
+}
+
+// ─── Google Sign-In Button ────────────────────────────────────────────────────
+
+/**
+ * Launches the Credential Manager one-tap "Sign in with Google" bottom sheet when tapped.
+ *
+ * On success the Google ID token is delivered to [onTokenReceived] for backend exchange
+ * (Requirement 1.6). On cancellation or failure the button returns to its idle state
+ * without surfacing an error — the user can retry.
+ *
+ * Requires:
+ *   - `play-services-auth` 21.x on the classpath (already in feature-auth/build.gradle.kts)
+ *   - `google-services` plugin applied in the app module
+ *   - `R.string.google_web_client_id` pointing to the Web Client ID from Firebase Console
+ *     or Google Cloud Console → OAuth 2.0 → Web application.
+ *
+ * @param googleWebClientId  Web Client ID for the Google OAuth2 app. Must not be empty
+ *                           in production. When empty the button renders disabled.
+ * @param enabled            Whether the button responds to taps (mirrors the parent form's
+ *                           loading state).
+ * @param onTokenReceived    Called with the Google ID token string on successful sign-in.
+ */
+@Composable
+fun GoogleSignInButton(
+    googleWebClientId: String,
+    enabled: Boolean,
+    onTokenReceived: (String) -> Unit
+) {
+    val context = LocalContext.current
+    val scope = rememberCoroutineScope()
+    var isSigningIn by remember { mutableStateOf(false) }
+
+    OutlinedButton(
+        onClick = {
+            if (googleWebClientId.isEmpty()) return@OutlinedButton
+            isSigningIn = true
+            scope.launch {
+                try {
+                    val credentialManager = CredentialManager.create(context)
+
+                    val googleIdOption = GetSignInWithGoogleOption
+                        .Builder(googleWebClientId)
+                        .build()
+
+                    val request = GetCredentialRequest.Builder()
+                        .addCredentialOption(googleIdOption)
+                        .build()
+
+                    val result = credentialManager.getCredential(
+                        request = request,
+                        context = context
+                    )
+
+                    val googleCredential = GoogleIdTokenCredential
+                        .createFrom(result.credential.data)
+
+                    onTokenReceived(googleCredential.idToken)
+                } catch (_: GetCredentialCancellationException) {
+                    // User dismissed the bottom sheet — no error to show.
+                } catch (_: GetCredentialException) {
+                    // Credential Manager error (no Google accounts, Play Services issue, etc.)
+                    // The ViewModel/caller handles retries; we simply return here.
+                } finally {
+                    isSigningIn = false
+                }
+            }
+        },
+        enabled = enabled && !isSigningIn && googleWebClientId.isNotEmpty(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics { contentDescription = "Sign in with Google button" }
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.Center
+        ) {
+            if (isSigningIn) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(MaterialTheme.spacing.md),
+                    strokeWidth = androidx.compose.ui.unit.Dp(2f)
+                )
+                Spacer(modifier = Modifier.width(MaterialTheme.spacing.xs))
+            }
+            Text(text = if (isSigningIn) "Signing in…" else "Sign in with Google")
         }
     }
 }
