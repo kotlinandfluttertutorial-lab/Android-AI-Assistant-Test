@@ -1,12 +1,16 @@
 /**
  * MeetingRepositoryImplTest.kt — data module
  *
- * Purpose: Unit tests for [MeetingRepositoryImpl], which is a stub that always returns
- *          HTTP 501 (backend not yet wired). Verifies stub behavior for all three methods.
+ * Purpose: Unit tests for [MeetingRepositoryImpl], covering:
+ *   - Online path: each method delegates to MeetingRemoteDataSource and returns its result.
+ *   - Offline path: each method returns ApiResult.NetworkUnavailable without hitting
+ *     the network.
+ *
  * Architecture: data module — pure JVM unit tests, no Android framework dependencies.
  *
  * Test toolchain:
  * - Kotest DescribeSpec  — test structure
+ * - MockK                — mock ConnectivityObserver and MeetingRemoteDataSource
  * - kotlinx.coroutines.test — runTest
  *
  * Requirements covered: 19.1, 5.6
@@ -15,108 +19,167 @@ package com.aiassistant.data.repository
 
 import com.aiassistant.core.common.ApiResult
 import com.aiassistant.core.common.DomainError
+import com.aiassistant.core.network.ConnectivityObserver
+import com.aiassistant.data.remote.meeting.MeetingRemoteDataSource
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 
 class MeetingRepositoryImplTest :
     DescribeSpec({
 
-        val repository = MeetingRepositoryImpl()
+        val remoteDataSource = mockk<MeetingRemoteDataSource>()
+        val connectivityObserver = mockk<ConnectivityObserver>()
+        val repository = MeetingRepositoryImpl(remoteDataSource, connectivityObserver)
 
-        describe("startMeetingRecording()") {
+        val userId = "user-123"
+        val sessionId = "session-xyz"
+        val summaryText = "## Summary\nThe team agreed on a Q3 deadline.\n- [Alice]: Review the spec by Friday"
 
-            it("returns ServerError with 501 status") {
+        // ─── startMeetingRecording ────────────────────────────────────────────
+
+        describe("startMeetingRecording() — online") {
+
+            it("delegates to remoteDataSource and returns Success with session ID") {
                 runTest {
-                    val result = repository.startMeetingRecording(userId = "user-123")
+                    every { connectivityObserver.isConnected() } returns true
+                    coEvery { remoteDataSource.startMeeting(userId) } returns ApiResult.Success(sessionId)
+
+                    val result = repository.startMeetingRecording(userId)
+
+                    result.shouldBeInstanceOf<ApiResult.Success<String>>()
+                    (result as ApiResult.Success).data shouldBe sessionId
+                    coVerify(exactly = 1) { remoteDataSource.startMeeting(userId) }
+                }
+            }
+
+            it("propagates Error from remoteDataSource") {
+                runTest {
+                    val domainError = DomainError.ServerError(
+                        message = "Server error (HTTP 500).",
+                        httpStatusCode = 500
+                    )
+                    every { connectivityObserver.isConnected() } returns true
+                    coEvery { remoteDataSource.startMeeting(userId) } returns ApiResult.Error(domainError)
+
+                    val result = repository.startMeetingRecording(userId)
 
                     result.shouldBeInstanceOf<ApiResult.Error>()
-                    val error = (result as ApiResult.Error).error
-                    error.shouldBeInstanceOf<DomainError.ServerError>()
-                    (error as DomainError.ServerError).httpStatusCode shouldBe 501
-                }
-            }
-
-            it("error message describes backend connection status") {
-                runTest {
-                    val result = repository.startMeetingRecording(userId = "user-abc")
-
-                    val error = (result as ApiResult.Error).error as DomainError.ServerError
-                    error.message shouldBe "Meeting recording backend not yet connected"
-                }
-            }
-
-            it("returns error for any userId") {
-                runTest {
-                    listOf("user-1", "user-2", "", "admin").forEach { userId ->
-                        val result = repository.startMeetingRecording(userId)
-                        result.shouldBeInstanceOf<ApiResult.Error>()
-                    }
+                    (result as ApiResult.Error).error shouldBe domainError
                 }
             }
         }
 
-        describe("stopMeetingRecording()") {
+        describe("startMeetingRecording() — offline") {
 
-            it("returns ServerError with 501 status") {
+            it("returns NetworkUnavailable without calling remoteDataSource") {
                 runTest {
-                    val result = repository.stopMeetingRecording(sessionId = "session-xyz")
+                    every { connectivityObserver.isConnected() } returns false
 
-                    result.shouldBeInstanceOf<ApiResult.Error>()
-                    val error = (result as ApiResult.Error).error
-                    error.shouldBeInstanceOf<DomainError.ServerError>()
-                    (error as DomainError.ServerError).httpStatusCode shouldBe 501
-                }
-            }
+                    val result = repository.startMeetingRecording(userId)
 
-            it("error message describes backend connection status") {
-                runTest {
-                    val result = repository.stopMeetingRecording(sessionId = "session-abc")
-
-                    val error = (result as ApiResult.Error).error as DomainError.ServerError
-                    error.message shouldBe "Meeting recording backend not yet connected"
-                }
-            }
-
-            it("returns error for any sessionId") {
-                runTest {
-                    listOf("session-1", "session-2", "").forEach { sessionId ->
-                        val result = repository.stopMeetingRecording(sessionId)
-                        result.shouldBeInstanceOf<ApiResult.Error>()
-                    }
+                    result shouldBe ApiResult.NetworkUnavailable
+                    coVerify(exactly = 0) { remoteDataSource.startMeeting(any()) }
                 }
             }
         }
 
-        describe("getMeetingSummary()") {
+        // ─── stopMeetingRecording ─────────────────────────────────────────────
 
-            it("returns ServerError with 501 status") {
+        describe("stopMeetingRecording() — online") {
+
+            it("delegates to remoteDataSource and returns Success") {
                 runTest {
-                    val result = repository.getMeetingSummary(sessionId = "session-xyz")
+                    every { connectivityObserver.isConnected() } returns true
+                    coEvery { remoteDataSource.stopMeeting(sessionId) } returns ApiResult.Success(Unit)
+
+                    val result = repository.stopMeetingRecording(sessionId)
+
+                    result.shouldBeInstanceOf<ApiResult.Success<Unit>>()
+                    coVerify(exactly = 1) { remoteDataSource.stopMeeting(sessionId) }
+                }
+            }
+
+            it("propagates Error from remoteDataSource") {
+                runTest {
+                    val domainError = DomainError.ServerError(
+                        message = "Meeting session not found (HTTP 404).",
+                        httpStatusCode = 404
+                    )
+                    every { connectivityObserver.isConnected() } returns true
+                    coEvery { remoteDataSource.stopMeeting(sessionId) } returns ApiResult.Error(domainError)
+
+                    val result = repository.stopMeetingRecording(sessionId)
 
                     result.shouldBeInstanceOf<ApiResult.Error>()
-                    val error = (result as ApiResult.Error).error
-                    error.shouldBeInstanceOf<DomainError.ServerError>()
-                    (error as DomainError.ServerError).httpStatusCode shouldBe 501
+                    (result as ApiResult.Error).error shouldBe domainError
+                }
+            }
+        }
+
+        describe("stopMeetingRecording() — offline") {
+
+            it("returns NetworkUnavailable without calling remoteDataSource") {
+                runTest {
+                    every { connectivityObserver.isConnected() } returns false
+
+                    val result = repository.stopMeetingRecording(sessionId)
+
+                    result shouldBe ApiResult.NetworkUnavailable
+                    coVerify(exactly = 0) { remoteDataSource.stopMeeting(any()) }
+                }
+            }
+        }
+
+        // ─── getMeetingSummary ────────────────────────────────────────────────
+
+        describe("getMeetingSummary() — online") {
+
+            it("delegates to remoteDataSource and returns Success with summary text") {
+                runTest {
+                    every { connectivityObserver.isConnected() } returns true
+                    coEvery { remoteDataSource.getMeetingSummary(sessionId) } returns ApiResult.Success(summaryText)
+
+                    val result = repository.getMeetingSummary(sessionId)
+
+                    result.shouldBeInstanceOf<ApiResult.Success<String>>()
+                    (result as ApiResult.Success).data shouldBe summaryText
+                    coVerify(exactly = 1) { remoteDataSource.getMeetingSummary(sessionId) }
                 }
             }
 
-            it("error message describes backend connection status") {
+            it("propagates Error from remoteDataSource") {
                 runTest {
-                    val result = repository.getMeetingSummary(sessionId = "session-123")
+                    val domainError = DomainError.ServerError(
+                        message = "Server error (HTTP 500).",
+                        httpStatusCode = 500
+                    )
+                    every { connectivityObserver.isConnected() } returns true
+                    coEvery { remoteDataSource.getMeetingSummary(sessionId) } returns ApiResult.Error(domainError)
 
-                    val error = (result as ApiResult.Error).error as DomainError.ServerError
-                    error.message shouldBe "Meeting summary backend not yet connected"
+                    val result = repository.getMeetingSummary(sessionId)
+
+                    result.shouldBeInstanceOf<ApiResult.Error>()
+                    (result as ApiResult.Error).error shouldBe domainError
                 }
             }
+        }
 
-            it("returns error for any sessionId") {
+        describe("getMeetingSummary() — offline") {
+
+            it("returns NetworkUnavailable without calling remoteDataSource") {
                 runTest {
-                    listOf("session-a", "session-b", "unknown").forEach { sessionId ->
-                        val result = repository.getMeetingSummary(sessionId)
-                        result.shouldBeInstanceOf<ApiResult.Error>()
-                    }
+                    every { connectivityObserver.isConnected() } returns false
+
+                    val result = repository.getMeetingSummary(sessionId)
+
+                    result shouldBe ApiResult.NetworkUnavailable
+                    coVerify(exactly = 0) { remoteDataSource.getMeetingSummary(any()) }
                 }
             }
         }

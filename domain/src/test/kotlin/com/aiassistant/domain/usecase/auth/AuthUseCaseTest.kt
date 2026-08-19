@@ -136,6 +136,28 @@ class LoginUseCaseTest :
 
                     (result as ApiResult.Error).error shouldBe error
                 }
+
+                it("returns Error when repository returns Forbidden (HTTP 403)") {
+                    val error = DomainError.Forbidden()
+                    coEvery { authRepository.login(VALID_EMAIL, VALID_PASSWORD) } returns
+                        ApiResult.Error(error)
+
+                    val result = loginUseCase(VALID_EMAIL, VALID_PASSWORD)
+
+                    result.shouldBeInstanceOf<ApiResult.Error>()
+                    (result as ApiResult.Error).error.shouldBeInstanceOf<DomainError.Forbidden>()
+                }
+
+                it("passes empty strings to repository without local validation") {
+                    // LoginUseCase has no client-side validation — blank inputs go to the repo
+                    coEvery { authRepository.login("", "") } returns
+                        ApiResult.Error(DomainError.Unauthorized())
+
+                    val result = loginUseCase("", "")
+
+                    result.shouldBeInstanceOf<ApiResult.Error>()
+                    coVerify(exactly = 1) { authRepository.login("", "") }
+                }
             }
         }
     })
@@ -243,6 +265,15 @@ class RegisterUseCaseTest :
 
                     result.shouldBeInstanceOf<ApiResult.Error>()
                     (result as ApiResult.Error).error.shouldBeInstanceOf<DomainError.ValidationError>()
+                }
+
+                it("returns ValidationError when email is whitespace-only (trim collapses to blank)") {
+                    // EMAIL_REGEX is applied to email.trim() — "   ".trim() = "" which fails
+                    val result = registerUseCase("   ", VALID_PASSWORD)
+
+                    result.shouldBeInstanceOf<ApiResult.Error>()
+                    (result as ApiResult.Error).error.shouldBeInstanceOf<DomainError.ValidationError>()
+                    coVerify(exactly = 0) { authRepository.register(any(), any()) }
                 }
 
                 it("email ValidationError includes 'email' field in fields map") {

@@ -579,6 +579,24 @@ class SendMessageUseCaseTest :
                     (result as ApiResult.Error).error.shouldBeInstanceOf<DomainError.ValidationError>()
                 }
 
+                it("returns ValidationError when content is tab-only") {
+                    // isBlank() catches horizontal tab characters
+                    val result = useCase("conv-1", "\t\t", "openai")
+
+                    result.shouldBeInstanceOf<ApiResult.Error>()
+                    (result as ApiResult.Error).error.shouldBeInstanceOf<DomainError.ValidationError>()
+                    coVerify(exactly = 0) { repository.sendMessage(any(), any(), any()) }
+                }
+
+                it("returns ValidationError when content is newline-only") {
+                    // isBlank() catches newline-only strings
+                    val result = useCase("conv-1", "\n\n", "openai")
+
+                    result.shouldBeInstanceOf<ApiResult.Error>()
+                    (result as ApiResult.Error).error.shouldBeInstanceOf<DomainError.ValidationError>()
+                    coVerify(exactly = 0) { repository.sendMessage(any(), any(), any()) }
+                }
+
                 it("ValidationError includes 'content' field in fields map") {
                     val result = useCase("conv-1", "", "openai")
 

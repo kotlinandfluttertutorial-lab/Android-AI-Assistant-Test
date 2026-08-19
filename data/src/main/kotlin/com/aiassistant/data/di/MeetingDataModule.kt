@@ -1,22 +1,41 @@
+/*
+ * ============================================================
+ * Android AI Assistant (Enterprise Edition)
+ * ============================================================
+ * Module     : data
+ * File       : MeetingDataModule.kt
+ * Purpose    : Hilt module providing MeetingData dependencies to the DI graph.
+ *              Provides MeetingApiService (Retrofit) and binds MeetingRepositoryImpl
+ *              to the MeetingRepository domain interface.
+ *
+ * Architecture Layer : Data
+ * Pattern Used       : Hilt DI Module
+ *
+ * Requirements: 19.1, 5.6
+ * ============================================================
+ */
 package com.aiassistant.data.di
 
+import com.aiassistant.data.remote.meeting.MeetingApiService
 import com.aiassistant.data.repository.MeetingRepositoryImpl
 import com.aiassistant.domain.repository.MeetingRepository
 import dagger.Binds
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import retrofit2.Retrofit
 
 /**
- * MeetingDataModule.kt — data module
+ * Hilt [dagger.Module] that wires all meeting-related bindings.
  *
- * Purpose: Hilt [dagger.Module] that binds [MeetingRepositoryImpl] to the
- *          [MeetingRepository] domain interface.
+ * Provides:
+ *   - [MeetingApiService] Retrofit implementation
+ * Binds:
+ *   - [MeetingRepositoryImpl] → [MeetingRepository]
  *
- * Architecture: data module — installs into [SingletonComponent] for process-wide singletons.
- *
- * Requirements: 19.1, 5.6
+ * Architecture: installs into [SingletonComponent] for process-wide singletons.
  */
 @Module
 @InstallIn(SingletonComponent::class)
@@ -28,4 +47,16 @@ abstract class MeetingDataModule {
     @Binds
     @Singleton
     abstract fun bindMeetingRepository(impl: MeetingRepositoryImpl): MeetingRepository
+
+    companion object {
+
+        /**
+         * Creates the [MeetingApiService] Retrofit implementation using the application-level
+         * [Retrofit] singleton provided by core-network's NetworkModule.
+         */
+        @Provides
+        @Singleton
+        fun provideMeetingApiService(retrofit: Retrofit): MeetingApiService =
+            retrofit.create(MeetingApiService::class.java)
+    }
 }
