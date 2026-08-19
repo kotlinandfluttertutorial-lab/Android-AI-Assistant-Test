@@ -297,6 +297,7 @@ jobs:
             MINIO_SECRET_KEY=MINIO_SECRET_KEY:latest
             OPENAI_API_KEY=OPENAI_API_KEY:latest
             GEMINI_API_KEY=GEMINI_API_KEY:latest
+            ANTHROPIC_API_KEY=ANTHROPIC_API_KEY:latest
           env_vars: |-
             ENVIRONMENT=production
             LOG_LEVEL=INFO
@@ -304,12 +305,14 @@ jobs:
             MINIO_BUCKET_NAME=${{ secrets.GCP_PROJECT_ID }}-files
             CHROMA_HOST=${{ steps.chroma.outputs.host }}
             CHROMA_PORT=8001
-            LLM_FALLBACK_PROVIDER=
+            DEFAULT_LLM_PROVIDER=gemini
+            LLM_FALLBACK_PROVIDER=openai
             LLM_MAX_OUTPUT_TOKENS_OPENAI=2048
             LLM_MAX_OUTPUT_TOKENS_GEMINI=4096
             LLM_MAX_OUTPUT_TOKENS_CLAUDE=2048
             PROMETHEUS_ENABLED=true
             LOKI_URL=
+            DP_EPSILON=1.0
 
       - name: Deploy summary
         run: |

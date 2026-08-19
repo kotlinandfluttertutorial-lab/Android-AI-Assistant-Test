@@ -132,7 +132,7 @@ It costs ₹0 at zero traffic and shares the same free-tier allocation.
 gcloud run deploy chromadb \
   --image=chromadb/chroma:1.5.9 \
   --region=$REGION \
-  --port=8000 \
+  --port=8001 \
   --memory=512Mi \
   --cpu=1 \
   --min-instances=0 \
@@ -142,6 +142,8 @@ gcloud run deploy chromadb \
 ```
 
 Note the service URL — you'll set it as `CHROMA_HOST` in the backend deploy.
+The backend connects to ChromaDB on **port 8001** (`CHROMA_PORT=8001` — the default
+in `backend/app/config/settings.py` and `backend/.env.example`).
 Cloud Run internal services talk to each other without going to the public internet.
 
 > **Important:** ChromaDB has CVE-2026-45829 (pre-auth RCE). The `--ingress=internal`
@@ -301,7 +303,8 @@ REDIS_URL=REDIS_URL:latest,\
 MINIO_ACCESS_KEY=MINIO_ACCESS_KEY:latest,\
 MINIO_SECRET_KEY=MINIO_SECRET_KEY:latest,\
 OPENAI_API_KEY=OPENAI_API_KEY:latest,\
-GEMINI_API_KEY=GEMINI_API_KEY:latest \
+GEMINI_API_KEY=GEMINI_API_KEY:latest,\
+ANTHROPIC_API_KEY=ANTHROPIC_API_KEY:latest \
   \
   # Non-secret env vars (from backend/.env.example defaults)
   --set-env-vars=\
@@ -310,11 +313,15 @@ LOG_LEVEL=INFO,\
 MINIO_ENDPOINT=storage.googleapis.com,\
 MINIO_BUCKET_NAME=$PROJECT_ID-files,\
 CHROMA_HOST=$CHROMA_HOST,\
-CHROMA_PORT=8000,\
+CHROMA_PORT=8001,\
+DEFAULT_LLM_PROVIDER=gemini,\
+LLM_FALLBACK_PROVIDER=openai,\
 LLM_MAX_OUTPUT_TOKENS_OPENAI=2048,\
 LLM_MAX_OUTPUT_TOKENS_GEMINI=4096,\
+LLM_MAX_OUTPUT_TOKENS_CLAUDE=2048,\
 PROMETHEUS_ENABLED=true,\
-LOKI_URL= \
+LOKI_URL=,\
+DP_EPSILON=1.0 \
   --port=8000
 ```
 

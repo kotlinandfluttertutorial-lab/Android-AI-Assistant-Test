@@ -1,10 +1,11 @@
 /**
  * MeetingRepositoryImplTest.kt — data module
  *
- * Purpose: Unit tests for [MeetingRepositoryImpl], covering:
- *   - Online path: each method delegates to MeetingRemoteDataSource and returns its result.
- *   - Offline path: each method returns ApiResult.NetworkUnavailable without hitting
- *     the network.
+ * Purpose: Unit tests for [MeetingRepositoryImpl], covering the new transcription flow:
+ *   - startMeetingRecording: always succeeds, returns a UUID session ID, no network call.
+ *   - stopMeetingRecording: uploads audio file via MeetingRemoteDataSource.
+ *   - getMeetingSummary: returns the cached summary from stopMeetingRecording.
+ *   - Offline: stopMeetingRecording returns NetworkUnavailable immediately.
  *
  * Architecture: data module — pure JVM unit tests, no Android framework dependencies.
  *
@@ -12,6 +13,7 @@
  * - Kotest DescribeSpec  — test structure
  * - MockK                — mock ConnectivityObserver and MeetingRemoteDataSource
  * - kotlinx.coroutines.test — runTest
+ * - java.io.File / TemporaryFolder — creates real temp files to satisfy File.exists() checks
  *
  * Requirements covered: 19.1, 5.6
  */
@@ -23,11 +25,14 @@ import com.aiassistant.core.network.ConnectivityObserver
 import com.aiassistant.data.remote.meeting.MeetingRemoteDataSource
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.string.shouldNotBeBlank
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import java.io.File
 import kotlinx.coroutines.test.runTest
 
 class MeetingRepositoryImplTest :
@@ -35,151 +40,197 @@ class MeetingRepositoryImplTest :
 
         val remoteDataSource = mockk<MeetingRemoteDataSource>()
         val connectivityObserver = mockk<ConnectivityObserver>()
-        val repository = MeetingRepositoryImpl(remoteDataSource, connectivityObserver)
 
-        val userId = "user-123"
-        val sessionId = "session-xyz"
-        val summaryText = "## Summary\nThe team agreed on a Q3 deadline.\n- [Alice]: Review the spec by Friday"
+        val summaryText = "## Transcript\n\n[00:00:00] Speaker 1: Let's get started.\n"
 
         // ─── startMeetingRecording ────────────────────────────────────────────
 
-        describe("startMeetingRecording() — online") {
+        describe("startMeetingRecording()") {
 
-            it("delegates to remoteDataSource and returns Success with session ID") {
+            it("always succeeds and returns a non-blank session ID") {
                 runTest {
-                    every { connectivityObserver.isConnected() } returns true
-                    coEvery { remoteDataSource.startMeeting(userId) } returns ApiResult.Success(sessionId)
-
-                    val result = repository.startMeetingRecording(userId)
+                    val repository = MeetingRepositoryImpl(remoteDataSource, connectivityObserver)
+                    val result = repository.startMeetingRecording(userId = "user-123")
 
                     result.shouldBeInstanceOf<ApiResult.Success<String>>()
-                    (result as ApiResult.Success).data shouldBe sessionId
-                    coVerify(exactly = 1) { remoteDataSource.startMeeting(userId) }
+                    (result as ApiResult.Success).data.shouldNotBeBlank()
                 }
             }
 
-            it("propagates Error from remoteDataSource") {
+            it("returns a different session ID for each call") {
                 runTest {
-                    val domainError = DomainError.ServerError(
-                        message = "Server error (HTTP 500).",
-                        httpStatusCode = 500
-                    )
-                    every { connectivityObserver.isConnected() } returns true
-                    coEvery { remoteDataSource.startMeeting(userId) } returns ApiResult.Error(domainError)
+                    val repository = MeetingRepositoryImpl(remoteDataSource, connectivityObserver)
+                    val r1 = repository.startMeetingRecording("user-a") as ApiResult.Success
+                    val r2 = repository.startMeetingRecording("user-b") as ApiResult.Success
 
-                    val result = repository.startMeetingRecording(userId)
-
-                    result.shouldBeInstanceOf<ApiResult.Error>()
-                    (result as ApiResult.Error).error shouldBe domainError
+                    r1.data shouldNotBe r2.data
                 }
             }
-        }
 
-        describe("startMeetingRecording() — offline") {
-
-            it("returns NetworkUnavailable without calling remoteDataSource") {
+            it("does not call remoteDataSource") {
                 runTest {
-                    every { connectivityObserver.isConnected() } returns false
+                    val repository = MeetingRepositoryImpl(remoteDataSource, connectivityObserver)
+                    repository.startMeetingRecording("user-xyz")
 
-                    val result = repository.startMeetingRecording(userId)
-
-                    result shouldBe ApiResult.NetworkUnavailable
-                    coVerify(exactly = 0) { remoteDataSource.startMeeting(any()) }
+                    coVerify(exactly = 0) { remoteDataSource.transcribeAudio(any(), any()) }
                 }
             }
         }
 
         // ─── stopMeetingRecording ─────────────────────────────────────────────
 
-        describe("stopMeetingRecording() — online") {
+        describe("stopMeetingRecording()") {
 
-            it("delegates to remoteDataSource and returns Success") {
+            it("uploads the audio file and returns Success") {
                 runTest {
                     every { connectivityObserver.isConnected() } returns true
-                    coEvery { remoteDataSource.stopMeeting(sessionId) } returns ApiResult.Success(Unit)
+                    val repository = MeetingRepositoryImpl(remoteDataSource, connectivityObserver)
 
-                    val result = repository.stopMeetingRecording(sessionId)
+                    val sessionResult = repository.startMeetingRecording("user-1")
+                    val sessionId = (sessionResult as ApiResult.Success).data
 
-                    result.shouldBeInstanceOf<ApiResult.Success<Unit>>()
-                    coVerify(exactly = 1) { remoteDataSource.stopMeeting(sessionId) }
+                    // Create a real temp file so File.exists() returns true
+                    val audioFile = File.createTempFile("meeting_test", ".m4a")
+                    try {
+                        coEvery { remoteDataSource.transcribeAudio(audioFile) } returns
+                            ApiResult.Success(summaryText)
+
+                        val result = repository.stopMeetingRecording(sessionId, audioFile.absolutePath)
+
+                        result.shouldBeInstanceOf<ApiResult.Success<Unit>>()
+                        coVerify(exactly = 1) { remoteDataSource.transcribeAudio(audioFile) }
+                    } finally {
+                        audioFile.delete()
+                    }
+                }
+            }
+
+            it("returns NetworkUnavailable when offline without calling remoteDataSource") {
+                runTest {
+                    every { connectivityObserver.isConnected() } returns false
+                    val repository = MeetingRepositoryImpl(remoteDataSource, connectivityObserver)
+
+                    val sessionId = (repository.startMeetingRecording("user-1") as ApiResult.Success).data
+
+                    val result = repository.stopMeetingRecording(sessionId, "/some/path.m4a")
+
+                    result shouldBe ApiResult.NetworkUnavailable
+                    coVerify(exactly = 0) { remoteDataSource.transcribeAudio(any(), any()) }
+                }
+            }
+
+            it("returns 404 error for unknown session ID") {
+                runTest {
+                    every { connectivityObserver.isConnected() } returns true
+                    val repository = MeetingRepositoryImpl(remoteDataSource, connectivityObserver)
+
+                    val result = repository.stopMeetingRecording("unknown-session", "/path.m4a")
+
+                    result.shouldBeInstanceOf<ApiResult.Error>()
+                    val error = (result as ApiResult.Error).error
+                    error.shouldBeInstanceOf<DomainError.ServerError>()
+                    (error as DomainError.ServerError).httpStatusCode shouldBe 404
+                }
+            }
+
+            it("returns ValidationError when audio file does not exist") {
+                runTest {
+                    every { connectivityObserver.isConnected() } returns true
+                    val repository = MeetingRepositoryImpl(remoteDataSource, connectivityObserver)
+
+                    val sessionId = (repository.startMeetingRecording("user-1") as ApiResult.Success).data
+
+                    val result = repository.stopMeetingRecording(sessionId, "/nonexistent/audio.m4a")
+
+                    result.shouldBeInstanceOf<ApiResult.Error>()
+                    (result as ApiResult.Error).error.shouldBeInstanceOf<DomainError.ValidationError>()
                 }
             }
 
             it("propagates Error from remoteDataSource") {
                 runTest {
-                    val domainError = DomainError.ServerError(
-                        message = "Meeting session not found (HTTP 404).",
-                        httpStatusCode = 404
-                    )
                     every { connectivityObserver.isConnected() } returns true
-                    coEvery { remoteDataSource.stopMeeting(sessionId) } returns ApiResult.Error(domainError)
+                    val repository = MeetingRepositoryImpl(remoteDataSource, connectivityObserver)
+                    val sessionId = (repository.startMeetingRecording("user-1") as ApiResult.Success).data
 
-                    val result = repository.stopMeetingRecording(sessionId)
+                    val audioFile = File.createTempFile("meeting_err", ".m4a")
+                    try {
+                        val error = DomainError.ServerError("Transcription failed.", 500)
+                        coEvery { remoteDataSource.transcribeAudio(audioFile) } returns ApiResult.Error(error)
 
-                    result.shouldBeInstanceOf<ApiResult.Error>()
-                    (result as ApiResult.Error).error shouldBe domainError
-                }
-            }
-        }
+                        val result = repository.stopMeetingRecording(sessionId, audioFile.absolutePath)
 
-        describe("stopMeetingRecording() — offline") {
-
-            it("returns NetworkUnavailable without calling remoteDataSource") {
-                runTest {
-                    every { connectivityObserver.isConnected() } returns false
-
-                    val result = repository.stopMeetingRecording(sessionId)
-
-                    result shouldBe ApiResult.NetworkUnavailable
-                    coVerify(exactly = 0) { remoteDataSource.stopMeeting(any()) }
+                        result.shouldBeInstanceOf<ApiResult.Error>()
+                        (result as ApiResult.Error).error shouldBe error
+                    } finally {
+                        audioFile.delete()
+                    }
                 }
             }
         }
 
         // ─── getMeetingSummary ────────────────────────────────────────────────
 
-        describe("getMeetingSummary() — online") {
+        describe("getMeetingSummary()") {
 
-            it("delegates to remoteDataSource and returns Success with summary text") {
+            it("returns the summary cached by stopMeetingRecording") {
                 runTest {
                     every { connectivityObserver.isConnected() } returns true
-                    coEvery { remoteDataSource.getMeetingSummary(sessionId) } returns ApiResult.Success(summaryText)
+                    val repository = MeetingRepositoryImpl(remoteDataSource, connectivityObserver)
+                    val sessionId = (repository.startMeetingRecording("user-1") as ApiResult.Success).data
 
-                    val result = repository.getMeetingSummary(sessionId)
+                    val audioFile = File.createTempFile("meeting_sum", ".m4a")
+                    try {
+                        coEvery { remoteDataSource.transcribeAudio(audioFile) } returns
+                            ApiResult.Success(summaryText)
 
-                    result.shouldBeInstanceOf<ApiResult.Success<String>>()
-                    (result as ApiResult.Success).data shouldBe summaryText
-                    coVerify(exactly = 1) { remoteDataSource.getMeetingSummary(sessionId) }
+                        repository.stopMeetingRecording(sessionId, audioFile.absolutePath)
+
+                        val result = repository.getMeetingSummary(sessionId)
+
+                        result.shouldBeInstanceOf<ApiResult.Success<String>>()
+                        (result as ApiResult.Success).data shouldBe summaryText
+                    } finally {
+                        audioFile.delete()
+                    }
                 }
             }
 
-            it("propagates Error from remoteDataSource") {
+            it("returns 404 error when session is not found or already retrieved") {
                 runTest {
-                    val domainError = DomainError.ServerError(
-                        message = "Server error (HTTP 500).",
-                        httpStatusCode = 500
-                    )
-                    every { connectivityObserver.isConnected() } returns true
-                    coEvery { remoteDataSource.getMeetingSummary(sessionId) } returns ApiResult.Error(domainError)
+                    val repository = MeetingRepositoryImpl(remoteDataSource, connectivityObserver)
 
-                    val result = repository.getMeetingSummary(sessionId)
+                    val result = repository.getMeetingSummary("nonexistent-session")
 
                     result.shouldBeInstanceOf<ApiResult.Error>()
-                    (result as ApiResult.Error).error shouldBe domainError
+                    val error = (result as ApiResult.Error).error
+                    error.shouldBeInstanceOf<DomainError.ServerError>()
+                    (error as DomainError.ServerError).httpStatusCode shouldBe 404
                 }
             }
-        }
 
-        describe("getMeetingSummary() — offline") {
-
-            it("returns NetworkUnavailable without calling remoteDataSource") {
+            it("removes session from cache after retrieval (prevents double-fetch)") {
                 runTest {
-                    every { connectivityObserver.isConnected() } returns false
+                    every { connectivityObserver.isConnected() } returns true
+                    val repository = MeetingRepositoryImpl(remoteDataSource, connectivityObserver)
+                    val sessionId = (repository.startMeetingRecording("user-1") as ApiResult.Success).data
 
-                    val result = repository.getMeetingSummary(sessionId)
+                    val audioFile = File.createTempFile("meeting_once", ".m4a")
+                    try {
+                        coEvery { remoteDataSource.transcribeAudio(audioFile) } returns
+                            ApiResult.Success(summaryText)
+                        repository.stopMeetingRecording(sessionId, audioFile.absolutePath)
 
-                    result shouldBe ApiResult.NetworkUnavailable
-                    coVerify(exactly = 0) { remoteDataSource.getMeetingSummary(any()) }
+                        // First fetch succeeds
+                        repository.getMeetingSummary(sessionId)
+                            .shouldBeInstanceOf<ApiResult.Success<String>>()
+
+                        // Second fetch returns 404 (session removed)
+                        val secondResult = repository.getMeetingSummary(sessionId)
+                        secondResult.shouldBeInstanceOf<ApiResult.Error>()
+                    } finally {
+                        audioFile.delete()
+                    }
                 }
             }
         }

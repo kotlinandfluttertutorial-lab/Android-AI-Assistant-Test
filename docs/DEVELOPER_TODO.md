@@ -1,6 +1,6 @@
 # Developer Todo List — Android AI Assistant (Enterprise Edition)
 
-> **Last updated:** August 19, 2026 (session 2)
+> **Last updated:** August 19, 2026 (session 3)
 > **Purpose:** Reference checklist for taking the project from fully implemented spec to a production-ready, deployable system.
 > **Status legend:** 🔴 Critical · 🟠 High Priority · 🟡 Medium Priority · 🟢 Lower Priority
 
@@ -26,7 +26,7 @@
 | Google Sign-In | ✅ Wired via Credential Manager; `google_web_client_id` placeholder added |
 | Context suggestions | ✅ Wired to `POST /api/v1/suggestions/context` |
 | Meeting time suggestions | ✅ Wired to `POST /productivity/calendar/suggest-times` |
-| Code analysis (`/code/analyze`) | ⚠️ Android wired and ready; backend endpoint not yet implemented |
+| Code analysis (`/code/analyze`) | ✅ Fully implemented — backend endpoint, unit tests, and integration tests complete |
 | BASE_URL / CERTIFICATE_PINS | ✅ BuildConfig-driven per build variant |
 
 ---
@@ -127,7 +127,7 @@ For each module, verify these files exist and contain real code (not just an emp
 
 - [x] `feature-rag` verified / completed
 - [x] `feature-camera` verified / completed
-- [x] `feature-code` verified / completed — CodeRepositoryImpl wired to POST /code/analyze
+- [x] `feature-code` verified / completed — CodeRepositoryImpl wired to POST /code/analyze; backend endpoint, schemas, router, unit tests (45 cases), and integration tests (29 cases) complete
 - [x] `feature-notes` verified / completed
 - [x] `feature-meeting` verified / completed — MeetingRepositoryImpl wired to Transcription_Service
 - [x] `feature-translator` verified / completed

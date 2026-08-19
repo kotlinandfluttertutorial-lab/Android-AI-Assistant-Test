@@ -22,7 +22,6 @@ import com.aiassistant.core.common.DomainError
 import com.aiassistant.core.network.ConnectivityObserver
 import com.aiassistant.data.remote.meeting.MeetingRemoteDataSource
 import com.aiassistant.domain.repository.MeetingRepository
-import java.io.File
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
@@ -84,43 +83,32 @@ class MeetingRepositoryImpl @Inject constructor(
     /**
      * Uploads the recorded audio file to `POST /transcription` and caches the result.
      *
-     * The audio file path must have been registered via [registerAudioFile] before this
-     * is called. If no file path is registered for [sessionId], returns an error.
-     *
-     * - **Online**: uploads to backend and caches the summary.
+     * - **Online**: uploads the file at [audioFilePath] to the backend and caches summary.
      * - **Offline**: returns [ApiResult.NetworkUnavailable].
      *
-     * @param sessionId The session identifier returned by [startMeetingRecording].
+     * @param sessionId    The session identifier returned by [startMeetingRecording].
+     * @param audioFilePath Absolute path to the `.m4a` file from `MeetingRecorderManager`.
      * @return [ApiResult.Success] with [Unit] when audio is uploaded successfully.
      */
-    override suspend fun stopMeetingRecording(sessionId: String): ApiResult<Unit> {
+    override suspend fun stopMeetingRecording(sessionId: String, audioFilePath: String): ApiResult<Unit> {
         if (!connectivityObserver.isConnected()) {
             return ApiResult.NetworkUnavailable
         }
 
-        val session = sessions[sessionId]
-            ?: return ApiResult.Error(
+        if (!sessions.containsKey(sessionId)) {
+            return ApiResult.Error(
                 DomainError.ServerError(
                     message = "Meeting session '$sessionId' not found.",
                     httpStatusCode = 404
                 )
             )
-
-        if (session.audioFilePath.isBlank()) {
-            return ApiResult.Error(
-                DomainError.ValidationError(
-                    message = "No audio file registered for session '$sessionId'. " +
-                        "Call registerAudioFile() before stopMeetingRecording().",
-                    fields = mapOf("audioFilePath" to "Audio file path must be set.")
-                )
-            )
         }
 
-        val audioFile = File(session.audioFilePath)
+        val audioFile = java.io.File(audioFilePath)
         if (!audioFile.exists()) {
             return ApiResult.Error(
                 DomainError.ValidationError(
-                    message = "Audio file not found at '${session.audioFilePath}'.",
+                    message = "Audio file not found at '$audioFilePath'.",
                     fields = mapOf("audioFilePath" to "File does not exist.")
                 )
             )
@@ -128,7 +116,10 @@ class MeetingRepositoryImpl @Inject constructor(
 
         return when (val result = remoteDataSource.transcribeAudio(audioFile)) {
             is ApiResult.Success -> {
-                sessions[sessionId] = session.copy(summary = result.data)
+                sessions[sessionId] = SessionData(
+                    audioFilePath = audioFilePath,
+                    summary = result.data
+                )
                 ApiResult.Success(Unit)
             }
             is ApiResult.Error -> result
@@ -140,8 +131,6 @@ class MeetingRepositoryImpl @Inject constructor(
      * Returns the cached meeting summary for [sessionId].
      *
      * The summary is populated by [stopMeetingRecording] after transcription completes.
-     * Calling this before [stopMeetingRecording] returns an error.
-     *
      * The session is removed from the cache after retrieval to free memory.
      *
      * @param sessionId The session identifier returned by [startMeetingRecording].
@@ -169,19 +158,5 @@ class MeetingRepositoryImpl @Inject constructor(
         return ApiResult.Success(session.summary)
     }
 
-    /**
-     * Registers the path of the recorded audio file for a session.
-     *
-     * Must be called by the feature layer (e.g., from `MeetingRecorderScreen`'s
-     * `DisposableEffect` after `MeetingRecorderManager.stopRecording()`) before
-     * calling [stopMeetingRecording].
-     *
-     * @param sessionId     The session identifier returned by [startMeetingRecording].
-     * @param audioFilePath Absolute path to the `.m4a` file from `MeetingRecorderManager`.
-     */
-    fun registerAudioFile(sessionId: String, audioFilePath: String) {
-        sessions.computeIfPresent(sessionId) { _, existing ->
-            existing.copy(audioFilePath = audioFilePath)
-        }
-    }
 }
+
