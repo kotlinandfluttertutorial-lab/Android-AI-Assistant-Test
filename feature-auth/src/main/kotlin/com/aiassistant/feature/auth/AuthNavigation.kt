@@ -128,9 +128,9 @@ fun NavGraphBuilder.authNavGraph(navController: NavHostController, onAuthSuccess
             val googleWebClientId = try {
                 context.getString(
                     context.resources.getIdentifier(
-                        "default_web_client_id", "string", context.packageName
+                        "google_web_client_id", "string", context.packageName
                     )
-                )
+                ).let { if (it == "YOUR_WEB_CLIENT_ID.apps.googleusercontent.com") "" else it }
             } catch (_: Exception) {
                 "" // Returns empty string if google-services.json is not configured yet.
             }

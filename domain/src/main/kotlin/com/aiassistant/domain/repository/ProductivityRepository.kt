@@ -161,6 +161,23 @@ interface ProductivityRepository {
      */
     suspend fun deleteCalendarEvent(eventId: String): ApiResult<Unit>
 
+    /**
+     * Requests AI-generated optimal meeting time suggestions.
+     *
+     * The AI Orchestrator analyses the user's calendar availability (via [prompt])
+     * and returns a list of ISO 8601 datetime strings representing suggested
+     * meeting start times (Requirement 8.2).
+     *
+     * @param prompt          Natural language description of the meeting requirements
+     *                        (e.g. "30-minute sync with the team this week").
+     * @param durationMinutes Duration of the meeting in minutes (default 60).
+     * @return [ApiResult.Success] with a list of ISO 8601 datetime strings on success.
+     */
+    suspend fun suggestMeetingTimes(
+        prompt: String,
+        durationMinutes: Int = 60
+    ): ApiResult<List<String>>
+
     // ── Reminders ────────────────────────────────────────────────────────────
 
     /**
