@@ -4,8 +4,8 @@
  * ============================================================
  * Module     : data
  * File       : MeetingRemoteDataSource.kt
- * Purpose    : Wraps MeetingApiService Retrofit calls in a typed, testable class.
- *              All calls return ApiResult so callers never receive raw exceptions.
+ * Purpose    : Wraps MeetingApiService Retrofit calls and assembles the
+ *              meeting summary from the transcript response.
  *
  * Architecture Layer : Data
  * Pattern Used       : Data Source (remote)
@@ -19,19 +19,25 @@ package com.aiassistant.data.remote.meeting
 import com.aiassistant.core.common.ApiResult
 import com.aiassistant.core.common.DispatcherProvider
 import com.aiassistant.core.common.DomainError
+import java.io.File
 import java.io.IOException
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.withContext
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
 import retrofit2.HttpException
 
 /**
- * Remote data source for meeting recording and transcription network operations.
+ * Remote data source for meeting transcription network operations.
  *
- * Wraps every [MeetingApiService] call in a safe try/catch and returns [ApiResult].
- * All network I/O is dispatched on [DispatcherProvider.io].
+ * Uploads the locally recorded audio file to `POST /transcription` and
+ * formats the returned transcript segments into a meeting summary string
+ * suitable for display in `MeetingSummaryScreen`.
  *
- * @param api         Retrofit service for the meeting endpoints.
+ * @param api         Retrofit service for the transcription endpoint.
  * @param dispatchers Injectable dispatcher provider for I/O work.
  */
 @Singleton
@@ -41,49 +47,70 @@ class MeetingRemoteDataSource @Inject constructor(
 ) {
 
     /**
-     * Opens a new recording session on the Transcription_Service (Requirement 19.1).
+     * Uploads [audioFile] for transcription and returns the formatted summary.
      *
-     * @param userId The authenticated user's identifier.
-     * @return [ApiResult.Success] with the session identifier on success.
+     * The summary is a Markdown-formatted string built from the transcript segments,
+     * with each segment on its own line formatted as `[timestamp] Speaker: text`.
+     * This format is compatible with the action-item regex parser in `MeetingViewModel`.
+     *
+     * @param audioFile  The recorded `.m4a` audio file from `MeetingRecorderManager`.
+     * @param language   BCP 47 language code (default "en").
+     * @return [ApiResult.Success] with the formatted meeting summary on success.
      */
-    suspend fun startMeeting(userId: String): ApiResult<String> =
+    suspend fun transcribeAudio(
+        audioFile: File,
+        language: String = "en"
+    ): ApiResult<String> =
         withContext(dispatchers.io) {
             safeApiCall {
-                api.startMeeting(MeetingStartRequest(userId = userId)).sessionId
-            }
-        }
-
-    /**
-     * Signals the Transcription_Service to stop recording and queue audio for
-     * transcription (Requirement 19.1).
-     *
-     * @param sessionId The session identifier returned by [startMeeting].
-     * @return [ApiResult.Success] with [Unit] when audio is accepted into the queue.
-     */
-    suspend fun stopMeeting(sessionId: String): ApiResult<Unit> =
-        withContext(dispatchers.io) {
-            safeApiCall {
-                api.stopMeeting(
-                    sessionId = sessionId,
-                    body = MeetingStopRequest(sessionId = sessionId)
+                val requestBody = audioFile.asRequestBody("audio/mp4".toMediaType())
+                val filePart = MultipartBody.Part.createFormData(
+                    name = "audio_file",
+                    filename = audioFile.name,
+                    body = requestBody
                 )
-                // Response body is informational only; expose Unit to the domain layer
-                Unit
+                val languagePart = language.toRequestBody("text/plain".toMediaType())
+
+                val response = api.transcribeAudio(filePart, languagePart)
+                formatSummary(response)
             }
         }
 
+    // ─── Formatting helper ────────────────────────────────────────────────────
+
     /**
-     * Retrieves the completed AI-generated meeting summary (Requirement 19.1).
+     * Converts the [TranscriptionResponse] into a Markdown meeting summary string.
      *
-     * @param sessionId The session identifier returned by [startMeeting].
-     * @return [ApiResult.Success] with the full Markdown summary text on success.
+     * Format:
+     * ```
+     * ## Transcript
+     *
+     * [00:00:00] Speaker 1: Welcome to the meeting...
+     * [00:00:30] Speaker 2: Thank you for joining...
+     * ```
+     *
+     * Duration is appended as a metadata line at the end.
      */
-    suspend fun getMeetingSummary(sessionId: String): ApiResult<String> =
-        withContext(dispatchers.io) {
-            safeApiCall {
-                api.getMeetingSummary(sessionId = sessionId).summary
+    private fun formatSummary(response: TranscriptionResponse): String {
+        val sb = StringBuilder()
+        sb.appendLine("## Transcript")
+        sb.appendLine()
+
+        if (response.transcript.isEmpty()) {
+            sb.appendLine("No transcript segments were generated.")
+        } else {
+            response.transcript.forEach { segment ->
+                sb.appendLine("[${segment.timestamp}] ${segment.speaker}: ${segment.text}")
             }
         }
+
+        sb.appendLine()
+        val durationMin = (response.durationSeconds / 60).toInt()
+        val durationSec = (response.durationSeconds % 60).toInt()
+        sb.append("_Duration: ${durationMin}m ${durationSec}s · Language: ${response.language}_")
+
+        return sb.toString()
+    }
 
     // ─── Safe call helper ─────────────────────────────────────────────────────
 
@@ -103,9 +130,9 @@ class MeetingRemoteDataSource @Inject constructor(
     private fun HttpException.toDomainError(): DomainError = when (code()) {
         401 -> DomainError.Unauthorized(cause = this)
         403 -> DomainError.Forbidden(cause = this)
-        404 -> DomainError.ServerError(
-            message = "Meeting session not found (HTTP 404).",
-            httpStatusCode = 404,
+        422 -> DomainError.ValidationError(
+            message = "Invalid audio file (HTTP 422). " +
+                "Supported formats: mp3, wav, m4a, ogg, webm. Max 100 MB.",
             cause = this
         )
         in 400..499 -> DomainError.ValidationError(
@@ -113,7 +140,7 @@ class MeetingRemoteDataSource @Inject constructor(
             cause = this
         )
         in 500..599 -> DomainError.ServerError(
-            message = "Server error (HTTP ${code()}).",
+            message = "Transcription service error (HTTP ${code()}).",
             httpStatusCode = code(),
             cause = this
         )

@@ -1,6 +1,6 @@
 # Developer Todo List — Android AI Assistant (Enterprise Edition)
 
-> **Last updated:** August 19, 2026
+> **Last updated:** August 19, 2026 (session 2)
 > **Purpose:** Reference checklist for taking the project from fully implemented spec to a production-ready, deployable system.
 > **Status legend:** 🔴 Critical · 🟠 High Priority · 🟡 Medium Priority · 🟢 Lower Priority
 
@@ -16,13 +16,18 @@
 | Docker / docker-compose | ✅ Production-ready |
 | Nginx, Prometheus, Loki configs | ✅ Real configs |
 | Android domain layer | ✅ Fully implemented |
-| Android data layer | ✅ Fully implemented |
+| Android data layer | ✅ Fully implemented — all stubs wired |
 | core-security (SecureStorage, Biometric) | ✅ Real implementations |
 | feature-auth, feature-chat, feature-voice | ✅ Real screens + ViewModels |
-| 12 remaining feature modules | ⚠️ UI layer needs verification |
-| Android unit tests | ⚠️ Lagging behind backend |
-| CI/CD secrets & environments | ⚠️ Not configured |
-| Production env vars | 🔴 Placeholders only |
+| 12 remaining feature modules | ✅ All verified and completed (Task 6) |
+| Android unit tests | ✅ All 3 phases complete (domain, ViewModel, Compose UI) |
+| CI/CD workflows | ✅ Cloud Run pipeline complete; GitHub secrets = manual step |
+| Production env vars | 🔴 Must be filled in before first deploy |
+| Google Sign-In | ✅ Wired via Credential Manager; `google_web_client_id` placeholder added |
+| Context suggestions | ✅ Wired to `POST /api/v1/suggestions/context` |
+| Meeting time suggestions | ✅ Wired to `POST /productivity/calendar/suggest-times` |
+| Code analysis (`/code/analyze`) | ⚠️ Android wired and ready; backend endpoint not yet implemented |
+| BASE_URL / CERTIFICATE_PINS | ✅ BuildConfig-driven per build variant |
 
 ---
 
@@ -61,7 +66,7 @@ Copy `backend/.env.example` → `backend/.env` (on the server only, never commit
 
 - [ ] All variables above filled in on staging server
 - [ ] All variables above filled in on production server
-- [ ] `LLM_FALLBACK_PROVIDER` added to `.env.example` — the orchestrator reads this setting but it is not yet documented
+- [x] `LLM_FALLBACK_PROVIDER` added to `.env.example` — already present and documented
 
 ---
 
