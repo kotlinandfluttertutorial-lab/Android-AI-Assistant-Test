@@ -4,21 +4,12 @@ $REGION  = "asia-south1"
 $SA      = "ai-assistant-backend@$PROJECT.iam.gserviceaccount.com"
 $IMAGE   = "$REGION-docker.pkg.dev/$PROJECT/backend/api:latest"
 
-Write-Host "=== Creating Alembic migration job ===" -ForegroundColor Cyan
-
-# Create the job (ignore error if already exists)
-& $gcloud run jobs create alembic-migrate `
+Write-Host "=== Updating Alembic job image ===" -ForegroundColor Cyan
+& $gcloud run jobs update alembic-migrate `
     --image="$IMAGE" `
     --region="$REGION" `
     --project="$PROJECT" `
-    --service-account="$SA" `
-    --set-secrets="DATABASE_URL=DATABASE_URL:5,SECRET_KEY=SECRET_KEY:3,REDIS_URL=REDIS_URL:3,AES_ENCRYPTION_KEY=AES_ENCRYPTION_KEY:3" `
-    --set-env-vars="ENVIRONMENT=production" `
-    --command="python" `
-    --args="-m,alembic,upgrade,head" `
-    --max-retries=1 `
-    --memory=512Mi `
-    --cpu=1 `
+    --update-secrets="DATABASE_URL=DATABASE_URL:7" `
     2>&1
 
 Write-Host ""
@@ -30,4 +21,4 @@ Write-Host "=== Running migration ===" -ForegroundColor Cyan
     2>&1
 
 Write-Host ""
-Write-Host "=== Migration complete ===" -ForegroundColor Green
+Write-Host "=== Done ===" -ForegroundColor Green

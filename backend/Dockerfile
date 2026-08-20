@@ -83,8 +83,10 @@ RUN addgroup --system appgroup \
 
 WORKDIR /app
 
-# Copy application source code
+# Copy application source code and Alembic migration files
 COPY app/ ./app/
+COPY alembic/ ./alembic/
+COPY alembic.ini .
 
 # Ensure the non-root user owns the app directory
 RUN chown -R appuser:appgroup /app
