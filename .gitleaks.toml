@@ -32,6 +32,8 @@ commits = [
     "14bacc6365685d8bd06fb391cde6bc85c10582b1",
     "71f353df7dfa91352b1983050728a8d29313c9cc",
     "41db3754e88a3c9883b7bfbeb5faeb4f01463182",  # CI test AES_ENCRYPTION_KEY — test-only value, now moved to secret
+    "156b4b50146ead2dbe55f1ef56193ff7f0879960",  # GEMINI_API_KEY — key has been revoked and rotated, script fixed
+    "78531b1fe44f5abdf942128757e5c1f3b8ec8970",  # curl-auth-header in CLOUD_RUN_DEPLOYMENT.md — placeholder example
 ]
 
 regexes = [

@@ -16,8 +16,14 @@ function Store-Secret($name, $value) {
     }
 }
 
-# Update GEMINI_API_KEY to the new working key
-Store-Secret "GEMINI_API_KEY" "AIzaSyAEW_TTf-lfB-Tq07utHnBaEeWtGjzDH24"
+# Store GEMINI_API_KEY — pass the value via the GEMINI_API_KEY environment variable
+# Usage: $env:GEMINI_API_KEY = "your-key-here" ; .\store-secrets.ps1
+# Never hardcode the key value in this file.
+if (-not $env:GEMINI_API_KEY) {
+    Write-Host "❌ GEMINI_API_KEY environment variable is not set. Aborting." -ForegroundColor Red
+    exit 1
+}
+Store-Secret "GEMINI_API_KEY" $env:GEMINI_API_KEY
 
 Write-Host ""
 Write-Host "=== All secrets in Secret Manager ==="

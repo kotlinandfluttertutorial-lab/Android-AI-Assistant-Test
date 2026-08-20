@@ -82,6 +82,7 @@ import com.aiassistant.domain.usecase.productivity.GetHabitInsightsUseCase
 import com.aiassistant.domain.usecase.productivity.GetRemindersUseCase
 import com.aiassistant.domain.usecase.productivity.GetTodosUseCase
 import com.aiassistant.domain.usecase.productivity.LogHabitEntryUseCase
+import com.aiassistant.domain.usecase.productivity.SuggestMeetingTimesUseCase
 import com.aiassistant.domain.usecase.productivity.SuggestReminderUseCase
 import com.aiassistant.domain.usecase.productivity.UpdateReminderUseCase
 import com.aiassistant.domain.usecase.productivity.UpdateTodoUseCase
@@ -152,6 +153,13 @@ object ProductivityModule {
     @Provides
     fun provideDeleteCalendarEventUseCase(repo: ProductivityRepository): DeleteCalendarEventUseCase =
         DeleteCalendarEventUseCase(repo)
+
+    /**
+     * Provides [SuggestMeetingTimesUseCase] backed by the injected [ProductivityRepository].
+     */
+    @Provides
+    fun provideSuggestMeetingTimesUseCase(repo: ProductivityRepository): SuggestMeetingTimesUseCase =
+        SuggestMeetingTimesUseCase(repo)
 
     // â”€â”€ Reminder use cases â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
