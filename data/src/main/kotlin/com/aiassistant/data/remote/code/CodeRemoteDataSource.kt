@@ -54,24 +54,23 @@ class CodeRemoteDataSource @Inject constructor(
      * @param request Domain request containing code, language, and action.
      * @return [ApiResult.Success] with [CodeAnalysisResult] on success.
      */
-    suspend fun analyzeCode(request: CodeAnalysisRequest): ApiResult<CodeAnalysisResult> =
-        withContext(dispatchers.io) {
-            safeApiCall {
-                val dto = api.analyzeCode(
-                    CodeAnalysisRequestDto(
-                        code = request.code,
-                        languageId = request.language.toApiId(),
-                        action = request.action.toApiId()
-                    )
+    suspend fun analyzeCode(request: CodeAnalysisRequest): ApiResult<CodeAnalysisResult> = withContext(dispatchers.io) {
+        safeApiCall {
+            val dto = api.analyzeCode(
+                CodeAnalysisRequestDto(
+                    code = request.code,
+                    languageId = request.language.toApiId(),
+                    action = request.action.toApiId()
                 )
-                CodeAnalysisResult(
-                    languageId = dto.languageId,
-                    originalCode = dto.originalCode,
-                    action = request.action,
-                    content = dto.content
-                )
-            }
+            )
+            CodeAnalysisResult(
+                languageId = dto.languageId,
+                originalCode = dto.originalCode,
+                action = request.action,
+                content = dto.content
+            )
         }
+    }
 
     // ─── Mapping helpers ──────────────────────────────────────────────────────
 

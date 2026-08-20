@@ -29,9 +29,7 @@ import javax.inject.Inject
  *
  * @param productivityRepository Repository providing the meeting time suggestion operation.
  */
-class SuggestMeetingTimesUseCase @Inject constructor(
-    private val productivityRepository: ProductivityRepository
-) {
+class SuggestMeetingTimesUseCase @Inject constructor(private val productivityRepository: ProductivityRepository) {
 
     /**
      * Requests AI meeting time suggestions.
@@ -49,10 +47,7 @@ class SuggestMeetingTimesUseCase @Inject constructor(
      *         or [durationMinutes] is out of range.
      *         [ApiResult.NetworkUnavailable] when the device is offline.
      */
-    suspend operator fun invoke(
-        prompt: String,
-        durationMinutes: Int = 60
-    ): ApiResult<List<String>> {
+    suspend operator fun invoke(prompt: String, durationMinutes: Int = 60): ApiResult<List<String>> {
         if (prompt.isBlank()) {
             return ApiResult.Error(
                 DomainError.ValidationError(

@@ -264,19 +264,16 @@ class ProductivityRepositoryImpl @Inject constructor(
         ApiResult.Success(Unit)
     }
 
-
     /**
      * Requests AI-generated meeting time suggestions (Requirement 8.2).
      *
      * Requires connectivity. Returns [ApiResult.NetworkUnavailable] when offline.
      */
-    override suspend fun suggestMeetingTimes(
-        prompt: String,
-        durationMinutes: Int
-    ): ApiResult<List<String>> = withContext(dispatchers.io) {
-        if (!connectivityObserver.isConnected()) return@withContext ApiResult.NetworkUnavailable
-        remoteSource.suggestMeetingTimes(prompt, durationMinutes)
-    }
+    override suspend fun suggestMeetingTimes(prompt: String, durationMinutes: Int): ApiResult<List<String>> =
+        withContext(dispatchers.io) {
+            if (!connectivityObserver.isConnected()) return@withContext ApiResult.NetworkUnavailable
+            remoteSource.suggestMeetingTimes(prompt, durationMinutes)
+        }
 
     // â”€â”€ Reminders â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 

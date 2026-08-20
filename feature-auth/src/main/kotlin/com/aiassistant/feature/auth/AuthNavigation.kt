@@ -6,7 +6,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.stringResource
 import androidx.fragment.app.FragmentActivity
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavGraphBuilder
@@ -128,7 +127,9 @@ fun NavGraphBuilder.authNavGraph(navController: NavHostController, onAuthSuccess
             val googleWebClientId = try {
                 context.getString(
                     context.resources.getIdentifier(
-                        "google_web_client_id", "string", context.packageName
+                        "google_web_client_id",
+                        "string",
+                        context.packageName
                     )
                 ).let { if (it == "YOUR_WEB_CLIENT_ID.apps.googleusercontent.com") "" else it }
             } catch (_: Exception) {

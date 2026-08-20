@@ -57,10 +57,7 @@ class MeetingRemoteDataSource @Inject constructor(
      * @param language   BCP 47 language code (default "en").
      * @return [ApiResult.Success] with the formatted meeting summary on success.
      */
-    suspend fun transcribeAudio(
-        audioFile: File,
-        language: String = "en"
-    ): ApiResult<String> =
+    suspend fun transcribeAudio(audioFile: File, language: String = "en"): ApiResult<String> =
         withContext(dispatchers.io) {
             safeApiCall {
                 val requestBody = audioFile.asRequestBody("audio/mp4".toMediaType())

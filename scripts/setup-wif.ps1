@@ -7,7 +7,7 @@ $SA           = "ai-assistant-backend@$PROJECT.iam.gserviceaccount.com"
 # Replace YOUR_GITHUB_USERNAME with your actual GitHub username
 # Example: if your repo is github.com/kotlinandfluttertutorial-lab/Android-AI-Assistant-Test
 # then set: $GITHUB_USER = "kotlinandfluttertutorial-lab"
-$GITHUB_USER  = "YOUR_GITHUB_USERNAME"
+$GITHUB_USER  = "kotlinandfluttertutorial-lab"
 $REPO_NAME    = "Android-AI-Assistant-Test"
 # ─────────────────────────────────────────────────────────────────────────────
 

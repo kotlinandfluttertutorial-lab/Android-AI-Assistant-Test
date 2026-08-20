@@ -56,7 +56,6 @@ abstract class CodeDataModule {
          */
         @Provides
         @Singleton
-        fun provideCodeApiService(retrofit: Retrofit): CodeApiService =
-            retrofit.create(CodeApiService::class.java)
+        fun provideCodeApiService(retrofit: Retrofit): CodeApiService = retrofit.create(CodeApiService::class.java)
     }
 }

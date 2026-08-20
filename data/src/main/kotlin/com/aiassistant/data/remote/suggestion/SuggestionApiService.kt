@@ -83,9 +83,7 @@ data class SuggestionResponseItem(
  * @param suggestions List of 0–3 context-aware suggestions.
  */
 @Serializable
-data class SuggestionsResponse(
-    @SerialName("suggestions") val suggestions: List<SuggestionResponseItem> = emptyList()
-)
+data class SuggestionsResponse(@SerialName("suggestions") val suggestions: List<SuggestionResponseItem> = emptyList())
 
 // ─── Retrofit service ─────────────────────────────────────────────────────────
 

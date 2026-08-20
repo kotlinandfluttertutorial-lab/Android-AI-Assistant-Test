@@ -57,10 +57,7 @@ class MeetingRepositoryImpl @Inject constructor(
      * can locate the file. The summary is stored after transcription completes so
      * [getMeetingSummary] can return it without re-uploading.
      */
-    private data class SessionData(
-        val audioFilePath: String = "",
-        val summary: String = ""
-    )
+    private data class SessionData(val audioFilePath: String = "", val summary: String = "")
 
     private val sessions = ConcurrentHashMap<String, SessionData>()
 
@@ -157,6 +154,4 @@ class MeetingRepositoryImpl @Inject constructor(
 
         return ApiResult.Success(session.summary)
     }
-
 }
-

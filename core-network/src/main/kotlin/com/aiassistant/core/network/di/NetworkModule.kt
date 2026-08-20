@@ -183,7 +183,9 @@ object NetworkModule {
         // logcat. Level is restored after the call completes.
         .addInterceptor { chain ->
             val isBinaryRequest = chain.request().body?.contentType()?.let { ct ->
-                ct.type == "multipart" || ct.subtype == "pdf" || ct.type == "image" ||
+                ct.type == "multipart" ||
+                    ct.subtype == "pdf" ||
+                    ct.type == "image" ||
                     ct.subtype == "octet-stream"
             } ?: false
 

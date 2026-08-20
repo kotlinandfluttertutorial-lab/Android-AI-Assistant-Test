@@ -361,11 +361,7 @@ fun LoginScreen(
  * @param onTokenReceived    Called with the Google ID token string on successful sign-in.
  */
 @Composable
-fun GoogleSignInButton(
-    googleWebClientId: String,
-    enabled: Boolean,
-    onTokenReceived: (String) -> Unit
-) {
+fun GoogleSignInButton(googleWebClientId: String, enabled: Boolean, onTokenReceived: (String) -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var isSigningIn by remember { mutableStateOf(false) }

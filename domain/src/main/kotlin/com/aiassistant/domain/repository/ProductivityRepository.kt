@@ -173,10 +173,7 @@ interface ProductivityRepository {
      * @param durationMinutes Duration of the meeting in minutes (default 60).
      * @return [ApiResult.Success] with a list of ISO 8601 datetime strings on success.
      */
-    suspend fun suggestMeetingTimes(
-        prompt: String,
-        durationMinutes: Int = 60
-    ): ApiResult<List<String>>
+    suspend fun suggestMeetingTimes(prompt: String, durationMinutes: Int = 60): ApiResult<List<String>>
 
     // ── Reminders ────────────────────────────────────────────────────────────
 
