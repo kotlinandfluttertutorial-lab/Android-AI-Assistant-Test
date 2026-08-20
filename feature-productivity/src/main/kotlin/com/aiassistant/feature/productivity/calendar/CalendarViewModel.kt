@@ -443,6 +443,45 @@ class CalendarViewModel @Inject constructor(
         }
     }
 
+
+    /**
+     * Requests AI-generated optimal meeting time suggestions via [SuggestMeetingTimesUseCase].
+     *
+     * Sets [CalendarUiState.CalendarView.isLoadingAiSuggestions] to true while the
+     * request is in-flight. On success, populates [CalendarUiState.CalendarView.aiSuggestedTimes]
+     * with the returned suggested windows. On any failure, silently clears the loading flag.
+     *
+     * Requirements: 8.2
+     */
+    fun requestAiMeetingTimeSuggestions() {
+        val currentState = _uiState.value as? CalendarUiState.CalendarView ?: return
+        _uiState.value = currentState.copy(isLoadingAiSuggestions = true)
+
+        viewModelScope.launch(dispatchers.io) {
+            val result = suggestMeetingTimesUseCase(
+                prompt = "Suggest optimal meeting times based on my calendar",
+                durationMinutes = 60
+            )
+            val latestState = _uiState.value as? CalendarUiState.CalendarView ?: return@launch
+            _uiState.value = when (result) {
+                is ApiResult.Success -> {
+                    val suggestions = result.data.mapIndexed { index, isoTime ->
+                        val startMs = runCatching {
+                            java.time.OffsetDateTime.parse(isoTime)
+                                .toInstant().toEpochMilli()
+                        }.getOrElse { System.currentTimeMillis() + (index + 1) * 86_400_000L }
+                        SuggestedMeetingTime(
+                            startTime = startMs,
+                            endTime = startMs + DEFAULT_EVENT_DURATION_MS,
+                            reason = "AI suggested time slot"
+                        )
+                    }
+                    latestState.copy(isLoadingAiSuggestions = false, aiSuggestedTimes = suggestions)
+                }
+                else -> latestState.copy(isLoadingAiSuggestions = false)
+            }
+        }
+    }
     // â”€â”€â”€ Private helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /**
