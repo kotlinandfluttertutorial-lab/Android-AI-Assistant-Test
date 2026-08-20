@@ -1,4 +1,4 @@
-﻿[versions]
+[versions]
 # Build tools
 agp = "8.8.0"
 kotlin = "2.0.21"
