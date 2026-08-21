@@ -140,13 +140,13 @@ if (Test-Path $gsJson) {
 Write-Step "Building Gradle command..."
 
 if ($Module -ne "") {
-    # Single-module mode: e.g. :domain:test
-    $gradleTask = ":${Module}:test"
+    # Single-module mode: e.g. :domain:testDebugUnitTest
+    $gradleTask = ":${Module}:testDebugUnitTest"
     Write-Ok "Target: $gradleTask (single module)"
 } else {
-    # All modules
-    $gradleTask = "test"
-    Write-Ok "Target: test (all modules)"
+    # All modules — debug variant only (~50% faster than running both debug+release)
+    $gradleTask = "testDebugUnitTest"
+    Write-Ok "Target: testDebugUnitTest (all modules, debug variant)"
 }
 
 $gradleArgs = @($gradleTask)
