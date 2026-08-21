@@ -18,6 +18,7 @@ import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.test.advanceUntilIdle
@@ -172,11 +173,20 @@ class FailoverBannerStateProviderTest :
         describe("FailoverBannerStateProvider — StateFlow semantics") {
 
             it("late subscribers receive the current banner state immediately") {
-                // Use a real coroutine scope (not runTest) since the provider uses Dispatchers.Default
-                kotlinx.coroutines.runBlocking {
+                // Use runBlocking since the provider uses Dispatchers.Default internally
+                runBlocking {
                     val (provider, bus) = buildProvider()
 
-                    // Publish an event before any subscriber exists
+                    // Subscribe first to ensure the provider's internal collection coroutine
+                    // has started before we publish (tryEmit drops events without collectors)
+                    val job = launch(kotlinx.coroutines.Dispatchers.Default) {
+                        provider.bannerState.collect { /* drain */ }
+                    }
+
+                    // Small yield to let the Default dispatcher start the collection coroutine
+                    kotlinx.coroutines.delay(50)
+
+                    // Publish an event — now there is definitely a collector active
                     bus.publish(
                         FailoverEvent.SwitchedToEndpoint(
                             activeEndpointName = "eu-failover",
@@ -184,10 +194,12 @@ class FailoverBannerStateProviderTest :
                         )
                     )
 
-                    // Wait up to 2 seconds for the Default-dispatcher coroutine to process
-                    kotlinx.coroutines.withTimeout(2_000L) {
+                    // Wait for the state to update
+                    withTimeout(2_000L) {
                         provider.bannerState.first { it.isVisible }
                     }
+
+                    job.cancel()
 
                     // A late subscriber should see the current state (StateFlow replay = 1)
                     val currentState = provider.bannerState.value

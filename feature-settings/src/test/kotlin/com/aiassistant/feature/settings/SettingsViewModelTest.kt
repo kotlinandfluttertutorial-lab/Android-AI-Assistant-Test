@@ -43,6 +43,8 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.filterIsInstance
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -449,8 +451,12 @@ class SettingsViewModelTest :
                     coEvery { mockAuthRepository.changePassword(any(), any()) } returns ApiResult.Success(Unit)
 
                     val vm = buildViewModel()
-                    // Wait for Settings state to load so lastKnownSettings is populated
-                    vm.uiState.value.shouldBeInstanceOf<SettingsUiState.Settings>()
+                    // Collect first Settings emission to guarantee lastKnownSettings is set
+                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+                        kotlinx.coroutines.withTimeout(2_000L) {
+                            vm.uiState.filterIsInstance<SettingsUiState.Settings>().first()
+                        }
+                    }
                     vm.changePassword("oldPass123!", "newPass456!")
                     testDispatcher.scheduler.advanceUntilIdle()
 
@@ -465,7 +471,11 @@ class SettingsViewModelTest :
                     coEvery { mockAuthRepository.changePassword(any(), any()) } returns ApiResult.Success(Unit)
 
                     val vm = buildViewModel()
-                    vm.uiState.value.shouldBeInstanceOf<SettingsUiState.Settings>()
+                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+                        kotlinx.coroutines.withTimeout(2_000L) {
+                            vm.uiState.filterIsInstance<SettingsUiState.Settings>().first()
+                        }
+                    }
                     vm.changePassword("oldPass123!", "newPass456!")
                     testDispatcher.scheduler.advanceUntilIdle()
 
@@ -502,7 +512,11 @@ class SettingsViewModelTest :
                     coEvery { mockAuthRepository.changePassword(any(), any()) } returns ApiResult.Error(error)
 
                     val vm = buildViewModel()
-                    vm.uiState.value.shouldBeInstanceOf<SettingsUiState.Settings>()
+                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+                        kotlinx.coroutines.withTimeout(2_000L) {
+                            vm.uiState.filterIsInstance<SettingsUiState.Settings>().first()
+                        }
+                    }
                     vm.changePassword("wrongOld123!", "newPass456!")
                     testDispatcher.scheduler.advanceUntilIdle()
 

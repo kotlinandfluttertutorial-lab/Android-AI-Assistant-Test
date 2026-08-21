@@ -33,7 +33,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldNotBeEmpty
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
-import io.mockk.ofType
 import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
@@ -47,30 +46,28 @@ class ContextSuggestionRepositoryImplTest :
 
         beforeEach {
             coEvery { mockConnectivityObserver.isConnected() } returns true
-            // Return context-appropriate suggestions based on context type
-            coEvery { mockRemoteDataSource.getSuggestions(ofType<ScreenContext.NoteContext>()) } returns ApiResult.Success(
-                listOf(
-                    ContextSuggestion("n1", SuggestionType.SUMMARIZE, "Summarize", "", TargetScreenType.NOTE),
-                    ContextSuggestion("n2", SuggestionType.ADD_ACTION_ITEMS, "Add actions", "", TargetScreenType.NOTE),
-                    ContextSuggestion("n3", SuggestionType.EXPAND, "Expand", "", TargetScreenType.NOTE)
-                )
-            )
-            coEvery { mockRemoteDataSource.getSuggestions(ofType<ScreenContext.CalendarEventContext>()) } returns ApiResult.Success(
-                listOf(
-                    ContextSuggestion("c1", SuggestionType.DRAFT_AGENDA, "Draft agenda", "", TargetScreenType.CALENDAR_EVENT),
-                    ContextSuggestion("c2", SuggestionType.PREP_QUESTIONS, "Prep questions", "", TargetScreenType.CALENDAR_EVENT),
-                    ContextSuggestion("c3", SuggestionType.LOOKUP_ATTENDEES, "Lookup attendees", "", TargetScreenType.CALENDAR_EVENT)
-                )
-            )
-            // Conversation suggestions depend on message age — handled per-test via coEvery overrides
-            coEvery { mockRemoteDataSource.getSuggestions(ofType<ScreenContext.ConversationContext>()) } answers {
-                val ctx = firstArg<ScreenContext.ConversationContext>()
-                if (ctx.lastMessageAgeMillis >= 24L * 60L * 60L * 1_000L) {
-                    ApiResult.Success(listOf(
-                        ContextSuggestion("v1", SuggestionType.CONTINUE_CONVERSATION, "Continue", "", TargetScreenType.CHAT_CONVERSATION)
+            // Default: return context-appropriate suggestions based on context type
+            coEvery { mockRemoteDataSource.getSuggestions(any()) } answers {
+                when (val ctx = firstArg<ScreenContext>()) {
+                    is ScreenContext.NoteContext -> ApiResult.Success(listOf(
+                        ContextSuggestion("n1", SuggestionType.SUMMARIZE, "Summarize", "", TargetScreenType.NOTE),
+                        ContextSuggestion("n2", SuggestionType.ADD_ACTION_ITEMS, "Add actions", "", TargetScreenType.NOTE),
+                        ContextSuggestion("n3", SuggestionType.EXPAND, "Expand", "", TargetScreenType.NOTE)
                     ))
-                } else {
-                    ApiResult.Success(emptyList())
+                    is ScreenContext.CalendarEventContext -> ApiResult.Success(listOf(
+                        ContextSuggestion("c1", SuggestionType.DRAFT_AGENDA, "Draft agenda", "", TargetScreenType.CALENDAR_EVENT),
+                        ContextSuggestion("c2", SuggestionType.PREP_QUESTIONS, "Prep questions", "", TargetScreenType.CALENDAR_EVENT),
+                        ContextSuggestion("c3", SuggestionType.LOOKUP_ATTENDEES, "Lookup attendees", "", TargetScreenType.CALENDAR_EVENT)
+                    ))
+                    is ScreenContext.ConversationContext ->
+                        if (ctx.lastMessageAgeMillis >= 24L * 60L * 60L * 1_000L) {
+                            ApiResult.Success(listOf(
+                                ContextSuggestion("v1", SuggestionType.CONTINUE_CONVERSATION, "Continue", "", TargetScreenType.CHAT_CONVERSATION)
+                            ))
+                        } else {
+                            ApiResult.Success(emptyList())
+                        }
+                    else -> ApiResult.Success(emptyList())
                 }
             }
         }
