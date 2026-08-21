@@ -72,7 +72,7 @@ subprojects {
 // every unit-test task across all subprojects.
 subprojects {
     tasks.withType<Test>().configureEach {
-        maxHeapSize = "1g"
+        maxHeapSize = "2g"
         jvmArgs("-XX:MaxMetaspaceSize=256m", "-Dfile.encoding=UTF-8")
     }
 }
