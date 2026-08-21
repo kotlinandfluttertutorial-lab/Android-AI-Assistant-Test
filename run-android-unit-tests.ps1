@@ -167,6 +167,10 @@ $startTime = Get-Date
 & "$gradlew" @gradleArgs
 $gradleExitCode = $LASTEXITCODE
 
+if ($gradleExitCode -eq -1) {
+    Write-Warn "Gradle process appears to have crashed (exit code -1). This is often due to memory pressure (OOM)."
+}
+
 $elapsed = (Get-Date) - $startTime
 $elapsedStr = "{0:mm\:ss}" -f $elapsed
 
@@ -178,38 +182,49 @@ $xmlFiles = Get-ChildItem -Path $ProjectRoot `
     -Filter "*.xml" `
     -Recurse `
     -ErrorAction SilentlyContinue |
-    Where-Object { $_.FullName -match 'build[\\/]test-results[\\/]test' }
+    Where-Object { $_.FullName -match 'build[\\/]test-results[\\/]test.*UnitTest' }
 
-$totalTests   = 0
-$totalPassed  = 0
-$totalFailed  = 0
-$totalSkipped = 0
-$totalErrors  = 0
-$failedTests  = @()
-
+$totalTests      = 0
+$totalPassed     = 0
+$totalFailed     = 0
+$totalSkipped    = 0
+$totalErrors     = 0
+$failedTests     = @()
+$processedClasses = New-Object 'System.Collections.Generic.HashSet[string]'
 foreach ($file in $xmlFiles) {
     try {
-        [xml]$xml = Get-Content $file.FullName -Encoding UTF8
-        foreach ($suite in $xml.testsuite) {
-            $tests    = $(if ($suite.tests)    { [int]$suite.tests }    else { 0 })
-            $failures = $(if ($suite.failures) { [int]$suite.failures } else { 0 })
-            $errors   = $(if ($suite.errors)   { [int]$suite.errors }   else { 0 })
-            $skipped  = $(if ($suite.skipped)  { [int]$suite.skipped }  else { 0 })
+        if ($file.Length -eq 0) { continue }
+        $xml = New-Object System.Xml.XmlDocument
+        $xml.Load($file.FullName)
+
+        $suites = $xml.SelectNodes("//testsuite")
+        foreach ($suite in $suites) {
+            $name = $suite.GetAttribute("name")
+            if (-not $name -or $processedClasses.Contains($name)) { continue }
+            $processedClasses.Add($name) | Out-Null
+
+            $tests    = if ($suite.GetAttribute("tests"))    { [int]$suite.GetAttribute("tests") }    else { 0 }
+            $failures = if ($suite.GetAttribute("failures")) { [int]$suite.GetAttribute("failures") } else { 0 }
+            $errors   = if ($suite.GetAttribute("errors"))   { [int]$suite.GetAttribute("errors") }   else { 0 }
+            $skipped  = if ($suite.GetAttribute("skipped"))  { [int]$suite.GetAttribute("skipped") }  else { 0 }
 
             $totalTests   += $tests
             $totalFailed  += $failures
             $totalErrors  += $errors
             $totalSkipped += $skipped
 
-            # Collect individual failure names for the summary
-            foreach ($tc in $suite.testcase) {
-                if ($tc.failure -or $tc.error) {
-                    $failedTests += "  - $($suite.name).$($tc.name)"
+            # Collect individual failure names
+            $testCases = $suite.SelectNodes("testcase")
+            foreach ($tc in $testCases) {
+                $hasFailure = $tc.SelectSingleNode("failure") -ne $null
+                $hasError   = $tc.SelectSingleNode("error") -ne $null
+                if ($hasFailure -or $hasError) {
+                    $failedTests += "  - $name.$($tc.GetAttribute('name'))"
                 }
             }
         }
     } catch {
-        Write-Warn "Could not parse: $($file.FullName)"
+        Write-Warn "Could not parse: $($file.FullName) - $($_.Exception.Message)"
     }
 }
 
@@ -270,7 +285,11 @@ if (@($htmlReports).Count -gt 0) {
 Write-Host ""
 
 if ($gradleExitCode -ne 0 -or ($totalFailed + $totalErrors) -gt 0) {
-    Write-Fail "BUILD FAILED  (Gradle exit: $gradleExitCode, test failures: $($totalFailed + $totalErrors))"
+    $failMsg = "BUILD FAILED  (Gradle exit: $gradleExitCode, test failures: $($totalFailed + $totalErrors))"
+    if ($gradleExitCode -eq -1) {
+        $failMsg += "`n  Tip: The Gradle daemon may have run out of memory. Try increasing org.gradle.jvmargs in gradle.properties."
+    }
+    Write-Fail $failMsg
     Write-Host ""
     exit 1
 } else {

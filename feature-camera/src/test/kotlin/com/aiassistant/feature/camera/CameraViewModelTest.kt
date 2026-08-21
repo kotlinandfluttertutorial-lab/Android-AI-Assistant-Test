@@ -26,12 +26,14 @@ import com.aiassistant.domain.usecase.conversation.SendMessageUseCase
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldContainIgnoringCase
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.slot
 import java.time.Instant
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -535,21 +537,16 @@ class CameraViewModelTest :
             it("message content includes the decoded payload text") {
                 runTest(testDispatcher) {
                     val vm = buildViewModel()
-                    var capturedContent = ""
+                    val slot = slot<String>()
                     coEvery {
                         mockSendMessageUseCase(
-                            any(),
-                            capture(
-                                io.mockk.CapturingSlot<String>().also {
-                                    coEvery { mockSendMessageUseCase(any(), any(), any()) } coAnswers {
-                                        capturedContent = secondArg()
-                                        ApiResult.Success(testMessage(content = secondArg()))
-                                    }
-                                }
-                            ),
-                            any()
+                            conversationId = any(),
+                            content = capture(slot),
+                            provider = any()
                         )
-                    } returns ApiResult.Success(testMessage())
+                    } coAnswers {
+                        ApiResult.Success(testMessage(content = slot.captured))
+                    }
 
                     vm.onBarcodeDetected(
                         payload = "SCAN_PAYLOAD_DATA",
@@ -558,7 +555,7 @@ class CameraViewModelTest :
                         provider = "gpt-4o"
                     )
 
-                    capturedContent.shouldContainIgnoringCase("SCAN_PAYLOAD_DATA")
+                    slot.captured shouldContain "SCAN_PAYLOAD_DATA"
                 }
             }
 
