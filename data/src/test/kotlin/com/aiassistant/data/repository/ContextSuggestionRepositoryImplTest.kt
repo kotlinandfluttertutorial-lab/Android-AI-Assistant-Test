@@ -25,6 +25,7 @@ import com.aiassistant.data.remote.suggestion.SuggestionRemoteDataSource
 import com.aiassistant.domain.model.ContextSuggestion
 import com.aiassistant.domain.model.ScreenContext
 import com.aiassistant.domain.model.SuggestionType
+import com.aiassistant.domain.model.TargetScreenType
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
@@ -47,9 +48,9 @@ class ContextSuggestionRepositoryImplTest :
             coEvery { mockConnectivityObserver.isConnected() } returns true
             coEvery { mockRemoteDataSource.getSuggestions(any()) } returns ApiResult.Success(
                 listOf(
-                    ContextSuggestion("Summarize", SuggestionType.SUMMARIZE, "Summarize this note"),
-                    ContextSuggestion("Add action items", SuggestionType.ADD_ACTION_ITEMS, "Extract action items"),
-                    ContextSuggestion("Expand", SuggestionType.EXPAND, "Expand on this content")
+                    ContextSuggestion("sug-1", SuggestionType.SUMMARIZE, "Summarize this note", "", TargetScreenType.NOTE),
+                    ContextSuggestion("sug-2", SuggestionType.ADD_ACTION_ITEMS, "Extract action items", "", TargetScreenType.NOTE),
+                    ContextSuggestion("sug-3", SuggestionType.EXPAND, "Expand on this content", "", TargetScreenType.NOTE)
                 )
             )
         }

@@ -1003,6 +1003,7 @@ class ProductivityViewModelTest {
                 coEvery { it(any()) } returns
                     ApiResult.Success(Unit)
             },
+            suggestMeetingTimesUseCase = mockk(relaxed = true),
             dispatchers = testDispatchers,
             getContextSuggestionsUseCase = mockk<GetContextSuggestionsUseCase>(relaxed = true)
         )
@@ -1030,6 +1031,7 @@ class ProductivityViewModelTest {
                 coEvery { it(any()) } returns
                     ApiResult.Success(Unit)
             },
+            suggestMeetingTimesUseCase = mockk(relaxed = true),
             dispatchers = testDispatchers,
             getContextSuggestionsUseCase = mockk<GetContextSuggestionsUseCase>(relaxed = true)
         )
@@ -1068,6 +1070,7 @@ class ProductivityViewModelTest {
                 coEvery { it(any()) } returns
                     ApiResult.Success(Unit)
             },
+            suggestMeetingTimesUseCase = mockk(relaxed = true),
             dispatchers = testDispatchers,
             getContextSuggestionsUseCase = mockk<GetContextSuggestionsUseCase>(relaxed = true)
         )
@@ -1103,6 +1106,7 @@ class ProductivityViewModelTest {
                     ApiResult.Success(makeCalendarEvent())
             },
             deleteCalendarEventUseCase = deleteEvent,
+            suggestMeetingTimesUseCase = mockk(relaxed = true),
             dispatchers = testDispatchers,
             getContextSuggestionsUseCase = mockk<GetContextSuggestionsUseCase>(relaxed = true)
         )
@@ -1128,6 +1132,7 @@ class ProductivityViewModelTest {
                 coEvery { it(any()) } returns
                     ApiResult.Success(Unit)
             },
+            suggestMeetingTimesUseCase = mockk(relaxed = true),
             dispatchers = testDispatchers,
             getContextSuggestionsUseCase = mockk<GetContextSuggestionsUseCase>(relaxed = true)
         )

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * AuthViewModelTest.kt
  *
  * Purpose: Unit tests for [AuthViewModel] covering the state transitions that underpin
@@ -127,16 +127,23 @@ class AuthViewModelTest {
 
     @Test
     fun `login transitions to Loading state before network call completes`() = runTest {
-        coEvery { loginUseCase(any(), any()) } returns ApiResult.Success(validTokens)
+        // Use a CompletableDeferred to keep the use case suspended so we can
+        // observe the Loading state before the result arrives.
+        val deferred = kotlinx.coroutines.CompletableDeferred<ApiResult<AuthTokens>>()
+        coEvery { loginUseCase(any(), any()) } coAnswers { deferred.await() }
 
         viewModel.login("user@example.com", "ValidPassword123!")
 
-        // Before advanceUntilIdle, the coroutine is suspended at the IO dispatcher call
+        // Loading is set synchronously inside login() before the coroutine body runs
         assertEquals(
             "State should be Loading immediately after login() is called",
             AuthUiState.Loading,
             viewModel.uiState.value
         )
+
+        // Unblock the use case so the coroutine finishes cleanly
+        deferred.complete(ApiResult.Success(validTokens))
+        advanceUntilIdle()
     }
 
     // ─── 1. Email validation error display ────────────────────────────────────

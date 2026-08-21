@@ -449,8 +449,9 @@ class SettingsViewModelTest :
                     coEvery { mockAuthRepository.changePassword(any(), any()) } returns ApiResult.Success(Unit)
 
                     val vm = buildViewModel()
-                    vm.uiState.value // prime lastKnownSettings
+                    advanceUntilIdle() // allow Settings state to load into lastKnownSettings
                     vm.changePassword("oldPass123!", "newPass456!")
+                    advanceUntilIdle()
 
                     coVerify(exactly = 1) {
                         mockAuthRepository.changePassword("oldPass123!", "newPass456!")
@@ -463,8 +464,9 @@ class SettingsViewModelTest :
                     coEvery { mockAuthRepository.changePassword(any(), any()) } returns ApiResult.Success(Unit)
 
                     val vm = buildViewModel()
-                    vm.uiState.value // prime lastKnownSettings
+                    advanceUntilIdle() // allow Settings state to load into lastKnownSettings
                     vm.changePassword("oldPass123!", "newPass456!")
+                    advanceUntilIdle()
 
                     val state = vm.uiState.value
                     state.shouldBeInstanceOf<SettingsUiState.ActionResult>()
@@ -499,8 +501,9 @@ class SettingsViewModelTest :
                     coEvery { mockAuthRepository.changePassword(any(), any()) } returns ApiResult.Error(error)
 
                     val vm = buildViewModel()
-                    vm.uiState.value // prime lastKnownSettings
+                    advanceUntilIdle() // allow Settings state to load into lastKnownSettings
                     vm.changePassword("wrongOld123!", "newPass456!")
+                    advanceUntilIdle()
 
                     val state = vm.uiState.value
                     state.shouldBeInstanceOf<SettingsUiState.ActionResult>()
