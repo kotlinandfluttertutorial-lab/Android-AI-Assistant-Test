@@ -449,9 +449,9 @@ class SettingsViewModelTest :
                     coEvery { mockAuthRepository.changePassword(any(), any()) } returns ApiResult.Success(Unit)
 
                     val vm = buildViewModel()
-                    advanceUntilIdle() // allow Settings state to load into lastKnownSettings
+                    testDispatcher.scheduler.advanceUntilIdle() // allow Settings state to load
                     vm.changePassword("oldPass123!", "newPass456!")
-                    advanceUntilIdle()
+                    testDispatcher.scheduler.advanceUntilIdle()
 
                     coVerify(exactly = 1) {
                         mockAuthRepository.changePassword("oldPass123!", "newPass456!")
@@ -464,9 +464,9 @@ class SettingsViewModelTest :
                     coEvery { mockAuthRepository.changePassword(any(), any()) } returns ApiResult.Success(Unit)
 
                     val vm = buildViewModel()
-                    advanceUntilIdle() // allow Settings state to load into lastKnownSettings
+                    testDispatcher.scheduler.advanceUntilIdle()
                     vm.changePassword("oldPass123!", "newPass456!")
-                    advanceUntilIdle()
+                    testDispatcher.scheduler.advanceUntilIdle()
 
                     val state = vm.uiState.value
                     state.shouldBeInstanceOf<SettingsUiState.ActionResult>()
@@ -501,9 +501,9 @@ class SettingsViewModelTest :
                     coEvery { mockAuthRepository.changePassword(any(), any()) } returns ApiResult.Error(error)
 
                     val vm = buildViewModel()
-                    advanceUntilIdle() // allow Settings state to load into lastKnownSettings
+                    testDispatcher.scheduler.advanceUntilIdle()
                     vm.changePassword("wrongOld123!", "newPass456!")
-                    advanceUntilIdle()
+                    testDispatcher.scheduler.advanceUntilIdle()
 
                     val state = vm.uiState.value
                     state.shouldBeInstanceOf<SettingsUiState.ActionResult>()

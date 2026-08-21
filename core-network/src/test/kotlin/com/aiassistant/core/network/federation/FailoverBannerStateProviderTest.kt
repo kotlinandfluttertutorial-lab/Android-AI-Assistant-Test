@@ -181,11 +181,13 @@ class FailoverBannerStateProviderTest :
                     )
 
                     // The internal collection coroutine runs on Dispatchers.Default (real thread).
-                    // Poll until the state updates or we time out after 2 seconds.
-                    val deadline = System.currentTimeMillis() + 2_000L
-                    while (!provider.bannerState.value.isVisible &&
-                        System.currentTimeMillis() < deadline) {
-                        Thread.sleep(10)
+                    // Switch to Default to actually wait for it, instead of using virtual time.
+                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+                        val deadline = System.currentTimeMillis() + 2_000L
+                        while (!provider.bannerState.value.isVisible &&
+                            System.currentTimeMillis() < deadline) {
+                            kotlinx.coroutines.delay(10)
+                        }
                     }
 
                     // A late subscriber should see the current state (StateFlow replay = 1)
