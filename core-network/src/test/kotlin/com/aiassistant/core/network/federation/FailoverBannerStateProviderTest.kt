@@ -1,4 +1,4 @@
-/**
+﻿/**
  * FailoverBannerStateProviderTest.kt — core-network unit tests
  *
  * Unit tests for [FailoverBannerStateProvider] covering:
@@ -17,6 +17,9 @@ import app.cash.turbine.test
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeout
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.runTest
 
@@ -169,7 +172,8 @@ class FailoverBannerStateProviderTest :
         describe("FailoverBannerStateProvider — StateFlow semantics") {
 
             it("late subscribers receive the current banner state immediately") {
-                runTest {
+                // Use a real coroutine scope (not runTest) since the provider uses Dispatchers.Default
+                kotlinx.coroutines.runBlocking {
                     val (provider, bus) = buildProvider()
 
                     // Publish an event before any subscriber exists
@@ -180,14 +184,9 @@ class FailoverBannerStateProviderTest :
                         )
                     )
 
-                    // The internal collection coroutine runs on Dispatchers.Default (real thread).
-                    // Switch to Default to actually wait for it, instead of using virtual time.
-                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
-                        val deadline = System.currentTimeMillis() + 2_000L
-                        while (!provider.bannerState.value.isVisible &&
-                            System.currentTimeMillis() < deadline) {
-                            kotlinx.coroutines.delay(10)
-                        }
+                    // Wait up to 2 seconds for the Default-dispatcher coroutine to process
+                    kotlinx.coroutines.withTimeout(2_000L) {
+                        provider.bannerState.first { it.isVisible }
                     }
 
                     // A late subscriber should see the current state (StateFlow replay = 1)
