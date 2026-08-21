@@ -46,9 +46,13 @@ private class FakeSecureStorage : SecureStorage {
     private var fcmToken: String? = null
     private var fcmTokenPendingSync: Boolean = false
 
-    override fun saveJwt(token: String) { jwt = token }
+    override fun saveJwt(token: String) {
+        jwt = token
+    }
     override fun getJwt(): String? = jwt
-    override fun saveRefreshToken(token: String) { refreshToken = token }
+    override fun saveRefreshToken(token: String) {
+        refreshToken = token
+    }
     override fun getRefreshToken(): String? = refreshToken
     override fun clearAll() {
         jwt = null
@@ -57,12 +61,22 @@ private class FakeSecureStorage : SecureStorage {
         fcmToken = null
         fcmTokenPendingSync = false
     }
-    override fun saveOnboardingComplete() { onboardingComplete = true }
+    override fun saveOnboardingComplete() {
+        onboardingComplete = true
+    }
     override fun isOnboardingComplete(): Boolean = onboardingComplete
-    override fun saveFcmToken(token: String) { fcmToken = token; fcmTokenPendingSync = true }
+    override fun saveFcmToken(token: String) {
+        fcmToken = token
+        fcmTokenPendingSync = true
+    }
     override fun getFcmToken(): String? = fcmToken
-    override fun saveFcmTokenSynced() { fcmTokenPendingSync = false }
-    override fun clearFcmToken() { fcmToken = null; fcmTokenPendingSync = false }
+    override fun saveFcmTokenSynced() {
+        fcmTokenPendingSync = false
+    }
+    override fun clearFcmToken() {
+        fcmToken = null
+        fcmTokenPendingSync = false
+    }
     override fun isFcmTokenPendingSync(): Boolean = fcmTokenPendingSync
 }
 

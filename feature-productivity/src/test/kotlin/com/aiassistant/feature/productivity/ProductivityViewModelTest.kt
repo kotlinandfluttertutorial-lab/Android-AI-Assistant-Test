@@ -36,7 +36,6 @@ import com.aiassistant.domain.usecase.productivity.GetHabitInsightsUseCase
 import com.aiassistant.domain.usecase.productivity.GetRemindersUseCase
 import com.aiassistant.domain.usecase.productivity.GetTodosUseCase
 import com.aiassistant.domain.usecase.productivity.LogHabitEntryUseCase
-import com.aiassistant.domain.usecase.productivity.SuggestMeetingTimesUseCase
 import com.aiassistant.domain.usecase.productivity.SuggestReminderUseCase
 import com.aiassistant.domain.usecase.productivity.UpdateReminderUseCase
 import com.aiassistant.domain.usecase.productivity.UpdateTodoUseCase
@@ -46,9 +45,9 @@ import com.aiassistant.feature.productivity.calendar.CalendarViewMode
 import com.aiassistant.feature.productivity.calendar.CalendarViewModel
 import com.aiassistant.feature.productivity.habit.HabitUiState
 import com.aiassistant.feature.productivity.habit.HabitViewModel
-import com.aiassistant.feature.productivity.reminder.ReminderViewModel
 import com.aiassistant.feature.productivity.reminder.ReminderNotificationManager
 import com.aiassistant.feature.productivity.reminder.ReminderUiState
+import com.aiassistant.feature.productivity.reminder.ReminderViewModel
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every

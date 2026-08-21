@@ -443,7 +443,6 @@ class CalendarViewModel @Inject constructor(
         }
     }
 
-
     /**
      * Requests AI-generated optimal meeting time suggestions via [SuggestMeetingTimesUseCase].
      *

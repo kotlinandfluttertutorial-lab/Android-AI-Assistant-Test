@@ -113,7 +113,8 @@ fun NavGraphBuilder.calendarNavGraph(
                 onEditEvent = { event -> viewModel.openEditEvent(event) },
                 onDeleteEvent = { eventId -> viewModel.deleteEvent(eventId) },
                 onBack = onNavigateUp,
-                onRequestAiSuggestions = { viewModel.requestAiMeetingTimeSuggestions() }, // uses SuggestMeetingTimesUseCase
+                // uses SuggestMeetingTimesUseCase
+                onRequestAiSuggestions = { viewModel.requestAiMeetingTimeSuggestions() },
                 onAcceptSuggestedTime = { suggestion ->
                     viewModel.openNewEvent(suggestion.startTime)
                 },
