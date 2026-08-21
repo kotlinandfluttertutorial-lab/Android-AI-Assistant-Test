@@ -46,9 +46,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -448,39 +446,29 @@ class SettingsViewModelTest :
         describe("changePassword") {
 
             it("calls authRepository.changePassword with given credentials on success") {
-                val std = StandardTestDispatcher()
-                Dispatchers.setMain(std)
-                runTest(std) {
+                runTest(testDispatcher) {
                     coEvery { mockAuthRepository.changePassword(any(), any()) } returns ApiResult.Success(Unit)
 
                     val vm = buildViewModel()
-                    advanceUntilIdle()
-                    vm.changePassword("oldPass123!", "newPass456!")
-                    advanceUntilIdle()
+                    vm.changePassword("oldPass123!", "newPassword123!")
 
                     coVerify(exactly = 1) {
-                        mockAuthRepository.changePassword("oldPass123!", "newPass456!")
+                        mockAuthRepository.changePassword("oldPass123!", "newPassword123!")
                     }
                 }
-                Dispatchers.setMain(testDispatcher)
             }
 
             it("emits ActionResult with isSuccess=true when changePassword succeeds") {
-                val std = StandardTestDispatcher()
-                Dispatchers.setMain(std)
-                runTest(std) {
+                runTest(testDispatcher) {
                     coEvery { mockAuthRepository.changePassword(any(), any()) } returns ApiResult.Success(Unit)
 
                     val vm = buildViewModel()
-                    advanceUntilIdle()
-                    vm.changePassword("oldPass123!", "newPass456!")
-                    advanceUntilIdle()
+                    vm.changePassword("oldPass123!", "newPassword123!")
 
                     val state = vm.uiState.value
                     state.shouldBeInstanceOf<SettingsUiState.ActionResult>()
                     (state as SettingsUiState.ActionResult).isSuccess shouldBe true
                 }
-                Dispatchers.setMain(testDispatcher)
             }
 
             it("emits ActionResult with isSuccess=false when new password is shorter than 12 characters") {
@@ -505,23 +493,18 @@ class SettingsViewModelTest :
             }
 
             it("emits ActionResult with isSuccess=false when changePassword returns ApiResult.Error") {
-                val std = StandardTestDispatcher()
-                Dispatchers.setMain(std)
-                runTest(std) {
+                runTest(testDispatcher) {
                     val error = DomainError.ServerError("Incorrect current password", 400)
                     coEvery { mockAuthRepository.changePassword(any(), any()) } returns ApiResult.Error(error)
 
                     val vm = buildViewModel()
-                    advanceUntilIdle()
-                    vm.changePassword("wrongOld123!", "newPass456!")
-                    advanceUntilIdle()
+                    vm.changePassword("wrongOld123!", "newPassword123!")
 
                     val state = vm.uiState.value
                     state.shouldBeInstanceOf<SettingsUiState.ActionResult>()
                     (state as SettingsUiState.ActionResult).isSuccess shouldBe false
                     state.message shouldBe "Incorrect current password"
                 }
-                Dispatchers.setMain(testDispatcher)
             }
 
             it("emits ActionResult with network error message when NetworkUnavailable") {
@@ -529,7 +512,7 @@ class SettingsViewModelTest :
                     coEvery { mockAuthRepository.changePassword(any(), any()) } returns ApiResult.NetworkUnavailable
 
                     val vm = buildViewModel()
-                    vm.changePassword("oldPass123!", "newPass456!")
+                    vm.changePassword("oldPass123!", "newPassword123!")
 
                     val state = vm.uiState.value
                     state.shouldBeInstanceOf<SettingsUiState.ActionResult>()
@@ -693,7 +676,7 @@ class SettingsViewModelTest :
                     coEvery { mockAuthRepository.changePassword(any(), any()) } returns ApiResult.Success(Unit)
 
                     val vm = buildViewModel()
-                    vm.changePassword("oldPass123!", "newPass456!")
+                    vm.changePassword("oldPass123!", "newPassword123!")
 
                     vm.uiState.value.shouldBeInstanceOf<SettingsUiState.ActionResult>()
 
