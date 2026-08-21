@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SettingsViewModelTest.kt — feature-settings unit tests
  *
  * Tests for [SettingsViewModel] state logic:
@@ -449,6 +449,7 @@ class SettingsViewModelTest :
                     coEvery { mockAuthRepository.changePassword(any(), any()) } returns ApiResult.Success(Unit)
 
                     val vm = buildViewModel()
+                    vm.uiState.value // prime lastKnownSettings
                     vm.changePassword("oldPass123!", "newPass456!")
 
                     coVerify(exactly = 1) {
@@ -462,6 +463,7 @@ class SettingsViewModelTest :
                     coEvery { mockAuthRepository.changePassword(any(), any()) } returns ApiResult.Success(Unit)
 
                     val vm = buildViewModel()
+                    vm.uiState.value // prime lastKnownSettings
                     vm.changePassword("oldPass123!", "newPass456!")
 
                     val state = vm.uiState.value
@@ -497,6 +499,7 @@ class SettingsViewModelTest :
                     coEvery { mockAuthRepository.changePassword(any(), any()) } returns ApiResult.Error(error)
 
                     val vm = buildViewModel()
+                    vm.uiState.value // prime lastKnownSettings
                     vm.changePassword("wrongOld123!", "newPass456!")
 
                     val state = vm.uiState.value

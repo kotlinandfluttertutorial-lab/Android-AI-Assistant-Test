@@ -56,6 +56,8 @@ class AuthViewModelTest {
         override val main: CoroutineDispatcher = testDispatcher
         override val io: CoroutineDispatcher = testDispatcher
         override val default: CoroutineDispatcher = testDispatcher
+        override val mainImmediate: CoroutineDispatcher = testDispatcher
+        override val unconfined: CoroutineDispatcher = testDispatcher
     }
 
     // ─── Mocks ─────────────────────────────────────────────────────────────────
@@ -77,7 +79,6 @@ class AuthViewModelTest {
             loginUseCase = loginUseCase,
             registerUseCase = registerUseCase,
             loginWithGoogleUseCase = loginWithGoogleUseCase,
-            biometricAuthManager = biometricAuthManager,
             secureStorage = secureStorage,
             dispatchers = dispatchers
         )
@@ -92,7 +93,9 @@ class AuthViewModelTest {
 
     private val validTokens = AuthTokens(
         jwt = "test.jwt.token",
-        refreshToken = "test-refresh-token"
+        refreshToken = "test-refresh-token",
+        jwtExpiresAt = Long.MAX_VALUE,
+        refreshExpiresAt = Long.MAX_VALUE
     )
 
     // ─── 3. Navigation to Home on successful login ────────────────────────────

@@ -36,6 +36,7 @@ import android.content.Context
 import android.content.res.AssetManager
 import com.aiassistant.core.ai.MessagePayload
 import com.aiassistant.core.ai.ON_DEVICE_PROVIDER_ID
+import com.aiassistant.core.ai.OnDeviceCapabilityState
 import com.aiassistant.core.ai.StreamEvent
 import com.aiassistant.core.common.DispatcherProvider
 import io.kotest.core.spec.style.DescribeSpec

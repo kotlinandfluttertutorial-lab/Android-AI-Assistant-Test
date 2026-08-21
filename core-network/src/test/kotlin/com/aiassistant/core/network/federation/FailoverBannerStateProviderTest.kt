@@ -180,8 +180,9 @@ class FailoverBannerStateProviderTest :
                         )
                     )
 
-                    // Allow the internal collection coroutine to process the event
-                    advanceUntilIdle()
+                    // Allow the internal collection coroutine (runs on Dispatchers.Default)
+                    // to process the event before reading state
+                    kotlinx.coroutines.delay(100)
 
                     // A late subscriber should see the current state (StateFlow replay = 1)
                     val currentState = provider.bannerState.value

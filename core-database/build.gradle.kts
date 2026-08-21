@@ -1,4 +1,4 @@
-plugins {
+﻿plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.ksp)
@@ -32,7 +32,7 @@ ksp {
     arg("room.incremental", "true")
 }
 
-// ─── Dependency rule enforcement ─────────────────────────────────────────────
+// â”€â”€â”€ Dependency rule enforcement â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 // core-database MUST NOT depend on feature, data, or domain modules.
 configurations.all {
     resolutionStrategy.eachDependency {
@@ -76,7 +76,9 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.room.testing)
     testImplementation(libs.robolectric)
+    testImplementation("androidx.test:core:1.5.0")
     testImplementation(libs.bundles.kotest)
     androidTestImplementation(libs.junit.ext)
     androidTestImplementation(libs.room.testing)
 }
+

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * MeetingUseCaseTest.kt — domain module unit tests
  *
  * Tests for meeting use cases:
@@ -146,22 +146,22 @@ class StopMeetingRecordingUseCaseTest :
 
                 it("returns Success with Unit when repository succeeds") {
                     coEvery {
-                        meetingRepository.stopMeetingRecording(SAMPLE_SESSION_ID)
+                        meetingRepository.stopMeetingRecording(SAMPLE_SESSION_ID, any())
                     } returns ApiResult.Success(Unit)
 
-                    val result = stopMeetingRecordingUseCase(SAMPLE_SESSION_ID)
+                    val result = stopMeetingRecordingUseCase(SAMPLE_SESSION_ID, "")
 
                     result.shouldBeInstanceOf<ApiResult.Success<Unit>>()
                 }
 
                 it("delegates to repository exactly once with the given sessionId") {
                     coEvery {
-                        meetingRepository.stopMeetingRecording(SAMPLE_SESSION_ID)
+                        meetingRepository.stopMeetingRecording(SAMPLE_SESSION_ID, any())
                     } returns ApiResult.Success(Unit)
 
-                    stopMeetingRecordingUseCase(SAMPLE_SESSION_ID)
+                    stopMeetingRecordingUseCase(SAMPLE_SESSION_ID, "")
 
-                    coVerify(exactly = 1) { meetingRepository.stopMeetingRecording(SAMPLE_SESSION_ID) }
+                    coVerify(exactly = 1) { meetingRepository.stopMeetingRecording(SAMPLE_SESSION_ID, any()) }
                 }
             }
 
@@ -169,10 +169,10 @@ class StopMeetingRecordingUseCaseTest :
 
                 it("propagates NetworkUnavailable from repository") {
                     coEvery {
-                        meetingRepository.stopMeetingRecording(any())
+                        meetingRepository.stopMeetingRecording(any(), any())
                     } returns ApiResult.NetworkUnavailable
 
-                    val result = stopMeetingRecordingUseCase(SAMPLE_SESSION_ID)
+                    val result = stopMeetingRecordingUseCase(SAMPLE_SESSION_ID, "")
 
                     result.shouldBeInstanceOf<ApiResult.NetworkUnavailable>()
                 }
@@ -180,10 +180,10 @@ class StopMeetingRecordingUseCaseTest :
                 it("propagates ServerError from repository") {
                     val error = DomainError.ServerError(httpStatusCode = 500)
                     coEvery {
-                        meetingRepository.stopMeetingRecording(any())
+                        meetingRepository.stopMeetingRecording(any(), any())
                     } returns ApiResult.Error(error)
 
-                    val result = stopMeetingRecordingUseCase(SAMPLE_SESSION_ID)
+                    val result = stopMeetingRecordingUseCase(SAMPLE_SESSION_ID, "")
 
                     result.shouldBeInstanceOf<ApiResult.Error>()
                     (result as ApiResult.Error).error shouldBe error

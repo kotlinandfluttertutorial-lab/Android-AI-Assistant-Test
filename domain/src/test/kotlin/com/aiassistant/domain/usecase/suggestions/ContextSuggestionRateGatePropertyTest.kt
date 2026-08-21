@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ContextSuggestionRateGatePropertyTest.kt — domain module
  *
  * Purpose: Property-based tests for Property 32: Context Suggestion Rate-Gate Invariant.
@@ -340,7 +340,7 @@ class ContextSuggestionRateGatePropertyTest :
                         val repository = mockk<ContextSuggestionRepository>()
                         coEvery { repository.getSuggestions(any()) } returns ApiResult.Success(SAMPLE_SUGGESTIONS)
 
-                        val useCase = GetContextSuggestionsUseCase(repository, dispatchers)
+                        val useCase = GetContextSuggestionsUseCase(repository)
 
                         // Allowed call — gate is clear on a brand-new use case
                         val allowedResult = useCase(
@@ -372,7 +372,7 @@ class ContextSuggestionRateGatePropertyTest :
             it("single allowed call after resetRateGate returns repository results") {
                 val repository = mockk<ContextSuggestionRepository>()
                 val dispatchers = DefaultDispatcherProvider()
-                val useCase = GetContextSuggestionsUseCase(repository, dispatchers)
+                val useCase = GetContextSuggestionsUseCase(repository)
 
                 coEvery { repository.getSuggestions(NOTE_CONTEXT) } returns ApiResult.Success(SAMPLE_SUGGESTIONS)
 
@@ -393,7 +393,7 @@ class ContextSuggestionRateGatePropertyTest :
             ) {
                 val repository = mockk<ContextSuggestionRepository>()
                 val dispatchers = DefaultDispatcherProvider()
-                val useCase = GetContextSuggestionsUseCase(repository, dispatchers)
+                val useCase = GetContextSuggestionsUseCase(repository)
 
                 coEvery { repository.getSuggestions(NOTE_CONTEXT) } returns ApiResult.Success(SAMPLE_SUGGESTIONS)
 

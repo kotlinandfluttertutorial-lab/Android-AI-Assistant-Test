@@ -1,4 +1,4 @@
-/*
+﻿/*
  * ============================================================
  * Android AI Assistant (Enterprise Edition)
  * ============================================================
@@ -36,6 +36,7 @@ import com.aiassistant.domain.usecase.productivity.GetHabitInsightsUseCase
 import com.aiassistant.domain.usecase.productivity.GetRemindersUseCase
 import com.aiassistant.domain.usecase.productivity.GetTodosUseCase
 import com.aiassistant.domain.usecase.productivity.LogHabitEntryUseCase
+import com.aiassistant.domain.usecase.productivity.SuggestMeetingTimesUseCase
 import com.aiassistant.domain.usecase.productivity.SuggestReminderUseCase
 import com.aiassistant.domain.usecase.productivity.UpdateReminderUseCase
 import com.aiassistant.domain.usecase.productivity.UpdateTodoUseCase
@@ -45,7 +46,7 @@ import com.aiassistant.feature.productivity.calendar.CalendarViewMode
 import com.aiassistant.feature.productivity.calendar.CalendarViewModel
 import com.aiassistant.feature.productivity.habit.HabitUiState
 import com.aiassistant.feature.productivity.habit.HabitViewModel
-import com.aiassistant.feature.productivity.reminder.ProductivityViewModel as ReminderViewModel
+import com.aiassistant.feature.productivity.reminder.ReminderViewModel
 import com.aiassistant.feature.productivity.reminder.ReminderNotificationManager
 import com.aiassistant.feature.productivity.reminder.ReminderUiState
 import io.mockk.coEvery
@@ -958,6 +959,7 @@ class ProductivityViewModelTest {
             getCalendarEventsUseCase = getEvents,
             createCalendarEventUseCase = createEvent,
             deleteCalendarEventUseCase = deleteEvent,
+            suggestMeetingTimesUseCase = mockk(relaxed = true),
             dispatchers = testDispatchers,
             getContextSuggestionsUseCase = mockk<GetContextSuggestionsUseCase>(relaxed = true)
         )

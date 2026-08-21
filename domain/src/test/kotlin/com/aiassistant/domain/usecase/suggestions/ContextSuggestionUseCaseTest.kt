@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ContextSuggestionUseCaseTest.kt — domain module unit tests
  *
  * Tests for context suggestion use cases:
@@ -68,7 +68,7 @@ class GetContextSuggestionsUseCaseTest :
         val repository = mockk<ContextSuggestionRepository>()
         val dispatchers = DefaultDispatcherProvider()
 
-        fun makeUseCase() = GetContextSuggestionsUseCase(repository, dispatchers)
+        fun makeUseCase() = GetContextSuggestionsUseCase(repository)
 
         beforeEach { clearMocks(repository) }
 

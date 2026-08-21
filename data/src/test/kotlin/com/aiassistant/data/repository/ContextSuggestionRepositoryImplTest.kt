@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ContextSuggestionRepositoryImplTest.kt — data module
  *
  * Purpose: Unit tests for [ContextSuggestionRepositoryImpl], which is a stub
@@ -20,6 +20,8 @@
 package com.aiassistant.data.repository
 
 import com.aiassistant.core.common.ApiResult
+import com.aiassistant.core.network.ConnectivityObserver
+import com.aiassistant.data.remote.suggestion.SuggestionRemoteDataSource
 import com.aiassistant.domain.model.ContextSuggestion
 import com.aiassistant.domain.model.ScreenContext
 import com.aiassistant.domain.model.SuggestionType
@@ -29,12 +31,28 @@ import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldNotBeEmpty
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.mockk.coEvery
+import io.mockk.mockk
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 
 class ContextSuggestionRepositoryImplTest :
     DescribeSpec({
 
-        val repository = ContextSuggestionRepositoryImpl()
+        val mockRemoteDataSource = mockk<SuggestionRemoteDataSource>()
+        val mockConnectivityObserver = mockk<ConnectivityObserver>()
+        val repository = ContextSuggestionRepositoryImpl(mockRemoteDataSource, mockConnectivityObserver)
+
+        beforeEach {
+            coEvery { mockConnectivityObserver.isConnected() } returns true
+            coEvery { mockRemoteDataSource.getSuggestions(any()) } returns ApiResult.Success(
+                listOf(
+                    ContextSuggestion("Summarize", SuggestionType.SUMMARIZE, "Summarize this note"),
+                    ContextSuggestion("Add action items", SuggestionType.ADD_ACTION_ITEMS, "Extract action items"),
+                    ContextSuggestion("Expand", SuggestionType.EXPAND, "Expand on this content")
+                )
+            )
+        }
 
         // ── 24-hour constant ──────────────────────────────────────────────────────
         val twentyFourHoursMs = 24L * 60L * 60L * 1_000L
