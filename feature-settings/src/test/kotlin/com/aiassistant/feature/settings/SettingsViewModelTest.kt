@@ -39,6 +39,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.unmockkAll
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -96,6 +97,7 @@ class SettingsViewModelTest :
 
         afterSpec {
             Dispatchers.resetMain()
+            unmockkAll()
         }
 
         beforeEach {
@@ -124,6 +126,10 @@ class SettingsViewModelTest :
             // Firebase Remote Config: return a completed task so fetchAndActivate().await() doesn't hang
             every { mockRemoteConfig.fetchAndActivate() } returns Tasks.forResult(true)
             every { mockRemoteConfig.getString(any()) } returns ""
+        }
+
+        afterEach {
+            unmockkAll()
         }
 
         // ─── Initial state loading ────────────────────────────────────────────────

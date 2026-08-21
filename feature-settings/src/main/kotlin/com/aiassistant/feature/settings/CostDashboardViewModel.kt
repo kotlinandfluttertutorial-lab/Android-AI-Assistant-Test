@@ -28,6 +28,7 @@ import com.aiassistant.core.common.DispatcherProvider
 import com.aiassistant.domain.repository.CostDashboardRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.TimeoutCancellationException
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -72,6 +73,8 @@ class CostDashboardViewModel @Inject constructor(
      */
     private val dismissedBannerIds = mutableSetOf<String>()
 
+    private var loadDataJob: Job? = null
+
     init {
         loadData()
     }
@@ -90,7 +93,8 @@ class CostDashboardViewModel @Inject constructor(
     fun loadData() {
         _uiState.value = CostDashboardUiState.Loading
 
-        viewModelScope.launch {
+        loadDataJob?.cancel()
+        loadDataJob = viewModelScope.launch {
             try {
                 withTimeout(LOADING_TIMEOUT_MS) {
                     val summaryResult = withContext(dispatchers.io) {

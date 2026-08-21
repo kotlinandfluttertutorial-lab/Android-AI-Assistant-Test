@@ -31,6 +31,7 @@ import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.unmockkAll
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
@@ -94,6 +95,7 @@ class CostDashboardViewModelTest :
 
         afterSpec {
             Dispatchers.resetMain()
+            unmockkAll()
         }
 
         beforeEach {
@@ -101,6 +103,10 @@ class CostDashboardViewModelTest :
             // Default: return empty data successfully
             coEvery { mockRepository.getCostSummary() } returns ApiResult.Success(sampleCostSummary)
             coEvery { mockRepository.getAlerts() } returns ApiResult.Success(emptyList())
+        }
+
+        afterEach {
+            unmockkAll()
         }
 
         // ─── Initial loading ──────────────────────────────────────────────────────
@@ -170,36 +176,33 @@ class CostDashboardViewModelTest :
             it("transitions to Error state after 10 seconds if backend does not respond") {
                 // Use a standard test dispatcher that supports time control
                 runTest {
-                    val standardTestDispatcher = testDispatcher
-                    val vm = CostDashboardViewModel(
-                        repository = mockRepository,
-                        dispatchers = testDispatcherProvider
-                    )
-                    // The ViewModel already uses withTimeout(10_000) internally.
-                    // With UnconfinedTestDispatcher, we can't easily advance time.
-                    // This test validates the timeout constant is 10s via inspection.
-                    // The actual timeout behavior is validated by the design contract:
-                    // LOADING_TIMEOUT_MS = 10_000L in the ViewModel.
-                    vm.uiState.value.shouldNotBe(null)
+                    coEvery { mockRepository.getCostSummary() } coAnswers {
+                        kotlinx.coroutines.delay(11_000)
+                        ApiResult.Success(sampleCostSummary)
+                    }
+
+                    val vm = buildViewModel()
+
+                    // Advance time to trigger timeout
+                    testScheduler.advanceTimeBy(10_001)
+
+                    vm.uiState.value.shouldBeInstanceOf<CostDashboardUiState.Error>()
+                    (vm.uiState.value as CostDashboardUiState.Error).message shouldContain "timed out"
                 }
             }
 
             it("returns error message mentioning timeout when LOADING_TIMEOUT_MS is exceeded") {
-                // Validate the timeout error message content by mocking a delayed response
-                // that would trigger the TimeoutCancellationException branch
-                runTest(testDispatcher) {
-                    // We verify the Error state message contains "timed out" via the
-                    // real exception path by checking that our Error state uses the right message
-                    val vm = buildViewModel()
-                    // Normal path works — now verify the error message format
-                    // The timeout branch produces: "Request timed out..."
-                    // We validate this by triggering loadData() after setting up a failure
-                    val error = DomainError.ServerError("timeout simulation", 408)
-                    coEvery { mockRepository.getCostSummary() } returns ApiResult.Error(error)
-                    vm.loadData()
+                runTest {
+                    coEvery { mockRepository.getCostSummary() } coAnswers {
+                        kotlinx.coroutines.delay(11_000)
+                        ApiResult.Success(sampleCostSummary)
+                    }
 
-                    val state = vm.uiState.value
-                    state.shouldBeInstanceOf<CostDashboardUiState.Error>()
+                    val vm = buildViewModel()
+                    testScheduler.advanceTimeBy(10_001)
+
+                    val state = vm.uiState.value as CostDashboardUiState.Error
+                    state.message shouldContain "10 seconds"
                 }
             }
         }
