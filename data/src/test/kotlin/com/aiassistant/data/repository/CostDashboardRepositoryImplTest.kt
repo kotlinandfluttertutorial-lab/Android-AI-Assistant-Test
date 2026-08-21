@@ -1,4 +1,4 @@
-/**
+﻿/**
  * CostDashboardRepositoryImplTest.kt — data module
  *
  * Purpose: Unit tests for [CostDashboardRepositoryImpl], covering:
@@ -40,6 +40,7 @@ import io.mockk.coVerify
 import io.mockk.mockk
 import java.io.IOException
 import kotlinx.coroutines.test.runTest
+import okhttp3.MediaType.Companion.toMediaType
 import retrofit2.HttpException
 import retrofit2.Response
 
@@ -76,7 +77,7 @@ private fun fakeSpendingAlertDto(id: String = "alert-1", thresholdUsd: Double = 
 private fun makeHttpException(code: Int): HttpException {
     val response = Response.error<Any>(
         code,
-        okhttp3.ResponseBody.create(okhttp3.MediaType.parse("application/json"), "")
+        okhttp3.ResponseBody.create("application/json".toMediaType(), "")
     )
     return HttpException(response)
 }

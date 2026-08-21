@@ -180,9 +180,13 @@ class FailoverBannerStateProviderTest :
                         )
                     )
 
-                    // Allow the internal collection coroutine (runs on Dispatchers.Default)
-                    // to process the event before reading state
-                    kotlinx.coroutines.delay(100)
+                    // The internal collection coroutine runs on Dispatchers.Default (real thread).
+                    // Poll until the state updates or we time out after 2 seconds.
+                    val deadline = System.currentTimeMillis() + 2_000L
+                    while (!provider.bannerState.value.isVisible &&
+                        System.currentTimeMillis() < deadline) {
+                        Thread.sleep(10)
+                    }
 
                     // A late subscriber should see the current state (StateFlow replay = 1)
                     val currentState = provider.bannerState.value
