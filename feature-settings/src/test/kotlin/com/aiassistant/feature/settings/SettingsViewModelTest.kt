@@ -43,11 +43,12 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -447,42 +448,39 @@ class SettingsViewModelTest :
         describe("changePassword") {
 
             it("calls authRepository.changePassword with given credentials on success") {
-                runTest(testDispatcher) {
+                val std = StandardTestDispatcher()
+                Dispatchers.setMain(std)
+                runTest(std) {
                     coEvery { mockAuthRepository.changePassword(any(), any()) } returns ApiResult.Success(Unit)
 
                     val vm = buildViewModel()
-                    // Collect first Settings emission to guarantee lastKnownSettings is set
-                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
-                        kotlinx.coroutines.withTimeout(2_000L) {
-                            vm.uiState.filterIsInstance<SettingsUiState.Settings>().first()
-                        }
-                    }
+                    advanceUntilIdle()
                     vm.changePassword("oldPass123!", "newPass456!")
-                    testDispatcher.scheduler.advanceUntilIdle()
+                    advanceUntilIdle()
 
                     coVerify(exactly = 1) {
                         mockAuthRepository.changePassword("oldPass123!", "newPass456!")
                     }
                 }
+                Dispatchers.setMain(testDispatcher)
             }
 
             it("emits ActionResult with isSuccess=true when changePassword succeeds") {
-                runTest(testDispatcher) {
+                val std = StandardTestDispatcher()
+                Dispatchers.setMain(std)
+                runTest(std) {
                     coEvery { mockAuthRepository.changePassword(any(), any()) } returns ApiResult.Success(Unit)
 
                     val vm = buildViewModel()
-                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
-                        kotlinx.coroutines.withTimeout(2_000L) {
-                            vm.uiState.filterIsInstance<SettingsUiState.Settings>().first()
-                        }
-                    }
+                    advanceUntilIdle()
                     vm.changePassword("oldPass123!", "newPass456!")
-                    testDispatcher.scheduler.advanceUntilIdle()
+                    advanceUntilIdle()
 
                     val state = vm.uiState.value
                     state.shouldBeInstanceOf<SettingsUiState.ActionResult>()
                     (state as SettingsUiState.ActionResult).isSuccess shouldBe true
                 }
+                Dispatchers.setMain(testDispatcher)
             }
 
             it("emits ActionResult with isSuccess=false when new password is shorter than 12 characters") {
@@ -507,24 +505,23 @@ class SettingsViewModelTest :
             }
 
             it("emits ActionResult with isSuccess=false when changePassword returns ApiResult.Error") {
-                runTest(testDispatcher) {
+                val std = StandardTestDispatcher()
+                Dispatchers.setMain(std)
+                runTest(std) {
                     val error = DomainError.ServerError("Incorrect current password", 400)
                     coEvery { mockAuthRepository.changePassword(any(), any()) } returns ApiResult.Error(error)
 
                     val vm = buildViewModel()
-                    kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
-                        kotlinx.coroutines.withTimeout(2_000L) {
-                            vm.uiState.filterIsInstance<SettingsUiState.Settings>().first()
-                        }
-                    }
+                    advanceUntilIdle()
                     vm.changePassword("wrongOld123!", "newPass456!")
-                    testDispatcher.scheduler.advanceUntilIdle()
+                    advanceUntilIdle()
 
                     val state = vm.uiState.value
                     state.shouldBeInstanceOf<SettingsUiState.ActionResult>()
                     (state as SettingsUiState.ActionResult).isSuccess shouldBe false
                     state.message shouldBe "Incorrect current password"
                 }
+                Dispatchers.setMain(testDispatcher)
             }
 
             it("emits ActionResult with network error message when NetworkUnavailable") {
