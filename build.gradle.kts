@@ -65,3 +65,15 @@ subprojects {
 
 // Repositories are configured globally via dependencyResolutionManagement in settings.gradle.kts.
 // No per-project repository declarations needed (FAIL_ON_PROJECT_REPOS mode is active).
+
+// ─── Test JVM memory ─────────────────────────────────────────────────────────
+// The default forked test JVM heap (512 MB) causes OutOfMemoryError when many
+// modules run sequentially in the same Gradle invocation. Raise the heap for
+// every unit-test task across all subprojects.
+subprojects {
+    tasks.withType<Test>().configureEach {
+        maxHeapSize = "3g"
+        forkEvery = 1
+        jvmArgs("-XX:MaxMetaspaceSize=512m", "-Dfile.encoding=UTF-8")
+    }
+}

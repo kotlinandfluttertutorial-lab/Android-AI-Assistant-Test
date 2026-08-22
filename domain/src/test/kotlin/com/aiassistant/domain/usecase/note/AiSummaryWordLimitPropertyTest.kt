@@ -46,6 +46,7 @@ import io.kotest.property.arbitrary.string
 import io.kotest.property.checkAll
 import io.mockk.coEvery
 import io.mockk.mockk
+import io.mockk.unmockkAll
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -96,6 +97,10 @@ private val arbNoteWithWordCount: Arb<Pair<Note, Int>> = arbitrary {
  */
 class AiSummaryWordLimitPropertyTest :
     DescribeSpec({
+
+        afterEach {
+            unmockkAll()
+        }
 
         // ── P19-1 — Random note content always yields ≤ 150-word summary ────────
         describe("P19-1 — summary word count is always ≤ 150 for random note content") {

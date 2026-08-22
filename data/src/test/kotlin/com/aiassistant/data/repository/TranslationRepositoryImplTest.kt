@@ -47,6 +47,10 @@ class TranslationRepositoryImplTest :
             )
         }
 
+        afterEach {
+            unmockkAll()
+        }
+
         describe("translateText()") {
             describe("online") {
                 it("delegates to remote data source and returns its result") {

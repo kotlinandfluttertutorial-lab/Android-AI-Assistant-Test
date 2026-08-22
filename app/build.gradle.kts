@@ -51,6 +51,10 @@ android {
         unitTests {
             isReturnDefaultValues = true
             isIncludeAndroidResources = true
+            all {
+                it.maxHeapSize = "3g"
+                it.forkEvery = 1
+            }
         }
     }
 

@@ -33,6 +33,16 @@ android {
     buildFeatures {
         compose = true
     }
+
+    testOptions {
+        unitTests {
+            isReturnDefaultValues = true
+            all {
+                it.maxHeapSize = "3g"
+                it.forkEvery = 1
+            }
+        }
+    }
 }
 
 // ─── Dependency rule enforcement ─────────────────────────────────────────────
@@ -75,6 +85,10 @@ dependencies {
 
     // Google Sign-In
     implementation(libs.google.auth)
+    // Credential Manager — Sign in with Google (replaces deprecated GoogleSignInClient)
+    implementation(libs.credentials)
+    implementation(libs.credentials.play.services.auth)
+    implementation(libs.google.identity.googleid)
 
     // Coroutines
     implementation(libs.bundles.coroutines)

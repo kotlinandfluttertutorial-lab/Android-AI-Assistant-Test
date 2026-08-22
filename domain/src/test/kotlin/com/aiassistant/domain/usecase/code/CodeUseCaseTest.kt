@@ -27,6 +27,7 @@ import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.unmockkAll
 import kotlinx.coroutines.test.runTest
 
 class CodeUseCaseTest :
@@ -38,6 +39,10 @@ class CodeUseCaseTest :
         beforeEach {
             clearAllMocks()
             analyzeCodeUseCase = AnalyzeCodeUseCase(codeRepository)
+        }
+
+        afterEach {
+            unmockkAll()
         }
 
         describe("AnalyzeCodeUseCase") {

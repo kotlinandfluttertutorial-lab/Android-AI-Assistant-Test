@@ -26,6 +26,7 @@ import io.kotest.property.arbitrary.pair
 import io.kotest.property.arbitrary.string
 import io.kotest.property.checkAll
 import io.mockk.mockk
+import io.mockk.unmockkAll
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import okhttp3.OkHttpClient
@@ -74,6 +75,10 @@ private fun String.jsonEscape(): String = buildString {
  */
 class StreamEventSchemaPropertyTest :
     DescribeSpec({
+
+        afterSpec {
+            unmockkAll()
+        }
 
         // Build the system-under-test once; OkHttpClient is never called in these tests.
         val client = AIStreamClientImpl(

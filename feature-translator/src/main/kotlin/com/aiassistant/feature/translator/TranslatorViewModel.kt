@@ -69,6 +69,7 @@ import com.aiassistant.core.network.ConnectivityObserver
 import com.aiassistant.domain.usecase.translator.TranslateTextUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -129,9 +130,12 @@ class TranslatorViewModel @Inject constructor(
      */
     val selectedLanguagePair: StateFlow<LanguagePair> = _selectedLanguagePair.asStateFlow()
 
+    private var initJob: Job? = null
+    private var translateJob: Job? = null
+
     init {
         // Restore persisted language pair from DataStore on startup.
-        viewModelScope.launch {
+        initJob = viewModelScope.launch {
             withContext(dispatchers.io) {
                 translatorPreferences.languagePairFlow.collect { pair ->
                     _selectedLanguagePair.value = pair
@@ -156,7 +160,8 @@ class TranslatorViewModel @Inject constructor(
         val pair = _selectedLanguagePair.value
         _uiState.value = TranslatorUiState.Translating
 
-        viewModelScope.launch {
+        translateJob?.cancel()
+        translateJob = viewModelScope.launch {
             val result = withContext(dispatchers.io) {
                 translateTextUseCase(
                     text = text,
@@ -247,6 +252,13 @@ class TranslatorViewModel @Inject constructor(
      * Resets the UI state back to [TranslatorUiState.Idle].
      */
     fun reset() {
+        translateJob?.cancel()
         _uiState.value = TranslatorUiState.Idle
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        initJob?.cancel()
+        translateJob?.cancel()
     }
 }

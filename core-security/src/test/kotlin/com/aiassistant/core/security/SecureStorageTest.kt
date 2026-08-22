@@ -26,6 +26,8 @@ package com.aiassistant.core.security
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.mockk.unmockkAll
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -42,6 +44,9 @@ import org.robolectric.annotation.Config
 private class FakeSecureStorage : SecureStorage {
     private var jwt: String? = null
     private var refreshToken: String? = null
+    private var onboardingComplete: Boolean = false
+    private var fcmToken: String? = null
+    private var fcmTokenPendingSync: Boolean = false
 
     override fun saveJwt(token: String) {
         jwt = token
@@ -54,7 +59,27 @@ private class FakeSecureStorage : SecureStorage {
     override fun clearAll() {
         jwt = null
         refreshToken = null
+        onboardingComplete = false
+        fcmToken = null
+        fcmTokenPendingSync = false
     }
+    override fun saveOnboardingComplete() {
+        onboardingComplete = true
+    }
+    override fun isOnboardingComplete(): Boolean = onboardingComplete
+    override fun saveFcmToken(token: String) {
+        fcmToken = token
+        fcmTokenPendingSync = true
+    }
+    override fun getFcmToken(): String? = fcmToken
+    override fun saveFcmTokenSynced() {
+        fcmTokenPendingSync = false
+    }
+    override fun clearFcmToken() {
+        fcmToken = null
+        fcmTokenPendingSync = false
+    }
+    override fun isFcmTokenPendingSync(): Boolean = fcmTokenPendingSync
 }
 
 // ─── Contract tests (fake-backed, no Android framework) ──────────────────────
@@ -70,6 +95,11 @@ class SecureStorageContractTest {
     @Before
     fun setUp() {
         secureStorage = FakeSecureStorage()
+    }
+
+    @After
+    fun tearDown() {
+        unmockkAll()
     }
 
     // ── JWT token ─────────────────────────────────────────────────────────────
@@ -213,6 +243,11 @@ class SecureStorageImplRobolectricTest {
             android.content.Context.MODE_PRIVATE
         )
         secureStorage = SecureStorageImpl(plainPrefs)
+    }
+
+    @After
+    fun tearDown() {
+        unmockkAll()
     }
 
     // ── JWT round-trip via SharedPreferences ─────────────────────────────────

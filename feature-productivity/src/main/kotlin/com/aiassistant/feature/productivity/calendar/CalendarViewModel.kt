@@ -64,6 +64,7 @@ import com.aiassistant.domain.repository.DateRange
 import com.aiassistant.domain.usecase.productivity.CreateCalendarEventUseCase
 import com.aiassistant.domain.usecase.productivity.DeleteCalendarEventUseCase
 import com.aiassistant.domain.usecase.productivity.GetCalendarEventsUseCase
+import com.aiassistant.domain.usecase.productivity.SuggestMeetingTimesUseCase
 import com.aiassistant.domain.usecase.suggestions.GetContextSuggestionsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import java.time.DayOfWeek
@@ -73,7 +74,6 @@ import java.time.YearMonth
 import java.time.ZoneId
 import java.util.UUID
 import javax.inject.Inject
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -83,20 +83,15 @@ import kotlinx.coroutines.withTimeoutOrNull
 
 /**
  * ViewModel for the CalendarView and EventEditor flows.
- *
  * Exposes a [StateFlow] of [CalendarUiState] that composables observe. All blocking
  * work (database operations, network calls) is dispatched on [DispatcherProvider.io].
- *
- * AI meeting-time suggestions are simulated with a mock delay since no real AI use case
- * for calendar suggestions exists in the domain layer yet. The design intentionally
- * decouples this placeholder from the production `AI_Orchestrator` path, which can be
- * wired in once the corresponding domain use case is available.
  */
 @HiltViewModel
 class CalendarViewModel @Inject constructor(
     private val getCalendarEventsUseCase: GetCalendarEventsUseCase,
     private val createCalendarEventUseCase: CreateCalendarEventUseCase,
     private val deleteCalendarEventUseCase: DeleteCalendarEventUseCase,
+    private val suggestMeetingTimesUseCase: SuggestMeetingTimesUseCase,
     private val dispatchers: DispatcherProvider,
     private val getContextSuggestionsUseCase: GetContextSuggestionsUseCase
 ) : ViewModel() {
@@ -449,55 +444,43 @@ class CalendarViewModel @Inject constructor(
     }
 
     /**
-     * Requests AI-generated optimal meeting time suggestions.
+     * Requests AI-generated optimal meeting time suggestions via [SuggestMeetingTimesUseCase].
      *
-     * Sets [CalendarUiState.CalendarView.isLoadingAiSuggestions] to true, simulates an
-     * AI call with a short delay, and injects two mock [SuggestedMeetingTime] objects.
+     * Sets [CalendarUiState.CalendarView.isLoadingAiSuggestions] to true while the
+     * request is in-flight. On success, populates [CalendarUiState.CalendarView.aiSuggestedTimes]
+     * with the returned suggested windows. On any failure, silently clears the loading flag.
      *
-     * NOTE: This is a placeholder implementation. When a real `SuggestMeetingTimesUseCase`
-     * is added to the domain layer, replace the delay+mock with the actual use case call.
-     * (Requirements: 8.2)
+     * Requirements: 8.2
      */
     fun requestAiMeetingTimeSuggestions() {
         val currentState = _uiState.value as? CalendarUiState.CalendarView ?: return
         _uiState.value = currentState.copy(isLoadingAiSuggestions = true)
 
-        viewModelScope.launch {
-            // Simulate AI orchestrator call
-            withContext(dispatchers.io) {
-                delay(AI_SUGGESTION_DELAY_MS)
-            }
-
+        viewModelScope.launch(dispatchers.io) {
+            val result = suggestMeetingTimesUseCase(
+                prompt = "Suggest optimal meeting times based on my calendar",
+                durationMinutes = 60
+            )
             val latestState = _uiState.value as? CalendarUiState.CalendarView ?: return@launch
-            val now = System.currentTimeMillis()
-            val oneDayMs = 86_400_000L
-            val nineAm = 9 * 3_600_000L
-            val tenAm = 10 * 3_600_000L
-            val twoPm = 14 * 3_600_000L
-            val threePm = 15 * 3_600_000L
-
-            val todayMidnight = now - (now % oneDayMs)
-
-            val suggestions = listOf(
-                SuggestedMeetingTime(
-                    startTime = todayMidnight + oneDayMs + nineAm,
-                    endTime = todayMidnight + oneDayMs + tenAm,
-                    reason = "Tomorrow morning at 9 AM â€” no conflicts and high focus time"
-                ),
-                SuggestedMeetingTime(
-                    startTime = todayMidnight + oneDayMs + twoPm,
-                    endTime = todayMidnight + oneDayMs + threePm,
-                    reason = "Tomorrow afternoon at 2 PM â€” after lunch, your schedule is clear"
-                )
-            )
-
-            _uiState.value = latestState.copy(
-                isLoadingAiSuggestions = false,
-                aiSuggestedTimes = suggestions
-            )
+            _uiState.value = when (result) {
+                is ApiResult.Success -> {
+                    val suggestions = result.data.mapIndexed { index, isoTime ->
+                        val startMs = runCatching {
+                            java.time.OffsetDateTime.parse(isoTime)
+                                .toInstant().toEpochMilli()
+                        }.getOrElse { System.currentTimeMillis() + (index + 1) * 86_400_000L }
+                        SuggestedMeetingTime(
+                            startTime = startMs,
+                            endTime = startMs + DEFAULT_EVENT_DURATION_MS,
+                            reason = "AI suggested time slot"
+                        )
+                    }
+                    latestState.copy(isLoadingAiSuggestions = false, aiSuggestedTimes = suggestions)
+                }
+                else -> latestState.copy(isLoadingAiSuggestions = false)
+            }
         }
     }
-
     // â”€â”€â”€ Private helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /**

@@ -11,6 +11,7 @@ import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.unmockkAll
 
 class LoginWithGoogleUseCaseTest :
     DescribeSpec({
@@ -27,6 +28,10 @@ class LoginWithGoogleUseCaseTest :
 
         beforeEach {
             clearMocks(authRepository)
+        }
+
+        afterEach {
+            unmockkAll()
         }
 
         describe("LoginWithGoogleUseCase") {

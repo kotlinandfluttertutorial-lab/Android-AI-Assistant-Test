@@ -1,4 +1,4 @@
-/**
+﻿/**
  * SettingsViewModelTest.kt — feature-settings unit tests
  *
  * Tests for [SettingsViewModel] state logic:
@@ -39,9 +39,11 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.unmockkAll
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
@@ -95,6 +97,7 @@ class SettingsViewModelTest :
 
         afterSpec {
             Dispatchers.resetMain()
+            unmockkAll()
         }
 
         beforeEach {
@@ -123,6 +126,10 @@ class SettingsViewModelTest :
             // Firebase Remote Config: return a completed task so fetchAndActivate().await() doesn't hang
             every { mockRemoteConfig.fetchAndActivate() } returns Tasks.forResult(true)
             every { mockRemoteConfig.getString(any()) } returns ""
+        }
+
+        afterEach {
+            unmockkAll()
         }
 
         // ─── Initial state loading ────────────────────────────────────────────────
@@ -449,10 +456,10 @@ class SettingsViewModelTest :
                     coEvery { mockAuthRepository.changePassword(any(), any()) } returns ApiResult.Success(Unit)
 
                     val vm = buildViewModel()
-                    vm.changePassword("oldPass123!", "newPass456!")
+                    vm.changePassword("oldPass123!", "newPassword123!")
 
                     coVerify(exactly = 1) {
-                        mockAuthRepository.changePassword("oldPass123!", "newPass456!")
+                        mockAuthRepository.changePassword("oldPass123!", "newPassword123!")
                     }
                 }
             }
@@ -462,7 +469,7 @@ class SettingsViewModelTest :
                     coEvery { mockAuthRepository.changePassword(any(), any()) } returns ApiResult.Success(Unit)
 
                     val vm = buildViewModel()
-                    vm.changePassword("oldPass123!", "newPass456!")
+                    vm.changePassword("oldPass123!", "newPassword123!")
 
                     val state = vm.uiState.value
                     state.shouldBeInstanceOf<SettingsUiState.ActionResult>()
@@ -497,7 +504,7 @@ class SettingsViewModelTest :
                     coEvery { mockAuthRepository.changePassword(any(), any()) } returns ApiResult.Error(error)
 
                     val vm = buildViewModel()
-                    vm.changePassword("wrongOld123!", "newPass456!")
+                    vm.changePassword("wrongOld123!", "newPassword123!")
 
                     val state = vm.uiState.value
                     state.shouldBeInstanceOf<SettingsUiState.ActionResult>()
@@ -511,7 +518,7 @@ class SettingsViewModelTest :
                     coEvery { mockAuthRepository.changePassword(any(), any()) } returns ApiResult.NetworkUnavailable
 
                     val vm = buildViewModel()
-                    vm.changePassword("oldPass123!", "newPass456!")
+                    vm.changePassword("oldPass123!", "newPassword123!")
 
                     val state = vm.uiState.value
                     state.shouldBeInstanceOf<SettingsUiState.ActionResult>()
@@ -675,7 +682,7 @@ class SettingsViewModelTest :
                     coEvery { mockAuthRepository.changePassword(any(), any()) } returns ApiResult.Success(Unit)
 
                     val vm = buildViewModel()
-                    vm.changePassword("oldPass123!", "newPass456!")
+                    vm.changePassword("oldPass123!", "newPassword123!")
 
                     vm.uiState.value.shouldBeInstanceOf<SettingsUiState.ActionResult>()
 

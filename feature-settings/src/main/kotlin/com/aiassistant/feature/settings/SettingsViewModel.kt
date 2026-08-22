@@ -47,6 +47,7 @@ import com.aiassistant.domain.repository.UserRepository
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -109,6 +110,8 @@ class SettingsViewModel @Inject constructor(
     // Cached last-known Settings state for dialog / action result transitions
     private var lastKnownSettings: SettingsUiState.Settings? = null
 
+    private var observeSettingsJob: Job? = null
+
     // ── Init ──────────────────────────────────────────────────────────────────
 
     init {
@@ -129,7 +132,8 @@ class SettingsViewModel @Inject constructor(
      * Any error from the user repository transitions to [SettingsUiState.Error].
      */
     private fun observeSettings() {
-        viewModelScope.launch {
+        observeSettingsJob?.cancel()
+        observeSettingsJob = viewModelScope.launch {
             combine(
                 userRepository.getCurrentUser(),
                 themePreferences.themeMode,

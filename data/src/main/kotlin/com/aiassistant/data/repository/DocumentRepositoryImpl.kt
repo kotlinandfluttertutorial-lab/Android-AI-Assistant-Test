@@ -283,11 +283,7 @@ class DocumentRepositoryImpl @Inject constructor(
         documentDao.getDocumentById(documentId).firstOrNull()?.jobId
 
     /** Updates the [ingestionStatus] (and optionally [errorMessage]) of a document in Room. */
-    private suspend fun updateLocalStatus(
-        documentId: String,
-        status: IngestionStatus,
-        errorMessage: String? = null
-    ) {
+    private suspend fun updateLocalStatus(documentId: String, status: IngestionStatus, errorMessage: String? = null) {
         val entity = documentDao.getDocumentById(documentId).firstOrNull() ?: return
         documentDao.updateDocument(
             entity.copy(

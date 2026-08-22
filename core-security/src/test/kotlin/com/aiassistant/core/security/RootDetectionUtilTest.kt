@@ -16,6 +16,8 @@ import io.kotest.matchers.collections.shouldContain
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.unmockkAll
+import org.junit.After
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
@@ -24,6 +26,11 @@ import org.robolectric.annotation.Config
 @RunWith(RobolectricTestRunner::class)
 @Config(sdk = [33])
 class RootDetectionUtilTest {
+
+    @After
+    fun tearDown() {
+        unmockkAll()
+    }
 
     // ── RootStatus sealed class contract ────────────────────────────────────
 

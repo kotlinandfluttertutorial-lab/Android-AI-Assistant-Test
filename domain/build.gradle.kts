@@ -54,8 +54,14 @@ jacoco {
 }
 
 tasks.withType<Test> {
-    finalizedBy(tasks.withType<JacocoReport>())
+    // Only run JaCoCo when explicitly requested (e.g. in CI via -PenableJacoco).
+    // This prevents OOM during local test runs where coverage reports aren't needed.
+    if (project.hasProperty("enableJacoco")) {
+        finalizedBy(tasks.withType<JacocoReport>())
+    }
     useJUnitPlatform()
+    maxHeapSize = "3g"
+    forkEvery = 1
 }
 
 tasks.register<JacocoReport>("jacocoTestReport") {

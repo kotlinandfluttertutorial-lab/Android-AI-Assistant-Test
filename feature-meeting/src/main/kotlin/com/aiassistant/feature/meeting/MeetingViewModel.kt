@@ -182,7 +182,17 @@ class MeetingViewModel @Inject constructor(
      * The caller (composable) should also invoke MeetingRecorderManager.stopRecording()
      * to close the microphone hardware before calling this method.
      */
-    fun stopRecording() {
+    /**
+     * Stops the active recording session and uploads the audio file for transcription.
+     *
+     * Transitions Recording → Processing on success, or → Error on failure.
+     * The caller (composable) invokes [MeetingRecorderManager.stopRecording()] to close
+     * the microphone hardware, then passes the returned file path to this method.
+     *
+     * @param audioFilePath Absolute path to the recorded audio file from
+     *                      [MeetingRecorderManager.stopRecording].
+     */
+    fun stopRecording(audioFilePath: String) {
         val current = _uiState.value
         if (current !is MeetingUiState.Recording) return
 
@@ -190,7 +200,7 @@ class MeetingViewModel @Inject constructor(
 
         viewModelScope.launch {
             val result = withContext(dispatchers.io) {
-                stopMeetingRecordingUseCase(sessionId)
+                stopMeetingRecordingUseCase(sessionId, audioFilePath)
             }
             _uiState.value = when (result) {
                 is ApiResult.Success -> MeetingUiState.Processing(sessionId)

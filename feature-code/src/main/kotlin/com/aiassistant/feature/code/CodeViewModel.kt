@@ -182,7 +182,17 @@ class CodeViewModel @Inject constructor(
                     request = request,
                     result = result.data
                 )
-                is ApiResult.Error -> CodeUiState.Error(result.error.message)
+                is ApiResult.Error -> CodeUiState.Error(
+                    // The backend /code/analyze endpoint is not yet deployed.
+                    // Show a clear message instead of a raw server error string.
+                    if (result.error is com.aiassistant.core.common.DomainError.ServerError &&
+                        (result.error as com.aiassistant.core.common.DomainError.ServerError).httpStatusCode == 404
+                    ) {
+                        "Code analysis is not yet available. Check back in a future update."
+                    } else {
+                        result.error.message
+                    }
+                )
                 is ApiResult.NetworkUnavailable -> CodeUiState.Error(
                     "No network connection. AI features require internet access."
                 )

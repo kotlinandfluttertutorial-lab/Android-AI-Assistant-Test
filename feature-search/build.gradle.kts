@@ -50,6 +50,8 @@ configurations.all {
 // ─── Test configuration ───────────────────────────────────────────────────────
 tasks.withType<Test> {
     useJUnitPlatform()
+    maxHeapSize = "3g"
+    forkEvery = 1
 }
 
 dependencies {
@@ -82,6 +84,7 @@ dependencies {
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.bundles.kotest)
     testImplementation(libs.turbine)
+    testImplementation(kotlin("test"))
     androidTestImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.compose.ui.test.junit4)
 }

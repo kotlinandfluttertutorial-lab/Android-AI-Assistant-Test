@@ -36,6 +36,7 @@ import android.content.Context
 import android.content.res.AssetManager
 import com.aiassistant.core.ai.MessagePayload
 import com.aiassistant.core.ai.ON_DEVICE_PROVIDER_ID
+import com.aiassistant.core.ai.OnDeviceCapabilityState
 import com.aiassistant.core.ai.StreamEvent
 import com.aiassistant.core.common.DispatcherProvider
 import io.kotest.core.spec.style.DescribeSpec
@@ -47,6 +48,7 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.unmockkAll
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.nio.file.Files
@@ -118,7 +120,10 @@ class OnDeviceSettingsProviderTest :
         val tmpDir = Files.createTempDirectory("settings-provider-test").toFile()
         File(tmpDir, "models").mkdirs()
 
-        afterSpec { tmpDir.deleteRecursively() }
+        afterSpec {
+            unmockkAll()
+            tmpDir.deleteRecursively()
+        }
 
         val context = mockk<Context>(relaxed = true)
         val assetManager = mockk<AssetManager>(relaxed = true)

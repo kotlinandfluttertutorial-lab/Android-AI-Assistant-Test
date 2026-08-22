@@ -1,4 +1,4 @@
-/*
+﻿/*
  * ============================================================
  * Android AI Assistant (Enterprise Edition)
  * ============================================================
@@ -45,13 +45,14 @@ import com.aiassistant.feature.productivity.calendar.CalendarViewMode
 import com.aiassistant.feature.productivity.calendar.CalendarViewModel
 import com.aiassistant.feature.productivity.habit.HabitUiState
 import com.aiassistant.feature.productivity.habit.HabitViewModel
-import com.aiassistant.feature.productivity.reminder.ProductivityViewModel as ReminderViewModel
 import com.aiassistant.feature.productivity.reminder.ReminderNotificationManager
 import com.aiassistant.feature.productivity.reminder.ReminderUiState
+import com.aiassistant.feature.productivity.reminder.ReminderViewModel
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.unmockkAll
 import io.mockk.verify
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -91,6 +92,7 @@ class ProductivityViewModelTest {
     @After
     fun tearDown() {
         Dispatchers.resetMain()
+        unmockkAll()
     }
 
     // ── Test data helpers ─────────────────────────────────────────────────────
@@ -958,6 +960,7 @@ class ProductivityViewModelTest {
             getCalendarEventsUseCase = getEvents,
             createCalendarEventUseCase = createEvent,
             deleteCalendarEventUseCase = deleteEvent,
+            suggestMeetingTimesUseCase = mockk(relaxed = true),
             dispatchers = testDispatchers,
             getContextSuggestionsUseCase = mockk<GetContextSuggestionsUseCase>(relaxed = true)
         )
@@ -1001,6 +1004,7 @@ class ProductivityViewModelTest {
                 coEvery { it(any()) } returns
                     ApiResult.Success(Unit)
             },
+            suggestMeetingTimesUseCase = mockk(relaxed = true),
             dispatchers = testDispatchers,
             getContextSuggestionsUseCase = mockk<GetContextSuggestionsUseCase>(relaxed = true)
         )
@@ -1028,6 +1032,7 @@ class ProductivityViewModelTest {
                 coEvery { it(any()) } returns
                     ApiResult.Success(Unit)
             },
+            suggestMeetingTimesUseCase = mockk(relaxed = true),
             dispatchers = testDispatchers,
             getContextSuggestionsUseCase = mockk<GetContextSuggestionsUseCase>(relaxed = true)
         )
@@ -1066,6 +1071,7 @@ class ProductivityViewModelTest {
                 coEvery { it(any()) } returns
                     ApiResult.Success(Unit)
             },
+            suggestMeetingTimesUseCase = mockk(relaxed = true),
             dispatchers = testDispatchers,
             getContextSuggestionsUseCase = mockk<GetContextSuggestionsUseCase>(relaxed = true)
         )
@@ -1101,6 +1107,7 @@ class ProductivityViewModelTest {
                     ApiResult.Success(makeCalendarEvent())
             },
             deleteCalendarEventUseCase = deleteEvent,
+            suggestMeetingTimesUseCase = mockk(relaxed = true),
             dispatchers = testDispatchers,
             getContextSuggestionsUseCase = mockk<GetContextSuggestionsUseCase>(relaxed = true)
         )
@@ -1126,6 +1133,7 @@ class ProductivityViewModelTest {
                 coEvery { it(any()) } returns
                     ApiResult.Success(Unit)
             },
+            suggestMeetingTimesUseCase = mockk(relaxed = true),
             dispatchers = testDispatchers,
             getContextSuggestionsUseCase = mockk<GetContextSuggestionsUseCase>(relaxed = true)
         )

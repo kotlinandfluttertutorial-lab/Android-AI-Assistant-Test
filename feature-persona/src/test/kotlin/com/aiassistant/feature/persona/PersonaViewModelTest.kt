@@ -45,6 +45,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.unmockkAll
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -136,6 +137,7 @@ class PersonaViewModelTest :
         afterEach {
             Dispatchers.resetMain()
             clearMocks(personaRepository, personaPreferencesRepository)
+            unmockkAll()
         }
 
         /** Builds a [PersonaViewModel] with the given persona list pre-loaded. */

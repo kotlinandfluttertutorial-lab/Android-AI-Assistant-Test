@@ -22,10 +22,29 @@
 #   STAGING_SSH_HOST, STAGING_SSH_USER, STAGING_SSH_KEY  — staging server
 #   PROD_SSH_HOST,    PROD_SSH_USER,    PROD_SSH_KEY      — production server
 #   SLACK_WEBHOOK_URL  — Slack notifications (optional)
+#   AES_ENCRYPTION_KEY_CI  — base64-encoded AES-256 key used by unit/integration
+#                            tests (same format as production AES_ENCRYPTION_KEY).
+#                            Generate once and store as a repository secret:
+#                            python -c "import base64,os; print(base64.b64encode(os.urandom(32)).decode())"
 #
 # Required Variables (repository-level):
 #   STAGING_COMPOSE_PATH   — absolute path to docker-compose.yml on staging host
 #   PROD_COMPOSE_PATH      — absolute path to docker-compose.yml on prod host
+#
+# NOTE — deploy-staging / deploy-production jobs:
+#   These SSH-based deploy jobs are superseded by .github/workflows/cloud-run-deploy.yml
+#   when deploying to Google Cloud Run.  Leave them in place for VM/compose-based
+#   environments; they are safely skipped when STAGING_SSH_HOST / PROD_SSH_HOST
+#   secrets are not set.
+#
+# NOTE — lint-and-type-check job:
+#   The job is currently commented out because ruff/mypy are not yet pinned in
+#   requirements.txt and --strict mypy on the full codebase produces false positives
+#   from third-party stubs.  To re-enable:
+#     1. Add to requirements.txt (dev section): ruff==0.6.9 mypy==1.11.2
+#        types-passlib types-python-jose
+#     2. Uncomment the lint-and-type-check job below.
+#     3. Add "backend-ci / lint-and-type-check" to branch protection required checks.
 # ============================================================================
 
 name: backend-ci

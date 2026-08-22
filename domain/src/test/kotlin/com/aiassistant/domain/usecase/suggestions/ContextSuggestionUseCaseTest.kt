@@ -1,4 +1,4 @@
-/**
+﻿/**
  * ContextSuggestionUseCaseTest.kt — domain module unit tests
  *
  * Tests for context suggestion use cases:
@@ -28,6 +28,7 @@ import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.unmockkAll
 
 // ─── Shared test fixtures ──────────────────────────────────────────────────────
 
@@ -68,9 +69,11 @@ class GetContextSuggestionsUseCaseTest :
         val repository = mockk<ContextSuggestionRepository>()
         val dispatchers = DefaultDispatcherProvider()
 
-        fun makeUseCase() = GetContextSuggestionsUseCase(repository, dispatchers)
+        fun makeUseCase() = GetContextSuggestionsUseCase(repository)
 
         beforeEach { clearMocks(repository) }
+
+        afterEach { unmockkAll() }
 
         describe("GetContextSuggestionsUseCase") {
 

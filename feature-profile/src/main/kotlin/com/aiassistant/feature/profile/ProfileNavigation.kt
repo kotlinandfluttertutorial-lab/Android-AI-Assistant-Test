@@ -57,8 +57,8 @@ object ProfileRoute {
 /**
  * Embeds the Profile and Memory Management screen into the caller's [NavGraphBuilder].
  *
- * Wires all [ProfileViewModel] callbacks and listens for [ProfileEvent.AccountDeleted]
- * to trigger navigation to the authentication screen.
+ * Also registers the [MemoryListRoute.SCREEN] destination so the caller can navigate
+ * to the standalone memory list from within the same nav graph.
  *
  * Usage in the app module's root [NavHost]:
  * ```kotlin
@@ -89,6 +89,12 @@ fun NavGraphBuilder.profileNavGraph(
         }
     }
 ) {
+    // ── Memory List ── standalone destination reachable from ProfileScreen ──────
+    memoryListNavGraph(
+        navController = navController,
+        onNavigateUp = { navController.popBackStack() }
+    )
+
     composable(route = ProfileRoute.SCREEN) {
         val viewModel: ProfileViewModel = hiltViewModel()
         val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -105,6 +111,9 @@ fun NavGraphBuilder.profileNavGraph(
         ProfileScreen(
             uiState = uiState,
             onNavigateUp = onNavigateUp,
+            onNavigateToMemoryList = {
+                navController.navigate(MemoryListRoute.SCREEN)
+            },
             // ── Memory actions ─────────────────────────────────────────────
             onStartEditMemory = { memory -> viewModel.startEditMemory(memory) },
             onUpdateEditContent = { content -> viewModel.updateEditContent(content) },

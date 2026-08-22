@@ -44,6 +44,7 @@ import io.kotest.property.arbitrary.string
 import io.kotest.property.checkAll
 import io.mockk.coEvery
 import io.mockk.mockk
+import io.mockk.unmockkAll
 
 // ─── Email Component Detectors ────────────────────────────────────────────────
 
@@ -207,6 +208,10 @@ private val arbEmailInput: Arb<EmailInput> = arbitrary {
  */
 class EmailGenerationStructurePropertyTest :
     DescribeSpec({
+
+        afterEach {
+            unmockkAll()
+        }
 
         // ── P22-1 — Subject line is always present ────────────────────────────────
         describe("P22-1 — generated email always contains a subject line") {
