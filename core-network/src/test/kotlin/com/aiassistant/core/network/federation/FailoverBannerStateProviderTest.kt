@@ -16,6 +16,7 @@ package com.aiassistant.core.network.federation
 import app.cash.turbine.test
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
+import io.mockk.unmockkAll
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
@@ -26,6 +27,8 @@ import kotlinx.coroutines.withTimeout
 @OptIn(ExperimentalCoroutinesApi::class)
 class FailoverBannerStateProviderTest :
     DescribeSpec({
+
+        afterSpec { unmockkAll() }
 
         fun buildProvider(): Pair<FailoverBannerStateProvider, FailoverEventBus> {
             val bus = FailoverEventBus()

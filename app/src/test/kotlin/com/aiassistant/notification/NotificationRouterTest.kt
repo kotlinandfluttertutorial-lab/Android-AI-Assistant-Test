@@ -27,6 +27,8 @@ import android.app.Application
 import android.app.Notification
 import android.content.Context
 import androidx.test.core.app.ApplicationProvider
+import io.mockk.unmockkAll
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Before
@@ -53,6 +55,11 @@ class NotificationRouterTest {
         context = ApplicationProvider.getApplicationContext()
         fakePoster = FakeNotificationPoster()
         router = NotificationRouter(context, fakePoster)
+    }
+
+    @After
+    fun tearDown() {
+        unmockkAll()
     }
 
     // ─── Helpers ──────────────────────────────────────────────────────────────

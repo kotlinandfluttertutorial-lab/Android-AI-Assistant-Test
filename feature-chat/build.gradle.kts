@@ -34,6 +34,16 @@ android {
     buildFeatures {
         compose = true
     }
+
+    testOptions {
+        unitTests {
+            all {
+                it.useJUnitPlatform()
+                it.maxHeapSize = "3g"
+                it.forkEvery = 1
+            }
+        }
+    }
 }
 
 // ─── Dependency rule enforcement ─────────────────────────────────────────────

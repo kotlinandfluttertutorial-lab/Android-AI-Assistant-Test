@@ -32,6 +32,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.unmockkAll
 import java.io.File
 import kotlinx.coroutines.test.runTest
 
@@ -40,6 +41,10 @@ class MeetingRepositoryImplTest :
 
         val remoteDataSource = mockk<MeetingRemoteDataSource>()
         val connectivityObserver = mockk<ConnectivityObserver>()
+
+        afterEach {
+            unmockkAll()
+        }
 
         val summaryText = "## Transcript\n\n[00:00:00] Speaker 1: Let's get started.\n"
 

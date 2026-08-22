@@ -31,6 +31,7 @@ import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.unmockkAll
 import kotlinx.coroutines.test.runTest
 
 // ─── Fixtures ────────────────────────────────────────────────────────────────
@@ -56,6 +57,10 @@ class SemanticSearchUseCaseTest :
         beforeEach {
             clearAllMocks()
             semanticSearchUseCase = SemanticSearchUseCase(repository)
+        }
+
+        afterEach {
+            unmockkAll()
         }
 
         describe("SemanticSearchUseCase") {

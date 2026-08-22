@@ -45,6 +45,7 @@ import io.kotest.property.checkAll
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.unmockkAll
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -208,6 +209,10 @@ private val NOTE_CONTEXT = ScreenContext.NoteContext(
  */
 class ContextSuggestionRateGatePropertyTest :
     DescribeSpec({
+
+        afterEach {
+            unmockkAll()
+        }
 
         // ── P32-1 — Exact count: allowed count matches simulation ──────────────────
         describe("P32-1 — allowed call count equals events with ≥5 s interval since last allowed call") {

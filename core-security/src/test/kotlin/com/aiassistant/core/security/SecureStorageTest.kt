@@ -26,6 +26,8 @@ package com.aiassistant.core.security
 
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.mockk.unmockkAll
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -93,6 +95,11 @@ class SecureStorageContractTest {
     @Before
     fun setUp() {
         secureStorage = FakeSecureStorage()
+    }
+
+    @After
+    fun tearDown() {
+        unmockkAll()
     }
 
     // ── JWT token ─────────────────────────────────────────────────────────────
@@ -236,6 +243,11 @@ class SecureStorageImplRobolectricTest {
             android.content.Context.MODE_PRIVATE
         )
         secureStorage = SecureStorageImpl(plainPrefs)
+    }
+
+    @After
+    fun tearDown() {
+        unmockkAll()
     }
 
     // ── JWT round-trip via SharedPreferences ─────────────────────────────────

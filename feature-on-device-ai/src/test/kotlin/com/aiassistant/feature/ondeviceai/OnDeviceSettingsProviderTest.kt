@@ -48,6 +48,7 @@ import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.unmockkAll
 import java.io.ByteArrayInputStream
 import java.io.File
 import java.nio.file.Files
@@ -119,7 +120,10 @@ class OnDeviceSettingsProviderTest :
         val tmpDir = Files.createTempDirectory("settings-provider-test").toFile()
         File(tmpDir, "models").mkdirs()
 
-        afterSpec { tmpDir.deleteRecursively() }
+        afterSpec {
+            unmockkAll()
+            tmpDir.deleteRecursively()
+        }
 
         val context = mockk<Context>(relaxed = true)
         val assetManager = mockk<AssetManager>(relaxed = true)

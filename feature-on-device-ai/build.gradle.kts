@@ -48,6 +48,8 @@ android {
 // ─── JUnit 5 (Kotest runner) ──────────────────────────────────────────────────
 tasks.withType<Test> {
     useJUnitPlatform()
+    maxHeapSize = "3g"
+    forkEvery = 1
 }
 
 // ─── Dependency rule enforcement ─────────────────────────────────────────────

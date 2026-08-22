@@ -34,6 +34,7 @@ import io.kotest.matchers.string.shouldNotBeEmpty
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.mockk
+import io.mockk.unmockkAll
 import kotlinx.coroutines.test.runTest
 
 class ContextSuggestionRepositoryImplTest :
@@ -42,6 +43,10 @@ class ContextSuggestionRepositoryImplTest :
         val mockRemoteDataSource = mockk<SuggestionRemoteDataSource>()
         val mockConnectivityObserver = mockk<ConnectivityObserver>()
         val repository = ContextSuggestionRepositoryImpl(mockRemoteDataSource, mockConnectivityObserver)
+
+        afterEach {
+            unmockkAll()
+        }
 
         beforeEach {
             coEvery { mockConnectivityObserver.isConnected() } returns true

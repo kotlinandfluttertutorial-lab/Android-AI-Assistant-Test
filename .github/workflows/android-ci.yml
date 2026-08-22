@@ -305,7 +305,7 @@ jobs:
           fi
 
       - name: Run unit tests on all modules
-        run: ./gradlew test --stacktrace --continue
+        run: ./gradlew testDebugUnitTest --stacktrace --continue -Porg.gradle.jvmargs="-Xmx4g -XX:MaxMetaspaceSize=512m" -Porg.gradle.workers.max=2
 
       - name: Publish test results
         if: always()

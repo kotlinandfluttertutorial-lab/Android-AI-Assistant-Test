@@ -24,6 +24,7 @@ import io.kotest.matchers.string.shouldContain
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.unmockkAll
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.emptyFlow
 import kotlinx.coroutines.launch
@@ -44,6 +45,8 @@ private fun federationConfig(vararg endpoints: BackendEndpoint) = FederationConf
 
 class FailoverInterceptorTest :
     DescribeSpec({
+
+        afterSpec { unmockkAll() }
 
         /**
          * Creates fresh MockWebServer instances for each test to ensure no request-count

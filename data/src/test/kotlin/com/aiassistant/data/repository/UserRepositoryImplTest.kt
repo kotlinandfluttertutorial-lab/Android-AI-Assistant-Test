@@ -110,6 +110,10 @@ class UserRepositoryImplTest :
             )
         }
 
+        afterEach {
+            unmockkAll()
+        }
+
         // ─── getCurrentUser() ─────────────────────────────────────────────────────
 
         describe("getCurrentUser()") {

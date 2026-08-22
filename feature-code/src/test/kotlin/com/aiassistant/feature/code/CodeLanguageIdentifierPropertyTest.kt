@@ -37,6 +37,7 @@ import io.kotest.property.arbitrary.string
 import io.kotest.property.checkAll
 import io.mockk.coEvery
 import io.mockk.mockk
+import io.mockk.unmockkAll
 
 // ─── Canonical identifier set (mirrors the when-expression in CodeEditorScreen) ─
 
@@ -62,6 +63,10 @@ class CodeLanguageIdentifierPropertyTest :
 
         /** Use case under test — wraps the mock repository. */
         val analyzeCodeUseCase = AnalyzeCodeUseCase(codeRepository)
+
+        afterSpec {
+            unmockkAll()
+        }
 
         /**
          * Configures [codeRepository] so every [analyzeCode] call returns a

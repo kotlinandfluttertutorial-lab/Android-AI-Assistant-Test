@@ -98,6 +98,10 @@ class CostDashboardRepositoryImplTest :
             )
         }
 
+        afterEach {
+            unmockkAll()
+        }
+
         // ─── getCostSummary() ─────────────────────────────────────────────────────
 
         describe("getCostSummary()") {

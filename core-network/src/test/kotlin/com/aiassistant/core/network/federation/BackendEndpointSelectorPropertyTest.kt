@@ -28,6 +28,7 @@ import com.aiassistant.domain.model.FederationConfig
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.mockk.unmockkAll
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.element
 import io.kotest.property.arbitrary.list
@@ -72,6 +73,8 @@ private val arbEndpointList: Arb<List<BackendEndpoint>> = Arb.list(arbEndpoint, 
 
 class BackendEndpointSelectorPropertyTest :
     FunSpec({
+
+        afterSpec { unmockkAll() }
 
         val selector = BackendEndpointSelector()
 

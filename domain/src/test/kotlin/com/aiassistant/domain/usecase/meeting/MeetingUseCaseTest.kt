@@ -25,6 +25,7 @@ import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.unmockkAll
 
 // ─── Shared test fixtures ──────────────────────────────────────────────────────
 
@@ -42,6 +43,10 @@ class StartMeetingRecordingUseCaseTest :
 
         beforeEach {
             clearMocks(meetingRepository)
+        }
+
+        afterEach {
+            unmockkAll()
         }
 
         describe("StartMeetingRecordingUseCase") {
@@ -140,6 +145,10 @@ class StopMeetingRecordingUseCaseTest :
             clearMocks(meetingRepository)
         }
 
+        afterEach {
+            unmockkAll()
+        }
+
         describe("StopMeetingRecordingUseCase") {
 
             describe("successful stop") {
@@ -202,6 +211,10 @@ class GetMeetingSummaryUseCaseTest :
 
         beforeEach {
             clearMocks(meetingRepository)
+        }
+
+        afterEach {
+            unmockkAll()
         }
 
         describe("GetMeetingSummaryUseCase") {

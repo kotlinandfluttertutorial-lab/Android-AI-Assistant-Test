@@ -27,6 +27,7 @@ import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.unmockkAll
 
 // ─── Shared test fixtures ──────────────────────────────────────────────────────
 
@@ -53,6 +54,10 @@ class SaveNoteUseCaseTest :
 
         beforeEach {
             clearMocks(noteRepository)
+        }
+
+        afterEach {
+            unmockkAll()
         }
 
         describe("SaveNoteUseCase") {
@@ -145,6 +150,10 @@ class SummarizeNoteUseCaseTest :
             clearMocks(noteRepository)
         }
 
+        afterEach {
+            unmockkAll()
+        }
+
         describe("SummarizeNoteUseCase") {
 
             describe("successful summarization") {
@@ -202,6 +211,10 @@ class RewriteNoteUseCaseTest :
 
         beforeEach {
             clearMocks(noteRepository)
+        }
+
+        afterEach {
+            unmockkAll()
         }
 
         describe("RewriteNoteUseCase") {

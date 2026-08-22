@@ -66,6 +66,10 @@ class MemoryRepositoryImplTest :
             )
         }
 
+        afterEach {
+            unmockkAll()
+        }
+
         // ─── getMemories() ────────────────────────────────────────────────────────
 
         describe("getMemories()") {

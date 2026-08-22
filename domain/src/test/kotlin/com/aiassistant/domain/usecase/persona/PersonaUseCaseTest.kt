@@ -28,6 +28,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.unmockkAll
 import kotlinx.coroutines.flow.flowOf
 
 // ─── Shared test fixtures ──────────────────────────────────────────────────────
@@ -60,6 +61,8 @@ class CreatePersonaUseCaseTest :
         val repository = mockk<PersonaRepository>()
         val useCase = CreatePersonaUseCase(repository)
         beforeEach { clearMocks(repository) }
+
+        afterEach { unmockkAll() }
 
         describe("CreatePersonaUseCase") {
             describe("successful creation") {
@@ -218,6 +221,8 @@ class DeletePersonaUseCaseTest :
         val useCase = DeletePersonaUseCase(repository)
         beforeEach { clearMocks(repository) }
 
+        afterEach { unmockkAll() }
+
         describe("DeletePersonaUseCase") {
             describe("successful deletion") {
                 it("returns Success with Unit when persona is not admin-locked") {
@@ -304,6 +309,8 @@ class SelectPersonaUseCaseTest :
         val preferencesRepository = mockk<com.aiassistant.domain.repository.PersonaPreferencesRepository>()
         val useCase = SelectPersonaUseCase(repository, preferencesRepository)
         beforeEach { clearMocks(repository, preferencesRepository) }
+
+        afterEach { unmockkAll() }
 
         describe("SelectPersonaUseCase") {
             describe("successful selection") {

@@ -41,6 +41,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.unmockkAll
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -101,6 +102,8 @@ class GetConversationsUseCaseTest :
         val useCase = GetConversationsUseCase(repository)
 
         beforeEach { clearMocks(repository) }
+
+        afterEach { unmockkAll() }
 
         describe("GetConversationsUseCase") {
 
@@ -232,6 +235,8 @@ class CreateConversationUseCaseTest :
 
         beforeEach { clearMocks(repository) }
 
+        afterEach { unmockkAll() }
+
         describe("CreateConversationUseCase") {
 
             describe("successful creation") {
@@ -333,6 +338,8 @@ class DeleteConversationUseCaseTest :
 
         beforeEach { clearMocks(repository) }
 
+        afterEach { unmockkAll() }
+
         describe("DeleteConversationUseCase") {
 
             describe("soft-delete behavior") {
@@ -430,6 +437,8 @@ class SearchConversationsUseCaseTest :
 
         beforeEach { clearMocks(repository) }
 
+        afterEach { unmockkAll() }
+
         describe("SearchConversationsUseCase") {
 
             describe("FTS search filtering") {
@@ -525,6 +534,8 @@ class SendMessageUseCaseTest :
         val useCase = SendMessageUseCase(repository)
 
         beforeEach { clearMocks(repository) }
+
+        afterEach { unmockkAll() }
 
         describe("SendMessageUseCase") {
 
@@ -645,6 +656,8 @@ class RegenerateMessageUseCaseTest :
 
         beforeEach { clearMocks(repository) }
 
+        afterEach { unmockkAll() }
+
         describe("RegenerateMessageUseCase") {
 
             describe("successful regeneration") {
@@ -715,6 +728,8 @@ class ExportConversationUseCaseTest :
         val useCase = ExportConversationUseCase(repository)
 
         beforeEach { clearMocks(repository) }
+
+        afterEach { unmockkAll() }
 
         describe("ExportConversationUseCase") {
 
@@ -818,6 +833,8 @@ class SyncOfflineQueueUseCaseTest :
         val useCase = SyncOfflineQueueUseCase(repository)
 
         beforeEach { clearMocks(repository) }
+
+        afterEach { unmockkAll() }
 
         describe("SyncOfflineQueueUseCase") {
 

@@ -38,8 +38,8 @@ android {
 // ─── JUnit 5 (Kotest runner) ──────────────────────────────────────────────────
 tasks.withType<Test> {
     useJUnitPlatform()
-    // Increase heap and use a fresh process for each test class to avoid memory leaks (Requirement 21.1)
-    maxHeapSize = "1024m"
+    // Increase heap and use a fresh process for each test class to avoid memory leaks
+    maxHeapSize = "3g"
     forkEvery = 1
 }
 

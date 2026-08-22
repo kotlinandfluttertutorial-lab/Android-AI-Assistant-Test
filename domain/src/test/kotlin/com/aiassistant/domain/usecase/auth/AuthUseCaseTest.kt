@@ -28,6 +28,7 @@ import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.unmockkAll
 
 // ─── Shared test fixtures ──────────────────────────────────────────────────────
 
@@ -51,6 +52,10 @@ class LoginUseCaseTest :
 
         beforeEach {
             clearMocks(authRepository)
+        }
+
+        afterEach {
+            unmockkAll()
         }
 
         describe("LoginUseCase") {
@@ -172,6 +177,10 @@ class RegisterUseCaseTest :
 
         beforeEach {
             clearMocks(authRepository)
+        }
+
+        afterEach {
+            unmockkAll()
         }
 
         describe("RegisterUseCase") {
@@ -374,6 +383,10 @@ class RefreshTokenUseCaseTest :
 
         beforeEach {
             clearMocks(authRepository)
+        }
+
+        afterEach {
+            unmockkAll()
         }
 
         describe("RefreshTokenUseCase") {

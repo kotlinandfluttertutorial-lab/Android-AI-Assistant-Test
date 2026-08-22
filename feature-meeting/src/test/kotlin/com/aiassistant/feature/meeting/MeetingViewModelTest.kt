@@ -34,6 +34,7 @@ import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.unmockkAll
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -84,6 +85,7 @@ class MeetingViewModelTest :
 
         afterSpec {
             Dispatchers.resetMain()
+            unmockkAll()
         }
 
         beforeEach {
@@ -326,7 +328,7 @@ class MeetingViewModelTest :
                 runTest(testDispatcher) {
                     val summaryWithActionItems = """
                     This was a productive meeting.
-                    
+
                     - [Alice]: Review the design document by Friday
                     - [Bob]: Schedule a follow-up call with the client
                     - [Carol]: Update the project timeline in Jira

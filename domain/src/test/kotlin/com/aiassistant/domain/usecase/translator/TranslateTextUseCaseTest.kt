@@ -24,6 +24,7 @@ import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.unmockkAll
 
 // ─── Shared test fixtures ──────────────────────────────────────────────────────
 
@@ -42,6 +43,10 @@ class TranslateTextUseCaseTest :
 
         beforeEach {
             clearMocks(translationRepository)
+        }
+
+        afterEach {
+            unmockkAll()
         }
 
         describe("TranslateTextUseCase") {

@@ -47,6 +47,7 @@ import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import io.mockk.unmockkAll
 import java.util.UUID
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
@@ -130,6 +131,10 @@ class ConversationRepositoryOfflineSyncPropertyTest :
                 connectivityObserver = connectivityObserver,
                 dispatchers = dispatchers
             )
+        }
+
+        afterEach {
+            unmockkAll()
         }
 
         // â”€â”€ Case 1 â€” offline queue submitted to server in original creation order â”€

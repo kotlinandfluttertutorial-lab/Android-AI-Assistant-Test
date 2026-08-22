@@ -33,6 +33,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.unmockkAll
 import kotlinx.coroutines.test.runTest
 
 class CodeRepositoryImplTest :
@@ -41,6 +42,10 @@ class CodeRepositoryImplTest :
         val remoteDataSource = mockk<CodeRemoteDataSource>()
         val connectivityObserver = mockk<ConnectivityObserver>()
         val repository = CodeRepositoryImpl(remoteDataSource, connectivityObserver)
+
+        afterEach {
+            unmockkAll()
+        }
 
         val sampleRequest = CodeAnalysisRequest(
             code = "fun hello() = println(\"Hello\")",

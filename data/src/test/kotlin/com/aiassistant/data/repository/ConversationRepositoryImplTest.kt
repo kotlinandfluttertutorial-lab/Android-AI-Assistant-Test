@@ -108,6 +108,10 @@ class ConversationRepositoryImplTest :
             )
         }
 
+        afterEach {
+            unmockkAll()
+        }
+
         // ─── getConversations() ───────────────────────────────────────────────────
         describe("getConversations()") {
             it("emits ApiResult.Success with conversations from Room immediately") {
