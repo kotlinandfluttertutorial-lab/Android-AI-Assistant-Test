@@ -32,18 +32,21 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.unmockkAll
 import java.io.File
 import kotlinx.coroutines.test.runTest
 
 class MeetingRepositoryImplTest :
     DescribeSpec({
 
-        val remoteDataSource = mockk<MeetingRemoteDataSource>()
-        val connectivityObserver = mockk<ConnectivityObserver>()
+        // Recreated before each test so that unmockkAll() calls in other test classes
+        // within the same JVM fork don't leave these in an unmocked state.
+        // relaxed = true avoids MockKException for any unstubbed calls.
+        var remoteDataSource = mockk<MeetingRemoteDataSource>(relaxed = true)
+        var connectivityObserver = mockk<ConnectivityObserver>(relaxed = true)
 
-        afterEach {
-            unmockkAll()
+        beforeEach {
+            remoteDataSource = mockk<MeetingRemoteDataSource>(relaxed = true)
+            connectivityObserver = mockk<ConnectivityObserver>(relaxed = true)
         }
 
         val summaryText = "## Transcript\n\n[00:00:00] Speaker 1: Let's get started.\n"
@@ -120,7 +123,7 @@ class MeetingRepositoryImplTest :
                     val result = repository.stopMeetingRecording(sessionId, "/some/path.m4a")
 
                     result shouldBe ApiResult.NetworkUnavailable
-                    coVerify(exactly = 0) { remoteDataSource.transcribeAudio(any(), any()) }
+                    coVerify(exactly = 0) { remoteDataSource.transcribeAudio(any()) }
                 }
             }
 
