@@ -24,6 +24,7 @@
  */
 package com.aiassistant.data.repository
 
+import android.content.ContentResolver
 import android.content.Context
 import app.cash.turbine.test
 import com.aiassistant.core.common.ApiResult
@@ -386,6 +387,12 @@ class DocumentRepositoryImplTest :
                     val uploadResponse = fakeDocumentUploadResponseDto(documentId = "new-doc", jobId = "new-job")
                     coEvery { remoteSource.uploadDocument(any()) } returns ApiResult.Success(uploadResponse)
                     every { connectivityObserver.isConnected() } returns true
+                    // Return a real InputStream with minimal bytes so readBytesFromUri() terminates
+                    // immediately. A relaxed-mock InputStream.read() returns 0 forever → OOM hang.
+                    val fakeInputStream = "pdf-content".toByteArray().inputStream()
+                    every { context.contentResolver } returns mockk {
+                        every { openInputStream(any()) } returns fakeInputStream
+                    }
 
                     val result = repository.uploadDocument("content://test/doc.pdf", "doc.pdf", "application/pdf")
 
