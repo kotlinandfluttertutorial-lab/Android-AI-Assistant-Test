@@ -1,4 +1,4 @@
-﻿/**
+/**
  * AuthViewModelTest.kt
  *
  * Purpose: Unit tests for [AuthViewModel] covering the state transitions that underpin

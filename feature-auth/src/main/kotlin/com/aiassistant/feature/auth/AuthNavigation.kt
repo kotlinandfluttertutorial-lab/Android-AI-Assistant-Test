@@ -1,4 +1,4 @@
-﻿package com.aiassistant.feature.auth
+package com.aiassistant.feature.auth
 
 import android.content.Context
 import androidx.compose.runtime.Composable

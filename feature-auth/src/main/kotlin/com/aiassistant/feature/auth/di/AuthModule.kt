@@ -1,4 +1,4 @@
-﻿package com.aiassistant.feature.auth.di
+package com.aiassistant.feature.auth.di
 
 import com.aiassistant.domain.repository.AuthRepository
 import com.aiassistant.domain.usecase.auth.LoginUseCase

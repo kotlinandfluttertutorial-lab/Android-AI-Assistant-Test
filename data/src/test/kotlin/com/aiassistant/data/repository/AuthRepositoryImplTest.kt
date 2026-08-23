@@ -1,4 +1,4 @@
-﻿/**
+/**
  * AuthRepositoryImplTest.kt â€” data module
  *
  * Purpose: Comprehensive unit tests for [AuthRepositoryImpl], verifying that every

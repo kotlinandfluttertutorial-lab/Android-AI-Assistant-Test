@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ============================================================
  * Android AI Assistant (Enterprise Edition)
  * ============================================================
@@ -63,6 +63,7 @@
  */
 package com.aiassistant.data.repository
 
+import androidx.annotation.VisibleForTesting
 import com.aiassistant.core.common.ApiResult
 import com.aiassistant.core.common.DispatcherProvider
 import com.aiassistant.core.common.DomainError
@@ -91,7 +92,6 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
-import androidx.annotation.VisibleForTesting
 
 /**
  * Concrete implementation of [UserRepository].

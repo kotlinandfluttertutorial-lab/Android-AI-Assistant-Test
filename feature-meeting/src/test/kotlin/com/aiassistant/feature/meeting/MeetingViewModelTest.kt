@@ -1,4 +1,4 @@
-﻿/**
+/**
  * MeetingViewModelTest.kt — feature-meeting unit tests
  *
  * Tests for [MeetingViewModel] state machine transitions:

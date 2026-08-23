@@ -34,10 +34,7 @@ import io.mockk.mockk
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
-private fun fakeUserEntity(
-    id: String = "user-1",
-    role: String = "user"
-) = UserEntity(
+private fun fakeUserEntity(id: String = "user-1", role: String = "user") = UserEntity(
     id = id,
     email = "test@example.com",
     displayName = "Test User",
@@ -51,98 +48,99 @@ private fun fakeUserEntity(
 
 // ─── Spec ─────────────────────────────────────────────────────────────────────
 
-class FederationProviderTest : DescribeSpec({
+class FederationProviderTest :
+    DescribeSpec({
 
-    val userDao: UserDao = mockk()
+        val userDao: UserDao = mockk()
 
-    beforeEach {
-        clearAllMocks()
-    }
-
-    // ── UserRoleProviderImpl ───────────────────────────────────────────────────
-
-    describe("UserRoleProviderImpl.getRole()") {
-
-        it("returns the user's role string when a user exists in Room") {
-            coEvery { userDao.getFirstUser() } returns fakeUserEntity(role = "user")
-
-            val provider = UserRoleProviderImpl(userDao)
-
-            provider.getRole() shouldBe "user"
+        beforeEach {
+            clearAllMocks()
         }
 
-        it("returns 'premium' when user has premium role") {
-            coEvery { userDao.getFirstUser() } returns fakeUserEntity(role = "premium")
+        // ── UserRoleProviderImpl ───────────────────────────────────────────────────
 
-            val provider = UserRoleProviderImpl(userDao)
+        describe("UserRoleProviderImpl.getRole()") {
 
-            provider.getRole() shouldBe "premium"
+            it("returns the user's role string when a user exists in Room") {
+                coEvery { userDao.getFirstUser() } returns fakeUserEntity(role = "user")
+
+                val provider = UserRoleProviderImpl(userDao)
+
+                provider.getRole() shouldBe "user"
+            }
+
+            it("returns 'premium' when user has premium role") {
+                coEvery { userDao.getFirstUser() } returns fakeUserEntity(role = "premium")
+
+                val provider = UserRoleProviderImpl(userDao)
+
+                provider.getRole() shouldBe "premium"
+            }
+
+            it("returns 'admin' when user has admin role") {
+                coEvery { userDao.getFirstUser() } returns fakeUserEntity(role = "admin")
+
+                val provider = UserRoleProviderImpl(userDao)
+
+                provider.getRole() shouldBe "admin"
+            }
+
+            it("returns DEFAULT_ROLE ('user') when no user is stored in Room") {
+                coEvery { userDao.getFirstUser() } returns null
+
+                val provider = UserRoleProviderImpl(userDao)
+
+                provider.getRole() shouldBe "user"
+            }
+
+            it("returns DEFAULT_ROLE for each call when Room stays empty") {
+                coEvery { userDao.getFirstUser() } returns null
+
+                val provider = UserRoleProviderImpl(userDao)
+
+                // Calling getRole() multiple times should remain stable
+                provider.getRole() shouldBe "user"
+                provider.getRole() shouldBe "user"
+            }
         }
 
-        it("returns 'admin' when user has admin role") {
-            coEvery { userDao.getFirstUser() } returns fakeUserEntity(role = "admin")
+        // ── UserRegionProviderImpl ─────────────────────────────────────────────────
 
-            val provider = UserRoleProviderImpl(userDao)
+        describe("UserRegionProviderImpl.getRegion()") {
 
-            provider.getRole() shouldBe "admin"
+            it("returns empty string (DEFAULT_REGION) when a user exists in Room") {
+                // Schema note: regionTag is not yet stored on UserEntity;
+                // implementation always returns DEFAULT_REGION regardless of the user.
+                coEvery { userDao.getFirstUser() } returns fakeUserEntity()
+
+                val provider = UserRegionProviderImpl(userDao)
+
+                provider.getRegion() shouldBe ""
+            }
+
+            it("returns empty string (DEFAULT_REGION) when no user is stored in Room") {
+                coEvery { userDao.getFirstUser() } returns null
+
+                val provider = UserRegionProviderImpl(userDao)
+
+                provider.getRegion() shouldBe ""
+            }
+
+            it("returns empty string regardless of user role") {
+                coEvery { userDao.getFirstUser() } returns fakeUserEntity(role = "admin")
+
+                val provider = UserRegionProviderImpl(userDao)
+
+                provider.getRegion() shouldBe ""
+            }
+
+            it("returns consistent empty string on repeated calls") {
+                coEvery { userDao.getFirstUser() } returns fakeUserEntity()
+
+                val provider = UserRegionProviderImpl(userDao)
+
+                provider.getRegion() shouldBe ""
+                provider.getRegion() shouldBe ""
+            }
         }
-
-        it("returns DEFAULT_ROLE ('user') when no user is stored in Room") {
-            coEvery { userDao.getFirstUser() } returns null
-
-            val provider = UserRoleProviderImpl(userDao)
-
-            provider.getRole() shouldBe "user"
-        }
-
-        it("returns DEFAULT_ROLE for each call when Room stays empty") {
-            coEvery { userDao.getFirstUser() } returns null
-
-            val provider = UserRoleProviderImpl(userDao)
-
-            // Calling getRole() multiple times should remain stable
-            provider.getRole() shouldBe "user"
-            provider.getRole() shouldBe "user"
-        }
-    }
-
-    // ── UserRegionProviderImpl ─────────────────────────────────────────────────
-
-    describe("UserRegionProviderImpl.getRegion()") {
-
-        it("returns empty string (DEFAULT_REGION) when a user exists in Room") {
-            // Schema note: regionTag is not yet stored on UserEntity;
-            // implementation always returns DEFAULT_REGION regardless of the user.
-            coEvery { userDao.getFirstUser() } returns fakeUserEntity()
-
-            val provider = UserRegionProviderImpl(userDao)
-
-            provider.getRegion() shouldBe ""
-        }
-
-        it("returns empty string (DEFAULT_REGION) when no user is stored in Room") {
-            coEvery { userDao.getFirstUser() } returns null
-
-            val provider = UserRegionProviderImpl(userDao)
-
-            provider.getRegion() shouldBe ""
-        }
-
-        it("returns empty string regardless of user role") {
-            coEvery { userDao.getFirstUser() } returns fakeUserEntity(role = "admin")
-
-            val provider = UserRegionProviderImpl(userDao)
-
-            provider.getRegion() shouldBe ""
-        }
-
-        it("returns consistent empty string on repeated calls") {
-            coEvery { userDao.getFirstUser() } returns fakeUserEntity()
-
-            val provider = UserRegionProviderImpl(userDao)
-
-            provider.getRegion() shouldBe ""
-            provider.getRegion() shouldBe ""
-        }
-    }
-})
+    })

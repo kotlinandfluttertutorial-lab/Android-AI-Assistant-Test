@@ -1,4 +1,4 @@
-﻿package com.aiassistant.data.di
+package com.aiassistant.data.di
 
 import com.aiassistant.core.common.DefaultDispatcherProvider
 import com.aiassistant.core.common.DispatcherProvider

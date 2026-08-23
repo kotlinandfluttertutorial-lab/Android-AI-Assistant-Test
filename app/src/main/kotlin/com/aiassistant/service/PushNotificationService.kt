@@ -1,4 +1,4 @@
-﻿/**
+/**
  * PushNotificationService.kt — app module
  *
  * Purpose: Firebase Cloud Messaging [FirebaseMessagingService] that:

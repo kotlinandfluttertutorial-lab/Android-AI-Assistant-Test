@@ -1,4 +1,4 @@
-﻿package com.aiassistant.feature.voice.di
+package com.aiassistant.feature.voice.di
 
 import dagger.Module
 import dagger.hilt.InstallIn

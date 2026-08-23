@@ -1,4 +1,4 @@
-﻿/**
+/**
  * SettingsViewModel.kt
  *
  * Purpose: Manages all UI state and orchestrates persistence calls for the settings

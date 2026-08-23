@@ -1,4 +1,4 @@
-﻿/**
+/**
  * SettingsViewModelTest.kt — feature-settings unit tests
  *
  * Tests for [SettingsViewModel] state logic:

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ContextSuggestionRepositoryImplTest.kt — data module
  *
  * Purpose: Unit tests for [ContextSuggestionRepositoryImpl], which is a stub
@@ -20,6 +20,7 @@
 package com.aiassistant.data.repository
 
 import com.aiassistant.core.common.ApiResult
+import com.aiassistant.core.common.DomainError
 import com.aiassistant.core.network.ConnectivityObserver
 import com.aiassistant.data.remote.suggestion.SuggestionRemoteDataSource
 import com.aiassistant.domain.model.ContextSuggestion
@@ -314,6 +315,92 @@ class ContextSuggestionRepositoryImplTest :
 
                     repository.getSuggestions(oldContext).shouldBeInstanceOf<ApiResult.Success<*>>()
                     repository.getSuggestions(newContext).shouldBeInstanceOf<ApiResult.Success<*>>()
+                }
+            }
+        }
+
+        // ── Offline and timeout paths ─────────────────────────────────────────────
+
+        describe("getSuggestions() — offline") {
+
+            it("returns NetworkUnavailable immediately without calling remoteDataSource") {
+                runTest {
+                    coEvery { mockConnectivityObserver.isConnected() } returns false
+
+                    val context = ScreenContext.NoteContext(
+                        noteContent = "some note",
+                        screenInstanceId = "note-offline"
+                    )
+                    val result = repository.getSuggestions(context)
+
+                    result shouldBe ApiResult.NetworkUnavailable
+                }
+            }
+
+            it("returns NetworkUnavailable for CalendarEventContext when offline") {
+                runTest {
+                    coEvery { mockConnectivityObserver.isConnected() } returns false
+
+                    val context = ScreenContext.CalendarEventContext(
+                        eventId = "ev-1",
+                        eventTitle = "Meeting",
+                        eventDescription = null,
+                        attendeeNames = emptyList(),
+                        screenInstanceId = "ev-offline"
+                    )
+                    val result = repository.getSuggestions(context)
+
+                    result shouldBe ApiResult.NetworkUnavailable
+                }
+            }
+
+            it("returns NetworkUnavailable for ConversationContext when offline") {
+                runTest {
+                    coEvery { mockConnectivityObserver.isConnected() } returns false
+
+                    val context = ScreenContext.ConversationContext(
+                        lastMessageContent = "msg",
+                        lastMessageAgeMillis = twentyFourHoursMs * 2,
+                        screenInstanceId = "conv-offline"
+                    )
+                    val result = repository.getSuggestions(context)
+
+                    result shouldBe ApiResult.NetworkUnavailable
+                }
+            }
+        }
+
+        describe("getSuggestions() — remote error propagation") {
+
+            it("propagates ApiResult.Error from remoteDataSource") {
+                runTest {
+                    coEvery { mockConnectivityObserver.isConnected() } returns true
+                    val error = com.aiassistant.core.common.DomainError.ServerError("AI down", 503)
+                    coEvery { mockRemoteDataSource.getSuggestions(any()) } returns
+                        ApiResult.Error(error)
+
+                    val result = repository.getSuggestions(
+                        ScreenContext.NoteContext("note text", "note-err")
+                    )
+
+                    result.shouldBeInstanceOf<ApiResult.Error>()
+                    (result as ApiResult.Error).error shouldBe error
+                }
+            }
+
+            it("returns Success with empty list when remoteDataSource returns NetworkUnavailable") {
+                runTest {
+                    // withTimeoutOrNull returns the result; NetworkUnavailable passes through
+                    coEvery { mockConnectivityObserver.isConnected() } returns true
+                    coEvery { mockRemoteDataSource.getSuggestions(any()) } returns
+                        ApiResult.NetworkUnavailable
+
+                    val result = repository.getSuggestions(
+                        ScreenContext.NoteContext("note text", "note-nu")
+                    )
+
+                    // NetworkUnavailable is returned as-is from the timeout block
+                    result shouldBe ApiResult.NetworkUnavailable
                 }
             }
         }

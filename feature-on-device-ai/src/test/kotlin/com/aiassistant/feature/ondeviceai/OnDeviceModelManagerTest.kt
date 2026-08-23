@@ -31,133 +31,134 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 
-class OnDeviceModelManagerTest : DescribeSpec({
+class OnDeviceModelManagerTest :
+    DescribeSpec({
 
-    val tmpFolder = Files.createTempDirectory("model-manager-test").toFile()
-    val context = mockk<Context>(relaxed = true)
-    val assetManager = mockk<AssetManager>(relaxed = true)
-    lateinit var manager: OnDeviceModelManager
+        val tmpFolder = Files.createTempDirectory("model-manager-test").toFile()
+        val context = mockk<Context>(relaxed = true)
+        val assetManager = mockk<AssetManager>(relaxed = true)
+        lateinit var manager: OnDeviceModelManager
 
-    // A small dummy model entry for tests
-    val testEntry = ModelEntry(
-        id = "test-model",
-        displayName = "Test Model",
-        fileName = "test-model.gguf",
-        downloadUrl = "https://example.com/test-model.gguf",
-        sha256 = "placeholder", // overridden per test
-        sizeBytes = 1024,
-        quantization = "INT4"
-    )
+        // A small dummy model entry for tests
+        val testEntry = ModelEntry(
+            id = "test-model",
+            displayName = "Test Model",
+            fileName = "test-model.gguf",
+            downloadUrl = "https://example.com/test-model.gguf",
+            sha256 = "placeholder", // overridden per test
+            sizeBytes = 1024,
+            quantization = "INT4"
+        )
 
-    beforeSpec {
-        every { context.assets } returns assetManager
-        every { context.filesDir } returns tmpFolder
+        beforeSpec {
+            every { context.assets } returns assetManager
+            every { context.filesDir } returns tmpFolder
 
-        // Provide a real models sub-dir so File resolution works
-        File(tmpFolder, "models").mkdirs()
+            // Provide a real models sub-dir so File resolution works
+            File(tmpFolder, "models").mkdirs()
 
-        manager = OnDeviceModelManager(context)
-    }
+            manager = OnDeviceModelManager(context)
+        }
 
-    afterSpec {
-        unmockkAll()
-        tmpFolder.deleteRecursively()
-    }
+        afterSpec {
+            unmockkAll()
+            tmpFolder.deleteRecursively()
+        }
 
-    describe("checkModelState") {
-        it("returns Absent when file does not exist") {
-            runTest {
-                val state = manager.checkModelState(testEntry)
-                assertTrue(
-                    "Expected ModelFileState.Absent but got $state",
-                    state is ModelFileState.Absent
-                )
+        describe("checkModelState") {
+            it("returns Absent when file does not exist") {
+                runTest {
+                    val state = manager.checkModelState(testEntry)
+                    assertTrue(
+                        "Expected ModelFileState.Absent but got $state",
+                        state is ModelFileState.Absent
+                    )
+                }
+            }
+
+            it("returns Ready when file exists and checksum matches") {
+                runTest {
+                    val content = "fake gguf content".toByteArray()
+                    val correctHash = sha256Hex(content)
+                    val entry = testEntry.copy(sha256 = correctHash)
+
+                    val file = manager.modelFile(entry)
+                    file.writeBytes(content)
+
+                    val state = manager.checkModelState(entry)
+                    assertTrue(
+                        "Expected ModelFileState.Ready but got $state",
+                        state is ModelFileState.Ready
+                    )
+                    assertEquals(file.absolutePath, (state as ModelFileState.Ready).file.absolutePath)
+                }
+            }
+
+            it("returns Corrupt when file exists but checksum mismatches") {
+                runTest {
+                    val content = "fake gguf content".toByteArray()
+                    val entry = testEntry.copy(sha256 = "0".repeat(64)) // wrong hash
+
+                    val file = manager.modelFile(entry)
+                    file.writeBytes(content)
+
+                    val state = manager.checkModelState(entry)
+                    assertTrue(
+                        "Expected ModelFileState.Corrupt but got $state",
+                        state is ModelFileState.Corrupt
+                    )
+                    // Corrupt file must be deleted by the manager
+                    assertFalse("Corrupt file should have been deleted", file.exists())
+                }
             }
         }
 
-        it("returns Ready when file exists and checksum matches") {
-            runTest {
-                val content = "fake gguf content".toByteArray()
-                val correctHash = sha256Hex(content)
-                val entry = testEntry.copy(sha256 = correctHash)
-
-                val file = manager.modelFile(entry)
+        describe("verifyChecksum") {
+            it("returns true for matching checksum") {
+                val content = "model bytes".toByteArray()
+                val hash = sha256Hex(content)
+                val file = File(tmpFolder, "model.bin")
                 file.writeBytes(content)
 
-                val state = manager.checkModelState(entry)
-                assertTrue(
-                    "Expected ModelFileState.Ready but got $state",
-                    state is ModelFileState.Ready
-                )
-                assertEquals(file.absolutePath, (state as ModelFileState.Ready).file.absolutePath)
+                assertTrue(manager.verifyChecksum(file, hash))
             }
-        }
 
-        it("returns Corrupt when file exists but checksum mismatches") {
-            runTest {
-                val content = "fake gguf content".toByteArray()
-                val entry = testEntry.copy(sha256 = "0".repeat(64)) // wrong hash
+            it("returns false for mismatched checksum") {
+                val file = File(tmpFolder, "model_mismatch.bin")
+                file.writeText("some content")
 
-                val file = manager.modelFile(entry)
+                assertFalse(manager.verifyChecksum(file, "0".repeat(64)))
+            }
+
+            it("returns false when file does not exist") {
+                val nonExistent = File(tmpFolder, "does_not_exist.bin")
+                assertFalse(manager.verifyChecksum(nonExistent, "0".repeat(64)))
+            }
+
+            it("is case-insensitive for hex string") {
+                val content = "hello world".toByteArray()
+                val hashUpper = sha256Hex(content).uppercase()
+                val file = File(tmpFolder, "model2.bin")
                 file.writeBytes(content)
 
-                val state = manager.checkModelState(entry)
-                assertTrue(
-                    "Expected ModelFileState.Corrupt but got $state",
-                    state is ModelFileState.Corrupt
-                )
-                // Corrupt file must be deleted by the manager
-                assertFalse("Corrupt file should have been deleted", file.exists())
+                assertTrue(manager.verifyChecksum(file, hashUpper))
             }
         }
-    }
 
-    describe("verifyChecksum") {
-        it("returns true for matching checksum") {
-            val content = "model bytes".toByteArray()
-            val hash = sha256Hex(content)
-            val file = File(tmpFolder, "model.bin")
-            file.writeBytes(content)
+        describe("checksumOfStream") {
+            it("returns correct SHA-256 hex") {
+                val content = "stream content".toByteArray()
+                val expected = sha256Hex(content)
+                val stream = ByteArrayInputStream(content)
 
-            assertTrue(manager.verifyChecksum(file, hash))
+                assertEquals(expected, manager.checksumOfStream(stream))
+            }
         }
 
-        it("returns false for mismatched checksum") {
-            val file = File(tmpFolder, "model_mismatch.bin")
-            file.writeText("some content")
-
-            assertFalse(manager.verifyChecksum(file, "0".repeat(64)))
-        }
-
-        it("returns false when file does not exist") {
-            val nonExistent = File(tmpFolder, "does_not_exist.bin")
-            assertFalse(manager.verifyChecksum(nonExistent, "0".repeat(64)))
-        }
-
-        it("is case-insensitive for hex string") {
-            val content = "hello world".toByteArray()
-            val hashUpper = sha256Hex(content).uppercase()
-            val file = File(tmpFolder, "model2.bin")
-            file.writeBytes(content)
-
-            assertTrue(manager.verifyChecksum(file, hashUpper))
-        }
-    }
-
-    describe("checksumOfStream") {
-        it("returns correct SHA-256 hex") {
-            val content = "stream content".toByteArray()
-            val expected = sha256Hex(content)
-            val stream = ByteArrayInputStream(content)
-
-            assertEquals(expected, manager.checksumOfStream(stream))
-        }
-    }
-
-    describe("loadManifest") {
-        it("parses valid JSON") {
-            runTest {
-                val manifestJson = """
+        describe("loadManifest") {
+            it("parses valid JSON") {
+                runTest {
+                    val manifestJson = """
                     {
                       "models": [
                         {
@@ -171,34 +172,34 @@ class OnDeviceModelManagerTest : DescribeSpec({
                         }
                       ]
                     }
-                """.trimIndent()
+                    """.trimIndent()
 
-                every { assetManager.open("model_manifest.json") } returns
-                    ByteArrayInputStream(manifestJson.toByteArray())
+                    every { assetManager.open("model_manifest.json") } returns
+                        ByteArrayInputStream(manifestJson.toByteArray())
 
-                val manifest = manager.loadManifest()
+                    val manifest = manager.loadManifest()
 
-                assertEquals(1, manifest.models.size)
-                with(manifest.models.first()) {
-                    assertEquals("llama3-8b-int4", id)
-                    assertEquals("INT4", quantization)
-                    assertEquals(4919998976L, sizeBytes)
+                    assertEquals(1, manifest.models.size)
+                    with(manifest.models.first()) {
+                        assertEquals("llama3-8b-int4", id)
+                        assertEquals("INT4", quantization)
+                        assertEquals(4919998976L, sizeBytes)
+                    }
                 }
             }
         }
-    }
 
-    describe("modelFile resolution") {
-        it("returns path inside filesDir models directory") {
-            val file = manager.modelFile(testEntry)
-            assertTrue(
-                "Model file should be under filesDir/models",
-                file.absolutePath.contains("models")
-            )
-            assertEquals("test-model.gguf", file.name)
+        describe("modelFile resolution") {
+            it("returns path inside filesDir models directory") {
+                val file = manager.modelFile(testEntry)
+                assertTrue(
+                    "Model file should be under filesDir/models",
+                    file.absolutePath.contains("models")
+                )
+                assertEquals("test-model.gguf", file.name)
+            }
         }
-    }
-})
+    })
 
 private fun sha256Hex(bytes: ByteArray): String {
     val digest = MessageDigest.getInstance("SHA-256")

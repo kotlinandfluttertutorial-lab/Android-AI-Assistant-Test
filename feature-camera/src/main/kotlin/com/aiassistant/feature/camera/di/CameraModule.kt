@@ -1,4 +1,4 @@
-﻿package com.aiassistant.feature.camera.di
+package com.aiassistant.feature.camera.di
 
 import dagger.Module
 import dagger.hilt.InstallIn

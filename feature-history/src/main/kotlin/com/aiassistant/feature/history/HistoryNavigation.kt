@@ -1,4 +1,4 @@
-﻿/**
+/**
  * HistoryNavigation.kt
  *
  * Purpose: Navigation graph for the history feature, connecting the HistoryListScreen

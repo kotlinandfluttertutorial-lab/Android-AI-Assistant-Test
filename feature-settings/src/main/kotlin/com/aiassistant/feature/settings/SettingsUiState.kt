@@ -1,4 +1,4 @@
-﻿/**
+/**
  * SettingsUiState.kt
  *
  * Purpose: Sealed class representing every observable UI state for the settings feature,

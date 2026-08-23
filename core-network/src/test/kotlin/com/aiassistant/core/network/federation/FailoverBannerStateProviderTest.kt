@@ -1,4 +1,4 @@
-﻿/**
+/**
  * FailoverBannerStateProviderTest.kt — core-network unit tests
  *
  * Unit tests for [FailoverBannerStateProvider] covering:
@@ -40,7 +40,8 @@ class FailoverBannerStateProviderTest :
                 runTest(testDispatcher) {
                     val bus = FailoverEventBus()
                     val provider = FailoverBannerStateProvider(
-                        bus, CoroutineScope(SupervisorJob() + testDispatcher)
+                        bus,
+                        CoroutineScope(SupervisorJob() + testDispatcher)
                     )
                     val state = provider.bannerState.value
                     state.isVisible shouldBe false
@@ -57,7 +58,8 @@ class FailoverBannerStateProviderTest :
                 runTest(testDispatcher) {
                     val bus = FailoverEventBus()
                     val provider = FailoverBannerStateProvider(
-                        bus, CoroutineScope(SupervisorJob() + testDispatcher)
+                        bus,
+                        CoroutineScope(SupervisorJob() + testDispatcher)
                     )
                     provider.bannerState.test {
                         // Initial emission
@@ -86,7 +88,8 @@ class FailoverBannerStateProviderTest :
                 runTest(testDispatcher) {
                     val bus = FailoverEventBus()
                     val provider = FailoverBannerStateProvider(
-                        bus, CoroutineScope(SupervisorJob() + testDispatcher)
+                        bus,
+                        CoroutineScope(SupervisorJob() + testDispatcher)
                     )
                     provider.bannerState.test {
                         awaitItem() // initial hidden state
@@ -124,7 +127,8 @@ class FailoverBannerStateProviderTest :
                 runTest(testDispatcher) {
                     val bus = FailoverEventBus()
                     val provider = FailoverBannerStateProvider(
-                        bus, CoroutineScope(SupervisorJob() + testDispatcher)
+                        bus,
+                        CoroutineScope(SupervisorJob() + testDispatcher)
                     )
                     provider.bannerState.test {
                         awaitItem() // initial hidden state
@@ -160,7 +164,8 @@ class FailoverBannerStateProviderTest :
                 runTest(testDispatcher) {
                     val bus = FailoverEventBus()
                     val provider = FailoverBannerStateProvider(
-                        bus, CoroutineScope(SupervisorJob() + testDispatcher)
+                        bus,
+                        CoroutineScope(SupervisorJob() + testDispatcher)
                     )
                     provider.bannerState.test {
                         awaitItem() // initial hidden state
@@ -196,7 +201,8 @@ class FailoverBannerStateProviderTest :
                 runTest(testDispatcher) {
                     val bus = FailoverEventBus()
                     val provider = FailoverBannerStateProvider(
-                        bus, CoroutineScope(SupervisorJob() + testDispatcher)
+                        bus,
+                        CoroutineScope(SupervisorJob() + testDispatcher)
                     )
 
                     // Publish the event — the internal coroutine is already collecting.

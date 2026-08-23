@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ContextSuggestionUseCaseTest.kt — domain module unit tests
  *
  * Tests for context suggestion use cases:

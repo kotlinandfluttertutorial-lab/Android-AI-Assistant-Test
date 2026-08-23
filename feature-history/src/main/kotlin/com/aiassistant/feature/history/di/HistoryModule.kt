@@ -1,4 +1,4 @@
-﻿package com.aiassistant.feature.history.di
+package com.aiassistant.feature.history.di
 
 import dagger.Module
 import dagger.hilt.InstallIn

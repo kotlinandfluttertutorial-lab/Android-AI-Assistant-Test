@@ -14,22 +14,20 @@
 
 package com.aiassistant.core.network.federation
 
+import app.cash.turbine.test
 import com.aiassistant.domain.model.BackendEndpoint
 import com.aiassistant.domain.model.FederationConfig
 import com.aiassistant.domain.repository.FederationRepository
-import app.cash.turbine.test
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.unmockkAll
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.emptyFlow
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import okhttp3.OkHttpClient
 import okhttp3.Request

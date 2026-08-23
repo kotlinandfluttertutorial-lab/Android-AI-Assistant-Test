@@ -1,4 +1,4 @@
-﻿/**
+/**
  * CostDashboardRepositoryImplTest.kt — data module
  *
  * Purpose: Unit tests for [CostDashboardRepositoryImpl], covering:

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * DocumentRepositoryImplTest.kt â€” data module
  *
  * Purpose: Unit tests for [DocumentRepositoryImpl], focusing on:
@@ -24,7 +24,6 @@
  */
 package com.aiassistant.data.repository
 
-import android.content.ContentResolver
 import android.content.Context
 import app.cash.turbine.test
 import com.aiassistant.core.common.ApiResult

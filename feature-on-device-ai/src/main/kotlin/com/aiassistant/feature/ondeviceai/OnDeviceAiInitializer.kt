@@ -29,8 +29,8 @@
 
 package com.aiassistant.feature.ondeviceai
 
-import androidx.annotation.VisibleForTesting
 import android.util.Log
+import androidx.annotation.VisibleForTesting
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope

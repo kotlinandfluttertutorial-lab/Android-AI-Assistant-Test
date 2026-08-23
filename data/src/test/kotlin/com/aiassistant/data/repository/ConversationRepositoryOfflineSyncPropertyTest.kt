@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ConversationRepositoryOfflineSyncPropertyTest.kt — data module
  *
  * Purpose: Property-based tests for Property 17: Conflict-Free Offline Sync.

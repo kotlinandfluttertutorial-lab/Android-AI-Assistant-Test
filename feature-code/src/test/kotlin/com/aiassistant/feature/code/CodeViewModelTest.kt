@@ -17,7 +17,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.resetMain
-import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -57,7 +56,9 @@ class CodeViewModelTest :
             it("transitions to Editing when code is updated") {
                 val viewModel = CodeViewModel(analyzeCodeUseCase, dispatchers)
                 viewModel.updateCode("println()", SupportedLanguage.KOTLIN)
-                viewModel.uiState.value.shouldBe(CodeUiState.Editing("println()", SupportedLanguage.KOTLIN, CodeAction.EXPLAIN))
+                viewModel.uiState.value.shouldBe(
+                    CodeUiState.Editing("println()", SupportedLanguage.KOTLIN, CodeAction.EXPLAIN)
+                )
             }
 
             it("transitions to Analyzing and then AnalysisResult on successful submission") {

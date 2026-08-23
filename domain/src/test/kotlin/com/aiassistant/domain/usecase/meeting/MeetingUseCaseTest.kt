@@ -1,4 +1,4 @@
-﻿/**
+/**
  * MeetingUseCaseTest.kt — domain module unit tests
  *
  * Tests for meeting use cases:

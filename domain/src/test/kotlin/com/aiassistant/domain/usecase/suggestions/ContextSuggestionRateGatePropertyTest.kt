@@ -1,4 +1,4 @@
-﻿/**
+/**
  * ContextSuggestionRateGatePropertyTest.kt — domain module
  *
  * Purpose: Property-based tests for Property 32: Context Suggestion Rate-Gate Invariant.
