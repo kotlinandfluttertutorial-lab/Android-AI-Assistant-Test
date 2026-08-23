@@ -60,8 +60,6 @@ tasks.withType<Test> {
         finalizedBy(tasks.withType<JacocoReport>())
     }
     useJUnitPlatform()
-    maxHeapSize = "3g"
-    forkEvery = 1
 }
 
 tasks.register<JacocoReport>("jacocoTestReport") {

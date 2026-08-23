@@ -129,6 +129,7 @@ class DocumentRepositoryImplTest :
         }
 
         afterEach {
+            repository.cancelSync()
             unmockkAll()
         }
 

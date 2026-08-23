@@ -21,6 +21,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 
@@ -34,7 +36,7 @@ class ChatDetailViewModelTest :
         val streamClient = mockk<AIStreamClient>()
         val getContextSuggestionsUseCase = mockk<GetContextSuggestionsUseCase>()
 
-        val testDispatcher = UnconfinedTestDispatcher()
+        val testDispatcher = StandardTestDispatcher()
         val dispatchers = object : DispatcherProvider {
             override val main = testDispatcher
             override val mainImmediate = testDispatcher
@@ -109,32 +111,42 @@ class ChatDetailViewModelTest :
 
                 val content = "Hello"
                 coEvery { sendMessageUseCase(any(), any(), any()) } returns ApiResult.Success(mockk())
-                every { streamClient.connect(any(), any()) } returns flowOf(
-                    StreamEvent.Token("Hi"),
-                    StreamEvent.Done(TokenUsage(1, 1))
-                )
+                every { streamClient.connect(any(), any()) } returns kotlinx.coroutines.flow.flow {
+                    emit(StreamEvent.Token("Hi"))
+                    kotlinx.coroutines.delay(10) // Force suspension to avoid state conflation
+                    emit(StreamEvent.Done(TokenUsage(1, 1)))
+                }
                 coEvery { streamClient.sendMessage(any()) } returns Unit
 
                 viewModel.uiState.test {
-                    // Skip initial state
-                    awaitItem()
+                    // 1. Initial state (from flow start)
+                    awaitItem().messages shouldBe emptyList()
 
                     viewModel.sendMessage(content)
+                    testDispatcher.scheduler.runCurrent()
 
-                    // Initial state after sendMessage (optimistic update)
-                    val stateAfterSend = awaitItem()
-                    stateAfterSend.messages.size shouldBe 1
-                    stateAfterSend.messages.first().content shouldBe content
+                    // 2. Optimistic update (user message added)
+                    val stateOptimistic = awaitItem()
+                    stateOptimistic.messages.size shouldBe 1
+                    stateOptimistic.messages.first().content shouldBe content
 
-                    // Typing indicator
-                    awaitItem().isTypingIndicatorVisible shouldBe true
+                    // 3. Typing indicator (from sendMessage launch)
+                    val stateTyping = awaitItem()
+                    stateTyping.isTypingIndicatorVisible shouldBe true
 
-                    // First token
+                    // 4. Streaming start (from startStreaming launch)
+                    val stateStreamingStart = awaitItem()
+                    stateStreamingStart.isStreaming shouldBe true
+                    stateStreamingStart.streamingText shouldBe ""
+
+                    // 5. First token (from flow collection)
                     val stateWithToken = awaitItem()
                     stateWithToken.streamingText shouldBe "Hi"
                     stateWithToken.isTypingIndicatorVisible shouldBe false
 
-                    // Done
+                    // 6. Done (after delay)
+                    testDispatcher.scheduler.advanceTimeBy(20)
+                    testDispatcher.scheduler.runCurrent()
                     val finalState = awaitItem()
                     finalState.messages.size shouldBe 2
                     finalState.messages.last().content shouldBe "Hi"

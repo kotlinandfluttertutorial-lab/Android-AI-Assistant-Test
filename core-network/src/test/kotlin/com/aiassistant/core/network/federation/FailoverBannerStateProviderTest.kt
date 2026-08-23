@@ -27,19 +27,23 @@ import kotlinx.coroutines.withTimeout
 @OptIn(ExperimentalCoroutinesApi::class)
 class FailoverBannerStateProviderTest :
     DescribeSpec({
+        var bus = FailoverEventBus()
+        var provider = FailoverBannerStateProvider(bus)
+
+        beforeEach {
+            bus = FailoverEventBus()
+            provider = FailoverBannerStateProvider(bus)
+        }
+
+        afterEach {
+            provider.cancelScope()
+        }
 
         afterSpec { unmockkAll() }
-
-        fun buildProvider(): Pair<FailoverBannerStateProvider, FailoverEventBus> {
-            val bus = FailoverEventBus()
-            val provider = FailoverBannerStateProvider(bus)
-            return Pair(provider, bus)
-        }
 
         describe("FailoverBannerStateProvider — initial state") {
 
             it("starts with banner hidden") {
-                val (provider, _) = buildProvider()
                 val state = provider.bannerState.value
                 state.isVisible shouldBe false
                 state.activeBackendName shouldBe ""
@@ -51,8 +55,6 @@ class FailoverBannerStateProviderTest :
 
             it("makes banner visible with endpoint name and reason on SwitchedToEndpoint") {
                 runTest {
-                    val (provider, bus) = buildProvider()
-
                     provider.bannerState.test {
                         // Initial emission
                         val initial = awaitItem()
@@ -77,8 +79,6 @@ class FailoverBannerStateProviderTest :
 
             it("updates activeBackendName when failover switches to a different endpoint") {
                 runTest {
-                    val (provider, bus) = buildProvider()
-
                     provider.bannerState.test {
                         awaitItem() // initial hidden state
 
@@ -112,8 +112,6 @@ class FailoverBannerStateProviderTest :
 
             it("hides the banner when PrimaryEndpointRecovered is published") {
                 runTest {
-                    val (provider, bus) = buildProvider()
-
                     provider.bannerState.test {
                         awaitItem() // initial hidden state
 
@@ -145,8 +143,6 @@ class FailoverBannerStateProviderTest :
 
             it("hides the banner when AllEndpointsExhausted is published") {
                 runTest {
-                    val (provider, bus) = buildProvider()
-
                     provider.bannerState.test {
                         awaitItem() // initial hidden state
 
@@ -177,8 +173,6 @@ class FailoverBannerStateProviderTest :
             it("late subscribers receive the current banner state immediately") {
                 // Use runBlocking since the provider uses Dispatchers.Default internally
                 runBlocking {
-                    val (provider, bus) = buildProvider()
-
                     // Subscribe first to ensure the provider's internal collection coroutine
                     // has started before we publish (tryEmit drops events without collectors)
                     val job = launch(kotlinx.coroutines.Dispatchers.Default) {

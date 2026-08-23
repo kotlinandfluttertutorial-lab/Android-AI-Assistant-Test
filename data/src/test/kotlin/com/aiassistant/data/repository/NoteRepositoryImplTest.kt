@@ -120,6 +120,11 @@ class NoteRepositoryImplTest :
             )
         }
 
+        afterEach {
+            repository.cancelSync()
+            unmockkAll()
+        }
+
         // â”€â”€â”€ getNotes() â€” Room emission â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         describe("getNotes()") {
             it("emits ApiResult.Success containing notes from Room immediately") {

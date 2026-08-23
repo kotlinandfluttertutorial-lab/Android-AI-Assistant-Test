@@ -85,8 +85,6 @@ android {
     testOptions {
         unitTests.all {
             it.useJUnitPlatform()
-            it.maxHeapSize = "3g"
-            it.forkEvery = 1
         }
     }
 }

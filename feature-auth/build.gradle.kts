@@ -37,10 +37,6 @@ android {
     testOptions {
         unitTests {
             isReturnDefaultValues = true
-            all {
-                it.maxHeapSize = "3g"
-                it.forkEvery = 1
-            }
         }
     }
 }

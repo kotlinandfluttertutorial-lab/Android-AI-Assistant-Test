@@ -217,6 +217,11 @@ class ProductivityRepositoryImplTest :
             )
         }
 
+        afterEach {
+            repository.cancelSync()
+            unmockkAll()
+        }
+
         // ─── createTodo() ─────────────────────────────────────────────────────────
 
         describe("createTodo()") {

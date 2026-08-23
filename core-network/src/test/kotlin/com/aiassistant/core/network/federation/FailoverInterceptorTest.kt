@@ -369,8 +369,9 @@ class FailoverInterceptorTest :
                         ).execute()
                         response.close()
 
-                        val switchEvent = awaitItem() as FailoverEvent.SwitchedToEndpoint
-                        switchEvent.activeEndpointName shouldBe "us-secondary"
+                        val event = awaitItem()
+                        event.shouldBeInstanceOf<FailoverEvent.SwitchedToEndpoint>()
+                        event.activeEndpointName shouldBe "us-secondary"
                     }
                 }
             }

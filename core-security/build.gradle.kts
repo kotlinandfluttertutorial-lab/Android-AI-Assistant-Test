@@ -29,10 +29,6 @@ android {
         unitTests {
             isIncludeAndroidResources = true
         }
-        unitTests.all {
-            it.maxHeapSize = "3g"
-            it.forkEvery = 1
-        }
     }
 }
 

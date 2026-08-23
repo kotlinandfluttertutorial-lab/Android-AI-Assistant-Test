@@ -44,11 +44,13 @@
 
 package com.aiassistant.core.network.federation
 
+import androidx.annotation.VisibleForTesting
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -126,5 +128,13 @@ class FailoverBannerStateProvider @Inject constructor(private val eventBus: Fail
                 }
             }
         }
+    }
+
+    /**
+     * Cancels the internal coroutine scope. Used for testing to prevent leaks.
+     */
+    @VisibleForTesting
+    internal fun cancelScope() {
+        providerScope.cancel()
     }
 }

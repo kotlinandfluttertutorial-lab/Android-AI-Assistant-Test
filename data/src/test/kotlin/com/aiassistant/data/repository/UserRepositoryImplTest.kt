@@ -112,6 +112,7 @@ class UserRepositoryImplTest :
         }
 
         afterEach {
+            repository.cancelSync()
             unmockkAll()
         }
 

@@ -85,11 +85,13 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
+import androidx.annotation.VisibleForTesting
 
 /**
  * Concrete implementation of [UserRepository].
@@ -114,6 +116,15 @@ class UserRepositoryImpl @Inject constructor(
      * A [SupervisorJob] ensures a failed sync does not cancel the parent scope.
      */
     private val syncScope = CoroutineScope(dispatchers.io + SupervisorJob())
+
+    /**
+     * Cancels the internal sync scope.
+     * Only used in unit tests to prevent CoroutineScope leaks.
+     */
+    @VisibleForTesting
+    internal fun cancelSync() {
+        syncScope.cancel()
+    }
 
     /**
      * Returns a [Flow] emitting the current user profile from the local Room cache.

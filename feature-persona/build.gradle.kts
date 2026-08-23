@@ -50,8 +50,6 @@ configurations.all {
 // ─── Test configuration ───────────────────────────────────────────────────────
 tasks.withType<Test> {
     useJUnitPlatform()
-    maxHeapSize = "3g"
-    forkEvery = 1
 }
 
 dependencies {

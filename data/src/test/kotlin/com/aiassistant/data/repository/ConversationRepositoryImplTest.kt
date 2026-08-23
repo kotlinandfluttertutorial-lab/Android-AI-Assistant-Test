@@ -110,6 +110,7 @@ class ConversationRepositoryImplTest :
         }
 
         afterEach {
+            repository.cancelSync()
             unmockkAll()
         }
 

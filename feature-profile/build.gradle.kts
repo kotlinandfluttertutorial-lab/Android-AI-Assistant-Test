@@ -83,7 +83,3 @@ dependencies {
     androidTestImplementation(libs.compose.ui.test.junit4)
 }
 
-tasks.withType<Test> {
-    maxHeapSize = "3g"
-    forkEvery = 1
-}
