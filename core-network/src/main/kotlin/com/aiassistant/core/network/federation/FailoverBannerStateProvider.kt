@@ -88,15 +88,16 @@ data class FailoverBannerState(
  * survives individual coroutine cancellations and runs for the lifetime of the
  * process (matching the [Singleton] scope).
  *
- * @param eventBus The [FailoverEventBus] that publishes raw [FailoverEvent] emissions.
+ * @param eventBus      The [FailoverEventBus] that publishes raw [FailoverEvent] emissions.
+ * @param providerScope The [CoroutineScope] on which the internal bridging coroutine runs.
+ *                      Defaults to a new scope backed by [Dispatchers.Default] in
+ *                      production. Supply a test-controlled scope in unit tests.
  */
 @Singleton
-class FailoverBannerStateProvider @Inject constructor(private val eventBus: FailoverEventBus) {
-    /**
-     * Private [CoroutineScope] tied to the singleton lifetime. A [SupervisorJob] is used
-     * so that if one child coroutine fails the scope itself is not cancelled.
-     */
-    private val providerScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+class FailoverBannerStateProvider @Inject constructor(
+    private val eventBus: FailoverEventBus,
+    private val providerScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+) {
 
     private val _bannerState = MutableStateFlow(FailoverBannerState.Hidden)
 

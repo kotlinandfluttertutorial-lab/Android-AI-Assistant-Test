@@ -19,11 +19,9 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 
 @OptIn(ExperimentalCoroutinesApi::class)
@@ -36,7 +34,7 @@ class ChatDetailViewModelTest :
         val streamClient = mockk<AIStreamClient>()
         val getContextSuggestionsUseCase = mockk<GetContextSuggestionsUseCase>()
 
-        val testDispatcher = StandardTestDispatcher()
+        val testDispatcher = UnconfinedTestDispatcher()
         val dispatchers = object : DispatcherProvider {
             override val main = testDispatcher
             override val mainImmediate = testDispatcher
@@ -118,40 +116,44 @@ class ChatDetailViewModelTest :
                 }
                 coEvery { streamClient.sendMessage(any()) } returns Unit
 
-                viewModel.uiState.test {
-                    // 1. Initial state (from flow start)
-                    awaitItem().messages shouldBe emptyList()
+                runTest(testDispatcher) {
+                    viewModel.uiState.test {
+                        // 1. Initial state
+                        awaitItem().messages shouldBe emptyList()
 
-                    viewModel.sendMessage(content)
-                    testDispatcher.scheduler.runCurrent()
+                        viewModel.sendMessage(content)
 
-                    // 2. Optimistic update (user message added)
-                    val stateOptimistic = awaitItem()
-                    stateOptimistic.messages.size shouldBe 1
-                    stateOptimistic.messages.first().content shouldBe content
+                        // 2. Optimistic update — user message appended immediately
+                        val stateOptimistic = awaitItem()
+                        stateOptimistic.messages.size shouldBe 1
+                        stateOptimistic.messages.first().content shouldBe content
 
-                    // 3. Typing indicator (from sendMessage launch)
-                    val stateTyping = awaitItem()
-                    stateTyping.isTypingIndicatorVisible shouldBe true
+                        // 3. Typing indicator becomes visible
+                        val stateTyping = awaitItem()
+                        stateTyping.isTypingIndicatorVisible shouldBe true
 
-                    // 4. Streaming start (from startStreaming launch)
-                    val stateStreamingStart = awaitItem()
-                    stateStreamingStart.isStreaming shouldBe true
-                    stateStreamingStart.streamingText shouldBe ""
+                        // 4+5. StateFlow may conflate the streaming-start state (isStreaming=true,
+                        //       streamingText="") and the first Token state into one emission when
+                        //       both updates fire within the same coroutine pump. Consume emissions
+                        //       until we see the first token, verifying invariants along the way.
+                        var stateWithToken = awaitItem()
+                        // If we got the streaming-start state, advance to the token state
+                        if (stateWithToken.streamingText.isEmpty() && stateWithToken.isStreaming) {
+                            stateWithToken = awaitItem()
+                        }
+                        stateWithToken.isStreaming shouldBe true
+                        stateWithToken.streamingText shouldBe "Hi"
+                        stateWithToken.isTypingIndicatorVisible shouldBe false
 
-                    // 5. First token (from flow collection)
-                    val stateWithToken = awaitItem()
-                    stateWithToken.streamingText shouldBe "Hi"
-                    stateWithToken.isTypingIndicatorVisible shouldBe false
+                        // 6. Advance virtual time past the delay(10) to trigger StreamEvent.Done
+                        testScheduler.advanceTimeBy(20)
 
-                    // 6. Done (after delay)
-                    testDispatcher.scheduler.advanceTimeBy(20)
-                    testDispatcher.scheduler.runCurrent()
-                    val finalState = awaitItem()
-                    finalState.messages.size shouldBe 2
-                    finalState.messages.last().content shouldBe "Hi"
-                    finalState.streamingText shouldBe ""
-                    finalState.isStreaming shouldBe false
+                        val finalState = awaitItem()
+                        finalState.messages.size shouldBe 2
+                        finalState.messages.last().content shouldBe "Hi"
+                        finalState.streamingText shouldBe ""
+                        finalState.isStreaming shouldBe false
+                    }
                 }
             }
         }

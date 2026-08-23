@@ -25,6 +25,12 @@ android {
     testOptions {
         unitTests {
             isReturnDefaultValues = true
+            all {
+                // The data module has a large test suite with heavy coroutine/Room mocks
+                // that exhaust the default JVM heap. 2 GB prevents the OOM hang.
+                it.maxHeapSize = "3g"
+                it.jvmArgs("-XX:MaxMetaspaceSize=512m")
+            }
         }
     }
 
