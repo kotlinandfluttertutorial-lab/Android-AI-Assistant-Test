@@ -22,7 +22,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 
@@ -37,7 +37,7 @@ class ChatViewModelTest :
         val conversationRepository = mockk<ConversationRepository>()
         val connectivityObserver = mockk<ConnectivityObserver>()
 
-        val testDispatcher = StandardTestDispatcher()
+        val testDispatcher = UnconfinedTestDispatcher()
         val dispatchers = object : DispatcherProvider {
             override val main = testDispatcher
             override val mainImmediate = testDispatcher

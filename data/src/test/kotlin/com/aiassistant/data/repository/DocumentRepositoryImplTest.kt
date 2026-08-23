@@ -128,6 +128,10 @@ class DocumentRepositoryImplTest :
             )
         }
 
+        afterEach {
+            unmockkAll()
+        }
+
         // ─── getDocuments() ─── Room emission ────────────────────────────────────
         describe("getDocuments()") {
             it("emits ApiResult.Success containing documents from Room immediately and triggers sync") {

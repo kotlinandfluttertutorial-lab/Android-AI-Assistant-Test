@@ -859,10 +859,199 @@ Implementation follows Clean Architecture from the ground up: core modules first
       "description": "Final validation — infrastructure validation, Hilt DI completeness, Android test coverage",
       "tasks": ["43"],
       "dependsOn": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "20.5", "21", "22", "23", "24", "25", "26", "27", "28", "29", "30", "31", "32", "33", "34", "35", "36", "37", "38", "39", "40", "41", "42"]
+    },
+    {
+      "wave": 11,
+      "description": "On-Device RAG — database entities, engine components, domain layer, feature module, property tests, documentation",
+      "tasks": ["44", "45", "46", "47", "48", "49"],
+      "dependsOn": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "43"]
     }
   ]
 }
 ```
+- [ ] 44. Extend `core-database` module with On-Device RAG entities
+  - Add `OnDeviceChunkEntity` (tableName: "on_device_chunks"): `id`, `userId`, `documentId`, `documentName`, `chunkIndex`, `pageNumber?`, `startCharOffset`, `endCharOffset`, `content`, `embeddingBlob` (ByteArray — serialized FloatArray little-endian IEEE 754 float32), `createdAt`
+  - Add `OnDeviceDocumentEntity` (tableName: "on_device_documents"): `id`, `userId`, `fileName`, `mimeType`, `sizeBytes`, `totalChunks`, `ingestionStatus` ("pending"|"processing"|"ready"|"failed"), `failureStage?`, `createdAt`
+  - Add `QueryRoutingLogEntity` (tableName: "query_routing_log"): `id`, `userId`, `timestamp`, `selectedPath`, `capabilityBitmask` (Int), `userOverride?`, `fallbackOccurred`, `reason`
+  - Implement `OnDeviceChunkDao`: `insert()`, `getChunksForDocument(userId, documentId)`, `getAllChunks(userId)`, `deleteByDocument(userId, documentId)`, `countChunks(userId)`, `totalEmbeddingBytes(userId)`
+  - Implement `OnDeviceDocumentDao`: `insert()`, `getDocuments(userId)`, `updateStatus(id, status, failureStage, totalChunks)`, `delete(id, userId)`
+  - Implement `QueryRoutingLogDao`: `insert()`, `getRecentLogs(userId, limit)`, `deleteOlderThan(cutoffMs)` — 30-day retention
+  - Add TypeConverter pair for `FloatArray ↔ ByteArray` (little-endian IEEE 754 float32): `FloatArray.size * 4` bytes per entry
+  - Update `AppDatabase` to include the three new entities and expose new DAOs
+  - _Requirements: 33.4, 33.5, 35.6, 36.10_
+
+- [ ] 45. Implement `core-ai` On-Device RAG engine components
+  - [ ] 45.1 Implement `OnDeviceEmbeddingModel` interface and MiniLM-L6-v2 implementation
+    - Interface: `initialize(modelPath, expectedChecksum): ModelLoadEvent`, `generateEmbedding(text): FloatArray`, `embeddingDimension: Int`, `isReady: Boolean`
+    - SHA-256 checksum verification at `initialize()` — mismatch → `ModelLoadEvent.Failed`, triggers re-download prompt via `ManageOnDeviceModelsUseCase`
+    - Deterministic: identical input → identical output on the same device (same model weights); text truncated to 512 tokens when input exceeds limit
+    - Minimum embedding dimension: 384; expose as `embeddingDimension` property
+    - `EmbeddingModelModule` Hilt binding in `core-ai`
+    - _Requirements: 34.1, 34.5, 34.6, 34.7_
+
+  - [ ] 45.2 Implement `LocalVectorIndex` backed by Room `OnDeviceChunkDao`
+    - Interface: `addChunk(userId, chunk, embedding)`, `search(userId, queryEmbedding, k, minSimilarity)`, `deleteByDocument(userId, documentId)`, `getStats(userId): VectorIndexStats`
+    - Cosine similarity: L2-normalize stored and query vectors, then compute dot product (pure in-process Kotlin)
+    - User isolation enforced at SQL level (`WHERE userId = ?`) — no in-memory filter relied upon
+    - `search()` returns results sorted descending by similarity, filtered by `minSimilarity ≥ 0.40f`; returns empty list when no results meet threshold
+    - `VectorIndexStats(totalChunks: Int, totalDocuments: Int, indexSizeBytes: Long)`
+    - Overwrite existing entry with same `chunk.id` on `addChunk()`
+    - _Requirements: 34.2, 34.3, 34.4, 34.8, 34.9, 34.10_
+
+  - [ ] 45.3 Implement `Chunker` class
+    - Constructor params: `chunkSizeTokens` (default 512), `overlapTokens` (default 64), `minChunkSizeTokens` (64), `maxChunkSizeTokens` (2048)
+    - Enforce `overlapTokens ≤ chunkSizeTokens / 2` at construction with `require()`
+    - `chunk(text, documentId, documentName, pageOffsets): List<TextChunk>` — union of all chunk content covers full input text with no gaps
+    - Uses whitespace-based token approximation (4 chars ≈ 1 token) for on-device use
+    - `PageOffset(pageNumber, startCharOffset, endCharOffset)` for page-number attribution in PDF documents
+    - _Requirements: 33.4, 35.2_
+
+  - [ ] 45.4 Implement `OnDeviceInferenceEngine` interface and MediaPipe LLM Inference API implementation
+    - Interface: `loadModel(modelPath, expectedChecksum): ModelLoadEvent`, `generateStream(prompt): Flow<OnDeviceStreamEvent>`, `cancelGeneration()`, `benchmarkMode(): BenchmarkResult`, `activeAccelerator(): HardwareAccelerator`, `releaseMemory()`
+    - Sealed `OnDeviceStreamEvent`: `Token(text)`, `Done(tokensGenerated, generationTimeMs)`, `Error(message, stage)`, `Cancelled`
+    - SHA-256 checksum verification before model load; mismatch → `ModelLoadEvent.Failed`
+    - RAM monitoring: poll `ActivityManager.MemoryInfo` every 2 seconds during generation — emit `Error(stage="ram_exceeded")` if available RAM < 512 MB; cancel generation and allow caller to fallback
+    - Thermal monitoring at generation start: if `PowerManager.thermalStatus == THERMAL_STATUS_CRITICAL` defer and emit `Error(stage="thermal_critical")`; re-check every 30 seconds
+    - Battery Saver mode: restrict accelerator to CPU-only when `PowerManager` reports battery saver active
+    - Graceful cancellation: halt token emission within 500 ms on `cancelGeneration()` call
+    - `releaseMemory()` called by lifecycle observer within 5 seconds of app going to background; model can be reloaded on next foreground request
+    - `benchmarkMode()`: run 200-token fixed prompt 10 times consecutively; return mean and p95 TTFT and tokens/sec per accelerator; expose `peakRamMb`
+    - `InferenceEngineModule` Hilt binding in `core-ai`
+    - _Requirements: 32.1, 32.2, 32.5, 32.6, 32.7, 32.8, 32.9, 32.10, 37.1, 37.2, 37.6, 37.7_
+
+  - [ ] 45.5 Implement `QueryRouter` interface
+    - Interface: `evaluate(userId, userPreference): RoutingDecision` — pure function of signals + preference; no side effects beyond repository log write
+    - 4-bit bitmask: bit 0 = Gemma model files present + checksum valid, bit 1 = `EmbeddingModel.isReady`, bit 2 = `LocalVectorIndex` has ≥1 chunk for `userId`, bit 3 = network reachable to Backend
+    - Default routing rule: bitmask == 0b1111 AND preference != PREFER_CLOUD → `ON_DEVICE`; all other combinations → `CLOUD`
+    - Offline + on-device capable (bits 0–2 set, bit 3 unset): always `ON_DEVICE`, never queue for later
+    - Records routing decision to `QueryRoutingLogEntity` via `QueryRoutingLogRepository`
+    - `RoutingDecision(path: InferencePath, capabilityBitmask: Int, reason: String, fallbackOccurred: Boolean = false)`
+    - _Requirements: 36.1, 36.2, 36.3, 36.4, 36.5, 36.8, 36.9, 36.10_
+
+  - [ ]* 45.6 Write unit tests for all `core-ai` On-Device RAG components
+    - `OnDeviceEmbeddingModel`: checksum mismatch → `ModelLoadEvent.Failed`; identical input → identical `FloatArray` output; truncation at 512 tokens
+    - `LocalVectorIndex`: insert then search returns correct results; user A query never returns user B chunks; empty result when no chunks above threshold
+    - `Chunker`: union of all chunks equals full source text (no gaps); `overlapTokens > chunkSizeTokens / 2` throws at construction; min/max chunk size respected
+    - `OnDeviceInferenceEngine`: RAM < 512 MB → `Error(stage="ram_exceeded")`; thermal critical → `Error(stage="thermal_critical")`; Battery Saver restricts to CPU; `cancelGeneration()` halts within 500 ms; checksum mismatch → `ModelLoadEvent.Failed`
+    - `QueryRouter`: verify all 16 bitmask combinations × 3 preference options produce correct `InferencePath`
+    - _Requirements: 34.5, 34.6, 34.8, 34.9, 35.2, 36.1, 36.2_
+
+- [ ] 46. Implement On-Device RAG domain and data layers
+  - [ ] 46.1 Add On-Device RAG domain entities, repository interfaces, and use cases to `domain` module
+    - Domain entities: `OnDeviceDocument(id, userId, fileName, mimeType, sizeBytes, totalChunks, ingestionStatus, failureStage?)`, `OnDeviceModelInfo(name, version, sizeBytes, lastUsed, checksum)`, `BenchmarkResult(accelerator, ttftMeanMs, ttftP95Ms, tokensPerSecMean, tokensPerSecP95, peakRamMb)`, `RoutingDecision`, `PathPreference`, `OnDeviceQueryEvent` (sealed), `IngestionProgress` (sealed)
+    - Repository interfaces: `OnDeviceDocumentRepository`, `ModelFileRepository`, `QueryRoutingLogRepository`, `QueryMetricsRepository`
+    - `OnDeviceIngestDocumentUseCase` — `invoke(uri, userId): Flow<IngestionProgress>`: Parse → Chunk → Embed → Index → persist to Room; record `failureStage` on error at any stage
+    - `OnDeviceQueryUseCase` — `invoke(query, userId, topK): Flow<OnDeviceQueryEvent>`: Embed query → Search `LocalVectorIndex` → Build context → Stream Gemma; emit `NoRelevantContent` if no chunks above 0.40 similarity; record query metrics on `Done`
+    - `RouteQueryUseCase` — `invoke(userId, preference): RoutingDecision`: delegate to `QueryRouter`, persist log entry via `QueryRoutingLogRepository`
+    - `BenchmarkOnDeviceUseCase` — `invoke(): BenchmarkResult`: delegate to `OnDeviceInferenceEngine.benchmarkMode()`
+    - `ManageOnDeviceModelsUseCase` — `listModels()`, `downloadModel(model, allowMetered)`, `verifyModel(model)`, `deleteModel(model)`
+    - `DeleteOnDeviceDocumentUseCase` — remove all chunks from `LocalVectorIndex` and Room `OnDeviceChunkDao` within 10 seconds; update document status to deleted
+    - All use cases annotated with `@Inject` constructor; add `javax.inject:javax.inject:1` to `domain/build.gradle.kts` if not already present
+    - _Requirements: 32.6, 33.1, 33.7, 34.1, 35.1, 36.1_
+
+  - [ ] 46.2 Implement `OnDeviceDocumentRepositoryImpl` and `ModelFileRepositoryImpl` in `data` module
+    - `OnDeviceDocumentRepositoryImpl`: wraps `OnDeviceDocumentDao` + `OnDeviceChunkDao`; no remote sync (on-device only, offline-first); exposes `Flow<List<OnDeviceDocument>>` from Room as single source of truth
+    - `ModelFileRepositoryImpl`: manages Gemma and embedding model files in `getFilesDir()`; SHA-256 checksum verification on read; WorkManager download job with `NetworkType.UNMETERED` constraint; resume-from-byte on interruption
+    - Wire Hilt bindings in `data/di/OnDeviceRagModule.kt`: bind repository interfaces to implementations with `@Binds` in `@InstallIn(SingletonComponent::class)` module
+    - _Requirements: 33.5, 33.6, 33.7, 33.10, 37.3, 37.4, 37.5, 37.9, 37.10_
+
+  - [ ]* 46.3 Write unit tests for On-Device RAG use cases
+    - `OnDeviceIngestDocumentUseCase`: verify `IngestionProgress` event sequence (Parsing → Chunking → Embedding(n/N) → Complete); verify failure at extraction, chunking, and embedding stages each record the correct `failureStage`; verify round-trip: TXT doc ingested and queryable by verbatim phrase
+    - `OnDeviceQueryUseCase`: verify `NoRelevantContent` event when all similarity scores < 0.40; verify `ChunkCitation` list populated in `Done` event; verify Gemma engine never receives embedding/search method calls
+    - `RouteQueryUseCase`: verify log entry created for every invocation; verify `ON_DEVICE` path when `bitmask == 0b1111`; verify `CLOUD` fallback recorded when any signal unset
+    - `DeleteOnDeviceDocumentUseCase`: verify all chunks removed from `LocalVectorIndex` and `OnDeviceChunkDao` within 10 seconds (use `advanceTimeBy` in test coroutine scope)
+    - _Requirements: 21.1, 31.2, 33.8, 35.5, 35.6, 35.7_
+
+- [ ] 47. Implement `feature-on-device-rag` module
+  - [ ] 47.1 Create `feature-on-device-rag` Gradle module with correct dependencies
+    - Module dependencies: `feature-on-device-rag` → `domain`, `core-ui`, `core-ai`, `core-database`
+    - Explicitly exclude dependencies on other `feature-*` modules, the `data` module direct DAOs, or Backend network layer
+    - Register module in `settings.gradle.kts`; wire Hilt entry point via `app` module `@HiltAndroidApp`
+    - Add `feature-on-device-rag` → `data` dependency only through `domain` repository interfaces (Hilt binding resolves at app module level)
+    - _Requirements: 19.1, 19.2, 30.2_
+
+  - [ ] 47.2 Build `OnDeviceDocumentsScreen` and `OnDeviceDocumentViewModel`
+    - `OnDeviceDocumentViewModel` with `StateFlow<OnDeviceDocumentUiState>`; annotated `@HiltViewModel` with `@Inject` constructor
+    - File picker accepting PDF, TXT, Markdown from device file picker or share intent; reject files > 50 MB with inline structured error before calling any use case
+    - Document list with ingestion status badge (pending / processing / ready / failed) and chunk count for `ready` docs; use `IngestionProgress` events for live updates
+    - In-progress indicator during ingestion; allow normal app interaction during background ingestion
+    - Low-storage warning state: pause ingestion and show warning banner when available storage < 100 MB
+    - Failed status shows `failureStage` description (extraction / chunking / embedding)
+    - Delete document action: calls `DeleteOnDeviceDocumentUseCase`; removes entry from list
+    - _Requirements: 33.1, 33.2, 33.3, 33.6, 33.7, 33.9, 33.10_
+
+  - [ ] 47.3 Build `OnDeviceRagChatScreen` and `OnDeviceRagViewModel`
+    - `OnDeviceRagViewModel` with `StateFlow<OnDeviceRagChatUiState>`; annotated `@HiltViewModel` with `@Inject` constructor
+    - On query submit: call `RouteQueryUseCase` first; display active path indicator in chat toolbar ("Running on device" / "Using cloud AI")
+    - On-device path: call `OnDeviceQueryUseCase`, stream tokens to chat view incrementally; display citations via "Show sources" expandable control showing chunk text + doc name + chunk index + cosine similarity score
+    - Cloud path: route through existing `SendMessageUseCase` / `AIStreamClient` infrastructure
+    - Display "No relevant content found in local documents" message on `NoRelevantContent` event
+    - Display non-blocking fallback notification banner when cloud-to-on-device fallback occurs (`RoutingDecision.fallbackOccurred == true`)
+    - Display structured error state and "Retry via cloud" action button on `Error` event from query pipeline
+    - _Requirements: 35.1, 35.4, 35.5, 35.8, 35.9, 36.5, 36.6, 36.7, 36.8_
+
+  - [ ] 47.4 Build `BenchmarkScreen` and `ManageModelsScreen`
+    - `BenchmarkScreen`: accessible from Settings; trigger `BenchmarkOnDeviceUseCase`; display results table with columns: Accelerator, TTFT p50 ms, TTFT p95 ms, Tokens/sec p50, RAM Peak MB
+    - `ManageModelsScreen`: list downloaded models with name, version, disk size, last-used date; delete button per model; trigger download for missing/corrupt model with progress bar (percentage + ETA)
+    - Model download: WorkManager job with `NetworkType.UNMETERED`; resume from last byte on interruption; show mobile data warning dialog if on metered network
+    - "Running on device" persistent indicator in chat toolbar while on-device inference is active
+    - Battery Saver notice: display inline notice "Battery saver active — on-device AI uses CPU only" when applicable
+    - Update model prompt: in-app notification (not push) when new model version available via `ManageOnDeviceModelsUseCase`; continue using existing model until user approves update
+    - _Requirements: 32.3, 32.4, 32.5, 37.3, 37.4, 37.5, 37.8, 37.10_
+
+  - [ ]* 47.5 Write unit tests for `OnDeviceRagViewModel` and `OnDeviceDocumentViewModel`
+    - `OnDeviceRagViewModel`: verify "Running on device" indicator in `UiState` on `ON_DEVICE` routing decision; verify `ChunkCitation` list populated in `UiState` on `Done` event; verify error state and retry option on `Error` event; verify `NoRelevantContent` state; verify primary success and error `StateFlow` emissions using Turbine
+    - `OnDeviceDocumentViewModel`: verify `UiState` status transitions (pending → processing → ready / failed); verify files > 50 MB trigger rejection error state; verify low-storage warning state; verify delete action removes document from list in `UiState`
+    - _Requirements: 21.1, 31.4_
+
+- [ ] 48. Property-based tests for On-Device RAG correctness properties
+  - [ ]* 48.1 Write property test for On-Device RAG Round-Trip (Property 37)
+    - **Property 37: On-Device RAG Round-Trip** — **Validates: Requirements 35.10, 33.8**
+    - Use Kotest PropTest; generate random TXT documents (100–2000 chars); ingest via `OnDeviceIngestDocumentUseCase`; pick verbatim 5-word phrase from document; query via `OnDeviceQueryUseCase` using mocked `OnDeviceInferenceEngine` that echoes retrieved context; assert response includes citation referencing source document name when cosine similarity threshold is met
+
+  - [ ]* 48.2 Write property test for Embedding Determinism (Property 38)
+    - **Property 38: Embedding Determinism** — **Validates: Requirements 34.5**
+    - Use Kotest PropTest; generate random strings (1–512 chars); call `embeddingModel.generateEmbedding(text)` twice on same instance; assert `assertContentEquals(result1, result2)` for all inputs
+
+  - [ ]* 48.3 Write property test for Local Vector Index User Isolation (Property 39)
+    - **Property 39: Local Vector Index User Isolation** — **Validates: Requirements 34.8**
+    - Use Kotest PropTest; generate two distinct user IDs (A and B); generate random chunks for user B; insert all under B's scope in an in-memory Room test database; search under user A with random query embedding (minSimilarity = 0f); assert zero results contain chunk IDs belonging to user B
+
+  - [ ]* 48.4 Write property test for Query Router Path Selection Correctness (Property 40)
+    - **Property 40: Query Router Path Selection Correctness** — **Validates: Requirements 36.1, 36.2**
+    - Use Kotest PropTest; generate all 16 bitmask values (0–15) × 3 preference options (null, PREFER_ON_DEVICE, PREFER_CLOUD); assert `decision.path == ON_DEVICE` iff `bitmask == 15 AND preference != PREFER_CLOUD`; assert `CLOUD` in all other cases; assert no other factor influences the decision
+
+  - [ ]* 48.5 Write property test for Gemma Generation-Only Isolation (Property 41)
+    - **Property 41: Gemma Generation-Only Isolation** — **Validates: Requirements 35.7**
+    - Use Kotest PropTest; generate random query strings and document content; use spy `OnDeviceInferenceEngine` that records all method invocations; run full `OnDeviceQueryUseCase` pipeline; assert no "generateEmbedding", "search", or "parse" method calls appear in spy recording; assert only "generateStream", "cancelGeneration", "releaseMemory" (or empty) calls are present on the engine spy
+
+- [ ] 49. On-Device RAG portfolio documentation
+  - [ ] 49.1 Create `docs/on-device-rag.md` portfolio documentation
+    - Six implementation phases (purpose, component list, design decision + rationale per phase)
+    - Mermaid architecture diagram: 6-layer stack + two query paths (on-device: Query_Router → Embedding → LocalVectorIndex → Gemma; cloud: Query_Router → Backend → LLM_Provider)
+    - Benchmark results table: columns Device Model, Chipset, Accelerator (CPU/GPU/NPU), Gemma Model Variant, TTFT p50 ms, Tokens/sec p50, RAM Peak MB; minimum 2 placeholder rows
+    - Offline demo section: step-by-step (enable airplane mode, add sample docs, run sample queries, expected outputs with citations)
+    - Privacy & Security section: (a) data that never leaves device, (b) model file storage + SHA-256 integrity verification, (c) user document isolation enforced at SQL layer, (d) `QueryRouter` prevents inadvertent cloud forwarding when offline
+    - Reference to `benchmarks/on_device_rag_benchmark.sh` script
+    - _Requirements: 38.1, 38.2, 38.5, 38.6_
+
+  - [ ] 49.2 Add `benchmarks/` directory with reproducible benchmark script
+    - `benchmarks/on_device_rag_benchmark.sh`: installs app on connected device via ADB, triggers `BenchmarkOnDeviceUseCase` via ADB shell intent, captures logcat output, saves structured results to `benchmarks/results/benchmark_<timestamp>.json`
+    - Document script prerequisites and usage in `docs/on-device-rag.md`
+    - _Requirements: 38.8_
+
+  - [ ] 49.3 Update README with "On-Device RAG" section
+    - Reference `docs/on-device-rag.md`
+    - List on-device models used with version numbers (Gemma 2B/7B INT4/INT8, MiniLM-L6-v2)
+    - Minimum hardware requirements (NPU/GPU ≥4 GB dedicated memory; CPU fallback supported)
+    - Supported document formats (PDF, TXT, Markdown)
+    - One-paragraph plain-language explanation: Gemma is the generation component only; a separate embedding model handles retrieval; the two never share inference calls
+    - _Requirements: 38.3_
+
+  - [ ] 49.4 Add `Educational_Header` blocks to all new On-Device RAG source files
+    - Every source file in `core-ai` (`OnDeviceInferenceEngine`, `OnDeviceEmbeddingModel`, `LocalVectorIndex`, `Chunker`, `QueryRouter` and their implementations), `feature-on-device-rag` (all ViewModels, Screen composables, DI modules), and `domain` (new use cases and entities) must include the 4-field educational header: purpose, architectural placement (referencing the specific layer in the 6-layer on-device stack), dependencies, design decision/pattern
+    - _Requirements: 38.7, 22.4_
+
 ## Notes
 
 - Tasks 1–20.5 cover the Android client layer and are marked complete.
@@ -881,8 +1070,17 @@ Implementation follows Clean Architecture from the ground up: core modules first
   - Task 41: CI/CD Pipeline and Release Process (NFR Req 27 — GitHub Actions)
   - Task 42: Security Scanning and Vulnerability Management (NFR Req 28 — CI/CD)
   - Task 43: Infrastructure Validation, Hilt DI Completeness, and Android Test Coverage (NFR Reqs 29, 30, 31)
+- Tasks 44–49 cover the On-Device RAG Architecture (Android-side only, no backend changes):
+  - Task 44: Extend `core-database` with On-Device RAG Room entities and DAOs
+  - Task 45: Implement `core-ai` On-Device RAG engine components (EmbeddingModel, LocalVectorIndex, Chunker, InferenceEngine, QueryRouter)
+  - Task 46: On-Device RAG domain entities, repository interfaces, use cases, and `data` module repository implementations
+  - Task 47: `feature-on-device-rag` module (DocumentsScreen, RagChatScreen, BenchmarkScreen, ManageModelsScreen)
+  - Task 48: Property-based tests for Properties 37–41 (On-Device RAG Round-Trip, Embedding Determinism, User Isolation, Router Correctness, Gemma-Only Isolation)
+  - Task 49: Portfolio documentation (`docs/on-device-rag.md`), benchmark script, README update, Educational_Header blocks
 - All property-based tests use Kotest PropTest (Android) or Hypothesis (Backend) and are marked with their property number and the requirement they validate.
 - Properties 31–36 are defined in tasks 33–39 respectively, continuing the numbering from Property 30 in task 16.
+- Properties 37–41 are defined in task 48 for the On-Device RAG correctness properties.
 - JaCoCo line coverage for `domain` and `data` modules must reach 70% combined before merging any PR.
 - Backend Pytest line coverage must reach 70% before merging any PR.
 - The `feature-on-device-ai` module (task 33) may be integrated into `core-ai` or introduced as a standalone Gradle module depending on model size and build-time constraints; the decision should be made before starting task 33.1.
+- The `feature-on-device-rag` module (tasks 44–49) is a standalone Gradle module with no dependency on the Backend network layer; all inference and retrieval is performed entirely on-device.

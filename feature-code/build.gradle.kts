@@ -82,6 +82,7 @@ dependencies {
 }
 
 tasks.withType<Test> {
+    useJUnitPlatform()
     maxHeapSize = "3g"
     forkEvery = 1
 }

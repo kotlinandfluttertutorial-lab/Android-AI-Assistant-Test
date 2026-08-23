@@ -20,7 +20,7 @@ import io.mockk.mockk
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
-import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.setMain
 
@@ -34,7 +34,7 @@ class ChatDetailViewModelTest :
         val streamClient = mockk<AIStreamClient>()
         val getContextSuggestionsUseCase = mockk<GetContextSuggestionsUseCase>()
 
-        val testDispatcher = StandardTestDispatcher()
+        val testDispatcher = UnconfinedTestDispatcher()
         val dispatchers = object : DispatcherProvider {
             override val main = testDispatcher
             override val mainImmediate = testDispatcher
@@ -115,10 +115,13 @@ class ChatDetailViewModelTest :
                 )
                 coEvery { streamClient.sendMessage(any()) } returns Unit
 
-                viewModel.sendMessage(content)
-
                 viewModel.uiState.test {
-                    // Initial state after sendMessage
+                    // Skip initial state
+                    awaitItem()
+
+                    viewModel.sendMessage(content)
+
+                    // Initial state after sendMessage (optimistic update)
                     val stateAfterSend = awaitItem()
                     stateAfterSend.messages.size shouldBe 1
                     stateAfterSend.messages.first().content shouldBe content

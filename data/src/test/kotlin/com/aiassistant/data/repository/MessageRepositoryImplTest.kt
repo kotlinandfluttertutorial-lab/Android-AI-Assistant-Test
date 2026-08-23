@@ -79,6 +79,10 @@ class MessageRepositoryImplTest :
             )
         }
 
+        afterEach {
+            unmockkAll()
+        }
+
         // ─── sendMessage() ────────────────────────────────────────────────────────
 
         describe("sendMessage()") {

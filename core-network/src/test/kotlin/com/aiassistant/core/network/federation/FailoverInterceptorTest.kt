@@ -17,9 +17,11 @@ package com.aiassistant.core.network.federation
 import com.aiassistant.domain.model.BackendEndpoint
 import com.aiassistant.domain.model.FederationConfig
 import com.aiassistant.domain.repository.FederationRepository
+import app.cash.turbine.test
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.kotest.matchers.string.shouldContain
 import io.mockk.coEvery
 import io.mockk.every
@@ -361,29 +363,15 @@ class FailoverInterceptorTest :
                     primaryServer.enqueue(MockResponse().setResponseCode(503))
                     secondaryServer.enqueue(MockResponse().setResponseCode(200))
 
-                    // Collect events concurrently while the blocking HTTP call runs.
-                    // Use a thread-safe list to capture events emitted via tryEmit.
-                    val receivedEvents = java.util.concurrent.CopyOnWriteArrayList<FailoverEvent>()
-                    val latch = java.util.concurrent.CountDownLatch(1)
+                    eventBus.events.test {
+                        val response = client.newCall(
+                            Request.Builder().url("https://api.example.com/api/test").build()
+                        ).execute()
+                        response.close()
 
-                    val collectorJob = launch(Dispatchers.IO) {
-                        eventBus.events.collect { event ->
-                            receivedEvents.add(event)
-                            latch.countDown()
-                        }
+                        val switchEvent = awaitItem() as FailoverEvent.SwitchedToEndpoint
+                        switchEvent.activeEndpointName shouldBe "us-secondary"
                     }
-
-                    val response = client.newCall(
-                        Request.Builder().url("https://api.example.com/api/test").build()
-                    ).execute()
-                    response.close()
-
-                    // Wait up to 5 seconds for at least one event.
-                    latch.await(5, java.util.concurrent.TimeUnit.SECONDS)
-                    collectorJob.cancel()
-
-                    val switchEvent = receivedEvents.filterIsInstance<FailoverEvent.SwitchedToEndpoint>().firstOrNull()
-                    switchEvent?.activeEndpointName shouldBe "us-secondary"
                 }
             }
 
@@ -401,26 +389,15 @@ class FailoverInterceptorTest :
 
                     primaryServer.enqueue(MockResponse().setResponseCode(503))
 
-                    val receivedEvents = java.util.concurrent.CopyOnWriteArrayList<FailoverEvent>()
-                    val latch = java.util.concurrent.CountDownLatch(1)
-
-                    val collectorJob = launch(Dispatchers.IO) {
-                        eventBus.events.collect { event ->
-                            receivedEvents.add(event)
-                            latch.countDown()
+                    eventBus.events.test {
+                        runCatching {
+                            client.newCall(
+                                Request.Builder().url("https://api.example.com/api/test").build()
+                            ).execute()
                         }
+
+                        awaitItem().shouldBeInstanceOf<FailoverEvent.AllEndpointsExhausted>()
                     }
-
-                    runCatching {
-                        client.newCall(
-                            Request.Builder().url("https://api.example.com/api/test").build()
-                        ).execute()
-                    }
-
-                    latch.await(5, java.util.concurrent.TimeUnit.SECONDS)
-                    collectorJob.cancel()
-
-                    receivedEvents.any { it is FailoverEvent.AllEndpointsExhausted } shouldBe true
                 }
             }
         }
