@@ -576,6 +576,10 @@ jobs:
     runs-on: ubuntu-latest
     needs: android-unit-tests
     if: github.event_name == 'pull_request'
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
 
     steps:
       - name: Checkout source
