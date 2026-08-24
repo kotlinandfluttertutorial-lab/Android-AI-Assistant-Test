@@ -338,16 +338,22 @@ jobs:
 
     steps:
       - name: Wait for revision to stabilise
-        run: sleep 15
+        # Cloud Run cold-start with min-instances=0 can take 30-60 s on a fresh
+        # deploy.  Give the service extra time before the first probe attempt.
+        run: sleep 30
 
       - name: /health check
         run: |
+          # --retry-all-errors: retry on ANY non-zero exit OR non-2xx HTTP status,
+          # including Cloudflare 530 (origin unreachable) which occurs while the
+          # Cloud Run revision is still starting up.
+          # Total patience: 30 s initial wait + 8 attempts × 15 s delay = ~150 s.
           HTTP=$(curl -sSo /dev/null -w "%{http_code}" \
-            --retry 6 --retry-delay 8 --retry-connrefused \
+            --retry 8 --retry-delay 15 --retry-all-errors \
             "${{ needs.deploy.outputs.url }}/health")
-          echo "/health → $HTTP"
+          echo "Health endpoint returned: $HTTP"
           if [[ "$HTTP" != "200" ]]; then
-            echo "::error::/health returned $HTTP — deploy failed"
+            echo "::error::Smoke test failed — /health returned $HTTP"
             exit 1
           fi
           echo "✅ /health OK"

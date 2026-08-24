@@ -154,3 +154,5 @@ Write-Ok 'To stop everything run: stop-dev.ps1'
 
 $cloudflaredConfig = 'C:\Users\admin\.cloudflared\config.yml'
 cloudflared tunnel --config $cloudflaredConfig run mybackend
+
+#cloudflared tunnel --config C:\Users\admin\.cloudflared\config.yml run mybackend

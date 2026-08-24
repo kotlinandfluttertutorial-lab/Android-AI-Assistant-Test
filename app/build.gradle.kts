@@ -23,6 +23,18 @@ android {
         vectorDrawables.useSupportLibrary = true
     }
 
+    flavorDimensions += "environment"
+    productFlavors {
+        create("local") {
+            dimension = "environment"
+            buildConfigField("String", "BASE_URL", "\"http://api.handsonandroid.com/\"")
+        }
+        create("cloud") {
+            dimension = "environment"
+            buildConfigField("String", "BASE_URL", "\"https://ai-assistant-backend-106071012091.asia-south1.run.app/\"")
+        }
+    }
+
     buildTypes {
         debug {
             isDebuggable = true
