@@ -396,12 +396,21 @@ jobs:
         continue-on-error: true
 
       - name: Run pip-audit (CRITICAL gate)
-        # Fail the job on any vulnerability not listed in the ignore file.
-        # CVE-2026-45829 (chromadb) is ignored — no patch available, port-binding
-        # mitigation is in place. See .trivyignore for details.
+        # Fail the job on any vulnerability not listed below.
+        # All three chromadb advisories are ignored — no upstream patch exists
+        # for any of them; port-binding mitigation (internal Docker network only)
+        # is in place. Re-audit when chromadb ships a fix.
+        #
+        # GHSA-2wm9-hf6c-p5cr / CVE-2026-45830 — cross-tenant authorization bypass
+        # GHSA-36p7-vc44-83pf / CVE-2026-45833 — authenticated trust_remote_code RCE
+        # GHSA-xph7-9rjv-w5fr / CVE-2026-45831 — SimpleRBACAuthorizationProvider scope bug
+        # GHSA-f4j7-r4q5-qw2c / CVE-2026-45829 — pre-auth RCE (previously ignored)
         run: |
           pip-audit \
             --requirement backend/requirements.txt \
+            --ignore-vuln GHSA-2wm9-hf6c-p5cr \
+            --ignore-vuln GHSA-36p7-vc44-83pf \
+            --ignore-vuln GHSA-xph7-9rjv-w5fr \
             --ignore-vuln CVE-2026-45829 \
             --strict
 
