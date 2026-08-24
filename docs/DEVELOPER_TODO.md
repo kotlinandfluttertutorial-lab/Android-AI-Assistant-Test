@@ -1,4 +1,4 @@
-# Developer Todo List — Android AI Assistant (Enterprise Edition)
+﻿# Developer Todo List — Android AI Assistant (Enterprise Edition)
 
 > **Last updated:** August 19, 2026 (session 3)
 > **Purpose:** Reference checklist for taking the project from fully implemented spec to a production-ready, deployable system.
@@ -320,7 +320,7 @@ The release and deploy pipelines contain example domain names. Update them to yo
 `.github/workflows/backend-ci.yml` — replace:
 ```
 https://staging.aiassistant.example.com  →  your actual staging domain
-https://api.handsonandroid.com      →  your actual production API domain
+https://ai-assistant-backend-106071012091.asia-south1.run.app      →  your actual production API domain
 ```
 
 `.github/workflows/release.yml` — replace the same two URLs plus:
@@ -328,7 +328,7 @@ https://api.handsonandroid.com      →  your actual production API domain
 com.aiassistant.app  →  your actual Android application ID
 ```
 
-- [x] `backend-ci.yml` URLs updated — `api.handsonandroid.com` is the committed target domain; no staging example URL was present
+- [x] `backend-ci.yml` URLs updated — `ai-assistant-backend-106071012091.asia-south1.run.app` is the committed target domain; no staging example URL was present
 - [x] `release.yml` URLs and package name updated — `packageName` corrected from `com.aiassistant.app` → `com.aiassistant` (matches `applicationId` in `app/build.gradle.kts`)
 - [x] `infrastructure/nginx/nginx.conf` `server_name` directive — uses `_` wildcard which is correct for Docker Compose; no domain-specific value needed
 

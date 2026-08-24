@@ -1,7 +1,7 @@
 # API Specification
 ## Android AI Assistant — Enterprise Edition
 
-**Base URL:** `https://api.handsonandroid.com/v1`  
+**Base URL:** `https://ai-assistant-backend-106071012091.asia-south1.run.app/v1`  
 **Auth:** All protected endpoints require `Authorization: Bearer <JWT>` header.  
 **Content-Type:** `application/json` unless otherwise noted.
 

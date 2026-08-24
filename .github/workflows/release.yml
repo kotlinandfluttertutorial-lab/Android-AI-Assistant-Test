@@ -241,32 +241,54 @@ jobs:
 
       - name: Build + sign release AAB
         env:
-          KEY_ALIAS: ${{ steps.keystore.outputs.has_keystore == 'true' && secrets.KEY_ALIAS || 'androiddebugkey' }}
-          KEY_PASSWORD: ${{ steps.keystore.outputs.has_keystore == 'true' && secrets.KEY_PASSWORD || 'android' }}
-          KEYSTORE_PASSWORD: ${{ steps.keystore.outputs.has_keystore == 'true' && secrets.KEYSTORE_PASSWORD || 'android' }}
+          HAS_KEYSTORE: ${{ steps.keystore.outputs.has_keystore }}
+          SECRET_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          SECRET_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          SECRET_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
+          if [[ "$HAS_KEYSTORE" == "true" ]]; then
+            EFFECTIVE_KEY_ALIAS="$SECRET_KEY_ALIAS"
+            EFFECTIVE_KEY_PASSWORD="$SECRET_KEY_PASSWORD"
+            EFFECTIVE_STORE_PASSWORD="$SECRET_KEYSTORE_PASSWORD"
+          else
+            EFFECTIVE_KEY_ALIAS="androiddebugkey"
+            EFFECTIVE_KEY_PASSWORD="android"
+            EFFECTIVE_STORE_PASSWORD="android"
+          fi
+
           ./gradlew :app:bundleRelease \
             -PversionCode="${{ steps.version_code.outputs.version_code }}" \
             -PversionName="${{ needs.validate-tag.outputs.version }}" \
             -Pandroid.injected.signing.store.file="$GITHUB_WORKSPACE/app/release.keystore" \
-            -Pandroid.injected.signing.store.password="$KEYSTORE_PASSWORD" \
-            -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
-            -Pandroid.injected.signing.key.password="$KEY_PASSWORD" \
+            -Pandroid.injected.signing.store.password="$EFFECTIVE_STORE_PASSWORD" \
+            -Pandroid.injected.signing.key.alias="$EFFECTIVE_KEY_ALIAS" \
+            -Pandroid.injected.signing.key.password="$EFFECTIVE_KEY_PASSWORD" \
             --stacktrace
 
       - name: Build + sign release APK
         env:
-          KEY_ALIAS: ${{ steps.keystore.outputs.has_keystore == 'true' && secrets.KEY_ALIAS || 'androiddebugkey' }}
-          KEY_PASSWORD: ${{ steps.keystore.outputs.has_keystore == 'true' && secrets.KEY_PASSWORD || 'android' }}
-          KEYSTORE_PASSWORD: ${{ steps.keystore.outputs.has_keystore == 'true' && secrets.KEYSTORE_PASSWORD || 'android' }}
+          HAS_KEYSTORE: ${{ steps.keystore.outputs.has_keystore }}
+          SECRET_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          SECRET_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          SECRET_KEYSTORE_PASSWORD: ${{ secrets.KEYSTORE_PASSWORD }}
         run: |
+          if [[ "$HAS_KEYSTORE" == "true" ]]; then
+            EFFECTIVE_KEY_ALIAS="$SECRET_KEY_ALIAS"
+            EFFECTIVE_KEY_PASSWORD="$SECRET_KEY_PASSWORD"
+            EFFECTIVE_STORE_PASSWORD="$SECRET_KEYSTORE_PASSWORD"
+          else
+            EFFECTIVE_KEY_ALIAS="androiddebugkey"
+            EFFECTIVE_KEY_PASSWORD="android"
+            EFFECTIVE_STORE_PASSWORD="android"
+          fi
+
           ./gradlew :app:assembleRelease \
             -PversionCode="${{ steps.version_code.outputs.version_code }}" \
             -PversionName="${{ needs.validate-tag.outputs.version }}" \
             -Pandroid.injected.signing.store.file="$GITHUB_WORKSPACE/app/release.keystore" \
-            -Pandroid.injected.signing.store.password="$KEYSTORE_PASSWORD" \
-            -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
-            -Pandroid.injected.signing.key.password="$KEY_PASSWORD" \
+            -Pandroid.injected.signing.store.password="$EFFECTIVE_STORE_PASSWORD" \
+            -Pandroid.injected.signing.key.alias="$EFFECTIVE_KEY_ALIAS" \
+            -Pandroid.injected.signing.key.password="$EFFECTIVE_KEY_PASSWORD" \
             --stacktrace
 
       - name: Rename artifacts
@@ -478,7 +500,7 @@ jobs:
       - backend-release
     environment:
       name: staging
-      url: https://api.handsonandroid.com
+      url: https://ai-assistant-backend-106071012091.asia-south1.run.app
 
     steps:
       - name: Skip if SSH secrets not configured
@@ -527,8 +549,8 @@ jobs:
       - name: Health check — staging
         run: |
           HTTP_STATUS=$(curl -sSo /dev/null -w "%{http_code}" \
-            --retry 5 --retry-delay 10 --retry-connrefused \
-            "https://api.handsonandroid.com/health")
+            --retry 5 --retry-delay 10 --retry-all-errors \
+            "https://ai-assistant-backend-106071012091.asia-south1.run.app/health")
           echo "Health endpoint returned: $HTTP_STATUS"
           if [[ "$HTTP_STATUS" != "200" ]]; then
             echo "::error::Staging smoke test failed — /health returned $HTTP_STATUS"
@@ -549,7 +571,7 @@ jobs:
       - smoke-test-staging
     environment:
       name: production
-      url: https://api.handsonandroid.com
+      url: https://ai-assistant-backend-106071012091.asia-south1.run.app
     # Configure "Required reviewers" on the production environment in
     # Settings → Environments → production for the approval gate.
 
@@ -606,7 +628,7 @@ jobs:
           for i in {1..5}; do
             HTTP=$(curl -sSo /dev/null -w "%{http_code}" \
               --max-time 10 \
-              "https://api.handsonandroid.com/health")
+              "https://ai-assistant-backend-106071012091.asia-south1.run.app/health")
             echo "Attempt $i: /health → $HTTP"
             [[ "$HTTP" == "200" ]] && break
             [[ "$i" -eq 5 ]] && { echo "::error::Smoke test failed after 5 attempts"; exit 1; }

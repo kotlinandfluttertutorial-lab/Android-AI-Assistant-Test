@@ -45,3 +45,8 @@ Thumbs.db
 /app/google-services.json
 /backend/venv312/
 /backend/.venv/
+
+# Android release keystore — NEVER commit
+*.jks
+*.keystore
+android-release.jks

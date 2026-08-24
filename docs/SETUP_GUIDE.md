@@ -534,7 +534,7 @@ If any step fails — go to the failed step in GitHub Actions, expand the logs, 
 Once the backend is live:
 
 1. Open `core-network/src/main/kotlin/com/aiassistant/core/network/di/NetworkModule.kt`
-2. The `BASE_URL` is already set to `https://api.handsonandroid.com/` for release builds
+2. The `BASE_URL` is already set to `https://ai-assistant-backend-106071012091.asia-south1.run.app/` for release builds
 3. If you're using the raw Cloud Run URL (without a custom domain), override at build time:
    ```powershell
    ./gradlew assembleRelease -Pbase_url="https://ai-assistant-backend-xxxx-el.a.run.app/"
@@ -543,7 +543,7 @@ Once the backend is live:
    ```powershell
    gcloud run domain-mappings create `
      --service=ai-assistant-backend `
-     --domain=api.handsonandroid.com `
+     --domain=ai-assistant-backend-106071012091.asia-south1.run.app `
      --region=$REGION
    ```
 
