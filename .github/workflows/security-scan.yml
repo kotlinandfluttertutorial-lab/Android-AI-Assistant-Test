@@ -131,7 +131,7 @@ jobs:
           ./gradlew :domain:compileDebugKotlin \
                     :data:compileDebugKotlin \
                     :core-common:compileDebugKotlin \
-                    :core-network:compileDebugKotlin \
+                    :core-network:compileLocalDebugKotlin \
                     :core-security:compileDebugKotlin \
                     --stacktrace --no-parallel
 
