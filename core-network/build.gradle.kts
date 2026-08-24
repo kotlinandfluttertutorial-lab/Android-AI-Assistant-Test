@@ -1,4 +1,4 @@
-plugins {
+﻿plugins {
     alias(libs.plugins.android.library)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.serialization)
@@ -46,16 +46,16 @@ android {
         }
         release {
             // Production Cloud Run URL. Override via Gradle property or CI env var:
-            //   ./gradlew assembleRelease -Pbase_url="https://api.handsonandroid.com/"
+            //   ./gradlew assembleRelease -Pbase_url="https://ai-assistant-backend-106071012091.asia-south1.run.app/"
             buildConfigField(
                 "String",
                 "BASE_URL",
-                "\"${project.findProperty("base_url") ?: "https://api.handsonandroid.com/"}\""
+                "\"${project.findProperty("base_url") ?: "https://ai-assistant-backend-106071012091.asia-south1.run.app/"}\""
             )
             // Production TLS pin(s). Set via:
             //   ./gradlew assembleRelease -Pcert_pins="<sha256-base64-hash>"
-            // To get the pin for api.handsonandroid.com:
-            //   openssl s_client -connect api.handsonandroid.com:443 2>/dev/null |
+            // To get the pin for ai-assistant-backend-106071012091.asia-south1.run.app:
+            //   openssl s_client -connect ai-assistant-backend-106071012091.asia-south1.run.app:443 2>/dev/null |
             //     openssl x509 -pubkey -noout |
             //     openssl pkey -pubin -outform DER |
             //     openssl dgst -sha256 -binary | base64

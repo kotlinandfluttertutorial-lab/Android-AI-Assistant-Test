@@ -1,4 +1,4 @@
-/*
+﻿/*
  * ============================================================
  * Android AI Assistant (Enterprise Edition)
  * ============================================================
@@ -91,7 +91,7 @@ data class SuggestionsResponse(@SerialName("suggestions") val suggestions: List<
  * Retrofit service for the context suggestion endpoint.
  *
  * The path includes the full `/api/v1/` prefix because the Retrofit base URL
- * ends at the server root (e.g. `https://api.handsonandroid.com/`) and
+ * ends at the server root (e.g. `https://ai-assistant-backend-106071012091.asia-south1.run.app/`) and
  * this endpoint does not share the same prefix as the productivity or
  * resume endpoints.
  *

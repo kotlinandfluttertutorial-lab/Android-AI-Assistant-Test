@@ -476,7 +476,7 @@ jobs:
        github.event_name == 'workflow_dispatch'
     environment:
       name: staging
-      url: https://api.handsonandroid.com
+      url: https://ai-assistant-backend-106071012091.asia-south1.run.app
 
     steps:
       - name: Skip if SSH secrets not configured
@@ -528,7 +528,7 @@ jobs:
         run: |
           HTTP_STATUS=$(curl -sSo /dev/null -w "%{http_code}" \
             --retry 5 --retry-delay 10 --retry-connrefused \
-            "https://api.handsonandroid.com/health")
+            "https://ai-assistant-backend-106071012091.asia-south1.run.app/health")
           echo "Health endpoint returned: $HTTP_STATUS"
           if [[ "$HTTP_STATUS" != "200" ]]; then
             echo "::error::Smoke test failed — /health returned $HTTP_STATUS"
@@ -551,7 +551,7 @@ jobs:
       needs.smoke-test-staging.result == 'success'
     environment:
       name: production
-      url: https://api.handsonandroid.com
+      url: https://ai-assistant-backend-106071012091.asia-south1.run.app
 
     steps:
       - name: Skip if SSH secrets not configured
@@ -586,7 +586,7 @@ jobs:
         run: |
           HTTP_STATUS=$(curl -sSo /dev/null -w "%{http_code}" \
             --retry 5 --retry-delay 15 --retry-connrefused \
-            "https://api.handsonandroid.com/health")
+            "https://ai-assistant-backend-106071012091.asia-south1.run.app/health")
           echo "Health endpoint returned: $HTTP_STATUS"
           if [[ "$HTTP_STATUS" != "200" ]]; then
             echo "::error::Production smoke test failed — /health returned $HTTP_STATUS"

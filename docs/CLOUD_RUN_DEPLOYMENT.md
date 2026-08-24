@@ -1,4 +1,4 @@
-# Cloud Run Deployment Guide — Android AI Assistant
+﻿# Cloud Run Deployment Guide — Android AI Assistant
 ## Budget-First: ₹0–₹1,000/month
 
 > **One rule:** Don't pay for idle infrastructure.
@@ -392,12 +392,12 @@ Cloud Run generates a new URL hash.
 ```bash
 gcloud run domain-mappings create \
   --service=ai-assistant-backend \
-  --domain=api.handsonandroid.com \
+  --domain=ai-assistant-backend-106071012091.asia-south1.run.app \
   --region=$REGION
 # Follow the CNAME instructions it prints
 ```
 
-After that, `BASE_URL` stays `https://api.handsonandroid.com/api/v1/` forever.
+After that, `BASE_URL` stays `https://ai-assistant-backend-106071012091.asia-south1.run.app/api/v1/` forever.
 
 ### Certificate Pin
 
@@ -489,7 +489,7 @@ deploy-cloud-run:
      github.event_name == 'workflow_dispatch'
   environment:
     name: production
-    url: https://api.handsonandroid.com
+    url: https://ai-assistant-backend-106071012091.asia-south1.run.app
 
   permissions:
     contents: read

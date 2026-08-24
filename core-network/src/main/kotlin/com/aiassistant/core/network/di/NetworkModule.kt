@@ -1,4 +1,4 @@
-/*
+﻿/*
  * ============================================================
  * Android AI Assistant (Enterprise Edition)
  * ============================================================
@@ -112,7 +112,7 @@ object NetworkModule {
     private val BASE_URL: String get() = BuildConfig.BASE_URL
     // Override per build variant via the `base_url` Gradle property:
     //   debug   default → http://10.0.2.2:8000/  (Android emulator localhost)
-    //   release default → https://api.handsonandroid.com/
+    //   release default → https://ai-assistant-backend-106071012091.asia-south1.run.app/
     //   ci/staging      → pass -Pbase_url="https://your-cloud-run-url.run.app/"
 
     private const val CONNECT_TIMEOUT_SECONDS = 30L

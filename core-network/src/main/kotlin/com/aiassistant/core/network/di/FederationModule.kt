@@ -194,7 +194,7 @@ object FederationModule {
         val contentType = "application/json".toMediaType()
         return Retrofit.Builder()
             // Placeholder base URL — overridden at request time by FailoverInterceptor.
-            .baseUrl("https://api.handsonandroid.com/")
+            .baseUrl("https://ai-assistant-backend-106071012091.asia-south1.run.app/")
             .client(okHttpClient)
             .addConverterFactory(json.asConverterFactory(contentType))
             .build()
