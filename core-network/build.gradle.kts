@@ -25,33 +25,26 @@ android {
             "CERTIFICATE_PINS",
             "\"${project.findProperty("cert_pins") ?: ""}\""
         )
+    }
 
-        // Base URL for Retrofit. Override per build variant below.
-        // Default here is the emulator localhost so `defaultConfig` alone does not
-        // accidentally talk to production.
-        buildConfigField("String", "BASE_URL", "\"http://10.0.2.2:8000/\"")
+    flavorDimensions += "environment"
+    productFlavors {
+        create("local") {
+            dimension = "environment"
+            buildConfigField("String", "BASE_URL", "\"http://api.handsonandroid.com/\"")
+        }
+        create("cloud") {
+            dimension = "environment"
+            buildConfigField("String", "BASE_URL", "\"https://ai-assistant-backend-106071012091.asia-south1.run.app/\"")
+        }
     }
 
     buildTypes {
         debug {
-            // Emulator localhost — override with local WiFi IP when testing on a device:
-            //   ./gradlew assembleDebug -Pbase_url="http://192.168.x.x:8000/"
-            buildConfigField(
-                "String",
-                "BASE_URL",
-                "\"${project.findProperty("base_url") ?: "http://10.0.2.2:8000/"}\""
-            )
             // Certificate pinning is bypassed in debug builds (see NetworkModule).
             buildConfigField("String", "CERTIFICATE_PINS", "\"\"")
         }
         release {
-            // Production Cloud Run URL. Override via Gradle property or CI env var:
-            //   ./gradlew assembleRelease -Pbase_url="https://ai-assistant-backend-106071012091.asia-south1.run.app/"
-            buildConfigField(
-                "String",
-                "BASE_URL",
-                "\"${project.findProperty("base_url") ?: "https://ai-assistant-backend-106071012091.asia-south1.run.app/"}\""
-            )
             // Production TLS pin(s). Set via:
             //   ./gradlew assembleRelease -Pcert_pins="<sha256-base64-hash>"
             // To get the pin for ai-assistant-backend-106071012091.asia-south1.run.app:

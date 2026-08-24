@@ -930,17 +930,28 @@ jobs:
 
       - name: Build signed release APK
         env:
-          KEY_ALIAS: ${{ steps.keystore.outputs.has_keystore == 'true' && secrets.KEY_ALIAS || 'androiddebugkey' }}
-          KEY_PASSWORD: ${{ steps.keystore.outputs.has_keystore == 'true' && secrets.KEY_PASSWORD || 'android' }}
-          STORE_PASSWORD: ${{ steps.keystore.outputs.has_keystore == 'true' && secrets.STORE_PASSWORD || 'android' }}
+          HAS_KEYSTORE: ${{ steps.keystore.outputs.has_keystore }}
+          SECRET_KEY_ALIAS: ${{ secrets.KEY_ALIAS }}
+          SECRET_KEY_PASSWORD: ${{ secrets.KEY_PASSWORD }}
+          SECRET_STORE_PASSWORD: ${{ secrets.STORE_PASSWORD }}
         run: |
+          if [[ "$HAS_KEYSTORE" == "true" ]]; then
+            EFFECTIVE_KEY_ALIAS="$SECRET_KEY_ALIAS"
+            EFFECTIVE_KEY_PASSWORD="$SECRET_KEY_PASSWORD"
+            EFFECTIVE_STORE_PASSWORD="$SECRET_STORE_PASSWORD"
+          else
+            EFFECTIVE_KEY_ALIAS="androiddebugkey"
+            EFFECTIVE_KEY_PASSWORD="android"
+            EFFECTIVE_STORE_PASSWORD="android"
+          fi
+
           ./gradlew :app:assembleRelease \
             -PversionCode="${{ steps.version.outputs.version_code }}" \
             -PversionName="${{ steps.version.outputs.version_name }}" \
             -Pandroid.injected.signing.store.file="$GITHUB_WORKSPACE/app/release.keystore" \
-            -Pandroid.injected.signing.store.password="$STORE_PASSWORD" \
-            -Pandroid.injected.signing.key.alias="$KEY_ALIAS" \
-            -Pandroid.injected.signing.key.password="$KEY_PASSWORD" \
+            -Pandroid.injected.signing.store.password="$EFFECTIVE_STORE_PASSWORD" \
+            -Pandroid.injected.signing.key.alias="$EFFECTIVE_KEY_ALIAS" \
+            -Pandroid.injected.signing.key.password="$EFFECTIVE_KEY_PASSWORD" \
             --stacktrace
 
       - name: Locate signed APK
