@@ -27,20 +27,19 @@
     -->
     <domain-config cleartextTrafficPermitted="false">
         <domain includeSubdomains="true">ai-assistant-backend-106071012091.asia-south1.run.app</domain>
-        <pin-set expiration="2028-01-01">
+        <pin-set expiration="2029-02-01">
             <!--
-              Primary pin: SHA-256 fingerprint of the backend TLS certificate's
-              Subject Public Key Info (SPKI).
-              PLACEHOLDER — replace before production release.
-              Must match BACKEND_TLS_PIN_SHA256 in .env.example.
+              Primary pin: SHA-256 of the leaf certificate SPKI (*.a.run.app)
+              Certificate: CN=*.a.run.app, issued by Google Trust Services WE2
+              Expires: 2026-10-29 — update before this date.
             -->
-            <pin digest="SHA-256">AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=</pin>
+            <pin digest="SHA-256">evuynPanUbLc9BdXGwaHE/jtnb7PfIFHSNvWADWMq60=</pin>
             <!--
-              Backup pin: SHA-256 fingerprint of the intermediate CA or the
-              next leaf certificate (enables zero-downtime rotation).
-              PLACEHOLDER — replace before production release.
+              Backup pin: SHA-256 of the intermediate CA SPKI (Google Trust Services WE2)
+              Expires: 2029-02-20 — ensures the app works through leaf cert rotations
+              until the intermediate itself is replaced.
             -->
-            <pin digest="SHA-256">BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB=</pin>
+            <pin digest="SHA-256">vh78KSg1Ry4NaqGDV10w/cTb9VH3BQUZoCWNa93W/EY=</pin>
         </pin-set>
     </domain-config>
 
