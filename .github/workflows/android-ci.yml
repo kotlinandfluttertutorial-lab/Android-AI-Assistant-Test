@@ -945,7 +945,7 @@ jobs:
             EFFECTIVE_STORE_PASSWORD="android"
           fi
 
-          ./gradlew :app:assembleRelease \
+          ./gradlew :app:assembleCloudRelease \
             -PversionCode="${{ steps.version.outputs.version_code }}" \
             -PversionName="${{ steps.version.outputs.version_name }}" \
             -Pandroid.injected.signing.store.file="$GITHUB_WORKSPACE/app/release.keystore" \
@@ -957,7 +957,7 @@ jobs:
       - name: Locate signed APK
         id: apk
         run: |
-          APK_PATH=$(find app/build/outputs/apk/release -name "*.apk" | head -1)
+          APK_PATH=$(find app/build/outputs/apk/cloud/release -name "*.apk" | head -1)
           echo "path=$APK_PATH" >> "$GITHUB_OUTPUT"
           echo "Found APK: $APK_PATH"
 
@@ -965,7 +965,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: release-apk-${{ steps.version.outputs.version_name }}
-          path: app/build/outputs/apk/release/*.apk
+          path: app/build/outputs/apk/cloud/release/*.apk
           retention-days: 30
           if-no-files-found: error
 

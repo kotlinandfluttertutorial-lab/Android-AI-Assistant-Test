@@ -256,7 +256,7 @@ jobs:
             EFFECTIVE_STORE_PASSWORD="android"
           fi
 
-          ./gradlew :app:bundleRelease \
+          ./gradlew :app:bundleCloudRelease \
             -PversionCode="${{ steps.version_code.outputs.version_code }}" \
             -PversionName="${{ needs.validate-tag.outputs.version }}" \
             -Pandroid.injected.signing.store.file="$GITHUB_WORKSPACE/app/release.keystore" \
@@ -282,7 +282,7 @@ jobs:
             EFFECTIVE_STORE_PASSWORD="android"
           fi
 
-          ./gradlew :app:assembleRelease \
+          ./gradlew :app:assembleCloudRelease \
             -PversionCode="${{ steps.version_code.outputs.version_code }}" \
             -PversionName="${{ needs.validate-tag.outputs.version }}" \
             -Pandroid.injected.signing.store.file="$GITHUB_WORKSPACE/app/release.keystore" \
@@ -293,8 +293,8 @@ jobs:
 
       - name: Rename artifacts
         run: |
-          AAB=$(find app/build/outputs/bundle/release -name "*.aab" | head -1)
-          APK=$(find app/build/outputs/apk/release -name "*.apk" | head -1)
+          AAB=$(find app/build/outputs/bundle/cloudRelease -name "*.aab" | head -1)
+          APK=$(find app/build/outputs/apk/cloud/release -name "*.apk" | head -1)
           cp "$AAB" "${{ steps.names.outputs.aab_artifact }}"
           cp "$APK" "${{ steps.names.outputs.apk_artifact }}"
 
