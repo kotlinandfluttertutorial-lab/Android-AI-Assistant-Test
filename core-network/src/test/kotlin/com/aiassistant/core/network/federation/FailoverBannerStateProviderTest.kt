@@ -16,37 +16,51 @@ package com.aiassistant.core.network.federation
 import app.cash.turbine.test
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
+import io.mockk.unmockkAll
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.runTest
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class FailoverBannerStateProviderTest :
     DescribeSpec({
+        // A single UnconfinedTestDispatcher is shared across all tests so that
+        // the virtual-time scheduler is consistent. The bus and provider are
+        // created INSIDE each runTest block so that providerScope.launch { collect }
+        // fires eagerly within the active scheduler context before bus.publish() is called.
+        val testDispatcher = UnconfinedTestDispatcher()
 
-        fun buildProvider(): Pair<FailoverBannerStateProvider, FailoverEventBus> {
-            val bus = FailoverEventBus()
-            val provider = FailoverBannerStateProvider(bus)
-            return Pair(provider, bus)
-        }
+        afterSpec { unmockkAll() }
 
         describe("FailoverBannerStateProvider — initial state") {
 
             it("starts with banner hidden") {
-                val (provider, _) = buildProvider()
-                val state = provider.bannerState.value
-                state.isVisible shouldBe false
-                state.activeBackendName shouldBe ""
-                state.failoverReason shouldBe ""
+                runTest(testDispatcher) {
+                    val bus = FailoverEventBus()
+                    val provider = FailoverBannerStateProvider(
+                        bus,
+                        CoroutineScope(SupervisorJob() + testDispatcher)
+                    )
+                    val state = provider.bannerState.value
+                    state.isVisible shouldBe false
+                    state.activeBackendName shouldBe ""
+                    state.failoverReason shouldBe ""
+                    provider.cancelScope()
+                }
             }
         }
 
         describe("FailoverBannerStateProvider — SwitchedToEndpoint") {
 
             it("makes banner visible with endpoint name and reason on SwitchedToEndpoint") {
-                runTest {
-                    val (provider, bus) = buildProvider()
-
+                runTest(testDispatcher) {
+                    val bus = FailoverEventBus()
+                    val provider = FailoverBannerStateProvider(
+                        bus,
+                        CoroutineScope(SupervisorJob() + testDispatcher)
+                    )
                     provider.bannerState.test {
                         // Initial emission
                         val initial = awaitItem()
@@ -66,13 +80,17 @@ class FailoverBannerStateProviderTest :
 
                         cancelAndIgnoreRemainingEvents()
                     }
+                    provider.cancelScope()
                 }
             }
 
             it("updates activeBackendName when failover switches to a different endpoint") {
-                runTest {
-                    val (provider, bus) = buildProvider()
-
+                runTest(testDispatcher) {
+                    val bus = FailoverEventBus()
+                    val provider = FailoverBannerStateProvider(
+                        bus,
+                        CoroutineScope(SupervisorJob() + testDispatcher)
+                    )
                     provider.bannerState.test {
                         awaitItem() // initial hidden state
 
@@ -98,6 +116,7 @@ class FailoverBannerStateProviderTest :
 
                         cancelAndIgnoreRemainingEvents()
                     }
+                    provider.cancelScope()
                 }
             }
         }
@@ -105,9 +124,12 @@ class FailoverBannerStateProviderTest :
         describe("FailoverBannerStateProvider — PrimaryEndpointRecovered") {
 
             it("hides the banner when PrimaryEndpointRecovered is published") {
-                runTest {
-                    val (provider, bus) = buildProvider()
-
+                runTest(testDispatcher) {
+                    val bus = FailoverEventBus()
+                    val provider = FailoverBannerStateProvider(
+                        bus,
+                        CoroutineScope(SupervisorJob() + testDispatcher)
+                    )
                     provider.bannerState.test {
                         awaitItem() // initial hidden state
 
@@ -131,6 +153,7 @@ class FailoverBannerStateProviderTest :
 
                         cancelAndIgnoreRemainingEvents()
                     }
+                    provider.cancelScope()
                 }
             }
         }
@@ -138,9 +161,12 @@ class FailoverBannerStateProviderTest :
         describe("FailoverBannerStateProvider — AllEndpointsExhausted") {
 
             it("hides the banner when AllEndpointsExhausted is published") {
-                runTest {
-                    val (provider, bus) = buildProvider()
-
+                runTest(testDispatcher) {
+                    val bus = FailoverEventBus()
+                    val provider = FailoverBannerStateProvider(
+                        bus,
+                        CoroutineScope(SupervisorJob() + testDispatcher)
+                    )
                     provider.bannerState.test {
                         awaitItem() // initial hidden state
 
@@ -162,6 +188,7 @@ class FailoverBannerStateProviderTest :
 
                         cancelAndIgnoreRemainingEvents()
                     }
+                    provider.cancelScope()
                 }
             }
         }
@@ -169,10 +196,16 @@ class FailoverBannerStateProviderTest :
         describe("FailoverBannerStateProvider — StateFlow semantics") {
 
             it("late subscribers receive the current banner state immediately") {
-                runTest {
-                    val (provider, bus) = buildProvider()
+                // With UnconfinedTestDispatcher the provider's internal collect coroutine
+                // starts eagerly, so tryEmit will always find an active collector.
+                runTest(testDispatcher) {
+                    val bus = FailoverEventBus()
+                    val provider = FailoverBannerStateProvider(
+                        bus,
+                        CoroutineScope(SupervisorJob() + testDispatcher)
+                    )
 
-                    // Publish an event before any subscriber exists
+                    // Publish the event — the internal coroutine is already collecting.
                     bus.publish(
                         FailoverEvent.SwitchedToEndpoint(
                             activeEndpointName = "eu-failover",
@@ -180,14 +213,13 @@ class FailoverBannerStateProviderTest :
                         )
                     )
 
-                    // Allow the internal collection coroutine to process the event
-                    advanceUntilIdle()
-
-                    // A late subscriber should see the current state (StateFlow replay = 1)
+                    // A late subscriber sees the current StateFlow value immediately (replay = 1).
                     val currentState = provider.bannerState.value
                     currentState.isVisible shouldBe true
                     currentState.activeBackendName shouldBe "eu-failover"
                     currentState.failoverReason shouldBe "Connection timed out"
+
+                    provider.cancelScope()
                 }
             }
         }

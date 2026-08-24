@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ============================================================
  * Android AI Assistant (Enterprise Edition)
  * ============================================================
@@ -242,9 +242,8 @@ fun MeetingRecorderScreen(
                 is MeetingUiState.Recording -> RecordingContent(
                     durationSeconds = state.durationSeconds,
                     onStopRecording = {
-                        manager.stopRecording()
-                        viewModel.stopRecording()
-                        // Trigger summary fetch once we move to Processing
+                        val audioFilePath = manager.stopRecording()
+                        viewModel.stopRecording(audioFilePath)
                         viewModel.fetchSummary()
                     }
                 )

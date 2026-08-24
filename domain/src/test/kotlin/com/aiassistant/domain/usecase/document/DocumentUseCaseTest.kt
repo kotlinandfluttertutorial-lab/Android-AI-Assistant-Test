@@ -27,6 +27,7 @@ import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.unmockkAll
 
 // ─── Shared test fixtures ──────────────────────────────────────────────────────
 
@@ -55,6 +56,10 @@ class UploadDocumentUseCaseTest :
 
         beforeEach {
             clearMocks(documentRepository)
+        }
+
+        afterEach {
+            unmockkAll()
         }
 
         describe("UploadDocumentUseCase") {
@@ -214,6 +219,10 @@ class QueryDocumentUseCaseTest :
             clearMocks(documentRepository)
         }
 
+        afterEach {
+            unmockkAll()
+        }
+
         describe("QueryDocumentUseCase") {
 
             describe("successful query") {
@@ -318,6 +327,10 @@ class DeleteDocumentUseCaseTest :
 
         beforeEach {
             clearMocks(documentRepository)
+        }
+
+        afterEach {
+            unmockkAll()
         }
 
         describe("DeleteDocumentUseCase") {

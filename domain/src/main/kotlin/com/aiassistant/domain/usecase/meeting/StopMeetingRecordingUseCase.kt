@@ -45,10 +45,12 @@ import javax.inject.Inject
 class StopMeetingRecordingUseCase @Inject constructor(private val meetingRepository: MeetingRepository) {
 
     /**
-     * Stops the meeting recording and submits audio for transcription.
+     * Stops the meeting recording and uploads the audio file for transcription.
      *
-     * @param sessionId The session identifier returned by [StartMeetingRecordingUseCase].
+     * @param sessionId     The session identifier returned by [StartMeetingRecordingUseCase].
+     * @param audioFilePath Absolute path to the recorded audio file on the device.
      * @return [ApiResult.Success] with [Unit] when audio has been submitted successfully.
      */
-    suspend operator fun invoke(sessionId: String): ApiResult<Unit> = meetingRepository.stopMeetingRecording(sessionId)
+    suspend operator fun invoke(sessionId: String, audioFilePath: String): ApiResult<Unit> =
+        meetingRepository.stopMeetingRecording(sessionId, audioFilePath)
 }

@@ -25,6 +25,14 @@ android {
     testOptions {
         unitTests {
             isReturnDefaultValues = true
+            all {
+                // The data module has a large test suite (~325 tests) with heavy coroutine
+                // and MockK usage. Fork a new JVM every 80 tests to prevent heap exhaustion
+                // from accumulated mock state across test classes.
+                it.maxHeapSize = "2g"
+                it.jvmArgs("-XX:MaxMetaspaceSize=512m")
+                it.forkEvery = 80
+            }
         }
     }
 
@@ -56,7 +64,11 @@ jacoco {
 }
 
 tasks.withType<Test> {
-    finalizedBy(tasks.withType<JacocoReport>())
+    // Only run JaCoCo when explicitly requested (e.g. in CI via -PenableJacoco).
+    // This prevents OOM during local test runs where coverage reports aren't needed.
+    if (project.hasProperty("enableJacoco")) {
+        finalizedBy(tasks.withType<JacocoReport>())
+    }
     useJUnitPlatform()
 }
 

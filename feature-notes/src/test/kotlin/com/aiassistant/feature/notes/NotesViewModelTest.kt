@@ -16,6 +16,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.unmockkAll
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -52,6 +53,7 @@ class NotesViewModelTest :
 
         afterSpec {
             Dispatchers.resetMain()
+            unmockkAll()
         }
 
         beforeEach {

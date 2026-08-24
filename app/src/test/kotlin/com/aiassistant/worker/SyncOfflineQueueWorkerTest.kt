@@ -34,7 +34,9 @@ import com.aiassistant.core.common.DomainError
 import com.aiassistant.domain.usecase.conversation.SyncOfflineQueueUseCase
 import io.mockk.coEvery
 import io.mockk.mockk
+import io.mockk.unmockkAll
 import kotlinx.coroutines.runBlocking
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
@@ -59,6 +61,11 @@ class SyncOfflineQueueWorkerTest {
     fun setUp() {
         context = ApplicationProvider.getApplicationContext()
         mockUseCase = mockk()
+    }
+
+    @After
+    fun tearDown() {
+        unmockkAll()
     }
 
     // ─── Helper ───────────────────────────────────────────────────────────────

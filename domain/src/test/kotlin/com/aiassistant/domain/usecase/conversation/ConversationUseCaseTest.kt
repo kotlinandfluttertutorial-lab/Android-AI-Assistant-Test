@@ -41,6 +41,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.unmockkAll
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -101,6 +102,8 @@ class GetConversationsUseCaseTest :
         val useCase = GetConversationsUseCase(repository)
 
         beforeEach { clearMocks(repository) }
+
+        afterEach { unmockkAll() }
 
         describe("GetConversationsUseCase") {
 
@@ -232,6 +235,8 @@ class CreateConversationUseCaseTest :
 
         beforeEach { clearMocks(repository) }
 
+        afterEach { unmockkAll() }
+
         describe("CreateConversationUseCase") {
 
             describe("successful creation") {
@@ -333,6 +338,8 @@ class DeleteConversationUseCaseTest :
 
         beforeEach { clearMocks(repository) }
 
+        afterEach { unmockkAll() }
+
         describe("DeleteConversationUseCase") {
 
             describe("soft-delete behavior") {
@@ -430,6 +437,8 @@ class SearchConversationsUseCaseTest :
 
         beforeEach { clearMocks(repository) }
 
+        afterEach { unmockkAll() }
+
         describe("SearchConversationsUseCase") {
 
             describe("FTS search filtering") {
@@ -526,6 +535,8 @@ class SendMessageUseCaseTest :
 
         beforeEach { clearMocks(repository) }
 
+        afterEach { unmockkAll() }
+
         describe("SendMessageUseCase") {
 
             describe("successful send") {
@@ -579,6 +590,24 @@ class SendMessageUseCaseTest :
                     (result as ApiResult.Error).error.shouldBeInstanceOf<DomainError.ValidationError>()
                 }
 
+                it("returns ValidationError when content is tab-only") {
+                    // isBlank() catches horizontal tab characters
+                    val result = useCase("conv-1", "\t\t", "openai")
+
+                    result.shouldBeInstanceOf<ApiResult.Error>()
+                    (result as ApiResult.Error).error.shouldBeInstanceOf<DomainError.ValidationError>()
+                    coVerify(exactly = 0) { repository.sendMessage(any(), any(), any()) }
+                }
+
+                it("returns ValidationError when content is newline-only") {
+                    // isBlank() catches newline-only strings
+                    val result = useCase("conv-1", "\n\n", "openai")
+
+                    result.shouldBeInstanceOf<ApiResult.Error>()
+                    (result as ApiResult.Error).error.shouldBeInstanceOf<DomainError.ValidationError>()
+                    coVerify(exactly = 0) { repository.sendMessage(any(), any(), any()) }
+                }
+
                 it("ValidationError includes 'content' field in fields map") {
                     val result = useCase("conv-1", "", "openai")
 
@@ -626,6 +655,8 @@ class RegenerateMessageUseCaseTest :
         val useCase = RegenerateMessageUseCase(repository)
 
         beforeEach { clearMocks(repository) }
+
+        afterEach { unmockkAll() }
 
         describe("RegenerateMessageUseCase") {
 
@@ -697,6 +728,8 @@ class ExportConversationUseCaseTest :
         val useCase = ExportConversationUseCase(repository)
 
         beforeEach { clearMocks(repository) }
+
+        afterEach { unmockkAll() }
 
         describe("ExportConversationUseCase") {
 
@@ -800,6 +833,8 @@ class SyncOfflineQueueUseCaseTest :
         val useCase = SyncOfflineQueueUseCase(repository)
 
         beforeEach { clearMocks(repository) }
+
+        afterEach { unmockkAll() }
 
         describe("SyncOfflineQueueUseCase") {
 

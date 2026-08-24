@@ -34,6 +34,14 @@ android {
     buildFeatures {
         compose = true
     }
+
+    testOptions {
+        unitTests {
+            all {
+                it.useJUnitPlatform()
+            }
+        }
+    }
 }
 
 // ─── Dependency rule enforcement ─────────────────────────────────────────────

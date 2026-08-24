@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ============================================================
  * Android AI Assistant (Enterprise Edition)
  * ============================================================
@@ -142,6 +142,15 @@ class ProductivityRemoteDataSource @Inject constructor(
 
     suspend fun getHabitInsights(habitId: String): ApiResult<String> =
         withContext(dispatchers.io) { safeApiCall { api.getHabitInsights(habitId).insights } }
+
+    suspend fun suggestMeetingTimes(prompt: String, durationMinutes: Int): ApiResult<List<String>> =
+        withContext(dispatchers.io) {
+            safeApiCall {
+                api.suggestMeetingTimes(
+                    SuggestMeetingTimesRequest(prompt = prompt, durationMinutes = durationMinutes)
+                ).suggestions
+            }
+        }
 
     // â”€â”€â”€ Private helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 

@@ -38,6 +38,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.unmockkAll
 import io.mockk.verify
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
@@ -98,6 +99,8 @@ class CreateTodoUseCaseTest :
         val useCase = CreateTodoUseCase(repository)
         beforeEach { clearMocks(repository) }
 
+        afterEach { unmockkAll() }
+
         describe("CreateTodoUseCase") {
             describe("successful creation") {
                 it("returns Success with TodoItem on valid input") {
@@ -151,6 +154,8 @@ class UpdateTodoUseCaseTest :
         val useCase = UpdateTodoUseCase(repository)
         beforeEach { clearMocks(repository) }
 
+        afterEach { unmockkAll() }
+
         describe("UpdateTodoUseCase") {
             describe("successful update") {
                 it("returns Success with updated TodoItem on valid input") {
@@ -202,6 +207,8 @@ class DeleteTodoUseCaseTest :
         val useCase = DeleteTodoUseCase(repository)
         beforeEach { clearMocks(repository) }
 
+        afterEach { unmockkAll() }
+
         describe("DeleteTodoUseCase") {
             describe("successful deletion") {
                 it("returns Success with Unit when repository succeeds") {
@@ -235,6 +242,8 @@ class GetTodosUseCaseTest :
         val repository = mockk<ProductivityRepository>()
         val useCase = GetTodosUseCase(repository)
         beforeEach { clearMocks(repository) }
+
+        afterEach { unmockkAll() }
 
         describe("GetTodosUseCase") {
             describe("successful retrieval") {
@@ -273,6 +282,8 @@ class GenerateTodosFromPromptUseCaseTest :
         val repository = mockk<ProductivityRepository>()
         val useCase = GenerateTodosFromPromptUseCase(repository)
         beforeEach { clearMocks(repository) }
+
+        afterEach { unmockkAll() }
 
         describe("GenerateTodosFromPromptUseCase") {
             describe("successful generation") {
@@ -328,6 +339,8 @@ class CreateCalendarEventUseCaseTest :
         val repository = mockk<ProductivityRepository>()
         val useCase = CreateCalendarEventUseCase(repository)
         beforeEach { clearMocks(repository) }
+
+        afterEach { unmockkAll() }
 
         describe("CreateCalendarEventUseCase") {
             describe("successful creation") {
@@ -411,6 +424,8 @@ class GetCalendarEventsUseCaseTest :
         val useCase = GetCalendarEventsUseCase(repository)
         beforeEach { clearMocks(repository) }
 
+        afterEach { unmockkAll() }
+
         describe("GetCalendarEventsUseCase") {
             describe("successful retrieval") {
                 it("returns Flow emitting Success with list of CalendarEvents") {
@@ -446,6 +461,8 @@ class DeleteCalendarEventUseCaseTest :
         val useCase = DeleteCalendarEventUseCase(repository)
         beforeEach { clearMocks(repository) }
 
+        afterEach { unmockkAll() }
+
         describe("DeleteCalendarEventUseCase") {
             describe("successful deletion") {
                 it("returns Success with Unit when repository succeeds") {
@@ -479,6 +496,8 @@ class CreateReminderUseCaseTest :
         val repository = mockk<ProductivityRepository>()
         val useCase = CreateReminderUseCase(repository)
         beforeEach { clearMocks(repository) }
+
+        afterEach { unmockkAll() }
 
         describe("CreateReminderUseCase") {
             describe("successful creation") {
@@ -534,6 +553,8 @@ class UpdateReminderUseCaseTest :
         val useCase = UpdateReminderUseCase(repository)
         beforeEach { clearMocks(repository) }
 
+        afterEach { unmockkAll() }
+
         describe("UpdateReminderUseCase") {
             describe("successful update") {
                 it("returns Success with updated Reminder on valid input") {
@@ -585,6 +606,8 @@ class DeleteReminderUseCaseTest :
         val useCase = DeleteReminderUseCase(repository)
         beforeEach { clearMocks(repository) }
 
+        afterEach { unmockkAll() }
+
         describe("DeleteReminderUseCase") {
             describe("successful deletion") {
                 it("returns Success with Unit when repository succeeds") {
@@ -613,6 +636,8 @@ class GetRemindersUseCaseTest :
         val repository = mockk<ProductivityRepository>()
         val useCase = GetRemindersUseCase(repository)
         beforeEach { clearMocks(repository) }
+
+        afterEach { unmockkAll() }
 
         describe("GetRemindersUseCase") {
             describe("successful retrieval") {
@@ -644,6 +669,8 @@ class SuggestReminderUseCaseTest :
         val repository = mockk<ProductivityRepository>()
         val useCase = SuggestReminderUseCase(repository)
         beforeEach { clearMocks(repository) }
+
+        afterEach { unmockkAll() }
 
         describe("SuggestReminderUseCase") {
             describe("successful suggestion") {
@@ -695,6 +722,8 @@ class CreateHabitUseCaseTest :
         val repository = mockk<ProductivityRepository>()
         val useCase = CreateHabitUseCase(repository)
         beforeEach { clearMocks(repository) }
+
+        afterEach { unmockkAll() }
 
         describe("CreateHabitUseCase") {
             describe("successful creation") {
@@ -771,6 +800,8 @@ class LogHabitEntryUseCaseTest :
         val useCase = LogHabitEntryUseCase(repository)
         beforeEach { clearMocks(repository) }
 
+        afterEach { unmockkAll() }
+
         describe("LogHabitEntryUseCase") {
             describe("successful log") {
                 it("returns Success with HabitEntry on valid input") {
@@ -822,6 +853,8 @@ class GetHabitInsightsUseCaseTest :
         val useCase = GetHabitInsightsUseCase(repository)
         beforeEach { clearMocks(repository) }
 
+        afterEach { unmockkAll() }
+
         describe("GetHabitInsightsUseCase") {
             describe("successful retrieval") {
                 it("returns Success with insights text when repository succeeds") {
@@ -860,6 +893,8 @@ class DeleteHabitUseCaseTest :
         val repository = mockk<ProductivityRepository>()
         val useCase = DeleteHabitUseCase(repository)
         beforeEach { clearMocks(repository) }
+
+        afterEach { unmockkAll() }
 
         describe("DeleteHabitUseCase") {
             describe("successful deletion") {

@@ -46,6 +46,7 @@ import io.kotest.property.arbitrary.long
 import io.kotest.property.checkAll
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.unmockkAll
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
@@ -143,6 +144,10 @@ private val arbNoteListAndTag: Arb<Pair<List<Note>, String>> = arbitrary {
 @OptIn(ExperimentalCoroutinesApi::class)
 class NotesTagFilterPropertyTest :
     DescribeSpec({
+
+        afterSpec {
+            unmockkAll()
+        }
 
         // ── P20-1 — Inclusion invariant ───────────────────────────────────────────
         describe("P20-1 — every note in filtered result contains the filter tag") {

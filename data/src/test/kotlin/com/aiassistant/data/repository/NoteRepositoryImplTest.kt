@@ -1,4 +1,4 @@
-﻿/**
+/**
  * NoteRepositoryImplTest.kt â€” data module
  *
  * Purpose: Unit tests for [NoteRepositoryImpl], focusing on:
@@ -40,6 +40,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.unmockkAll
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 
@@ -117,6 +118,11 @@ class NoteRepositoryImplTest :
                 secureStorage = secureStorage,
                 dispatchers = dispatchers
             )
+        }
+
+        afterEach {
+            repository.cancelSync()
+            unmockkAll()
         }
 
         // â”€â”€â”€ getNotes() â€” Room emission â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -478,6 +484,86 @@ class NoteRepositoryImplTest :
                         (result as ApiResult.Success).data.size shouldBe 2
                         awaitComplete()
                     }
+                }
+            }
+        }
+
+        // ─── summarizeNote() ──────────────────────────────────────────────────────
+
+        describe("summarizeNote()") {
+            it("returns NetworkUnavailable without calling remote when offline") {
+                runTest {
+                    every { connectivityObserver.isConnected() } returns false
+
+                    val result = repository.summarizeNote("note-1")
+
+                    result shouldBe ApiResult.NetworkUnavailable
+                    coVerify(exactly = 0) { remoteSource.summarizeNote(any()) }
+                }
+            }
+
+            it("delegates to remoteSource and returns Success with summary when online") {
+                runTest {
+                    every { connectivityObserver.isConnected() } returns true
+                    coEvery { remoteSource.summarizeNote("note-1") } returns
+                        ApiResult.Success("This note covers Kotlin coroutines.")
+
+                    val result = repository.summarizeNote("note-1")
+
+                    result shouldBe ApiResult.Success("This note covers Kotlin coroutines.")
+                    coVerify(exactly = 1) { remoteSource.summarizeNote("note-1") }
+                }
+            }
+
+            it("propagates Error from remoteSource") {
+                runTest {
+                    every { connectivityObserver.isConnected() } returns true
+                    coEvery { remoteSource.summarizeNote(any()) } returns
+                        ApiResult.Error(DomainError.ServerError("AI unavailable", 503))
+
+                    val result = repository.summarizeNote("note-1")
+
+                    result.shouldBeInstanceOf<ApiResult.Error>()
+                }
+            }
+        }
+
+        // ─── rewriteNote() ────────────────────────────────────────────────────────
+
+        describe("rewriteNote()") {
+            it("returns NetworkUnavailable without calling remote when offline") {
+                runTest {
+                    every { connectivityObserver.isConnected() } returns false
+
+                    val result = repository.rewriteNote("note-1")
+
+                    result shouldBe ApiResult.NetworkUnavailable
+                    coVerify(exactly = 0) { remoteSource.rewriteNote(any()) }
+                }
+            }
+
+            it("delegates to remoteSource and returns Success with rewritten text when online") {
+                runTest {
+                    every { connectivityObserver.isConnected() } returns true
+                    coEvery { remoteSource.rewriteNote("note-2") } returns
+                        ApiResult.Success("Rewritten in a cleaner style.")
+
+                    val result = repository.rewriteNote("note-2")
+
+                    result shouldBe ApiResult.Success("Rewritten in a cleaner style.")
+                    coVerify(exactly = 1) { remoteSource.rewriteNote("note-2") }
+                }
+            }
+
+            it("propagates Error from remoteSource") {
+                runTest {
+                    every { connectivityObserver.isConnected() } returns true
+                    coEvery { remoteSource.rewriteNote(any()) } returns
+                        ApiResult.Error(DomainError.NetworkError("Connection reset"))
+
+                    val result = repository.rewriteNote("note-1")
+
+                    result.shouldBeInstanceOf<ApiResult.Error>()
                 }
             }
         }

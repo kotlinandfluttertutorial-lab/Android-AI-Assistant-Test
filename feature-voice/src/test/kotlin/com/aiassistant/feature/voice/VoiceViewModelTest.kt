@@ -33,6 +33,7 @@ import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.unmockkAll
 import java.time.Instant
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
@@ -91,6 +92,7 @@ class VoiceViewModelTest :
 
         afterSpec {
             Dispatchers.resetMain()
+            unmockkAll()
         }
 
         beforeEach {

@@ -19,6 +19,7 @@ import com.aiassistant.domain.model.FederationConfig
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.mockk.unmockkAll
 
 // ─── Test fixtures ────────────────────────────────────────────────────────────
 
@@ -37,6 +38,8 @@ private fun config(vararg endpoints: BackendEndpoint) = FederationConfig(endpoin
 
 class BackendEndpointSelectorTest :
     DescribeSpec({
+
+        afterSpec { unmockkAll() }
 
         val selector = BackendEndpointSelector()
 

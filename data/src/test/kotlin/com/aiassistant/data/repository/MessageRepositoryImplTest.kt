@@ -30,6 +30,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.unmockkAll
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 
@@ -76,6 +77,10 @@ class MessageRepositoryImplTest :
                 connectivityObserver = connectivityObserver,
                 dispatchers = dispatchers
             )
+        }
+
+        afterEach {
+            unmockkAll()
         }
 
         // ─── sendMessage() ────────────────────────────────────────────────────────
@@ -234,6 +239,185 @@ class MessageRepositoryImplTest :
 
                         result.shouldBeInstanceOf<ApiResult.Error>()
                         coVerify(exactly = 0) { localSource.insertMessage(any()) }
+                    }
+                }
+            }
+        }
+
+        // ─── syncOfflineQueue() ───────────────────────────────────────────────────
+
+        describe("syncOfflineQueue()") {
+
+            describe("offline guard") {
+                it("returns NetworkUnavailable without reading pending messages") {
+                    runTest {
+                        every { connectivityObserver.isConnected() } returns false
+
+                        val result = repository.syncOfflineQueue()
+
+                        result shouldBe ApiResult.NetworkUnavailable
+                        coVerify(exactly = 0) { localSource.getPendingMessages() }
+                    }
+                }
+            }
+
+            describe("empty queue") {
+                it("returns Success(0) when no pending messages exist") {
+                    runTest {
+                        every { connectivityObserver.isConnected() } returns true
+                        coEvery { localSource.getPendingMessages() } returns emptyList()
+
+                        val result = repository.syncOfflineQueue()
+
+                        result shouldBe ApiResult.Success(0)
+                        coVerify(exactly = 0) { remoteSource.sendMessage(any(), any(), any()) }
+                    }
+                }
+            }
+
+            describe("successful sync") {
+                it("syncs a single pending message and returns Success(1)") {
+                    runTest {
+                        val entity = com.aiassistant.core.database.entity.MessageEntity(
+                            id = "msg-q1", conversationId = "conv-1", role = "user",
+                            content = "Hello", inputTokens = 0, outputTokens = 0,
+                            provider = "openai", syncStatus = "pending", createdAt = 1L
+                        )
+                        every { connectivityObserver.isConnected() } returns true
+                        coEvery { localSource.getPendingMessages() } returns listOf(entity)
+                        coEvery {
+                            remoteSource.sendMessage("conv-1", "Hello", "openai")
+                        } returns ApiResult.Success(
+                            fakeMessageDto(content = "Server content", inputTokens = 10, outputTokens = 30)
+                        )
+
+                        val result = repository.syncOfflineQueue()
+
+                        result shouldBe ApiResult.Success(1)
+                        // Server-wins: updateMessage with server content
+                        coVerify(exactly = 1) {
+                            localSource.updateMessage(
+                                match {
+                                    it.content == "Server content" &&
+                                        it.syncStatus == "synced" &&
+                                        it.inputTokens == 10 &&
+                                        it.outputTokens == 30
+                                }
+                            )
+                        }
+                    }
+                }
+
+                it("syncs multiple pending messages and returns correct count") {
+                    runTest {
+                        fun makeEntity(id: String, content: String) =
+                            com.aiassistant.core.database.entity.MessageEntity(
+                                id = id, conversationId = "conv-1", role = "user",
+                                content = content, inputTokens = 0, outputTokens = 0,
+                                provider = "openai", syncStatus = "pending", createdAt = 1L
+                            )
+                        every { connectivityObserver.isConnected() } returns true
+                        coEvery { localSource.getPendingMessages() } returns listOf(
+                            makeEntity("m1", "Msg 1"),
+                            makeEntity("m2", "Msg 2"),
+                            makeEntity("m3", "Msg 3")
+                        )
+                        coEvery { remoteSource.sendMessage(any(), any(), any()) } returns
+                            ApiResult.Success(fakeMessageDto())
+
+                        val result = repository.syncOfflineQueue()
+
+                        result shouldBe ApiResult.Success(3)
+                    }
+                }
+            }
+
+            describe("failure and retry logic") {
+                it("marks message as failed after MAX_RETRY_ATTEMPTS errors") {
+                    runTest {
+                        val entity = com.aiassistant.core.database.entity.MessageEntity(
+                            id = "msg-fail", conversationId = "conv-1", role = "user",
+                            content = "Will fail", inputTokens = 0, outputTokens = 0,
+                            provider = "openai", syncStatus = "pending", createdAt = 1L
+                        )
+                        // Same message appears 3 times to simulate 3 failures
+                        every { connectivityObserver.isConnected() } returns true
+                        coEvery { localSource.getPendingMessages() } returns listOf(entity, entity, entity)
+                        coEvery { remoteSource.sendMessage(any(), any(), any()) } returns
+                            ApiResult.Error(DomainError.ServerError("Server error", 500))
+
+                        val result = repository.syncOfflineQueue()
+
+                        result shouldBe ApiResult.Success(0)
+                        // updateSyncStatus("failed") called once after the 3rd attempt
+                        coVerify(exactly = 1) { localSource.updateSyncStatus("msg-fail", "failed") }
+                    }
+                }
+
+                it("skips message on 4th occurrence after marking it failed") {
+                    runTest {
+                        val entity = com.aiassistant.core.database.entity.MessageEntity(
+                            id = "msg-over", conversationId = "conv-1", role = "user",
+                            content = "Over limit", inputTokens = 0, outputTokens = 0,
+                            provider = "openai", syncStatus = "pending", createdAt = 1L
+                        )
+                        // 4 entries — 3 failures → mark failed; 4th should be skipped
+                        every { connectivityObserver.isConnected() } returns true
+                        coEvery { localSource.getPendingMessages() } returns
+                            listOf(entity, entity, entity, entity)
+                        coEvery { remoteSource.sendMessage(any(), any(), any()) } returns
+                            ApiResult.Error(DomainError.ServerError("err", 500))
+
+                        repository.syncOfflineQueue()
+
+                        // sendMessage called exactly 3 times (4th skipped)
+                        coVerify(exactly = 3) { remoteSource.sendMessage(any(), any(), any()) }
+                    }
+                }
+
+                it("does not mark message failed on first error (< MAX_RETRY_ATTEMPTS)") {
+                    runTest {
+                        val entity = com.aiassistant.core.database.entity.MessageEntity(
+                            id = "msg-one-fail", conversationId = "conv-1", role = "user",
+                            content = "Content", inputTokens = 0, outputTokens = 0,
+                            provider = "openai", syncStatus = "pending", createdAt = 1L
+                        )
+                        every { connectivityObserver.isConnected() } returns true
+                        coEvery { localSource.getPendingMessages() } returns listOf(entity)
+                        coEvery { remoteSource.sendMessage(any(), any(), any()) } returns
+                            ApiResult.Error(DomainError.NetworkError("timeout"))
+
+                        repository.syncOfflineQueue()
+
+                        coVerify(exactly = 0) { localSource.updateSyncStatus(any(), "failed") }
+                    }
+                }
+            }
+
+            describe("connectivity lost mid-sync") {
+                it("returns Success with partial count when NetworkUnavailable mid-loop") {
+                    runTest {
+                        val e1 = com.aiassistant.core.database.entity.MessageEntity(
+                            id = "m-ok", conversationId = "conv-1", role = "user",
+                            content = "First", inputTokens = 0, outputTokens = 0,
+                            provider = "openai", syncStatus = "pending", createdAt = 1L
+                        )
+                        val e2 = com.aiassistant.core.database.entity.MessageEntity(
+                            id = "m-nu", conversationId = "conv-1", role = "user",
+                            content = "Second", inputTokens = 0, outputTokens = 0,
+                            provider = "openai", syncStatus = "pending", createdAt = 2L
+                        )
+                        every { connectivityObserver.isConnected() } returns true
+                        coEvery { localSource.getPendingMessages() } returns listOf(e1, e2)
+                        coEvery { remoteSource.sendMessage("conv-1", "First", "openai") } returns
+                            ApiResult.Success(fakeMessageDto())
+                        coEvery { remoteSource.sendMessage("conv-1", "Second", "openai") } returns
+                            ApiResult.NetworkUnavailable
+
+                        val result = repository.syncOfflineQueue()
+
+                        // First succeeded (1), second hit NetworkUnavailable → return early
+                        result shouldBe ApiResult.Success(1)
                     }
                 }
             }

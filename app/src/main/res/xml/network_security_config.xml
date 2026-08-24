@@ -21,13 +21,13 @@
 
     <!--
       Production backend domain — TLS required, certificate pinned.
-      Replace "api.example.com" with the actual production backend FQDN.
+      Domain matches the production API at api.handsonandroid.com.
       Replace the pin value with the real SPKI SHA-256 fingerprint obtained
       via the rotation procedure above.
     -->
     <domain-config cleartextTrafficPermitted="false">
-        <domain includeSubdomains="true">api.example.com</domain>
-        <pin-set expiration="2026-01-01">
+        <domain includeSubdomains="true">api.handsonandroid.com</domain>
+        <pin-set expiration="2028-01-01">
             <!--
               Primary pin: SHA-256 fingerprint of the backend TLS certificate's
               Subject Public Key Info (SPKI).

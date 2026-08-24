@@ -11,8 +11,8 @@ import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.clearMocks
 import io.mockk.coEvery
-import io.mockk.every
 import io.mockk.mockk
+import io.mockk.unmockkAll
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
@@ -39,6 +39,7 @@ class CodeViewModelTest :
 
         afterSpec {
             Dispatchers.resetMain()
+            unmockkAll()
         }
 
         beforeEach {
@@ -55,11 +56,8 @@ class CodeViewModelTest :
             it("transitions to Editing when code is updated") {
                 val viewModel = CodeViewModel(analyzeCodeUseCase, dispatchers)
                 viewModel.updateCode("println()", SupportedLanguage.KOTLIN)
-
-                viewModel.uiState.value shouldBe CodeUiState.Editing(
-                    code = "println()",
-                    language = SupportedLanguage.KOTLIN,
-                    selectedAction = CodeAction.EXPLAIN
+                viewModel.uiState.value.shouldBe(
+                    CodeUiState.Editing("println()", SupportedLanguage.KOTLIN, CodeAction.EXPLAIN)
                 )
             }
 
@@ -86,13 +84,15 @@ class CodeViewModelTest :
 
                     awaitItem() shouldBe CodeUiState.Analyzing(code, lang, action)
 
+                    testDispatcher.scheduler.runCurrent()
+
                     val finalState = awaitItem()
                     finalState shouldBe CodeUiState.AnalysisResult(
-                        request = mockk {
-                            every { this@mockk.code } returns code
-                            every { this@mockk.language } returns lang
-                            every { this@mockk.action } returns action
-                        },
+                        request = com.aiassistant.domain.model.CodeAnalysisRequest(
+                            code = code,
+                            language = lang,
+                            action = action
+                        ),
                         result = resultData
                     )
                 }

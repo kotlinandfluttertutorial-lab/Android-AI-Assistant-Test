@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ============================================================
  * Android AI Assistant (Enterprise Edition)
  * ============================================================
@@ -77,6 +77,7 @@
 package com.aiassistant.data.repository
 
 import android.util.Log
+import androidx.annotation.VisibleForTesting
 import androidx.paging.Pager
 import androidx.paging.PagingConfig
 import androidx.paging.PagingData
@@ -98,6 +99,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
@@ -132,6 +134,15 @@ class ConversationRepositoryImpl @Inject constructor(
      * Uses [SupervisorJob] so that a failing sync does not cancel the scope.
      */
     private val syncScope = CoroutineScope(dispatchers.io + SupervisorJob())
+
+    /**
+     * Cancels the internal sync scope.
+     * Only used in unit tests to prevent CoroutineScope leaks.
+     */
+    @VisibleForTesting
+    internal fun cancelSync() {
+        syncScope.cancel()
+    }
 
     // â”€â”€â”€ ConversationRepository â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 

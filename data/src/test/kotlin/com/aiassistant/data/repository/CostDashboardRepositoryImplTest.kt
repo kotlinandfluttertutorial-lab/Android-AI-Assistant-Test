@@ -38,8 +38,11 @@ import io.mockk.clearAllMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.unmockkAll
 import java.io.IOException
 import kotlinx.coroutines.test.runTest
+import okhttp3.MediaType.Companion.toMediaType
+import okhttp3.ResponseBody.Companion.toResponseBody
 import retrofit2.HttpException
 import retrofit2.Response
 
@@ -76,7 +79,7 @@ private fun fakeSpendingAlertDto(id: String = "alert-1", thresholdUsd: Double = 
 private fun makeHttpException(code: Int): HttpException {
     val response = Response.error<Any>(
         code,
-        okhttp3.ResponseBody.create(okhttp3.MediaType.parse("application/json"), "")
+        "".toResponseBody("application/json".toMediaType())
     )
     return HttpException(response)
 }
@@ -94,6 +97,10 @@ class CostDashboardRepositoryImplTest :
                 apiService = apiService,
                 dispatchers = dispatchers
             )
+        }
+
+        afterEach {
+            unmockkAll()
         }
 
         // ─── getCostSummary() ─────────────────────────────────────────────────────

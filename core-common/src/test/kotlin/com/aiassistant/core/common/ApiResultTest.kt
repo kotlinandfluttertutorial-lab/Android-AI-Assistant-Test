@@ -26,11 +26,13 @@ import io.kotest.matchers.nulls.shouldBeNull
 import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.mockk.unmockkAll
 
 // ─── ApiResult.map ────────────────────────────────────────────────────────────
 
 class ApiResultMapTest :
     DescribeSpec({
+        afterSpec { unmockkAll() }
 
         describe("ApiResult.map") {
 
@@ -129,6 +131,7 @@ class ApiResultMapTest :
 
 class ApiResultFlatMapTest :
     DescribeSpec({
+        afterSpec { unmockkAll() }
 
         describe("ApiResult.flatMap") {
 
@@ -241,6 +244,7 @@ class ApiResultFlatMapTest :
 
 class ApiResultFoldTest :
     DescribeSpec({
+        afterSpec { unmockkAll() }
 
         describe("ApiResult.fold") {
 
@@ -433,6 +437,7 @@ class ApiResultFoldTest :
 
 class ApiResultPropertiesTest :
     DescribeSpec({
+        afterSpec { unmockkAll() }
 
         describe("ApiResult convenience properties") {
 
@@ -517,6 +522,7 @@ class ApiResultPropertiesTest :
 
 class ApiResultExtensionHelpersTest :
     DescribeSpec({
+        afterSpec { unmockkAll() }
 
         describe("T.asSuccess()") {
             it("wraps any non-null value in Success") {
@@ -609,6 +615,7 @@ class ApiResultExtensionHelpersTest :
 
 class DomainErrorTest :
     DescribeSpec({
+        afterSpec { unmockkAll() }
 
         describe("DomainError variants") {
             it("NetworkError has the correct default message") {
@@ -680,6 +687,7 @@ class DomainErrorTest :
 
 class DispatcherProviderTest :
     DescribeSpec({
+        afterSpec { unmockkAll() }
 
         describe("DefaultDispatcherProvider") {
             val provider = DefaultDispatcherProvider()

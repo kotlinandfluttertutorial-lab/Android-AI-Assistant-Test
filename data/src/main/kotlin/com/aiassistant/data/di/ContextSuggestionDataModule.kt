@@ -23,13 +23,13 @@
  *
  * Purpose: Hilt [dagger.Module] that wires context suggestion bindings in the data module.
  *
+ *          Provides:
+ *            - [SuggestionApiService] Retrofit implementation
  *          Binds:
  *            - [ContextSuggestionRepositoryImpl] → [ContextSuggestionRepository]
- *
  *          Also provides:
- *            - [GetContextSuggestionsUseCase] (requires [ContextSuggestionRepository]
- *              and [DispatcherProvider])
- *            - [DismissSuggestionUseCase] (pure in-memory, no repository dependency)
+ *            - [GetContextSuggestionsUseCase] singleton (rate-gate map must be shared)
+ *            - [DismissSuggestionUseCase] singleton (dismissal map must be shared)
  *
  * Architecture: data module — installs into [SingletonComponent] for process-wide singletons.
  *
@@ -37,6 +37,7 @@
  */
 package com.aiassistant.data.di
 
+import com.aiassistant.data.remote.suggestion.SuggestionApiService
 import com.aiassistant.data.repository.ContextSuggestionRepositoryImpl
 import com.aiassistant.domain.repository.ContextSuggestionRepository
 import com.aiassistant.domain.usecase.suggestions.DismissSuggestionUseCase
@@ -47,6 +48,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import retrofit2.Retrofit
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -54,9 +56,6 @@ abstract class ContextSuggestionDataModule {
 
     /**
      * Binds [ContextSuggestionRepositoryImpl] to the [ContextSuggestionRepository] domain interface.
-     *
-     * Any injection site requesting [ContextSuggestionRepository] receives the singleton
-     * [ContextSuggestionRepositoryImpl] constructed by Hilt.
      */
     @Binds
     @Singleton
@@ -65,29 +64,30 @@ abstract class ContextSuggestionDataModule {
     companion object {
 
         /**
+         * Creates the [SuggestionApiService] Retrofit implementation using the
+         * application-level [Retrofit] singleton provided by core-network's NetworkModule.
+         */
+        @Provides
+        @Singleton
+        fun provideSuggestionApiService(retrofit: Retrofit): SuggestionApiService =
+            retrofit.create(SuggestionApiService::class.java)
+
+        /**
          * Provides the [GetContextSuggestionsUseCase] singleton.
          *
          * Scoped as a singleton so the rate-gate [ConcurrentHashMap] inside the use case
          * is shared across all injection sites and correctly gates per screen instance.
-         *
-         * @param repository         The [ContextSuggestionRepository] singleton.
-         * @return A singleton [GetContextSuggestionsUseCase].
          */
         @Provides
         @Singleton
         fun provideGetContextSuggestionsUseCase(repository: ContextSuggestionRepository): GetContextSuggestionsUseCase =
-            GetContextSuggestionsUseCase(
-                repository = repository
-            )
+            GetContextSuggestionsUseCase(repository = repository)
 
         /**
          * Provides the [DismissSuggestionUseCase] singleton.
          *
          * Scoped as a singleton so the session-scoped dismissal map is shared across
-         * all injection sites (Notes, Calendar, Chat ViewModels) and the correct
-         * dismissal state is preserved within a session.
-         *
-         * @return A singleton [DismissSuggestionUseCase].
+         * all injection sites (Notes, Calendar, Chat ViewModels).
          */
         @Provides
         @Singleton

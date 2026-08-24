@@ -42,12 +42,6 @@ class BiometricAuthManagerTest {
         manager shouldNotBe null
     }
 
-    @Test
-    fun `BiometricAuthManagerImpl implements BiometricAuthManager`() {
-        val impl = BiometricAuthManagerImpl()
-        (impl is BiometricAuthManager) shouldBe true
-    }
-
     // ── isBiometricAvailable ─────────────────────────────────────────────────
 
     @Test

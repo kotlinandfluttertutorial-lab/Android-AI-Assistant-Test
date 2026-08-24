@@ -1,53 +1,157 @@
+/*
+ * ============================================================
+ * Android AI Assistant (Enterprise Edition)
+ * ============================================================
+ * Module     : data
+ * File       : MeetingRepositoryImpl.kt
+ * Purpose    : Production implementation of MeetingRepository.
+ *              Coordinates local audio recording (via file path) with the
+ *              backend POST /transcription endpoint.
+ *
+ * Architecture Layer : Data
+ * Pattern Used       : Repository Implementation
+ *
+ * Dependencies: MeetingRemoteDataSource, ConnectivityObserver (core-network)
+ * Requirements: 19.1, 5.6
+ * ============================================================
+ */
 package com.aiassistant.data.repository
 
 import com.aiassistant.core.common.ApiResult
 import com.aiassistant.core.common.DomainError
+import com.aiassistant.core.network.ConnectivityObserver
+import com.aiassistant.data.remote.meeting.MeetingRemoteDataSource
 import com.aiassistant.domain.repository.MeetingRepository
+import java.util.UUID
+import java.util.concurrent.ConcurrentHashMap
 import javax.inject.Inject
 import javax.inject.Singleton
 
 /**
- * MeetingRepositoryImpl.kt — data module
+ * Production implementation of [MeetingRepository].
  *
- * Purpose: Data-layer implementation of [MeetingRepository]. Coordinates audio capture
- *          with Android MediaRecorder and the backend Transcription_Service.
+ * The backend meeting flow uses a single multipart upload:
+ * 1. [startMeetingRecording] — generates a local session ID; no network call.
+ *    The feature layer (`MeetingRecorderManager`) starts hardware recording.
+ * 2. [stopMeetingRecording] — uploads the recorded audio file to
+ *    `POST /transcription` and caches the formatted summary.
+ * 3. [getMeetingSummary] — returns the cached summary from step 2.
  *
- * This is a stub implementation that returns structured errors until the MediaRecorder
- * integration and backend Transcription_Service endpoint are wired up.
+ * The session ID is used as the key for the in-process summary cache. The cache
+ * is cleared when the ViewModel calls [getMeetingSummary], keeping memory usage
+ * bounded to a single session at a time.
  *
- * Architecture: data module — @Singleton scoped for process-wide reuse.
- * Requirements: 19.1, 5.6
+ * @param remoteDataSource     Retrofit-backed data source for the transcription endpoint.
+ * @param connectivityObserver Synchronous connectivity state snapshot.
  */
 @Singleton
-class MeetingRepositoryImpl @Inject constructor() : MeetingRepository {
+class MeetingRepositoryImpl @Inject constructor(
+    private val remoteDataSource: MeetingRemoteDataSource,
+    private val connectivityObserver: ConnectivityObserver
+) : MeetingRepository {
 
+    /**
+     * In-process cache of session ID → (audioFilePath, summary).
+     *
+     * The audio file path is stored when the session starts so [stopMeetingRecording]
+     * can locate the file. The summary is stored after transcription completes so
+     * [getMeetingSummary] can return it without re-uploading.
+     */
+    private data class SessionData(val audioFilePath: String = "", val summary: String = "")
+
+    private val sessions = ConcurrentHashMap<String, SessionData>()
+
+    /**
+     * Opens a local meeting session and returns a session identifier.
+     *
+     * No network call is made here — the session is tracked in-process.
+     * The feature layer (`MeetingRecorderManager`) handles hardware recording.
+     *
+     * @param userId The authenticated user's identifier (unused locally; kept for
+     *               API compatibility with the domain interface).
+     * @return [ApiResult.Success] with a new UUID session identifier.
+     */
     override suspend fun startMeetingRecording(userId: String): ApiResult<String> {
-        // TODO: Initialise MediaRecorder and open a Transcription_Service session.
-        return ApiResult.Error(
-            DomainError.ServerError(
-                message = "Meeting recording backend not yet connected",
-                httpStatusCode = 501
-            )
-        )
+        val sessionId = UUID.randomUUID().toString()
+        sessions[sessionId] = SessionData()
+        return ApiResult.Success(sessionId)
     }
 
-    override suspend fun stopMeetingRecording(sessionId: String): ApiResult<Unit> {
-        // TODO: Stop MediaRecorder and submit captured audio to Transcription_Service.
-        return ApiResult.Error(
-            DomainError.ServerError(
-                message = "Meeting recording backend not yet connected",
-                httpStatusCode = 501
+    /**
+     * Uploads the recorded audio file to `POST /transcription` and caches the result.
+     *
+     * - **Online**: uploads the file at [audioFilePath] to the backend and caches summary.
+     * - **Offline**: returns [ApiResult.NetworkUnavailable].
+     *
+     * @param sessionId    The session identifier returned by [startMeetingRecording].
+     * @param audioFilePath Absolute path to the `.m4a` file from `MeetingRecorderManager`.
+     * @return [ApiResult.Success] with [Unit] when audio is uploaded successfully.
+     */
+    override suspend fun stopMeetingRecording(sessionId: String, audioFilePath: String): ApiResult<Unit> {
+        if (!connectivityObserver.isConnected()) {
+            return ApiResult.NetworkUnavailable
+        }
+
+        if (!sessions.containsKey(sessionId)) {
+            return ApiResult.Error(
+                DomainError.ServerError(
+                    message = "Meeting session '$sessionId' not found.",
+                    httpStatusCode = 404
+                )
             )
-        )
+        }
+
+        val audioFile = java.io.File(audioFilePath)
+        if (!audioFile.exists()) {
+            return ApiResult.Error(
+                DomainError.ValidationError(
+                    message = "Audio file not found at '$audioFilePath'.",
+                    fields = mapOf("audioFilePath" to "File does not exist.")
+                )
+            )
+        }
+
+        return when (val result = remoteDataSource.transcribeAudio(audioFile)) {
+            is ApiResult.Success -> {
+                sessions[sessionId] = SessionData(
+                    audioFilePath = audioFilePath,
+                    summary = result.data
+                )
+                ApiResult.Success(Unit)
+            }
+            is ApiResult.Error -> result
+            else -> ApiResult.NetworkUnavailable
+        }
     }
 
+    /**
+     * Returns the cached meeting summary for [sessionId].
+     *
+     * The summary is populated by [stopMeetingRecording] after transcription completes.
+     * The session is removed from the cache after retrieval to free memory.
+     *
+     * @param sessionId The session identifier returned by [startMeetingRecording].
+     * @return [ApiResult.Success] with the formatted Markdown summary text.
+     */
     override suspend fun getMeetingSummary(sessionId: String): ApiResult<String> {
-        // TODO: Poll or fetch summary from Transcription_Service / AI Orchestrator.
-        return ApiResult.Error(
-            DomainError.ServerError(
-                message = "Meeting summary backend not yet connected",
-                httpStatusCode = 501
+        val session = sessions.remove(sessionId)
+            ?: return ApiResult.Error(
+                DomainError.ServerError(
+                    message = "Meeting session '$sessionId' not found or already retrieved.",
+                    httpStatusCode = 404
+                )
             )
-        )
+
+        if (session.summary.isBlank()) {
+            return ApiResult.Error(
+                DomainError.ServerError(
+                    message = "Meeting summary not yet available. " +
+                        "Ensure stopMeetingRecording() completed successfully.",
+                    httpStatusCode = 424 // Failed Dependency
+                )
+            )
+        }
+
+        return ApiResult.Success(session.summary)
     }
 }

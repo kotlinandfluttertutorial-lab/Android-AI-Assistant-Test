@@ -2,7 +2,8 @@
  * MapperTest.kt — data module
  *
  * Purpose: Unit tests for all data-module mapper extension functions.
- *          Covers ConversationMapper, MessageMapper, DocumentMapper, NoteMapper, and MemoryMapper.
+ *          Covers ConversationMapper, MessageMapper, DocumentMapper, NoteMapper, MemoryMapper,
+ *          ProductivityMapper, and SemanticSearchMapper.
  *
  * Architecture: data module — unit tests (pure JVM, no Android framework).
  *               Mapper functions are pure; no mocking required.
@@ -10,25 +11,45 @@
  * Test toolchain:
  * - Kotest DescribeSpec — test structure and assertions
  *
- * Requirements covered: 10.1, 10.3, 13.1, 13.4, 13.5, 4.1, 4.10, 7.3
+ * Requirements covered: 10.1, 10.3, 13.1, 13.4, 13.5, 4.1, 4.10, 7.3, 36.1, 36.3
  */
 package com.aiassistant.data.mapper
 
+import com.aiassistant.core.database.entity.CalendarEventEntity
 import com.aiassistant.core.database.entity.ConversationEntity
 import com.aiassistant.core.database.entity.DocumentEntity
+import com.aiassistant.core.database.entity.HabitDefinitionEntity
+import com.aiassistant.core.database.entity.HabitEntryEntity
 import com.aiassistant.core.database.entity.MessageEntity
 import com.aiassistant.core.database.entity.NoteEntity
+import com.aiassistant.core.database.entity.ReminderEntity
+import com.aiassistant.core.database.entity.TodoItemEntity
 import com.aiassistant.data.remote.document.DocumentDto
 import com.aiassistant.data.remote.memory.MemoryDto
 import com.aiassistant.data.remote.message.MessageDto
 import com.aiassistant.data.remote.note.NoteDto
+import com.aiassistant.data.remote.productivity.CalendarEventDto
+import com.aiassistant.data.remote.productivity.HabitDefinitionDto
+import com.aiassistant.data.remote.productivity.HabitEntryDto
+import com.aiassistant.data.remote.productivity.ReminderDto
+import com.aiassistant.data.remote.productivity.TodoItemDto
+import com.aiassistant.data.remote.search.SemanticSearchResultDto
+import com.aiassistant.domain.model.CalendarEvent
+import com.aiassistant.domain.model.CalendarEventSource
 import com.aiassistant.domain.model.Conversation
 import com.aiassistant.domain.model.Document
+import com.aiassistant.domain.model.HabitDefinition
+import com.aiassistant.domain.model.HabitEntry
+import com.aiassistant.domain.model.HabitRecurrence
 import com.aiassistant.domain.model.IngestionStatus
 import com.aiassistant.domain.model.MemoryType
 import com.aiassistant.domain.model.Message
 import com.aiassistant.domain.model.Note
+import com.aiassistant.domain.model.Priority
+import com.aiassistant.domain.model.Reminder
+import com.aiassistant.domain.model.SemanticSearchResult
 import com.aiassistant.domain.model.SyncStatus
+import com.aiassistant.domain.model.TodoItem
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import java.time.Instant
@@ -559,6 +580,547 @@ class MapperTest :
                     )
 
                     dto.toDomain().memoryType shouldBe MemoryType.STYLE
+                }
+            }
+        }
+
+        // ─── ProductivityMapper ───────────────────────────────────────────────────
+
+        describe("ProductivityMapper") {
+
+            // ── TodoItem ──────────────────────────────────────────────────────────
+
+            describe("TodoItemEntity.toDomain()") {
+                it("maps all fields and decodes JSON tags") {
+                    val entity = TodoItemEntity(
+                        id = "todo-1", userId = "user-1", title = "Buy milk",
+                        description = "At the store", isCompleted = false,
+                        dueDate = 9_000_000L, priority = "high",
+                        tags = """["grocery","errand"]""",
+                        syncStatus = "synced", createdAt = 1_000_000L, updatedAt = 2_000_000L
+                    )
+
+                    val domain = entity.toDomain()
+
+                    domain.id shouldBe "todo-1"
+                    domain.title shouldBe "Buy milk"
+                    domain.priority shouldBe Priority.HIGH
+                    domain.tags shouldBe listOf("grocery", "errand")
+                    domain.syncStatus shouldBe SyncStatus.SYNCED
+                    domain.dueDate shouldBe 9_000_000L
+                }
+
+                it("falls back to MEDIUM priority for unknown value") {
+                    val entity = TodoItemEntity(
+                        id = "todo-x", userId = "u", title = "t", description = "",
+                        isCompleted = false, dueDate = null, priority = "critical",
+                        tags = "[]", syncStatus = "pending", createdAt = 1L, updatedAt = 2L
+                    )
+                    entity.toDomain().priority shouldBe Priority.MEDIUM
+                }
+
+                it("maps LOW priority correctly") {
+                    val entity = TodoItemEntity(
+                        id = "todo-low", userId = "u", title = "t", description = "",
+                        isCompleted = false, dueDate = null, priority = "low",
+                        tags = "[]", syncStatus = "synced", createdAt = 1L, updatedAt = 2L
+                    )
+                    entity.toDomain().priority shouldBe Priority.LOW
+                }
+            }
+
+            describe("TodoItem.toEntity()") {
+                it("encodes tags to JSON and preserves all fields") {
+                    val domain = TodoItem(
+                        id = "todo-2", userId = "user-2", title = "Read book",
+                        description = "finish chapter 3", isCompleted = true,
+                        dueDate = null, priority = Priority.LOW,
+                        tags = listOf("personal"), syncStatus = SyncStatus.PENDING,
+                        createdAt = 3_000_000L, updatedAt = 4_000_000L
+                    )
+
+                    val entity = domain.toEntity()
+
+                    entity.id shouldBe "todo-2"
+                    entity.priority shouldBe "low"
+                    entity.tags shouldBe """["personal"]"""
+                    entity.syncStatus shouldBe "pending"
+                    entity.isCompleted shouldBe true
+                }
+
+                it("allows syncStatus override") {
+                    val domain = TodoItem(
+                        id = "todo-3", userId = "u", title = "t", description = "",
+                        isCompleted = false, dueDate = null, priority = Priority.MEDIUM,
+                        tags = emptyList(), syncStatus = SyncStatus.PENDING,
+                        createdAt = 1L, updatedAt = 2L
+                    )
+                    domain.toEntity(syncStatus = "synced").syncStatus shouldBe "synced"
+                }
+            }
+
+            describe("TodoItemDto.toDomain()") {
+                it("maps DTO with List<String> tags directly to domain") {
+                    val dto = TodoItemDto(
+                        id = "todo-dto-1", userId = "u", title = "Fix bug",
+                        description = "critical issue", isCompleted = false,
+                        dueDate = null, priority = "high",
+                        tags = listOf("bug", "kotlin"),
+                        syncStatus = "synced", createdAt = 5L, updatedAt = 6L
+                    )
+
+                    val domain = dto.toDomain()
+
+                    domain.priority shouldBe Priority.HIGH
+                    domain.tags shouldBe listOf("bug", "kotlin")
+                    domain.syncStatus shouldBe SyncStatus.SYNCED
+                }
+            }
+
+            describe("TodoItemDto.toEntity()") {
+                it("encodes DTO tags to JSON string in entity") {
+                    val dto = TodoItemDto(
+                        id = "todo-dto-2", userId = "u", title = "t", description = "",
+                        isCompleted = false, dueDate = null, priority = "medium",
+                        tags = listOf("work"), syncStatus = "pending",
+                        createdAt = 7L, updatedAt = 8L
+                    )
+
+                    val entity = dto.toEntity()
+
+                    entity.tags shouldBe """["work"]"""
+                    entity.syncStatus shouldBe "pending"
+                }
+            }
+
+            // ── CalendarEvent ─────────────────────────────────────────────────────
+
+            describe("CalendarEventEntity.toDomain()") {
+                it("maps all fields including source and syncStatus enums") {
+                    val entity = CalendarEventEntity(
+                        id = "event-1", userId = "u", title = "Stand-up",
+                        description = "Daily sync", startTime = 10_000L, endTime = 11_000L,
+                        location = "Zoom", isAllDay = false, source = "local",
+                        syncStatus = "synced", createdAt = 1L, updatedAt = 2L
+                    )
+
+                    val domain = entity.toDomain()
+
+                    domain.id shouldBe "event-1"
+                    domain.title shouldBe "Stand-up"
+                    domain.source shouldBe CalendarEventSource.LOCAL
+                    domain.syncStatus shouldBe SyncStatus.SYNCED
+                    domain.location shouldBe "Zoom"
+                }
+
+                it("maps google_calendar source correctly") {
+                    val entity = CalendarEventEntity(
+                        id = "event-2", userId = "u", title = "Sync",
+                        description = "", startTime = 1L, endTime = 2L,
+                        location = null, isAllDay = false, source = "google_calendar",
+                        syncStatus = "pending", createdAt = 1L, updatedAt = 2L
+                    )
+                    entity.toDomain().source shouldBe CalendarEventSource.GOOGLE_CALENDAR
+                }
+            }
+
+            describe("CalendarEvent.toEntity()") {
+                it("converts enum values back to strings") {
+                    val domain = CalendarEvent(
+                        id = "event-3", userId = "u", title = "Sprint review",
+                        description = "", startTime = 100L, endTime = 200L,
+                        location = null, isAllDay = true,
+                        source = CalendarEventSource.GOOGLE_CALENDAR,
+                        syncStatus = SyncStatus.PENDING, createdAt = 1L, updatedAt = 2L
+                    )
+
+                    val entity = domain.toEntity()
+
+                    entity.source shouldBe "google_calendar"
+                    entity.syncStatus shouldBe "pending"
+                    entity.isAllDay shouldBe true
+                }
+            }
+
+            describe("CalendarEventDto.toDomain()") {
+                it("maps DTO to domain with correct enum conversions") {
+                    val dto = CalendarEventDto(
+                        id = "event-dto-1", userId = "u", title = "Review",
+                        description = "", startTime = 500L, endTime = 600L,
+                        location = null, isAllDay = false, source = "local",
+                        syncStatus = "synced", createdAt = 1L, updatedAt = 2L
+                    )
+                    val domain = dto.toDomain()
+                    domain.source shouldBe CalendarEventSource.LOCAL
+                    domain.syncStatus shouldBe SyncStatus.SYNCED
+                }
+            }
+
+            describe("CalendarEventDto.toEntity()") {
+                it("preserves raw string values in entity") {
+                    val dto = CalendarEventDto(
+                        id = "event-dto-2", userId = "u", title = "t",
+                        description = "", startTime = 1L, endTime = 2L,
+                        location = null, isAllDay = false, source = "google_calendar",
+                        syncStatus = "pending", createdAt = 1L, updatedAt = 2L
+                    )
+                    val entity = dto.toEntity()
+                    entity.source shouldBe "google_calendar"
+                    entity.syncStatus shouldBe "pending"
+                }
+            }
+
+            // ── Reminder ──────────────────────────────────────────────────────────
+
+            describe("ReminderEntity.toDomain()") {
+                it("maps all fields correctly") {
+                    val entity = ReminderEntity(
+                        id = "rem-1", userId = "u", title = "Take pills",
+                        triggerTime = 50_000L, recurrenceRule = "FREQ=DAILY",
+                        linkedTodoId = null, isCompleted = false,
+                        syncStatus = "pending", createdAt = 1L, updatedAt = 2L
+                    )
+
+                    val domain = entity.toDomain()
+
+                    domain.id shouldBe "rem-1"
+                    domain.title shouldBe "Take pills"
+                    domain.recurrenceRule shouldBe "FREQ=DAILY"
+                    domain.syncStatus shouldBe SyncStatus.PENDING
+                }
+
+                it("maps isCompleted=true") {
+                    val entity = ReminderEntity(
+                        id = "rem-2", userId = "u", title = "t",
+                        triggerTime = 1L, recurrenceRule = null,
+                        linkedTodoId = "todo-1", isCompleted = true,
+                        syncStatus = "synced", createdAt = 1L, updatedAt = 2L
+                    )
+                    entity.toDomain().isCompleted shouldBe true
+                }
+            }
+
+            describe("Reminder.toEntity()") {
+                it("converts domain to entity preserving all fields") {
+                    val domain = Reminder(
+                        id = "rem-3", userId = "u", title = "Exercise",
+                        triggerTime = 70_000L, recurrenceRule = null,
+                        linkedTodoId = null, isCompleted = false,
+                        syncStatus = SyncStatus.SYNCED, createdAt = 1L, updatedAt = 2L
+                    )
+                    val entity = domain.toEntity()
+                    entity.syncStatus shouldBe "synced"
+                    entity.id shouldBe "rem-3"
+                }
+
+                it("allows syncStatus override") {
+                    val domain = Reminder(
+                        id = "rem-4",
+                        userId = "u",
+                        title = "t",
+                        triggerTime = 1L,
+                        syncStatus = SyncStatus.PENDING,
+                        createdAt = 1L,
+                        updatedAt = 2L
+                    )
+                    domain.toEntity(syncStatus = "failed").syncStatus shouldBe "failed"
+                }
+            }
+
+            describe("ReminderDto.toDomain()") {
+                it("maps DTO to domain with syncStatus enum") {
+                    val dto = ReminderDto(
+                        id = "rem-dto-1", userId = "u", title = "Meeting prep",
+                        triggerTime = 80_000L, recurrenceRule = null,
+                        linkedTodoId = null, isCompleted = false,
+                        syncStatus = "synced", createdAt = 1L, updatedAt = 2L
+                    )
+                    val domain = dto.toDomain()
+                    domain.syncStatus shouldBe SyncStatus.SYNCED
+                }
+            }
+
+            describe("ReminderDto.toEntity()") {
+                it("preserves raw syncStatus string in entity") {
+                    val dto = ReminderDto(
+                        id = "rem-dto-2", userId = "u", title = "t",
+                        triggerTime = 1L, recurrenceRule = null,
+                        linkedTodoId = null, isCompleted = false,
+                        syncStatus = "pending", createdAt = 1L, updatedAt = 2L
+                    )
+                    dto.toEntity().syncStatus shouldBe "pending"
+                }
+            }
+
+            // ── HabitDefinition ───────────────────────────────────────────────────
+
+            describe("HabitDefinitionEntity.toDomain()") {
+                it("maps daily recurrence correctly") {
+                    val entity = HabitDefinitionEntity(
+                        id = "habit-1",
+                        userId = "u",
+                        name = "Morning run",
+                        description = "5km daily",
+                        recurrence = "daily",
+                        targetFrequency = 1,
+                        createdAt = 1L,
+                        updatedAt = 2L
+                    )
+                    val domain = entity.toDomain()
+                    domain.recurrence shouldBe HabitRecurrence.DAILY
+                    domain.targetFrequency shouldBe 1
+                }
+
+                it("maps weekly recurrence correctly") {
+                    val entity = HabitDefinitionEntity(
+                        id = "habit-2",
+                        userId = "u",
+                        name = "Gym",
+                        description = "",
+                        recurrence = "weekly",
+                        targetFrequency = 3,
+                        createdAt = 1L,
+                        updatedAt = 2L
+                    )
+                    entity.toDomain().recurrence shouldBe HabitRecurrence.WEEKLY
+                }
+
+                it("falls back to DAILY for unknown recurrence value") {
+                    val entity = HabitDefinitionEntity(
+                        id = "habit-x",
+                        userId = "u",
+                        name = "t",
+                        description = "",
+                        recurrence = "monthly",
+                        targetFrequency = 1,
+                        createdAt = 1L,
+                        updatedAt = 2L
+                    )
+                    entity.toDomain().recurrence shouldBe HabitRecurrence.DAILY
+                }
+            }
+
+            describe("HabitDefinition.toEntity()") {
+                it("converts recurrence enum to string value") {
+                    val domain = HabitDefinition(
+                        id = "habit-3",
+                        userId = "u",
+                        name = "Meditate",
+                        description = "",
+                        recurrence = HabitRecurrence.WEEKLY,
+                        targetFrequency = 5,
+                        createdAt = 1L,
+                        updatedAt = 2L
+                    )
+                    domain.toEntity().recurrence shouldBe "weekly"
+                }
+            }
+
+            describe("HabitDefinitionDto.toDomain()") {
+                it("maps DTO to domain with recurrence enum conversion") {
+                    val dto = HabitDefinitionDto(
+                        id = "habit-dto-1",
+                        userId = "u",
+                        name = "Read",
+                        description = "30 min",
+                        recurrence = "daily",
+                        targetFrequency = 1,
+                        createdAt = 1L,
+                        updatedAt = 2L
+                    )
+                    dto.toDomain().recurrence shouldBe HabitRecurrence.DAILY
+                }
+            }
+
+            describe("HabitDefinitionDto.toEntity()") {
+                it("preserves raw recurrence string in entity") {
+                    val dto = HabitDefinitionDto(
+                        id = "habit-dto-2",
+                        userId = "u",
+                        name = "t",
+                        description = "",
+                        recurrence = "weekly",
+                        targetFrequency = 2,
+                        createdAt = 1L,
+                        updatedAt = 2L
+                    )
+                    dto.toEntity().recurrence shouldBe "weekly"
+                }
+            }
+
+            // ── HabitEntry ────────────────────────────────────────────────────────
+
+            describe("HabitEntryEntity.toDomain()") {
+                it("maps all fields including nullable note") {
+                    val entity = HabitEntryEntity(
+                        id = "entry-1",
+                        habitId = "habit-1",
+                        userId = "u",
+                        completedAt = 10_000L,
+                        note = "Felt great"
+                    )
+                    val domain = entity.toDomain()
+                    domain.id shouldBe "entry-1"
+                    domain.habitId shouldBe "habit-1"
+                    domain.completedAt shouldBe 10_000L
+                    domain.note shouldBe "Felt great"
+                }
+
+                it("maps null note correctly") {
+                    val entity = HabitEntryEntity(
+                        id = "entry-2",
+                        habitId = "habit-1",
+                        userId = "u",
+                        completedAt = 1L,
+                        note = null
+                    )
+                    entity.toDomain().note shouldBe null
+                }
+            }
+
+            describe("HabitEntry.toEntity()") {
+                it("maps domain to entity preserving all fields") {
+                    val domain = HabitEntry(
+                        id = "entry-3",
+                        habitId = "habit-2",
+                        userId = "u",
+                        completedAt = 20_000L,
+                        note = null
+                    )
+                    val entity = domain.toEntity()
+                    entity.id shouldBe "entry-3"
+                    entity.note shouldBe null
+                }
+            }
+
+            describe("HabitEntryDto.toDomain()") {
+                it("maps DTO to domain correctly") {
+                    val dto = HabitEntryDto(
+                        id = "entry-dto-1",
+                        habitId = "habit-1",
+                        userId = "u",
+                        completedAt = 30_000L,
+                        note = "Good session"
+                    )
+                    val domain = dto.toDomain()
+                    domain.id shouldBe "entry-dto-1"
+                    domain.note shouldBe "Good session"
+                }
+            }
+
+            describe("HabitEntryDto.toEntity()") {
+                it("maps DTO to entity correctly") {
+                    val dto = HabitEntryDto(
+                        id = "entry-dto-2",
+                        habitId = "habit-2",
+                        userId = "u",
+                        completedAt = 40_000L,
+                        note = null
+                    )
+                    val entity = dto.toEntity()
+                    entity.habitId shouldBe "habit-2"
+                    entity.note shouldBe null
+                }
+            }
+        }
+
+        // ─── SemanticSearchMapper ─────────────────────────────────────────────────
+
+        describe("SemanticSearchMapper") {
+
+            describe("SemanticSearchResultDto.toDomain()") {
+                it("maps 'conversation' sourceType to CONVERSATION") {
+                    val dto = SemanticSearchResultDto(
+                        sourceType = "conversation",
+                        sourceName = "Chat with AI",
+                        excerpt = "We discussed Kotlin coroutines.",
+                        relevanceScore = 0.95f,
+                        deepLink = "app://chat/conv-1"
+                    )
+                    val domain = dto.toDomain()
+                    domain.sourceType shouldBe SemanticSearchResult.SourceType.CONVERSATION
+                    domain.sourceName shouldBe "Chat with AI"
+                    domain.deepLinkUri shouldBe "app://chat/conv-1"
+                    domain.relevanceScore shouldBe 0.95f
+                }
+
+                it("maps 'note' sourceType to NOTE") {
+                    val dto = SemanticSearchResultDto(
+                        sourceType = "note",
+                        sourceName = "Meeting Notes",
+                        excerpt = "Q3 targets discussed.",
+                        relevanceScore = 0.88f,
+                        deepLink = "app://notes/n-1"
+                    )
+                    dto.toDomain().sourceType shouldBe SemanticSearchResult.SourceType.NOTE
+                }
+
+                it("maps 'document' sourceType to DOCUMENT") {
+                    val dto = SemanticSearchResultDto(
+                        sourceType = "document",
+                        sourceName = "Architecture.pdf",
+                        excerpt = "Clean architecture overview.",
+                        relevanceScore = 0.80f,
+                        deepLink = "app://docs/d-1"
+                    )
+                    dto.toDomain().sourceType shouldBe SemanticSearchResult.SourceType.DOCUMENT
+                }
+
+                it("maps 'memory' sourceType to MEMORY") {
+                    val dto = SemanticSearchResultDto(
+                        sourceType = "memory",
+                        sourceName = "User Preference",
+                        excerpt = "Prefers dark mode.",
+                        relevanceScore = 0.70f,
+                        deepLink = "app://memory/m-1"
+                    )
+                    dto.toDomain().sourceType shouldBe SemanticSearchResult.SourceType.MEMORY
+                }
+
+                it("maps unknown sourceType to CONVERSATION fallback") {
+                    val dto = SemanticSearchResultDto(
+                        sourceType = "calendar_event",
+                        sourceName = "Unknown",
+                        excerpt = "Some content.",
+                        relevanceScore = 0.50f,
+                        deepLink = "app://unknown"
+                    )
+                    dto.toDomain().sourceType shouldBe SemanticSearchResult.SourceType.CONVERSATION
+                }
+
+                it("is case-insensitive for sourceType mapping") {
+                    val dto = SemanticSearchResultDto(
+                        sourceType = "NOTE",
+                        sourceName = "Upper Case",
+                        excerpt = "Content.",
+                        relevanceScore = 0.60f,
+                        deepLink = "app://notes/n-2"
+                    )
+                    dto.toDomain().sourceType shouldBe SemanticSearchResult.SourceType.NOTE
+                }
+
+                it("truncates excerpt to 300 characters defensively") {
+                    val longExcerpt = "A".repeat(350)
+                    val dto = SemanticSearchResultDto(
+                        sourceType = "note",
+                        sourceName = "Big Note",
+                        excerpt = longExcerpt,
+                        relevanceScore = 0.75f,
+                        deepLink = "app://notes/n-3"
+                    )
+                    dto.toDomain().excerpt.length shouldBe 300
+                }
+
+                it("preserves excerpt shorter than 300 characters unchanged") {
+                    val shortExcerpt = "Short excerpt."
+                    val dto = SemanticSearchResultDto(
+                        sourceType = "note",
+                        sourceName = "Short Note",
+                        excerpt = shortExcerpt,
+                        relevanceScore = 0.90f,
+                        deepLink = "app://notes/n-4"
+                    )
+                    dto.toDomain().excerpt shouldBe shortExcerpt
                 }
             }
         }

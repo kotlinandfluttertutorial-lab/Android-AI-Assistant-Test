@@ -47,6 +47,7 @@ import io.kotest.property.arbitrary.long
 import io.kotest.property.checkAll
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.unmockkAll
 import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
@@ -156,6 +157,10 @@ private fun GroupedConversations.allAssignments(): List<Pair<String, String>> = 
  */
 class ConversationDateGroupingPropertyTest :
     DescribeSpec({
+
+        afterEach {
+            unmockkAll()
+        }
 
         // ── P18-1 & P18-2 — Mutual exclusion: each conversation in exactly one group ──
         describe("P18-1/P18-2 — every conversation appears in exactly one group (mutual exclusion)") {

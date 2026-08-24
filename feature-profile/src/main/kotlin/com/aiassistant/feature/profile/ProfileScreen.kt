@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ============================================================
  * Android AI Assistant (Enterprise Edition)
  * ============================================================
@@ -31,7 +31,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Person
@@ -98,6 +98,8 @@ private val memoryDateFormatter: DateTimeFormatter =
 fun ProfileScreen(
     uiState: ProfileUiState,
     onNavigateUp: () -> Unit,
+    // Navigation callback for the standalone memory list screen
+    onNavigateToMemoryList: () -> Unit = {},
     // Memory edit callbacks
     onStartEditMemory: (Memory) -> Unit,
     onUpdateEditContent: (String) -> Unit,
@@ -151,6 +153,7 @@ fun ProfileScreen(
             is ProfileUiState.Content ->
                 ProfileContentBody(
                     state = uiState,
+                    onNavigateToMemoryList = onNavigateToMemoryList,
                     onStartEditMemory = onStartEditMemory,
                     onUpdateEditContent = onUpdateEditContent,
                     onCancelEdit = onCancelEdit,
@@ -193,7 +196,7 @@ private fun ProfileTopBar(onNavigateUp: () -> Unit) {
                     contentDescription = "Navigate back from Profile"
                 }
             ) {
-                Icon(imageVector = Icons.Default.ArrowBack, contentDescription = null)
+                Icon(imageVector = Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
             }
         }
     )
@@ -246,6 +249,7 @@ private fun ProfileErrorContent(message: String, onRetry: () -> Unit, modifier: 
 @Composable
 private fun ProfileContentBody(
     state: ProfileUiState.Content,
+    onNavigateToMemoryList: () -> Unit,
     onStartEditMemory: (Memory) -> Unit,
     onUpdateEditContent: (String) -> Unit,
     onCancelEdit: () -> Unit,
@@ -289,7 +293,8 @@ private fun ProfileContentBody(
                 memories = state.memories,
                 deletingMemoryIds = state.deletingMemoryIds,
                 onStartEditMemory = onStartEditMemory,
-                onDeleteMemory = onDeleteMemory
+                onDeleteMemory = onDeleteMemory,
+                onViewAll = onNavigateToMemoryList
             )
         }
 
@@ -490,7 +495,8 @@ private fun UserProfileCard(
 // ─── Memories section ─────────────────────────────────────────────────────────
 
 /**
- * Displays the list of stored memories with per-item edit and delete controls.
+ * Displays the list of stored memories with per-item edit and delete controls,
+ * plus a "View all" button that navigates to the standalone [MemoryListScreen].
  * Requirement 7.3: display, edit, and delete individual memories.
  */
 @Composable
@@ -498,7 +504,8 @@ private fun MemoriesSection(
     memories: List<Memory>,
     deletingMemoryIds: Set<String>,
     onStartEditMemory: (Memory) -> Unit,
-    onDeleteMemory: (String) -> Unit
+    onDeleteMemory: (String) -> Unit,
+    onViewAll: () -> Unit
 ) {
     val spacing = MaterialTheme.spacing
     if (memories.isEmpty()) {
@@ -509,16 +516,30 @@ private fun MemoriesSection(
             modifier = Modifier.semantics { contentDescription = "No memories stored" }
         )
     } else {
+        // Show a preview of the first 3 memories; full list is on MemoryListScreen.
+        val preview = memories.take(3)
         Column(verticalArrangement = Arrangement.spacedBy(spacing.sm)) {
-            memories.forEachIndexed { index, memory ->
+            preview.forEachIndexed { index, memory ->
                 MemoryItem(
                     memory = memory,
                     isDeleting = memory.id in deletingMemoryIds,
                     onEdit = { onStartEditMemory(memory) },
                     onDelete = { onDeleteMemory(memory.id) }
                 )
-                if (index < memories.lastIndex) {
+                if (index < preview.lastIndex) {
                     HorizontalDivider()
+                }
+            }
+            if (memories.size > 3) {
+                TextButton(
+                    onClick = onViewAll,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics {
+                            contentDescription = "View all ${memories.size} memories"
+                        }
+                ) {
+                    Text("View all ${memories.size} memories")
                 }
             }
         }

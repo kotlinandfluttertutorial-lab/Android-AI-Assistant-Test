@@ -45,6 +45,7 @@ import io.kotest.property.checkAll
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.unmockkAll
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -209,6 +210,10 @@ private val NOTE_CONTEXT = ScreenContext.NoteContext(
 class ContextSuggestionRateGatePropertyTest :
     DescribeSpec({
 
+        afterEach {
+            unmockkAll()
+        }
+
         // ── P32-1 — Exact count: allowed count matches simulation ──────────────────
         describe("P32-1 — allowed call count equals events with ≥5 s interval since last allowed call") {
 
@@ -340,7 +345,7 @@ class ContextSuggestionRateGatePropertyTest :
                         val repository = mockk<ContextSuggestionRepository>()
                         coEvery { repository.getSuggestions(any()) } returns ApiResult.Success(SAMPLE_SUGGESTIONS)
 
-                        val useCase = GetContextSuggestionsUseCase(repository, dispatchers)
+                        val useCase = GetContextSuggestionsUseCase(repository)
 
                         // Allowed call — gate is clear on a brand-new use case
                         val allowedResult = useCase(
@@ -372,7 +377,7 @@ class ContextSuggestionRateGatePropertyTest :
             it("single allowed call after resetRateGate returns repository results") {
                 val repository = mockk<ContextSuggestionRepository>()
                 val dispatchers = DefaultDispatcherProvider()
-                val useCase = GetContextSuggestionsUseCase(repository, dispatchers)
+                val useCase = GetContextSuggestionsUseCase(repository)
 
                 coEvery { repository.getSuggestions(NOTE_CONTEXT) } returns ApiResult.Success(SAMPLE_SUGGESTIONS)
 
@@ -393,7 +398,7 @@ class ContextSuggestionRateGatePropertyTest :
             ) {
                 val repository = mockk<ContextSuggestionRepository>()
                 val dispatchers = DefaultDispatcherProvider()
-                val useCase = GetContextSuggestionsUseCase(repository, dispatchers)
+                val useCase = GetContextSuggestionsUseCase(repository)
 
                 coEvery { repository.getSuggestions(NOTE_CONTEXT) } returns ApiResult.Success(SAMPLE_SUGGESTIONS)
 

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ============================================================
  * Android AI Assistant (Enterprise Edition)
  * ============================================================
@@ -42,11 +42,11 @@
  *
  * Purpose: Navigation sub-graph for the Reminders section of the Productivity Suite,
  *          exposing ReminderListScreen and ReminderEditorScreen backed by a shared
- *          ProductivityViewModel scoped to the nav graph.
+ *          ReminderViewModel scoped to the nav graph.
  *
  * Architecture: feature-productivity — Navigation layer; consumed by the app module's
  *               root NavHost or the productivity feature nav graph.
- * Dependencies: ProductivityViewModel (Hilt), ReminderListScreen, ReminderEditorScreen,
+ * Dependencies: ReminderViewModel (Hilt), ReminderListScreen, ReminderEditorScreen,
  *               AndroidX Navigation Compose.
  *
  * Requirements: 16.3, 16.4, 19.1
@@ -81,7 +81,7 @@ object ReminderRoute {
 /**
  * Embeds the reminders navigation sub-graph into the caller's [NavGraphBuilder].
  *
- * A single [ProductivityViewModel] is scoped to the reminders nav graph and shared
+ * A single [ReminderViewModel] is scoped to the reminders nav graph and shared
  * between the list and editor screens.
  *
  * @param navController The parent [NavHostController].
@@ -100,7 +100,7 @@ fun NavGraphBuilder.remindersNavGraph(
             val parentEntry = remember(backStackEntry) {
                 navController.getBackStackEntry(ReminderRoute.GRAPH)
             }
-            val viewModel: ProductivityViewModel = hiltViewModel(parentEntry)
+            val viewModel: ReminderViewModel = hiltViewModel(parentEntry)
             val uiState by viewModel.uiState.collectAsState()
 
             ReminderListScreen(
@@ -128,7 +128,7 @@ fun NavGraphBuilder.remindersNavGraph(
             val parentEntry = remember(backStackEntry) {
                 navController.getBackStackEntry(ReminderRoute.GRAPH)
             }
-            val viewModel: ProductivityViewModel = hiltViewModel(parentEntry)
+            val viewModel: ReminderViewModel = hiltViewModel(parentEntry)
             val uiState by viewModel.uiState.collectAsState()
 
             // Launcher to open system SCHEDULE_EXACT_ALARM settings

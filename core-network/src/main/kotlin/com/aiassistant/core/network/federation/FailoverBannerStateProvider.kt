@@ -44,11 +44,13 @@
 
 package com.aiassistant.core.network.federation
 
+import androidx.annotation.VisibleForTesting
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -86,15 +88,16 @@ data class FailoverBannerState(
  * survives individual coroutine cancellations and runs for the lifetime of the
  * process (matching the [Singleton] scope).
  *
- * @param eventBus The [FailoverEventBus] that publishes raw [FailoverEvent] emissions.
+ * @param eventBus      The [FailoverEventBus] that publishes raw [FailoverEvent] emissions.
+ * @param providerScope The [CoroutineScope] on which the internal bridging coroutine runs.
+ *                      Defaults to a new scope backed by [Dispatchers.Default] in
+ *                      production. Supply a test-controlled scope in unit tests.
  */
 @Singleton
-class FailoverBannerStateProvider @Inject constructor(private val eventBus: FailoverEventBus) {
-    /**
-     * Private [CoroutineScope] tied to the singleton lifetime. A [SupervisorJob] is used
-     * so that if one child coroutine fails the scope itself is not cancelled.
-     */
-    private val providerScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+class FailoverBannerStateProvider @Inject constructor(
+    private val eventBus: FailoverEventBus,
+    private val providerScope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default)
+) {
 
     private val _bannerState = MutableStateFlow(FailoverBannerState.Hidden)
 
@@ -126,5 +129,13 @@ class FailoverBannerStateProvider @Inject constructor(private val eventBus: Fail
                 }
             }
         }
+    }
+
+    /**
+     * Cancels the internal coroutine scope. Used for testing to prevent leaks.
+     */
+    @VisibleForTesting
+    internal fun cancelScope() {
+        providerScope.cancel()
     }
 }

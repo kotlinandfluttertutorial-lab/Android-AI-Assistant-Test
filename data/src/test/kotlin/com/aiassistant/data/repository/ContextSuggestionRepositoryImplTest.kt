@@ -20,21 +20,98 @@
 package com.aiassistant.data.repository
 
 import com.aiassistant.core.common.ApiResult
+import com.aiassistant.core.common.DomainError
+import com.aiassistant.core.network.ConnectivityObserver
+import com.aiassistant.data.remote.suggestion.SuggestionRemoteDataSource
 import com.aiassistant.domain.model.ContextSuggestion
 import com.aiassistant.domain.model.ScreenContext
 import com.aiassistant.domain.model.SuggestionType
+import com.aiassistant.domain.model.TargetScreenType
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldNotBeEmpty
 import io.kotest.matchers.types.shouldBeInstanceOf
+import io.mockk.coEvery
+import io.mockk.mockk
+import io.mockk.unmockkAll
 import kotlinx.coroutines.test.runTest
 
 class ContextSuggestionRepositoryImplTest :
     DescribeSpec({
 
-        val repository = ContextSuggestionRepositoryImpl()
+        val mockRemoteDataSource = mockk<SuggestionRemoteDataSource>()
+        val mockConnectivityObserver = mockk<ConnectivityObserver>()
+        val repository = ContextSuggestionRepositoryImpl(mockRemoteDataSource, mockConnectivityObserver)
+
+        afterEach {
+            unmockkAll()
+        }
+
+        beforeEach {
+            coEvery { mockConnectivityObserver.isConnected() } returns true
+            // Default: return context-appropriate suggestions based on context type
+            coEvery { mockRemoteDataSource.getSuggestions(any()) } answers {
+                when (val ctx = firstArg<ScreenContext>()) {
+                    is ScreenContext.NoteContext -> ApiResult.Success(
+                        listOf(
+                            ContextSuggestion("n1", SuggestionType.SUMMARIZE, "Summarize", "", TargetScreenType.NOTE),
+                            ContextSuggestion(
+                                "n2",
+                                SuggestionType.ADD_ACTION_ITEMS,
+                                "Add actions",
+                                "",
+                                TargetScreenType.NOTE
+                            ),
+                            ContextSuggestion("n3", SuggestionType.EXPAND, "Expand", "", TargetScreenType.NOTE)
+                        )
+                    )
+                    is ScreenContext.CalendarEventContext -> ApiResult.Success(
+                        listOf(
+                            ContextSuggestion(
+                                "c1",
+                                SuggestionType.DRAFT_AGENDA,
+                                "Draft agenda",
+                                "",
+                                TargetScreenType.CALENDAR_EVENT
+                            ),
+                            ContextSuggestion(
+                                "c2",
+                                SuggestionType.PREP_QUESTIONS,
+                                "Prep questions",
+                                "",
+                                TargetScreenType.CALENDAR_EVENT
+                            ),
+                            ContextSuggestion(
+                                "c3",
+                                SuggestionType.LOOKUP_ATTENDEES,
+                                "Lookup attendees",
+                                "",
+                                TargetScreenType.CALENDAR_EVENT
+                            )
+                        )
+                    )
+                    is ScreenContext.ConversationContext ->
+                        if (ctx.lastMessageAgeMillis >= 24L * 60L * 60L * 1_000L) {
+                            ApiResult.Success(
+                                listOf(
+                                    ContextSuggestion(
+                                        "v1",
+                                        SuggestionType.CONTINUE_CONVERSATION,
+                                        "Continue",
+                                        "",
+                                        TargetScreenType.CHAT_CONVERSATION
+                                    )
+                                )
+                            )
+                        } else {
+                            ApiResult.Success(emptyList())
+                        }
+                    else -> ApiResult.Success(emptyList())
+                }
+            }
+        }
 
         // ── 24-hour constant ──────────────────────────────────────────────────────
         val twentyFourHoursMs = 24L * 60L * 60L * 1_000L
@@ -238,6 +315,92 @@ class ContextSuggestionRepositoryImplTest :
 
                     repository.getSuggestions(oldContext).shouldBeInstanceOf<ApiResult.Success<*>>()
                     repository.getSuggestions(newContext).shouldBeInstanceOf<ApiResult.Success<*>>()
+                }
+            }
+        }
+
+        // ── Offline and timeout paths ─────────────────────────────────────────────
+
+        describe("getSuggestions() — offline") {
+
+            it("returns NetworkUnavailable immediately without calling remoteDataSource") {
+                runTest {
+                    coEvery { mockConnectivityObserver.isConnected() } returns false
+
+                    val context = ScreenContext.NoteContext(
+                        noteContent = "some note",
+                        screenInstanceId = "note-offline"
+                    )
+                    val result = repository.getSuggestions(context)
+
+                    result shouldBe ApiResult.NetworkUnavailable
+                }
+            }
+
+            it("returns NetworkUnavailable for CalendarEventContext when offline") {
+                runTest {
+                    coEvery { mockConnectivityObserver.isConnected() } returns false
+
+                    val context = ScreenContext.CalendarEventContext(
+                        eventId = "ev-1",
+                        eventTitle = "Meeting",
+                        eventDescription = null,
+                        attendeeNames = emptyList(),
+                        screenInstanceId = "ev-offline"
+                    )
+                    val result = repository.getSuggestions(context)
+
+                    result shouldBe ApiResult.NetworkUnavailable
+                }
+            }
+
+            it("returns NetworkUnavailable for ConversationContext when offline") {
+                runTest {
+                    coEvery { mockConnectivityObserver.isConnected() } returns false
+
+                    val context = ScreenContext.ConversationContext(
+                        lastMessageContent = "msg",
+                        lastMessageAgeMillis = twentyFourHoursMs * 2,
+                        screenInstanceId = "conv-offline"
+                    )
+                    val result = repository.getSuggestions(context)
+
+                    result shouldBe ApiResult.NetworkUnavailable
+                }
+            }
+        }
+
+        describe("getSuggestions() — remote error propagation") {
+
+            it("propagates ApiResult.Error from remoteDataSource") {
+                runTest {
+                    coEvery { mockConnectivityObserver.isConnected() } returns true
+                    val error = com.aiassistant.core.common.DomainError.ServerError("AI down", 503)
+                    coEvery { mockRemoteDataSource.getSuggestions(any()) } returns
+                        ApiResult.Error(error)
+
+                    val result = repository.getSuggestions(
+                        ScreenContext.NoteContext("note text", "note-err")
+                    )
+
+                    result.shouldBeInstanceOf<ApiResult.Error>()
+                    (result as ApiResult.Error).error shouldBe error
+                }
+            }
+
+            it("returns Success with empty list when remoteDataSource returns NetworkUnavailable") {
+                runTest {
+                    // withTimeoutOrNull returns the result; NetworkUnavailable passes through
+                    coEvery { mockConnectivityObserver.isConnected() } returns true
+                    coEvery { mockRemoteDataSource.getSuggestions(any()) } returns
+                        ApiResult.NetworkUnavailable
+
+                    val result = repository.getSuggestions(
+                        ScreenContext.NoteContext("note text", "note-nu")
+                    )
+
+                    // NetworkUnavailable is returned as-is from the timeout block
+                    result shouldBe ApiResult.NetworkUnavailable
                 }
             }
         }

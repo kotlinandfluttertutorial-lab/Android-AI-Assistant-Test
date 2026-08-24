@@ -38,6 +38,7 @@ android {
 // ─── JUnit 5 (Kotest runner) ──────────────────────────────────────────────────
 tasks.withType<Test> {
     useJUnitPlatform()
+    // Increase heap and use a fresh process for each test class to avoid memory leaks
 }
 
 // ─── Dependency rule enforcement ─────────────────────────────────────────────

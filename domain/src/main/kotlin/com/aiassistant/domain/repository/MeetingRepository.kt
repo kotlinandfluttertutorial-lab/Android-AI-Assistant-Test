@@ -63,10 +63,12 @@ interface MeetingRepository {
      * Stops the current meeting recording session and submits captured audio for
      * transcription.
      *
-     * @param sessionId The session identifier returned by [startMeetingRecording].
+     * @param sessionId    The session identifier returned by [startMeetingRecording].
+     * @param audioFilePath Absolute path to the recorded audio file on the device.
+     *                      Passed to the data layer for upload to the transcription backend.
      * @return [ApiResult.Success] with [Unit] when audio has been submitted successfully.
      */
-    suspend fun stopMeetingRecording(sessionId: String): ApiResult<Unit>
+    suspend fun stopMeetingRecording(sessionId: String, audioFilePath: String): ApiResult<Unit>
 
     /**
      * Retrieves the AI-generated meeting summary for the given session, including

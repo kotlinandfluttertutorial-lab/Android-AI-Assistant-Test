@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ============================================================
  * Android AI Assistant (Enterprise Edition)
  * ============================================================
@@ -146,6 +146,32 @@ data class SaveReminderRequest(
 @Serializable
 data class SuggestReminderRequest(@SerialName("prompt") val prompt: String)
 
+// ─── Meeting time suggestion DTOs ─────────────────────────────────────────────
+
+/**
+ * Request body for `POST /calendar/suggest-times`.
+ *
+ * @param prompt          Natural language description of the meeting requirements.
+ * @param durationMinutes Duration of the meeting in minutes (default 60).
+ */
+@Serializable
+data class SuggestMeetingTimesRequest(
+    @SerialName("prompt") val prompt: String,
+    @SerialName("duration_minutes") val durationMinutes: Int = 60
+)
+
+/**
+ * Response from `POST /calendar/suggest-times`.
+ *
+ * @param suggestions List of ISO 8601 datetime strings representing suggested start times.
+ * @param prompt      The original prompt echoed back by the backend.
+ */
+@Serializable
+data class SuggestMeetingTimesResponse(
+    @SerialName("suggestions") val suggestions: List<String> = emptyList(),
+    @SerialName("prompt") val prompt: String = ""
+)
+
 // â”€â”€â”€ Habit DTOs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 @Serializable
@@ -228,6 +254,15 @@ interface ProductivityApiService {
         @Query("start") startMs: Long,
         @Query("end") endMs: Long
     ): PaginatedResponse<CalendarEventDto>
+
+    /**
+     * Requests AI-powered meeting time suggestions (Requirement 8.2).
+     *
+     * @param body Request containing natural language prompt and duration.
+     * @return Response containing a list of ISO 8601 suggested start times.
+     */
+    @POST("calendar/suggest-times")
+    suspend fun suggestMeetingTimes(@Body body: SuggestMeetingTimesRequest): SuggestMeetingTimesResponse
 
     // â”€â”€ Reminders â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 

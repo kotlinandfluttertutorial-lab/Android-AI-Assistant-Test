@@ -44,6 +44,7 @@ import io.kotest.property.arbitrary.string
 import io.kotest.property.checkAll
 import io.mockk.coEvery
 import io.mockk.mockk
+import io.mockk.unmockkAll
 
 // ─── Email Component Detectors ────────────────────────────────────────────────
 
@@ -194,8 +195,10 @@ private val arbEmailInput: Arb<EmailInput> = arbitrary {
         // Subject may contain any characters (structural detection relies on "Subject:" prefix added by builder)
         subject = Arb.string(minSize = 1, maxSize = 80).bind(),
         greeting = arbGreeting.bind(),
-        // Body must be non-blank so hasBody() can detect at least one content line
-        body = Arb.string(minSize = 1, maxSize = 300).filter { it.isNotBlank() }.bind(),
+        // Prefix "Body: " guarantees the first non-empty line never matches a Subject/greeting/closing
+        // prefix, so hasBody() always finds at least one neutral content line regardless of what the
+        // random suffix contains.
+        body = "Body: " + Arb.string(minSize = 0, maxSize = 294).bind(),
         closing = arbClosing.bind()
     )
 }
@@ -207,6 +210,10 @@ private val arbEmailInput: Arb<EmailInput> = arbitrary {
  */
 class EmailGenerationStructurePropertyTest :
     DescribeSpec({
+
+        afterEach {
+            unmockkAll()
+        }
 
         // ── P22-1 — Subject line is always present ────────────────────────────────
         describe("P22-1 — generated email always contains a subject line") {

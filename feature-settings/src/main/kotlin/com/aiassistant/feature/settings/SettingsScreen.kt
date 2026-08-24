@@ -1,4 +1,4 @@
-﻿/**
+/**
  * SettingsScreen.kt
  *
  * Purpose: Settings screen Compose UI with provider selector, theme switcher,

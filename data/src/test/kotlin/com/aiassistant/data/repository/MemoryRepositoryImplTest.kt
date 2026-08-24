@@ -32,6 +32,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.unmockkAll
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 
@@ -64,6 +65,10 @@ class MemoryRepositoryImplTest :
                 connectivityObserver = connectivityObserver,
                 dispatchers = dispatchers
             )
+        }
+
+        afterEach {
+            unmockkAll()
         }
 
         // ─── getMemories() ────────────────────────────────────────────────────────

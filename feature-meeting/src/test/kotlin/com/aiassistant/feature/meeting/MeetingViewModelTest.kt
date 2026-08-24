@@ -34,6 +34,7 @@ import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.unmockkAll
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -84,6 +85,7 @@ class MeetingViewModelTest :
 
         afterSpec {
             Dispatchers.resetMain()
+            unmockkAll()
         }
 
         beforeEach {
@@ -125,14 +127,14 @@ class MeetingViewModelTest :
                 runTest(testDispatcher) {
                     coEvery { mockStartRecordingUseCase(TEST_USER_ID) } returns
                         ApiResult.Success(TEST_SESSION_ID)
-                    coEvery { mockStopRecordingUseCase(TEST_SESSION_ID) } returns
+                    coEvery { mockStopRecordingUseCase(TEST_SESSION_ID, any()) } returns
                         ApiResult.Success(Unit)
 
                     val vm = buildViewModel()
                     vm.startRecording(TEST_USER_ID)
                     vm.uiState.value.shouldBeInstanceOf<MeetingUiState.Recording>()
 
-                    vm.stopRecording()
+                    vm.stopRecording("")
 
                     val state = vm.uiState.value
                     state.shouldBeInstanceOf<MeetingUiState.Processing>()
@@ -145,14 +147,14 @@ class MeetingViewModelTest :
                     val summaryText = "Meeting summary content."
                     coEvery { mockStartRecordingUseCase(TEST_USER_ID) } returns
                         ApiResult.Success(TEST_SESSION_ID)
-                    coEvery { mockStopRecordingUseCase(TEST_SESSION_ID) } returns
+                    coEvery { mockStopRecordingUseCase(TEST_SESSION_ID, any()) } returns
                         ApiResult.Success(Unit)
                     coEvery { mockGetSummaryUseCase(TEST_SESSION_ID) } returns
                         ApiResult.Success(summaryText)
 
                     val vm = buildViewModel()
                     vm.startRecording(TEST_USER_ID)
-                    vm.stopRecording()
+                    vm.stopRecording("")
                     vm.fetchSummary()
 
                     val state = vm.uiState.value
@@ -167,7 +169,7 @@ class MeetingViewModelTest :
                     val summaryText = "Summary of the all-hands meeting."
                     coEvery { mockStartRecordingUseCase(TEST_USER_ID) } returns
                         ApiResult.Success(TEST_SESSION_ID)
-                    coEvery { mockStopRecordingUseCase(TEST_SESSION_ID) } returns
+                    coEvery { mockStopRecordingUseCase(TEST_SESSION_ID, any()) } returns
                         ApiResult.Success(Unit)
                     coEvery { mockGetSummaryUseCase(TEST_SESSION_ID) } returns
                         ApiResult.Success(summaryText)
@@ -182,7 +184,7 @@ class MeetingViewModelTest :
                     vm.uiState.value.shouldBeInstanceOf<MeetingUiState.Recording>()
 
                     // 3. Processing
-                    vm.stopRecording()
+                    vm.stopRecording("")
                     vm.uiState.value.shouldBeInstanceOf<MeetingUiState.Processing>()
 
                     // 4. Complete
@@ -207,14 +209,14 @@ class MeetingViewModelTest :
                 runTest(testDispatcher) {
                     coEvery { mockStartRecordingUseCase(TEST_USER_ID) } returns
                         ApiResult.Success(TEST_SESSION_ID)
-                    coEvery { mockStopRecordingUseCase(any()) } returns
+                    coEvery { mockStopRecordingUseCase(any(), any()) } returns
                         ApiResult.Success(Unit)
 
                     val vm = buildViewModel()
                     vm.startRecording(TEST_USER_ID)
-                    vm.stopRecording()
+                    vm.stopRecording("")
 
-                    coVerify(exactly = 1) { mockStopRecordingUseCase(TEST_SESSION_ID) }
+                    coVerify(exactly = 1) { mockStopRecordingUseCase(TEST_SESSION_ID, any()) }
                 }
             }
 
@@ -222,14 +224,14 @@ class MeetingViewModelTest :
                 runTest(testDispatcher) {
                     coEvery { mockStartRecordingUseCase(TEST_USER_ID) } returns
                         ApiResult.Success(TEST_SESSION_ID)
-                    coEvery { mockStopRecordingUseCase(TEST_SESSION_ID) } returns
+                    coEvery { mockStopRecordingUseCase(TEST_SESSION_ID, any()) } returns
                         ApiResult.Success(Unit)
                     coEvery { mockGetSummaryUseCase(any()) } returns
                         ApiResult.Success("summary")
 
                     val vm = buildViewModel()
                     vm.startRecording(TEST_USER_ID)
-                    vm.stopRecording()
+                    vm.stopRecording("")
                     vm.fetchSummary()
 
                     coVerify(exactly = 1) { mockGetSummaryUseCase(TEST_SESSION_ID) }
@@ -326,7 +328,7 @@ class MeetingViewModelTest :
                 runTest(testDispatcher) {
                     val summaryWithActionItems = """
                     This was a productive meeting.
-                    
+
                     - [Alice]: Review the design document by Friday
                     - [Bob]: Schedule a follow-up call with the client
                     - [Carol]: Update the project timeline in Jira
@@ -334,14 +336,14 @@ class MeetingViewModelTest :
 
                     coEvery { mockStartRecordingUseCase(TEST_USER_ID) } returns
                         ApiResult.Success(TEST_SESSION_ID)
-                    coEvery { mockStopRecordingUseCase(TEST_SESSION_ID) } returns
+                    coEvery { mockStopRecordingUseCase(TEST_SESSION_ID, any()) } returns
                         ApiResult.Success(Unit)
                     coEvery { mockGetSummaryUseCase(TEST_SESSION_ID) } returns
                         ApiResult.Success(summaryWithActionItems)
 
                     val vm = buildViewModel()
                     vm.startRecording(TEST_USER_ID)
-                    vm.stopRecording()
+                    vm.stopRecording("")
                     vm.fetchSummary()
 
                     val state = vm.uiState.value as MeetingUiState.Complete
@@ -360,14 +362,14 @@ class MeetingViewModelTest :
 
                     coEvery { mockStartRecordingUseCase(TEST_USER_ID) } returns
                         ApiResult.Success(TEST_SESSION_ID)
-                    coEvery { mockStopRecordingUseCase(TEST_SESSION_ID) } returns
+                    coEvery { mockStopRecordingUseCase(TEST_SESSION_ID, any()) } returns
                         ApiResult.Success(Unit)
                     coEvery { mockGetSummaryUseCase(TEST_SESSION_ID) } returns
                         ApiResult.Success(summaryNoActionItems)
 
                     val vm = buildViewModel()
                     vm.startRecording(TEST_USER_ID)
-                    vm.stopRecording()
+                    vm.stopRecording("")
                     vm.fetchSummary()
 
                     val state = vm.uiState.value as MeetingUiState.Complete
@@ -381,14 +383,14 @@ class MeetingViewModelTest :
 
                     coEvery { mockStartRecordingUseCase(TEST_USER_ID) } returns
                         ApiResult.Success(TEST_SESSION_ID)
-                    coEvery { mockStopRecordingUseCase(TEST_SESSION_ID) } returns
+                    coEvery { mockStopRecordingUseCase(TEST_SESSION_ID, any()) } returns
                         ApiResult.Success(Unit)
                     coEvery { mockGetSummaryUseCase(TEST_SESSION_ID) } returns
                         ApiResult.Success(summaryText)
 
                     val vm = buildViewModel()
                     vm.startRecording(TEST_USER_ID)
-                    vm.stopRecording()
+                    vm.stopRecording("")
                     vm.fetchSummary()
 
                     val state = vm.uiState.value as MeetingUiState.Complete
@@ -482,9 +484,9 @@ class MeetingViewModelTest :
             it("stopRecording() does nothing when in Idle state") {
                 runTest(testDispatcher) {
                     val vm = buildViewModel()
-                    vm.stopRecording() // should be no-op
+                    vm.stopRecording("") // should be no-op
                     vm.uiState.value.shouldBeInstanceOf<MeetingUiState.Idle>()
-                    coVerify(exactly = 0) { mockStopRecordingUseCase(any()) }
+                    coVerify(exactly = 0) { mockStopRecordingUseCase(any(), any()) }
                 }
             }
 
@@ -492,18 +494,18 @@ class MeetingViewModelTest :
                 runTest(testDispatcher) {
                     coEvery { mockStartRecordingUseCase(TEST_USER_ID) } returns
                         ApiResult.Success(TEST_SESSION_ID)
-                    coEvery { mockStopRecordingUseCase(TEST_SESSION_ID) } returns
+                    coEvery { mockStopRecordingUseCase(TEST_SESSION_ID, any()) } returns
                         ApiResult.Success(Unit)
 
                     val vm = buildViewModel()
                     vm.startRecording(TEST_USER_ID)
-                    vm.stopRecording()
+                    vm.stopRecording("")
                     vm.uiState.value.shouldBeInstanceOf<MeetingUiState.Processing>()
 
                     // Calling stopRecording again in Processing state should be no-op
-                    vm.stopRecording()
+                    vm.stopRecording("")
                     vm.uiState.value.shouldBeInstanceOf<MeetingUiState.Processing>()
-                    coVerify(exactly = 1) { mockStopRecordingUseCase(any()) }
+                    coVerify(exactly = 1) { mockStopRecordingUseCase(any(), any()) }
                 }
             }
 
@@ -570,12 +572,12 @@ class MeetingViewModelTest :
                     val errorMsg = "Failed to stop recording"
                     coEvery { mockStartRecordingUseCase(TEST_USER_ID) } returns
                         ApiResult.Success(TEST_SESSION_ID)
-                    coEvery { mockStopRecordingUseCase(TEST_SESSION_ID) } returns
+                    coEvery { mockStopRecordingUseCase(TEST_SESSION_ID, any()) } returns
                         ApiResult.Error(DomainError.NetworkError(errorMsg))
 
                     val vm = buildViewModel()
                     vm.startRecording(TEST_USER_ID)
-                    vm.stopRecording()
+                    vm.stopRecording("")
 
                     val state = vm.uiState.value
                     state.shouldBeInstanceOf<MeetingUiState.Error>()
@@ -587,12 +589,12 @@ class MeetingViewModelTest :
                 runTest(testDispatcher) {
                     coEvery { mockStartRecordingUseCase(TEST_USER_ID) } returns
                         ApiResult.Success(TEST_SESSION_ID)
-                    coEvery { mockStopRecordingUseCase(TEST_SESSION_ID) } returns
+                    coEvery { mockStopRecordingUseCase(TEST_SESSION_ID, any()) } returns
                         ApiResult.NetworkUnavailable
 
                     val vm = buildViewModel()
                     vm.startRecording(TEST_USER_ID)
-                    vm.stopRecording()
+                    vm.stopRecording("")
 
                     val state = vm.uiState.value
                     state.shouldBeInstanceOf<MeetingUiState.Error>()
@@ -605,14 +607,14 @@ class MeetingViewModelTest :
                     val errorMsg = "Transcription failed on the server"
                     coEvery { mockStartRecordingUseCase(TEST_USER_ID) } returns
                         ApiResult.Success(TEST_SESSION_ID)
-                    coEvery { mockStopRecordingUseCase(TEST_SESSION_ID) } returns
+                    coEvery { mockStopRecordingUseCase(TEST_SESSION_ID, any()) } returns
                         ApiResult.Success(Unit)
                     coEvery { mockGetSummaryUseCase(TEST_SESSION_ID) } returns
                         ApiResult.Error(DomainError.ServerError(errorMsg))
 
                     val vm = buildViewModel()
                     vm.startRecording(TEST_USER_ID)
-                    vm.stopRecording()
+                    vm.stopRecording("")
                     vm.fetchSummary()
 
                     val state = vm.uiState.value
@@ -625,14 +627,14 @@ class MeetingViewModelTest :
                 runTest(testDispatcher) {
                     coEvery { mockStartRecordingUseCase(TEST_USER_ID) } returns
                         ApiResult.Success(TEST_SESSION_ID)
-                    coEvery { mockStopRecordingUseCase(TEST_SESSION_ID) } returns
+                    coEvery { mockStopRecordingUseCase(TEST_SESSION_ID, any()) } returns
                         ApiResult.Success(Unit)
                     coEvery { mockGetSummaryUseCase(TEST_SESSION_ID) } returns
                         ApiResult.NetworkUnavailable
 
                     val vm = buildViewModel()
                     vm.startRecording(TEST_USER_ID)
-                    vm.stopRecording()
+                    vm.stopRecording("")
                     vm.fetchSummary()
 
                     val state = vm.uiState.value
@@ -675,14 +677,14 @@ class MeetingViewModelTest :
                 runTest(testDispatcher) {
                     coEvery { mockStartRecordingUseCase(TEST_USER_ID) } returns
                         ApiResult.Success(TEST_SESSION_ID)
-                    coEvery { mockStopRecordingUseCase(TEST_SESSION_ID) } returns
+                    coEvery { mockStopRecordingUseCase(TEST_SESSION_ID, any()) } returns
                         ApiResult.Success(Unit)
                     coEvery { mockGetSummaryUseCase(TEST_SESSION_ID) } returns
                         ApiResult.Success("summary text")
 
                     val vm = buildViewModel()
                     vm.startRecording(TEST_USER_ID)
-                    vm.stopRecording()
+                    vm.stopRecording("")
                     vm.fetchSummary()
                     vm.uiState.value.shouldBeInstanceOf<MeetingUiState.Complete>()
 

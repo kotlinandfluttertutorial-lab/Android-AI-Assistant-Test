@@ -34,6 +34,9 @@ android {
     buildFeatures {
         compose = true
     }
+
+    testOptions {
+    }
 }
 
 // ─── Dependency rule enforcement ─────────────────────────────────────────────

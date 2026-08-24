@@ -396,6 +396,65 @@ Get AI-generated insights for a habit (streaming SSE).
 
 ---
 
+## Code Analysis Endpoints
+
+### `POST /code/analyze`
+Submit source code for AI-powered analysis.
+
+**Auth:** Required
+
+**Request:**
+```json
+{
+  "code": "def factorial(n):\n    return 1 if n <= 1 else n * factorial(n - 1)",
+  "language_id": "python",
+  "action": "explain"
+}
+```
+
+| Field | Type | Required | Description |
+|---|---|---|---|
+| `code` | string | ✓ | Source code to analyse. Min 1 char, max 100 000 chars. |
+| `language_id` | string | ✓ | One of: `kotlin` `java` `python` `javascript` `cpp` `sql` |
+| `action` | string | ✓ | One of: `explain` `fix_bug` `generate_tests` |
+
+**Actions:**
+
+| Action | Returns |
+|---|---|
+| `explain` | Markdown with **What it does**, **How it works**, and **Improvements** sections |
+| `fix_bug` | Corrected code with inline `# FIX:` comments on every changed line |
+| `generate_tests` | Complete test suite using the standard framework for the language (pytest / JUnit 5 / Jest / etc.), Arrange/Act/Assert pattern |
+
+**Response 200:**
+```json
+{
+  "language_id": "python",
+  "original_code": "def factorial(n):\n    return 1 if n <= 1 else n * factorial(n - 1)",
+  "action": "explain",
+  "content": "## What it does\nComputes factorial recursively...\n\n## How it works\n..."
+}
+```
+
+| Field | Description |
+|---|---|
+| `language_id` | Echoed back — used by the Android client for syntax highlighting (Req 12.6) |
+| `original_code` | Verbatim code submitted by the client |
+| `action` | Echoed back |
+| `content` | AI-generated result |
+
+**Errors:**
+| Code | Reason |
+|---|---|
+| `400` | Prompt injection pattern detected in submitted code — `{"error":{"code":"PROMPT_INJECTION_DETECTED"}}` |
+| `422` | Invalid `language_id` or `action` value; `code` empty or exceeds 100 000 chars |
+| `503` | LLM provider unavailable |
+| `504` | LLM call exceeded per-action timeout (30 s for `explain`/`fix_bug`, 45 s for `generate_tests`) |
+
+**Android client binding:** `CodeApiService.kt` → `POST code/analyze` via Retrofit. Wired through `CodeRemoteDataSource` → `CodeRepositoryImpl` → `AnalyzeCodeUseCase` → `CodeViewModel`.
+
+---
+
 ## Notification Endpoints
 
 ### `POST /notifications/token`
@@ -507,3 +566,5 @@ All error responses follow this schema:
 | 429 | Rate limit exceeded (60 req/min per user) |
 | 500 | Internal server error |
 | 502 | External service (LLM / MCP tool) failure |
+| 503 | LLM or upstream service temporarily unavailable |
+| 504 | LLM call timed out (per-endpoint timeout exceeded) |

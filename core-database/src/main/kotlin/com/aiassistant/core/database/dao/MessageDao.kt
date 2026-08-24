@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ============================================================
  * Android AI Assistant (Enterprise Edition)
  * ============================================================
@@ -65,7 +65,7 @@ interface MessageDao {
     @Query(
         """
         SELECT messages.* FROM messages
-        JOIN messages_fts ON messages.id = messages_fts.rowid
+        JOIN messages_fts ON messages.rowid = messages_fts.docid
         WHERE messages_fts MATCH :query
           AND messages.conversationId IN (
               SELECT id FROM conversations

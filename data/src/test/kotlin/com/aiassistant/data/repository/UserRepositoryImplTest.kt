@@ -38,9 +38,12 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.unmockkAll
 import io.mockk.verify
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
+import okhttp3.ResponseBody.Companion.toResponseBody
+import retrofit2.HttpException
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
@@ -108,6 +111,11 @@ class UserRepositoryImplTest :
                 dispatchers = dispatchers,
                 secureStorage = secureStorage
             )
+        }
+
+        afterEach {
+            repository.cancelSync()
+            unmockkAll()
         }
 
         // ─── getCurrentUser() ─────────────────────────────────────────────────────
@@ -318,6 +326,211 @@ class UserRepositoryImplTest :
                     repository.updateFcmToken("fcm-token-xyz")
 
                     verify(exactly = 1) { secureStorage.saveFcmTokenSynced() }
+                }
+            }
+        }
+
+        // ─── requestDataExport() ──────────────────────────────────────────────────
+
+        describe("requestDataExport()") {
+            it("returns Success(Unit) when backend accepts the request") {
+                runTest {
+                    coEvery { userApiService.requestDataExport() } returns Unit
+
+                    val result = repository.requestDataExport()
+
+                    result shouldBe ApiResult.Success(Unit)
+                    coVerify(exactly = 1) { userApiService.requestDataExport() }
+                }
+            }
+
+            it("returns Error Unauthorized on HTTP 401") {
+                runTest {
+                    val body = "{}".toResponseBody(null)
+                    coEvery { userApiService.requestDataExport() } throws
+                        HttpException(retrofit2.Response.error<Any>(401, body))
+
+                    val result = repository.requestDataExport()
+
+                    result.shouldBeInstanceOf<ApiResult.Error>()
+                    (result as ApiResult.Error).error.shouldBeInstanceOf<DomainError.Unauthorized>()
+                }
+            }
+
+            it("returns Error ServerError on HTTP 500") {
+                runTest {
+                    val body = "{}".toResponseBody(null)
+                    coEvery { userApiService.requestDataExport() } throws
+                        HttpException(retrofit2.Response.error<Any>(500, body))
+
+                    val result = repository.requestDataExport()
+
+                    result.shouldBeInstanceOf<ApiResult.Error>()
+                    (result as ApiResult.Error).error.shouldBeInstanceOf<DomainError.ServerError>()
+                }
+            }
+
+            it("returns Error NetworkError on IOException") {
+                runTest {
+                    coEvery { userApiService.requestDataExport() } throws
+                        java.io.IOException("socket timeout")
+
+                    val result = repository.requestDataExport()
+
+                    result.shouldBeInstanceOf<ApiResult.Error>()
+                    (result as ApiResult.Error).error.shouldBeInstanceOf<DomainError.NetworkError>()
+                }
+            }
+        }
+
+        // ─── deleteAccount() ──────────────────────────────────────────────────────
+
+        describe("deleteAccount()") {
+            it("returns Success(Unit) when backend confirms deletion") {
+                runTest {
+                    coEvery { userApiService.deleteAccount() } returns Unit
+
+                    val result = repository.deleteAccount()
+
+                    result shouldBe ApiResult.Success(Unit)
+                    coVerify(exactly = 1) { userApiService.deleteAccount() }
+                }
+            }
+
+            it("returns Error Unauthorized on HTTP 401") {
+                runTest {
+                    val body = "{}".toResponseBody(null)
+                    coEvery { userApiService.deleteAccount() } throws
+                        HttpException(retrofit2.Response.error<Any>(401, body))
+
+                    val result = repository.deleteAccount()
+
+                    (result as ApiResult.Error).error.shouldBeInstanceOf<DomainError.Unauthorized>()
+                }
+            }
+
+            it("returns Error Forbidden on HTTP 403") {
+                runTest {
+                    val body = "{}".toResponseBody(null)
+                    coEvery { userApiService.deleteAccount() } throws
+                        HttpException(retrofit2.Response.error<Any>(403, body))
+
+                    val result = repository.deleteAccount()
+
+                    (result as ApiResult.Error).error.shouldBeInstanceOf<DomainError.Forbidden>()
+                }
+            }
+
+            it("returns Error ValidationError on HTTP 400") {
+                runTest {
+                    val body = "{}".toResponseBody(null)
+                    coEvery { userApiService.deleteAccount() } throws
+                        HttpException(retrofit2.Response.error<Any>(400, body))
+
+                    val result = repository.deleteAccount()
+
+                    (result as ApiResult.Error).error.shouldBeInstanceOf<DomainError.ValidationError>()
+                }
+            }
+
+            it("returns Error NetworkError on IOException") {
+                runTest {
+                    coEvery { userApiService.deleteAccount() } throws
+                        java.io.IOException("connection refused")
+
+                    val result = repository.deleteAccount()
+
+                    (result as ApiResult.Error).error.shouldBeInstanceOf<DomainError.NetworkError>()
+                }
+            }
+        }
+
+        // ─── maybeSyncFcmToken() — via updateDisplayName ──────────────────────────
+
+        describe("maybeSyncFcmToken() background path") {
+            it("fires FCM sync when token is pending after successful updateDisplayName") {
+                runTest {
+                    val entity = fakeUserEntity()
+                    coEvery { userDao.getFirstUser() } returns entity
+                    every { connectivityObserver.isConnected() } returns true
+                    coEvery { userApiService.updateDisplayName(any()) } returns
+                        fakeUserResponse(displayName = "New Name")
+                    // Override beforeEach default: token IS pending
+                    every { secureStorage.isFcmTokenPendingSync() } returns true
+                    every { secureStorage.getFcmToken() } returns "pending-fcm-token"
+                    coEvery { userApiService.updateFcmToken(any()) } returns Unit
+
+                    repository.updateDisplayName("New Name")
+
+                    // Give the background coroutine a chance to run
+                    coVerify(atLeast = 1) { secureStorage.isFcmTokenPendingSync() }
+                }
+            }
+
+            it("does NOT fire FCM sync when no token is stored even if sync is pending") {
+                runTest {
+                    val entity = fakeUserEntity()
+                    coEvery { userDao.getFirstUser() } returns entity
+                    every { connectivityObserver.isConnected() } returns true
+                    coEvery { userApiService.updateDisplayName(any()) } returns
+                        fakeUserResponse(displayName = "Name")
+                    every { secureStorage.isFcmTokenPendingSync() } returns true
+                    every { secureStorage.getFcmToken() } returns null
+
+                    repository.updateDisplayName("Name")
+
+                    coVerify(exactly = 0) { userApiService.updateFcmToken(any()) }
+                }
+            }
+        }
+
+        // ─── HTTP error branches via updateActiveProvider ─────────────────────────
+
+        describe("updateActiveProvider() — HTTP error branches") {
+            it("returns Error Unauthorized on HTTP 401 from remote") {
+                runTest {
+                    val entity = fakeUserEntity()
+                    coEvery { userDao.getFirstUser() } returns entity
+                    every { connectivityObserver.isConnected() } returns true
+                    val body = "{}".toResponseBody(null)
+                    coEvery { userApiService.updateActiveProvider(any()) } throws
+                        HttpException(retrofit2.Response.error<Any>(401, body))
+
+                    val result = repository.updateActiveProvider("openai_gpt4o")
+
+                    result.shouldBeInstanceOf<ApiResult.Error>()
+                    (result as ApiResult.Error).error.shouldBeInstanceOf<DomainError.Unauthorized>()
+                }
+            }
+
+            it("returns Error ServerError on HTTP 500 from remote") {
+                runTest {
+                    val entity = fakeUserEntity()
+                    coEvery { userDao.getFirstUser() } returns entity
+                    every { connectivityObserver.isConnected() } returns true
+                    val body = "{}".toResponseBody(null)
+                    coEvery { userApiService.updateActiveProvider(any()) } throws
+                        HttpException(retrofit2.Response.error<Any>(500, body))
+
+                    val result = repository.updateActiveProvider("openai_gpt4o")
+
+                    result.shouldBeInstanceOf<ApiResult.Error>()
+                    (result as ApiResult.Error).error.shouldBeInstanceOf<DomainError.ServerError>()
+                }
+            }
+
+            it("returns Error NetworkError on IOException from remote") {
+                runTest {
+                    val entity = fakeUserEntity()
+                    coEvery { userDao.getFirstUser() } returns entity
+                    every { connectivityObserver.isConnected() } returns true
+                    coEvery { userApiService.updateActiveProvider(any()) } throws
+                        java.io.IOException("timeout")
+
+                    val result = repository.updateActiveProvider("openai_gpt4o")
+
+                    result.shouldBeInstanceOf<ApiResult.Error>()
+                    (result as ApiResult.Error).error.shouldBeInstanceOf<DomainError.NetworkError>()
                 }
             }
         }

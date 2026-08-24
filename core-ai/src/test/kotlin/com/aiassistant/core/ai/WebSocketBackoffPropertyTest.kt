@@ -23,6 +23,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
 import io.kotest.property.arbitrary.int
 import io.kotest.property.checkAll
+import io.mockk.unmockkAll
 
 // ─── Mirror of AIStreamClientImpl constants (keep in sync) ───────────────────
 
@@ -51,6 +52,10 @@ fun computeBackoffMs(attempt: Int): Long = minOf(1_000L shl (attempt - 1), 30_00
  */
 class WebSocketBackoffPropertyTest :
     DescribeSpec({
+
+        afterSpec {
+            unmockkAll()
+        }
 
         // ── Case 1 — backoff formula for N ∈ [1, 4] produces correct intervals ────
         describe("Case 1 — backoff formula for attempt ∈ [1, 4] matches expected expression") {

@@ -43,6 +43,7 @@ import io.kotest.property.arbitrary.string
 import io.kotest.property.checkAll
 import io.mockk.coEvery
 import io.mockk.mockk
+import io.mockk.unmockkAll
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -95,6 +96,10 @@ private val arbCoverLetterInput: Arb<CoverLetterInput> = arbitrary {
  */
 class CoverLetterWordLimitPropertyTest :
     DescribeSpec({
+
+        afterEach {
+            unmockkAll()
+        }
 
         // ── P21-1 — Random resume/job description pairs always yield ≤ 400 words ─
         describe("P21-1 — cover letter word count is always ≤ 400 for random resume and job description pairs") {

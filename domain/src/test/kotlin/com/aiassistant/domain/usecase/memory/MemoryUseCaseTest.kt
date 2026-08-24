@@ -26,6 +26,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.unmockkAll
 import io.mockk.verify
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.flowOf
@@ -61,6 +62,10 @@ class GetMemoriesUseCaseTest :
 
         beforeEach {
             clearMocks(memoryRepository)
+        }
+
+        afterEach {
+            unmockkAll()
         }
 
         describe("GetMemoriesUseCase") {
@@ -132,6 +137,10 @@ class DeleteMemoryUseCaseTest :
 
         beforeEach {
             clearMocks(memoryRepository)
+        }
+
+        afterEach {
+            unmockkAll()
         }
 
         describe("DeleteMemoryUseCase") {

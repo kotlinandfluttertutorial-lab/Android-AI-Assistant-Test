@@ -8,6 +8,14 @@
     <string name="auth_register">Create Account</string>
     <string name="auth_google_sign_in">Sign in with Google</string>
     <string name="auth_biometric_login">Login with biometrics</string>
+    <!--
+        google_web_client_id: the Web Client ID from Firebase Console
+        (Project Settings → Your apps → Web app) or Google Cloud Console
+        (APIs & Services → Credentials → OAuth 2.0 Client IDs → Web application).
+        Replace the placeholder below with your real Web Client ID before building
+        a release. The value is used by GoogleSignInButton via Credential Manager.
+    -->
+    <string name="google_web_client_id" translatable="false">106071012091-d4brm5cng1gaor0al51veafjd0fa239v.apps.googleusercontent.com</string>
     <string name="onboarding_continue">Continue</string>
     <string name="onboarding_privacy_consent">I agree to the Privacy Policy and Terms of Service</string>
     <string name="onboarding_analytics_consent">Allow optional analytics data collection</string>

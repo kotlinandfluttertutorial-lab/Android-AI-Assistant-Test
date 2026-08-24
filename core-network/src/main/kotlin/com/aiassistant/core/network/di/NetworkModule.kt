@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ============================================================
  * Android AI Assistant (Enterprise Edition)
  * ============================================================
@@ -109,9 +109,11 @@ object NetworkModule {
      * Override via BuildConfig for staging / production environments.
      * Must end with a trailing slash for Retrofit to resolve relative paths correctly.
      */
-    private const val BASE_URL = "https://api.handsonandroid.com/"
-    // private const val BASE_URL = "http://192.168.0.158:8000/"   // local WiFi
-    // private const val BASE_URL = "http://127.0.0.1:8000/"       // emulator
+    private val BASE_URL: String get() = BuildConfig.BASE_URL
+    // Override per build variant via the `base_url` Gradle property:
+    //   debug   default → http://10.0.2.2:8000/  (Android emulator localhost)
+    //   release default → https://api.handsonandroid.com/
+    //   ci/staging      → pass -Pbase_url="https://your-cloud-run-url.run.app/"
 
     private const val CONNECT_TIMEOUT_SECONDS = 30L
     private const val READ_TIMEOUT_SECONDS = 60L
@@ -181,7 +183,9 @@ object NetworkModule {
         // logcat. Level is restored after the call completes.
         .addInterceptor { chain ->
             val isBinaryRequest = chain.request().body?.contentType()?.let { ct ->
-                ct.type == "multipart" || ct.subtype == "pdf" || ct.type == "image" ||
+                ct.type == "multipart" ||
+                    ct.subtype == "pdf" ||
+                    ct.type == "image" ||
                     ct.subtype == "octet-stream"
             } ?: false
 

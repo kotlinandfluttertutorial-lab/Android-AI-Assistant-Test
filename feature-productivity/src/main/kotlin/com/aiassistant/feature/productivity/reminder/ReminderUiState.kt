@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ============================================================
  * Android AI Assistant (Enterprise Edition)
  * ============================================================
@@ -55,7 +55,7 @@ import com.aiassistant.domain.model.TodoItem
 /**
  * All possible UI states for the Reminders sub-feature.
  *
- * The [ProductivityViewModel] exposes a StateFlow of this sealed class. Composables
+ * The [ReminderViewModel] exposes a StateFlow of this sealed class. Composables
  * observe it and render accordingly.
  */
 sealed class ReminderUiState {

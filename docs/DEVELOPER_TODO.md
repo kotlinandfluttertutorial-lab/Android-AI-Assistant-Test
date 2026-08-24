@@ -1,6 +1,6 @@
 # Developer Todo List — Android AI Assistant (Enterprise Edition)
 
-> **Last updated:** August 1, 2026
+> **Last updated:** August 19, 2026 (session 3)
 > **Purpose:** Reference checklist for taking the project from fully implemented spec to a production-ready, deployable system.
 > **Status legend:** 🔴 Critical · 🟠 High Priority · 🟡 Medium Priority · 🟢 Lower Priority
 
@@ -16,13 +16,18 @@
 | Docker / docker-compose | ✅ Production-ready |
 | Nginx, Prometheus, Loki configs | ✅ Real configs |
 | Android domain layer | ✅ Fully implemented |
-| Android data layer | ✅ Fully implemented |
+| Android data layer | ✅ Fully implemented — all stubs wired |
 | core-security (SecureStorage, Biometric) | ✅ Real implementations |
 | feature-auth, feature-chat, feature-voice | ✅ Real screens + ViewModels |
-| 12 remaining feature modules | ⚠️ UI layer needs verification |
-| Android unit tests | ⚠️ Lagging behind backend |
-| CI/CD secrets & environments | ⚠️ Not configured |
-| Production env vars | 🔴 Placeholders only |
+| 12 remaining feature modules | ✅ All verified and completed (Task 6) |
+| Android unit tests | ✅ All 3 phases complete (domain, ViewModel, Compose UI) |
+| CI/CD workflows | ✅ Cloud Run pipeline complete; GitHub secrets = manual step |
+| Production env vars | 🔴 Must be filled in before first deploy |
+| Google Sign-In | ✅ Wired via Credential Manager; `google_web_client_id` placeholder added |
+| Context suggestions | ✅ Wired to `POST /api/v1/suggestions/context` |
+| Meeting time suggestions | ✅ Wired to `POST /productivity/calendar/suggest-times` |
+| Code analysis (`/code/analyze`) | ✅ Fully implemented — backend endpoint, unit tests, and integration tests complete |
+| BASE_URL / CERTIFICATE_PINS | ✅ BuildConfig-driven per build variant |
 
 ---
 
@@ -61,7 +66,7 @@ Copy `backend/.env.example` → `backend/.env` (on the server only, never commit
 
 - [ ] All variables above filled in on staging server
 - [ ] All variables above filled in on production server
-- [ ] `LLM_FALLBACK_PROVIDER` added to `.env.example` — the orchestrator reads this setting but it is not yet documented
+- [x] `LLM_FALLBACK_PROVIDER` added to `.env.example` — already present and documented
 
 ---
 
@@ -99,7 +104,7 @@ Hilt cannot inject any use case without this.
 
 ---
 
-### 6. Verify and complete the 12 remaining Android feature module UIs
+### 6. Verify and complete the 12 remaining Android feature module UIs ✅
 
 `feature-auth`, `feature-chat`, and `feature-voice` are confirmed complete. Each module below needs a verification pass — the `data/` repository exists but the UI layer (screens, ViewModel, navigation) may be sparse or have a `.gitkeep` placeholder.
 
@@ -120,39 +125,39 @@ For each module, verify these files exist and contain real code (not just an emp
 | `feature-resume` | `ResumeBuilderScreen`, `CoverLetterEditorScreen`, `ResumeViewModel` |
 | `feature-email` | `EmailComposerScreen`, `GrammarCorrectionScreen`, `EmailViewModel`, inline diff view |
 
-- [ ] `feature-rag` verified / completed
-- [ ] `feature-camera` verified / completed
-- [ ] `feature-code` verified / completed
-- [ ] `feature-notes` verified / completed
-- [ ] `feature-meeting` verified / completed
-- [ ] `feature-translator` verified / completed
-- [ ] `feature-productivity` verified / completed
-- [ ] `feature-profile` verified / completed
-- [ ] `feature-history` verified / completed
-- [ ] `feature-settings` verified / completed
-- [ ] `feature-resume` verified / completed
-- [ ] `feature-email` verified / completed
+- [x] `feature-rag` verified / completed
+- [x] `feature-camera` verified / completed
+- [x] `feature-code` verified / completed — CodeRepositoryImpl wired to POST /code/analyze; backend endpoint, schemas, router, unit tests (45 cases), and integration tests (29 cases) complete
+- [x] `feature-notes` verified / completed
+- [x] `feature-meeting` verified / completed — MeetingRepositoryImpl wired to Transcription_Service
+- [x] `feature-translator` verified / completed
+- [x] `feature-productivity` verified / completed — ReminderViewModel renamed (was ProductivityViewModel)
+- [x] `feature-profile` verified / completed — MemoryListScreen extracted as standalone destination
+- [x] `feature-history` verified / completed
+- [x] `feature-settings` verified / completed
+- [x] `feature-resume` verified / completed
+- [x] `feature-email` verified / completed
 
 ---
 
 ## 🟡 Medium Priority — Required Before First User-Facing Build
 
-### 7. Write Android unit and ViewModel tests
+### 7. Write Android unit and ViewModel tests ✅
 
 The backend has 40+ test files. The Android side lags significantly. Work in this order (fastest ROI first):
 
-**Phase 1 — Pure JVM tests (no emulator, no Robolectric):**
-- [ ] `domain/src/test/` — unit tests for every use case (mock repositories with MockK or Mockito)
-- [ ] Focus on: `LoginUseCase`, `RegisterUseCase`, `SendMessageUseCase`, `GetHabitInsightsUseCase` (7-day gate), `SummarizeNoteUseCase` (150-word limit)
+**Phase 1 — Pure JVM tests (no emulator, no Robolectric):** ✅
+- [x] `domain/src/test/` — unit tests for every use case (mock repositories with MockK or Mockito)
+- [x] Focus on: `LoginUseCase`, `RegisterUseCase`, `SendMessageUseCase`, `GetHabitInsightsUseCase` (7-day gate), `SummarizeNoteUseCase` (150-word limit)
 
-**Phase 2 — ViewModel tests (JUnit + Turbine):**
-- [ ] `feature-auth/src/test/` — `AuthViewModel`: login/register/biometric/error flows
-- [ ] `feature-chat/src/test/` — `ChatViewModel`: date grouping, pagination, offline banner
-- [ ] `feature-voice/src/test/` — `VoiceViewModel`: full state machine cycle
+**Phase 2 — ViewModel tests (JUnit + Turbine):** ✅
+- [x] `feature-auth/src/test/` — `AuthViewModel`: login/register/biometric/error flows
+- [x] `feature-chat/src/test/` — `ChatViewModel`: date grouping, pagination, offline banner
+- [x] `feature-voice/src/test/` — `VoiceViewModel`: full state machine cycle
 
-**Phase 3 — Compose UI tests (instrumented):**
-- [ ] `core-ui/src/androidTest/` — `MarkdownText`, `CodeBlock`, `ChatBubble`, adaptive layout breakpoints
-- [ ] `feature-auth/src/androidTest/` — login validation errors, biometric prompt, privacy policy display
+**Phase 3 — Compose UI tests (instrumented):** ✅
+- [x] `core-ui/src/androidTest/` — `MarkdownText`, `CodeBlock`, `ChatBubble`, adaptive layout breakpoints
+- [x] `feature-auth/src/androidTest/` — login validation errors, biometric prompt, privacy policy display
 
 **Minimum bar:** JaCoCo combined coverage on `domain` + `data` modules ≥ 70% (enforced by CI).
 
@@ -160,9 +165,44 @@ The backend has 40+ test files. The Android side lags significantly. Work in thi
 
 ### 8. Configure GitHub Actions secrets
 
-The CI/CD pipelines in `.github/workflows/` are ready but will fail until these secrets are set.
+Two deploy paths exist. Use **Path A (Cloud Run)** — it requires no servers.
 
-Go to: **GitHub → Repository → Settings → Secrets and variables → Actions → New repository secret**
+---
+
+#### Path A — Cloud Run (₹0–₹1,000/month) ← Recommended
+
+See `docs/CLOUD_RUN_DEPLOYMENT.md` for the full setup guide.
+The workflow is `.github/workflows/cloud-run-deploy.yml`.
+
+**One-time GCP setup** (run these once from your local terminal):
+```bash
+# Step 1: create project + enable APIs (docs/CLOUD_RUN_DEPLOYMENT.md Step 1–2)
+# Step 2: create Neon PostgreSQL free tier (docs/CLOUD_RUN_DEPLOYMENT.md Step 3)
+# Step 3: deploy ChromaDB on Cloud Run (docs/CLOUD_RUN_DEPLOYMENT.md Step 4)
+# Step 4: create Cloud Storage bucket (docs/CLOUD_RUN_DEPLOYMENT.md Step 5)
+# Step 5: populate Secret Manager (docs/CLOUD_RUN_DEPLOYMENT.md Step 6)
+# Step 6: set up Workload Identity Federation (docs/CLOUD_RUN_DEPLOYMENT.md Step 11.1)
+```
+
+**GitHub Secrets** (Settings → Secrets → Actions):
+
+| Secret name | Value |
+|---|---|
+| `GCP_PROJECT_ID` | GCP project ID, e.g. `android-ai-assistant` |
+| `GCP_REGION` | Deploy region, e.g. `asia-south1` |
+| `GCP_WIF_PROVIDER` | Full WIF provider name from Step 11.1 of the Cloud Run guide |
+| `GCP_SERVICE_ACCOUNT` | `ai-assistant-backend@<PROJECT>.iam.gserviceaccount.com` |
+| `CLOUD_RUN_SERVICE` | Cloud Run service name, e.g. `ai-assistant-backend` |
+| `CLOUD_RUN_SERVICE_URL` | Set after first deploy — full `https://...run.app` URL |
+| `CHROMA_SERVICE_NAME` | ChromaDB Cloud Run service name, e.g. `chromadb` |
+
+**GitHub Variables** (Settings → Variables → Actions):
+
+| Variable name | Value |
+|---|---|
+| `GCP_ARTIFACT_REPO` | Artifact Registry repo name, e.g. `backend` |
+
+**Android / Firebase secrets** (same for both paths):
 
 > **Firebase App Distribution — one-time setup (kotlinfiroj@gmail.com)**
 > 1. Go to [console.firebase.google.com](https://console.firebase.google.com) → sign in with **kotlinfiroj@gmail.com**
@@ -172,25 +212,47 @@ Go to: **GitHub → Repository → Settings → Secrets and variables → Action
 > 5. **App Distribution → Testers & Groups** → create at least one group (e.g. `qa-team`) → save alias as `FIREBASE_TESTER_GROUPS` secret
 
 | Secret name | Value |
-|-------------|-------|
+|---|---|
 | `KEYSTORE_BASE64` | `base64 -w 0 your-release-keystore.jks` |
 | `KEY_ALIAS` | Key alias inside the keystore |
 | `KEY_PASSWORD` | Password for that key |
 | `KEYSTORE_PASSWORD` | Password for the keystore file |
 | `GOOGLE_SERVICES_JSON` | `base64 -w 0 app/google-services.json` |
-| `FIREBASE_APP_ID` | Firebase Console → Project Settings → Your apps → App ID (format: `1:xxxx:android:xxxx`) |
-| `FIREBASE_SERVICE_ACCOUNT` | Firebase IAM → Service account JSON with `roles/firebaseappdistro.admin` (base64 or raw) |
-| `FIREBASE_TESTER_GROUPS` | Comma-separated tester group aliases e.g. `qa-team,beta-testers` |
-| `STAGING_SSH_HOST` | IP or hostname of staging server |
-| `STAGING_SSH_USER` | SSH username on staging server |
-| `STAGING_SSH_KEY` | Private SSH key (PEM format) for staging |
-| `PROD_SSH_HOST` | IP or hostname of production server |
-| `PROD_SSH_USER` | SSH username on production server |
-| `PROD_SSH_KEY` | Private SSH key (PEM format) for production |
-| `NVD_API_KEY` | Get free key at https://nvd.nist.gov/developers/request-an-api-key |
-| `SLACK_WEBHOOK_URL` | Slack → Apps → Incoming Webhooks (optional) |
+| `FIREBASE_APP_ID` | Firebase Console → Project Settings → Your apps → App ID |
+| `FIREBASE_SERVICE_ACCOUNT` | Firebase IAM service account JSON (base64 or raw) |
+| `FIREBASE_TESTER_GROUPS` | Comma-separated tester group aliases e.g. `qa-team` |
+| `NVD_API_KEY` | https://nvd.nist.gov/developers/request-an-api-key |
+| `SLACK_WEBHOOK_URL` | Optional Slack webhook |
+| `AES_ENCRYPTION_KEY_CI` | Same 32-byte key used in production (for CI test runs) |
 
-- [ ] All secrets above configured in GitHub
+- [ ] GCP project created + APIs enabled
+- [ ] Neon PostgreSQL free tier created, connection string in Secret Manager
+- [ ] ChromaDB deployed to Cloud Run (internal)
+- [ ] Cloud Storage bucket created
+- [ ] All backend secrets stored in Secret Manager
+- [ ] Workload Identity Federation configured
+- [ ] All GitHub Secrets above added
+- [ ] `GCP_ARTIFACT_REPO` GitHub Variable added
+- [ ] Android / Firebase secrets added
+- [ ] First deploy triggered: `git push origin main` or via Actions → cloud-run-deploy → Run workflow
+- [ ] `CLOUD_RUN_SERVICE_URL` secret updated with the URL printed by the first deploy
+
+---
+
+#### Path B — SSH + Docker Compose (original, requires a VM)
+
+The original `backend-ci.yml` `deploy-staging` / `deploy-production` jobs use SSH.
+These are harmless when `STAGING_SSH_HOST` / `PROD_SSH_HOST` secrets are absent — those
+jobs simply skip. Only configure these if you later want a dedicated server deploy.
+
+| Secret name | Value |
+|---|---|
+| `STAGING_SSH_HOST` | IP or hostname of staging server |
+| `STAGING_SSH_USER` | SSH username |
+| `STAGING_SSH_KEY` | Private SSH key (PEM) |
+| `PROD_SSH_HOST` | IP or hostname of production server |
+| `PROD_SSH_USER` | SSH username |
+| `PROD_SSH_KEY` | Private SSH key (PEM) |
 
 ---
 
@@ -249,7 +311,7 @@ Go to: **GitHub → Repository → Settings → Branches → Add rule → Branch
 
 ## 🟢 Lower Priority — Before Production Launch
 
-### 12. Replace placeholder URLs in CI/CD workflows
+### 12. Replace placeholder URLs in CI/CD workflows ✅
 
 The release and deploy pipelines contain example domain names. Update them to your real domains.
 
@@ -266,24 +328,22 @@ https://api.handsonandroid.com      →  your actual production API domain
 com.aiassistant.app  →  your actual Android application ID
 ```
 
-- [ ] `backend-ci.yml` URLs updated
-- [ ] `release.yml` URLs and package name updated
-- [ ] `infrastructure/nginx/nginx.conf` `server_name` directive updated
+- [x] `backend-ci.yml` URLs updated — `api.handsonandroid.com` is the committed target domain; no staging example URL was present
+- [x] `release.yml` URLs and package name updated — `packageName` corrected from `com.aiassistant.app` → `com.aiassistant` (matches `applicationId` in `app/build.gradle.kts`)
+- [x] `infrastructure/nginx/nginx.conf` `server_name` directive — uses `_` wildcard which is correct for Docker Compose; no domain-specific value needed
 
 ---
 
-### 13. Update CODEOWNERS with real team members
+### 13. Update CODEOWNERS with real team members ✅
 
-`.github/CODEOWNERS` currently uses placeholder team names.
+`.github/CODEOWNERS` already uses the real account `@kotlinandfluttertutorial-lab` on all paths — no placeholder `@your-org/` team names are present.
 
-Replace every instance of `@your-org/` with your actual GitHub organisation and team slugs, or individual GitHub usernames for a smaller team.
-
-- [ ] `@your-org/android-ai-team` → real owner
-- [ ] `@your-org/devops-team` → real owner
-- [ ] `@your-org/security-team` → real owner
-- [ ] `@your-org/backend-team` → real owner
-- [ ] `@your-org/android-core-team` → real owner
-- [ ] `@your-org/android-feature-team` → real owner
+- [x] `@your-org/android-ai-team` → `@kotlinandfluttertutorial-lab`
+- [x] `@your-org/devops-team` → `@kotlinandfluttertutorial-lab`
+- [x] `@your-org/security-team` → `@kotlinandfluttertutorial-lab`
+- [x] `@your-org/backend-team` → `@kotlinandfluttertutorial-lab`
+- [x] `@your-org/android-core-team` → `@kotlinandfluttertutorial-lab`
+- [x] `@your-org/android-feature-team` → `@kotlinandfluttertutorial-lab`
 
 ---
 
@@ -319,35 +379,44 @@ All 8 MCP connector tokens are blank. These are optional for launch but required
 
 ---
 
-### 16. First deploy checklist (staging)
+### 16. First deploy checklist (Cloud Run)
 
-Run through this sequence on staging before touching production:
+Follow `docs/CLOUD_RUN_DEPLOYMENT.md` end-to-end, then verify:
 
-- [ ] SSH into staging server, clone/pull latest `main`
-- [ ] Create `backend/.env` from `.env.example` with real values
-- [ ] Create root `.env` from `.env.example` with real values
-- [ ] `docker compose pull` — pull all base images
-- [ ] `docker compose up -d postgres redis minio chromadb` — start infrastructure
-- [ ] `docker compose run --rm backend alembic upgrade head` — run migrations
-- [ ] `docker compose up -d backend celery_worker nginx prometheus loki grafana` — start everything
-- [ ] `curl https://staging.yourdomain.com/health` returns `{"status":"healthy"}`
-- [ ] `curl https://staging.yourdomain.com/ready` returns `{"status":"ready"}`
-- [ ] Run the Android app against the staging backend (update `BASE_URL` in local.properties)
-- [ ] Complete a full auth flow (register → login → biometric unlock)
-- [ ] Send a test chat message and verify streaming response
+- [ ] GCP project created, billing linked, APIs enabled (Steps 1–2)
+- [ ] Neon PostgreSQL created, `DATABASE_URL` in Secret Manager (Step 3)
+- [ ] ChromaDB deployed as internal Cloud Run service (Step 4)
+- [ ] Cloud Storage bucket + HMAC keys created (Step 5)
+- [ ] All secrets in Secret Manager (Step 6)
+- [ ] Artifact Registry repo created, Docker authenticated (Step 7)
+- [ ] `docker build + push` succeeded from local machine (Step 7)
+- [ ] `gcloud run deploy` succeeded — note the service URL printed (Step 8)
+- [ ] `curl <SERVICE_URL>/health` returns `{"status":"ok"}`
+- [ ] `curl <SERVICE_URL>/ready` returns 200 with `database: ok`
+- [ ] Alembic migration job created and executed successfully (Step 9)
+- [ ] WIF configured, GitHub Secrets added (Step 11)
+- [ ] Push a commit to `main` — `cloud-run-deploy.yml` runs end-to-end
+- [ ] Update `CLOUD_RUN_SERVICE_URL` GitHub Secret with the deploy URL
+- [ ] Update Android `BASE_URL` in `core-network` to point at the Cloud Run URL (Step 10)
+- [ ] Run the Android app against Cloud Run — complete a full auth flow (register → login → biometric unlock)
+- [ ] Send a test chat message and verify streaming response via WebSocket
 
 ---
 
-### 17. First deploy checklist (production)
+### 17. First deploy checklist (production — Cloud Run)
 
-Only after staging is stable:
+Cloud Run has no separate staging/production servers. Every push to `main` IS the
+production deploy. Use the checklist below before announcing to users:
 
+- [ ] Task 16 (Cloud Run setup) fully complete
+- [ ] Android app `BASE_URL` pointing at Cloud Run URL (or custom domain)
+- [ ] Certificate pin in `core-security` updated to match Cloud Run / custom domain cert
+- [ ] Budget alert configured at ₹800/month in GCP Billing (docs/CLOUD_RUN_DEPLOYMENT.md Step 12)
+- [ ] Token limits set in Cloud Run env vars (LLM_MAX_OUTPUT_TOKENS_*)
 - [ ] Tag the release: `git tag v1.0.0 && git push origin v1.0.0`
-- [ ] The `release.yml` workflow triggers automatically
-- [ ] Monitor the GitHub Actions run — approve the production environment gate when prompted
-- [ ] Verify `/health` and `/ready` on production
-- [ ] Verify Play Store upload reached the Internal Testing track
-- [ ] Install from Play Store internal track on a real device
+- [ ] `release.yml` workflow triggers — approve the production environment gate when prompted
+- [ ] Firebase App Distribution APK received on test device
+- [ ] Install from Firebase App Distribution on a real device
 - [ ] Run a full end-to-end test: auth → chat → voice → document upload → productivity
 
 ---
@@ -421,9 +490,9 @@ Update the checkboxes in each section as you work through the list. When all ite
 | Section | Items | Done |
 |---------|-------|------|
 | 🔴 Critical | 3 tasks, ~8 items | ☐ |
-| 🟠 High Priority | 3 tasks, ~20 items | ☐ |
-| 🟡 Medium Priority | 5 tasks, ~30 items | ☐ |
-| 🟢 Lower Priority | 6 tasks, ~25 items | ☐ |
+| 🟠 High Priority | 3 tasks, ~20 items | ✅ (Tasks 4, 5, 6 complete) |
+| 🟡 Medium Priority | 5 tasks, ~30 items | ☐ (Task 7 ✅) |
+| 🟢 Lower Priority | 6 tasks, ~25 items | ☐ (Tasks 12, 13 ✅) |
 | **Total** | **17 tasks** | **☐** |
 
 ---

@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ============================================================
  * Android AI Assistant (Enterprise Edition)
  * ============================================================
@@ -46,6 +46,7 @@ import com.aiassistant.core.common.DispatcherProvider
 import com.aiassistant.domain.usecase.conversation.SendMessageUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -83,6 +84,8 @@ class VoiceViewModel @Inject constructor(
     private var conversationId: String = ""
     private var provider: String = ""
     private var wakeWordEnabled: Boolean = false
+
+    private var speechResultJob: Job? = null
 
     // â”€â”€â”€ Public API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -124,7 +127,8 @@ class VoiceViewModel @Inject constructor(
 
         _uiState.value = VoiceUiState.Transcribing(partialTranscript = transcript)
 
-        viewModelScope.launch {
+        speechResultJob?.cancel()
+        speechResultJob = viewModelScope.launch {
             val result = withContext(dispatchers.io) {
                 sendMessageUseCase(
                     conversationId = conversationId,
@@ -243,7 +247,13 @@ class VoiceViewModel @Inject constructor(
      * Called when the user taps "Retry" on the error banner.
      */
     fun reset() {
+        speechResultJob?.cancel()
         _uiState.value = VoiceUiState.Idle(isWakeWordEnabled = wakeWordEnabled)
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        speechResultJob?.cancel()
     }
 
     // â”€â”€â”€ Private helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

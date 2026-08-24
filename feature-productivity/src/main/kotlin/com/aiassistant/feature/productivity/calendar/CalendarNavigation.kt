@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ============================================================
  * Android AI Assistant (Enterprise Edition)
  * ============================================================
@@ -113,6 +113,7 @@ fun NavGraphBuilder.calendarNavGraph(
                 onEditEvent = { event -> viewModel.openEditEvent(event) },
                 onDeleteEvent = { eventId -> viewModel.deleteEvent(eventId) },
                 onBack = onNavigateUp,
+                // uses SuggestMeetingTimesUseCase
                 onRequestAiSuggestions = { viewModel.requestAiMeetingTimeSuggestions() },
                 onAcceptSuggestedTime = { suggestion ->
                     viewModel.openNewEvent(suggestion.startTime)

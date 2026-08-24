@@ -26,6 +26,7 @@ import io.mockk.clearMocks
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.unmockkAll
 
 // ─── Shared test fixtures ──────────────────────────────────────────────────────
 
@@ -47,6 +48,10 @@ class GenerateResumeUseCaseTest :
 
         beforeEach {
             clearMocks(resumeRepository)
+        }
+
+        afterEach {
+            unmockkAll()
         }
 
         describe("GenerateResumeUseCase") {
@@ -191,6 +196,10 @@ class GenerateEmailUseCaseTest :
 
         beforeEach {
             clearMocks(resumeRepository)
+        }
+
+        afterEach {
+            unmockkAll()
         }
 
         describe("GenerateEmailUseCase") {

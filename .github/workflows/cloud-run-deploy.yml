@@ -1,0 +1,379 @@
+# ============================================================================
+# Cloud Run Deploy Pipeline — ₹0–₹1,000/month Budget Architecture
+# ============================================================================
+#
+# Purpose:
+#   Deploy the FastAPI backend to Google Cloud Run on every push to main.
+#   This is the budget-first production path documented in
+#   docs/CLOUD_RUN_DEPLOYMENT.md.
+#
+# Architecture:
+#   Cloud Run (FastAPI) → Neon PostgreSQL + ChromaDB on Cloud Run
+#                       → Cloud Storage (file uploads, replaces MinIO)
+#                       → Secret Manager (all secrets)
+#                       → OpenAI / Gemini (pay-per-token)
+#
+# What this workflow does on every push to main:
+#   1. Builds a multi-arch Docker image from backend/Dockerfile
+#   2. Pushes to Artifact Registry
+#   3. Runs Alembic migrations as a Cloud Run Job
+#   4. Deploys the new revision to Cloud Run
+#   5. Smoke-tests /health and /ready
+#
+# Authentication:
+#   Workload Identity Federation — no long-lived service account key files.
+#   See docs/CLOUD_RUN_DEPLOYMENT.md Step 11.1 for one-time WIF setup.
+#
+# Required GitHub Secrets (Settings → Secrets → Actions):
+#   GCP_PROJECT_ID         — GCP project ID, e.g. android-ai-assistant
+#   GCP_REGION             — Deploy region, e.g. asia-south1
+#   GCP_WIF_PROVIDER       — Full WIF provider resource name
+#   GCP_SERVICE_ACCOUNT    — SA email, e.g. ai-assistant-backend@PROJECT.iam.gserviceaccount.com
+#   CLOUD_RUN_SERVICE      — Cloud Run service name, e.g. ai-assistant-backend
+#   CLOUD_RUN_SERVICE_URL  — Full HTTPS URL of the Cloud Run service (set after first deploy)
+#   CHROMA_SERVICE_NAME    — Cloud Run service name for ChromaDB, e.g. chromadb
+#   SQL_CONN_NAME          — Cloud SQL connection name (only if/when you migrate to Cloud SQL)
+#
+# Optional — only needed when Cloud SQL is added later:
+#   SQL_CONN_NAME          — e.g. android-ai-assistant:asia-south1:ai-assistant-db
+#
+# Required GitHub Variables (Settings → Variables → Actions):
+#   GCP_ARTIFACT_REPO      — Artifact Registry repo name, e.g. backend
+#
+# Cost guard:
+#   min-instances: 0  → service scales to zero when unused
+#   max-instances: 2  → hard cap on parallel instances
+#   concurrency: 40   → one instance handles 40 parallel requests before scaling
+#
+# Trigger:
+#   push → main (after tests pass in backend-ci.yml)
+#   workflow_dispatch (manual)
+# ============================================================================
+
+name: cloud-run-deploy
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "backend/**"
+      - ".github/workflows/cloud-run-deploy.yml"
+  workflow_dispatch:
+    inputs:
+      skip_migrations:
+        description: "Skip Alembic migrations (use when schema has not changed)"
+        required: false
+        default: "false"
+
+concurrency:
+  group: cloud-run-deploy-${{ github.ref }}
+  cancel-in-progress: true   # cancel an in-flight deploy when a newer push arrives
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 1. Build and push Docker image to Artifact Registry
+  # ──────────────────────────────────────────────────────────────────────────
+  build:
+    name: Build & Push Image
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      id-token: write   # WIF requires this
+
+    outputs:
+      image: ${{ steps.image.outputs.ref }}
+      digest: ${{ steps.push.outputs.digest }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Authenticate to Google Cloud (WIF)
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Authenticate Docker to Artifact Registry
+        run: |
+          gcloud auth configure-docker ${{ secrets.GCP_REGION }}-docker.pkg.dev --quiet
+
+      - name: Set up Docker Buildx (multi-arch)
+        uses: docker/setup-buildx-action@v3
+
+      - name: Compute image reference
+        id: image
+        run: |
+          REPO="${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPO }}/api"
+          TAG="sha-${{ github.sha }}"
+          echo "ref=$REPO:$TAG" >> "$GITHUB_OUTPUT"
+          echo "repo=$REPO"     >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG"       >> "$GITHUB_OUTPUT"
+
+      - name: Build and push
+        id: push
+        uses: docker/build-push-action@v6
+        with:
+          context: backend
+          file: backend/Dockerfile
+          target: production
+          # amd64 only — arm64 is slow on GitHub hosted runners and not needed yet
+          # Add linux/arm64 when you need it (costs 2× build time)
+          platforms: linux/amd64
+          push: true
+          tags: |
+            ${{ steps.image.outputs.ref }}
+            ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPO }}/api:latest
+          cache-from: type=registry,ref=${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPO }}/api:buildcache
+          cache-to: type=registry,ref=${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPO }}/api:buildcache,mode=max
+          provenance: false   # keeps image manifest simple; enable when you need SLSA
+
+      - name: Image summary
+        run: |
+          echo "### 🐳 Image pushed" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Image | \`${{ steps.image.outputs.ref }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Digest | \`${{ steps.push.outputs.digest }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Commit | \`${{ github.sha }}\` |" >> "$GITHUB_STEP_SUMMARY"
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 2. Run Alembic migrations as a Cloud Run Job
+  #
+  #    Creates the job on first run; updates it on subsequent runs.
+  #    Runs alembic upgrade head then exits — billed only for execution time.
+  #    Skip with workflow_dispatch input skip_migrations=true when schema
+  #    has not changed to save ~30 seconds of deploy time.
+  # ──────────────────────────────────────────────────────────────────────────
+  migrate:
+    name: Alembic Migrate
+    runs-on: ubuntu-latest
+    needs: build
+    if: github.event.inputs.skip_migrations != 'true'
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Authenticate to Google Cloud (WIF)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Create or update migration job
+        # Uses || true so the create does not fail if the job already exists;
+        # the update path is taken on all subsequent runs.
+        run: |
+          IMAGE="${{ needs.build.outputs.image }}"
+          REGION="${{ secrets.GCP_REGION }}"
+          SA="${{ secrets.GCP_SERVICE_ACCOUNT }}"
+
+          # Try update first (fastest path on repeat deploys)
+          gcloud run jobs update alembic-migrate \
+            --image="$IMAGE" \
+            --region="$REGION" \
+            --quiet \
+          || \
+          # Create on first run
+          gcloud run jobs create alembic-migrate \
+            --image="$IMAGE" \
+            --region="$REGION" \
+            --service-account="$SA" \
+            --set-secrets="\
+  DATABASE_URL=DATABASE_URL:latest,\
+  SECRET_KEY=SECRET_KEY:latest,\
+  REDIS_URL=REDIS_URL:latest,\
+  AES_ENCRYPTION_KEY=AES_ENCRYPTION_KEY:latest" \
+            --set-env-vars="ENVIRONMENT=production" \
+            --command="python" \
+            --args="-m,alembic,upgrade,head" \
+            --max-retries=1 \
+            --quiet
+
+      - name: Execute migration
+        run: |
+          gcloud run jobs execute alembic-migrate \
+            --region="${{ secrets.GCP_REGION }}" \
+            --wait \
+            --quiet
+          echo "✅ Alembic migrations complete"
+
+      - name: Show migration logs on failure
+        if: failure()
+        run: |
+          gcloud logging read \
+            'resource.type="cloud_run_job" AND resource.labels.job_name="alembic-migrate"' \
+            --limit=50 \
+            --format="value(textPayload)" \
+            --project="${{ secrets.GCP_PROJECT_ID }}"
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 3. Deploy new revision to Cloud Run
+  #
+  #    All secrets come from Secret Manager — no .env file on the container.
+  #    Non-secret env vars are inlined here.
+  #    Cost guards: min-instances=0, max-instances=2, concurrency=40.
+  # ──────────────────────────────────────────────────────────────────────────
+  deploy:
+    name: Deploy to Cloud Run
+    runs-on: ubuntu-latest
+    needs: [build, migrate]
+    # Run even if migrate was skipped (when skip_migrations=true)
+    if: always() && needs.build.result == 'success'
+
+    permissions:
+      contents: read
+      id-token: write
+
+    environment:
+      name: production
+      url: ${{ secrets.CLOUD_RUN_SERVICE_URL }}
+
+    outputs:
+      url: ${{ steps.deploy.outputs.url }}
+
+    steps:
+      - name: Authenticate to Google Cloud (WIF)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Get ChromaDB internal URL
+        id: chroma
+        run: |
+          # ChromaDB runs as an internal Cloud Run service.
+          # Strip https:// since CHROMA_HOST is host only.
+          HOST=$(gcloud run services describe "${{ secrets.CHROMA_SERVICE_NAME }}" \
+            --region="${{ secrets.GCP_REGION }}" \
+            --format="value(status.url)" \
+            --quiet 2>/dev/null \
+            | sed 's|https://||' \
+            || echo "chromadb-not-deployed")
+          echo "host=$HOST" >> "$GITHUB_OUTPUT"
+          echo "ChromaDB host: $HOST"
+
+      - name: Deploy to Cloud Run
+        id: deploy
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ secrets.CLOUD_RUN_SERVICE }}
+          region: ${{ secrets.GCP_REGION }}
+          image: ${{ needs.build.outputs.image }}
+          flags: >-
+            --service-account=${{ secrets.GCP_SERVICE_ACCOUNT }}
+            --min-instances=0
+            --max-instances=2
+            --cpu=1
+            --memory=1Gi
+            --concurrency=40
+            --port=8000
+            --allow-unauthenticated
+            --ingress=all
+          secrets: |-
+            SECRET_KEY=SECRET_KEY:latest
+            AES_ENCRYPTION_KEY=AES_ENCRYPTION_KEY:latest
+            DATABASE_URL=DATABASE_URL:latest
+            REDIS_URL=REDIS_URL:latest
+            MINIO_ACCESS_KEY=MINIO_ACCESS_KEY:latest
+            MINIO_SECRET_KEY=MINIO_SECRET_KEY:latest
+            OPENAI_API_KEY=OPENAI_API_KEY:latest
+            GEMINI_API_KEY=GEMINI_API_KEY:latest
+            ANTHROPIC_API_KEY=ANTHROPIC_API_KEY:latest
+          env_vars: |-
+            ENVIRONMENT=production
+            LOG_LEVEL=INFO
+            MINIO_ENDPOINT=storage.googleapis.com
+            MINIO_BUCKET_NAME=${{ secrets.GCP_PROJECT_ID }}-files
+            CHROMA_HOST=${{ steps.chroma.outputs.host }}
+            CHROMA_PORT=8001
+            DEFAULT_LLM_PROVIDER=gemini
+            LLM_FALLBACK_PROVIDER=openai
+            LLM_MAX_OUTPUT_TOKENS_OPENAI=2048
+            LLM_MAX_OUTPUT_TOKENS_GEMINI=4096
+            LLM_MAX_OUTPUT_TOKENS_CLAUDE=2048
+            PROMETHEUS_ENABLED=true
+            LOKI_URL=
+            DP_EPSILON=1.0
+
+      - name: Deploy summary
+        run: |
+          echo "### 🚀 Cloud Run Deploy" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Service | \`${{ secrets.CLOUD_RUN_SERVICE }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| URL | ${{ steps.deploy.outputs.url }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Image | \`${{ needs.build.outputs.image }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Commit | \`${{ github.sha }}\` |" >> "$GITHUB_STEP_SUMMARY"
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 4. Smoke test — /health and /ready
+  #
+  #    /health → liveness: process is alive
+  #    /ready  → readiness: DB + Redis reachable, all required env vars present
+  #    Both endpoints are implemented in backend/app/main.py.
+  # ──────────────────────────────────────────────────────────────────────────
+  smoke-test:
+    name: Smoke Test
+    runs-on: ubuntu-latest
+    needs: deploy
+
+    steps:
+      - name: Wait for revision to stabilise
+        run: sleep 15
+
+      - name: /health check
+        run: |
+          HTTP=$(curl -sSo /dev/null -w "%{http_code}" \
+            --retry 6 --retry-delay 8 --retry-connrefused \
+            "${{ needs.deploy.outputs.url }}/health")
+          echo "/health → $HTTP"
+          if [[ "$HTTP" != "200" ]]; then
+            echo "::error::/health returned $HTTP — deploy failed"
+            exit 1
+          fi
+          echo "✅ /health OK"
+
+      - name: /ready check
+        # /ready checks DB + Redis + env vars.
+        # Redis is a placeholder until Upstash/Memorystore is added —
+        # a non-200 here is a warning, not a hard failure.
+        run: |
+          RESPONSE=$(curl -sSo - -w "\nHTTP_STATUS:%{http_code}" \
+            --retry 3 --retry-delay 5 \
+            "${{ needs.deploy.outputs.url }}/ready" 2>/dev/null || echo "HTTP_STATUS:000")
+          HTTP=$(echo "$RESPONSE" | grep -o "HTTP_STATUS:[0-9]*" | cut -d: -f2)
+          BODY=$(echo "$RESPONSE" | grep -v "HTTP_STATUS:")
+          echo "/ready → $HTTP"
+          echo "$BODY" | python3 -m json.tool 2>/dev/null || echo "$BODY"
+          if [[ "$HTTP" == "200" ]]; then
+            echo "✅ /ready OK — all dependencies reachable"
+          else
+            echo "⚠️  /ready returned $HTTP — check dependency status above"
+            echo "This is a warning, not a failure — Redis may not yet be configured"
+          fi
+
+      - name: Full smoke summary
+        run: |
+          echo "### ✅ Smoke Test Complete" >> "$GITHUB_STEP_SUMMARY"
+          echo "Service URL: ${{ needs.deploy.outputs.url }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Docs: ${{ needs.deploy.outputs.url }}/docs" >> "$GITHUB_STEP_SUMMARY"

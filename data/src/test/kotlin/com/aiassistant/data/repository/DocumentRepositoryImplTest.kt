@@ -1,4 +1,4 @@
-﻿/**
+/**
  * DocumentRepositoryImplTest.kt â€” data module
  *
  * Purpose: Unit tests for [DocumentRepositoryImpl], focusing on:
@@ -45,6 +45,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.unmockkAll
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 
@@ -125,6 +126,11 @@ class DocumentRepositoryImplTest :
                 dispatchers = dispatchers,
                 context = context
             )
+        }
+
+        afterEach {
+            repository.cancelSync()
+            unmockkAll()
         }
 
         // ─── getDocuments() ─── Room emission ────────────────────────────────────
@@ -380,6 +386,12 @@ class DocumentRepositoryImplTest :
                     val uploadResponse = fakeDocumentUploadResponseDto(documentId = "new-doc", jobId = "new-job")
                     coEvery { remoteSource.uploadDocument(any()) } returns ApiResult.Success(uploadResponse)
                     every { connectivityObserver.isConnected() } returns true
+                    // Return a real InputStream with minimal bytes so readBytesFromUri() terminates
+                    // immediately. A relaxed-mock InputStream.read() returns 0 forever → OOM hang.
+                    val fakeInputStream = "pdf-content".toByteArray().inputStream()
+                    every { context.contentResolver } returns mockk {
+                        every { openInputStream(any()) } returns fakeInputStream
+                    }
 
                     val result = repository.uploadDocument("content://test/doc.pdf", "doc.pdf", "application/pdf")
 

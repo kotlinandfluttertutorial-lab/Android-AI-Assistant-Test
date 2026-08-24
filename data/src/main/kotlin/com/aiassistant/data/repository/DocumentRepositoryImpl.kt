@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ============================================================
  * Android AI Assistant (Enterprise Edition)
  * ============================================================
@@ -64,6 +64,7 @@ package com.aiassistant.data.repository
 
 import android.content.Context
 import android.util.Log
+import androidx.annotation.VisibleForTesting
 import com.aiassistant.core.common.ApiResult
 import com.aiassistant.core.common.DispatcherProvider
 import com.aiassistant.core.common.DomainError
@@ -81,6 +82,7 @@ import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.flow.map
@@ -116,6 +118,15 @@ class DocumentRepositoryImpl @Inject constructor(
 ) : DocumentRepository {
 
     private val repositoryScope = CoroutineScope(SupervisorJob() + dispatchers.io)
+
+    /**
+     * Cancels the internal repository scope.
+     * Only used in unit tests to prevent CoroutineScope leaks.
+     */
+    @VisibleForTesting
+    internal fun cancelSync() {
+        repositoryScope.cancel()
+    }
 
     // â”€â”€â”€ DocumentRepository â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -283,11 +294,7 @@ class DocumentRepositoryImpl @Inject constructor(
         documentDao.getDocumentById(documentId).firstOrNull()?.jobId
 
     /** Updates the [ingestionStatus] (and optionally [errorMessage]) of a document in Room. */
-    private suspend fun updateLocalStatus(
-        documentId: String,
-        status: IngestionStatus,
-        errorMessage: String? = null
-    ) {
+    private suspend fun updateLocalStatus(documentId: String, status: IngestionStatus, errorMessage: String? = null) {
         val entity = documentDao.getDocumentById(documentId).firstOrNull() ?: return
         documentDao.updateDocument(
             entity.copy(

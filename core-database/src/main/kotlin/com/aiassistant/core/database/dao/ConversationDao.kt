@@ -1,4 +1,4 @@
-﻿/*
+/*
  * ============================================================
  * Android AI Assistant (Enterprise Edition)
  * ============================================================
@@ -78,7 +78,7 @@ interface ConversationDao {
     @Query(
         """
         SELECT conversations.* FROM conversations
-        JOIN conversations_fts ON conversations.id = conversations_fts.rowid
+        JOIN conversations_fts ON conversations.rowid = conversations_fts.docid
         WHERE conversations_fts MATCH :query
           AND conversations.userId = :userId
           AND conversations.isDeleted = 0

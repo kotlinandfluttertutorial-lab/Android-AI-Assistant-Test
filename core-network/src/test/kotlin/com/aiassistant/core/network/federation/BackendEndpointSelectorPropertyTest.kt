@@ -34,6 +34,7 @@ import io.kotest.property.arbitrary.list
 import io.kotest.property.arbitrary.long
 import io.kotest.property.arbitrary.map
 import io.kotest.property.checkAll
+import io.mockk.unmockkAll
 
 // ─── Generators ───────────────────────────────────────────────────────────────
 
@@ -72,6 +73,8 @@ private val arbEndpointList: Arb<List<BackendEndpoint>> = Arb.list(arbEndpoint, 
 
 class BackendEndpointSelectorPropertyTest :
     FunSpec({
+
+        afterSpec { unmockkAll() }
 
         val selector = BackendEndpointSelector()
 

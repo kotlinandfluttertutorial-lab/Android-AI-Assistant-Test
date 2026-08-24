@@ -50,6 +50,8 @@ import com.aiassistant.domain.model.Priority
 import com.aiassistant.domain.model.Reminder
 import com.aiassistant.domain.model.SyncStatus
 import com.aiassistant.domain.model.TodoItem
+import com.aiassistant.domain.repository.DateRange
+import com.aiassistant.domain.repository.TodoFilter
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
@@ -58,6 +60,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.unmockkAll
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.runTest
 
@@ -214,6 +217,11 @@ class ProductivityRepositoryImplTest :
                 secureStorage = secureStorage,
                 dispatchers = dispatchers
             )
+        }
+
+        afterEach {
+            repository.cancelSync()
+            unmockkAll()
         }
 
         // ─── createTodo() ─────────────────────────────────────────────────────────
@@ -582,6 +590,290 @@ class ProductivityRepositoryImplTest :
                     val result = repository.getHabitInsights("habit-1")
 
                     result shouldBe ApiResult.Success("You complete this habit best on Mondays.")
+                }
+            }
+        }
+
+        // ─── suggestMeetingTimes() ────────────────────────────────────────────────
+
+        describe("suggestMeetingTimes()") {
+            it("returns NetworkUnavailable when offline") {
+                runTest {
+                    every { connectivityObserver.isConnected() } returns false
+
+                    val result = repository.suggestMeetingTimes("Team sync", 30)
+
+                    result shouldBe ApiResult.NetworkUnavailable
+                    coVerify(exactly = 0) { remoteSource.suggestMeetingTimes(any(), any()) }
+                }
+            }
+
+            it("delegates to remoteSource and returns result when online") {
+                runTest {
+                    every { connectivityObserver.isConnected() } returns true
+                    val slots = listOf("2026-08-25T10:00Z", "2026-08-25T14:00Z")
+                    coEvery { remoteSource.suggestMeetingTimes("Team sync", 30) } returns
+                        ApiResult.Success(slots)
+
+                    val result = repository.suggestMeetingTimes("Team sync", 30)
+
+                    result.shouldBeInstanceOf<ApiResult.Success<*>>()
+                    (result as ApiResult.Success).data shouldBe slots
+                }
+            }
+
+            it("propagates Error from remoteSource") {
+                runTest {
+                    every { connectivityObserver.isConnected() } returns true
+                    coEvery { remoteSource.suggestMeetingTimes(any(), any()) } returns
+                        ApiResult.Error(DomainError.ServerError("AI error", 500))
+
+                    val result = repository.suggestMeetingTimes("prompt", 60)
+
+                    result.shouldBeInstanceOf<ApiResult.Error>()
+                }
+            }
+        }
+
+        // ─── getTodos() ───────────────────────────────────────────────────────────
+
+        describe("getTodos()") {
+            it("emits Success with all todos when no filter criteria") {
+                runTest {
+                    val entity = com.aiassistant.core.database.entity.TodoItemEntity(
+                        id = "t-1", userId = "userId", title = "Task",
+                        description = "", isCompleted = false, dueDate = null,
+                        priority = "medium", tags = "[]", syncStatus = "synced",
+                        createdAt = 1L, updatedAt = 2L
+                    )
+                    every { todoItemDao.getTodosByCompletion(any(), any()) } returns flowOf(listOf(entity))
+
+                    repository.getTodos(TodoFilter(showCompleted = false)).collect { result ->
+                        result.shouldBeInstanceOf<ApiResult.Success<*>>()
+                        (result as ApiResult.Success).data.size shouldBe 1
+                    }
+                }
+            }
+
+            it("applies priority filter when set") {
+                runTest {
+                    val highEntity = com.aiassistant.core.database.entity.TodoItemEntity(
+                        id = "t-high", userId = "u", title = "High prio",
+                        description = "", isCompleted = false, dueDate = null,
+                        priority = "high", tags = "[]", syncStatus = "synced",
+                        createdAt = 1L, updatedAt = 2L
+                    )
+                    val medEntity = com.aiassistant.core.database.entity.TodoItemEntity(
+                        id = "t-med", userId = "u", title = "Med prio",
+                        description = "", isCompleted = false, dueDate = null,
+                        priority = "medium", tags = "[]", syncStatus = "synced",
+                        createdAt = 1L, updatedAt = 2L
+                    )
+                    every { todoItemDao.getTodosByCompletion(any(), any()) } returns
+                        flowOf(listOf(highEntity, medEntity))
+
+                    repository.getTodos(TodoFilter(showCompleted = false, priority = Priority.HIGH))
+                        .collect { result ->
+                            val todos = (result as ApiResult.Success).data
+                            todos.size shouldBe 1
+                            todos[0].id shouldBe "t-high"
+                        }
+                }
+            }
+
+            it("applies tag filter when set") {
+                runTest {
+                    val taggedEntity = com.aiassistant.core.database.entity.TodoItemEntity(
+                        id = "t-tagged", userId = "u", title = "Tagged",
+                        description = "", isCompleted = false, dueDate = null,
+                        priority = "medium", tags = """["work"]""", syncStatus = "synced",
+                        createdAt = 1L, updatedAt = 2L
+                    )
+                    val untaggedEntity = com.aiassistant.core.database.entity.TodoItemEntity(
+                        id = "t-untagged", userId = "u", title = "Untagged",
+                        description = "", isCompleted = false, dueDate = null,
+                        priority = "medium", tags = "[]", syncStatus = "synced",
+                        createdAt = 1L, updatedAt = 2L
+                    )
+                    every { todoItemDao.getTodosByCompletion(any(), any()) } returns
+                        flowOf(listOf(taggedEntity, untaggedEntity))
+
+                    repository.getTodos(TodoFilter(showCompleted = false, tag = "work"))
+                        .collect { result ->
+                            val todos = (result as ApiResult.Success).data
+                            todos.size shouldBe 1
+                            todos[0].id shouldBe "t-tagged"
+                        }
+                }
+            }
+
+            it("applies dueBefore filter when set") {
+                runTest {
+                    val dueEarlyEntity = com.aiassistant.core.database.entity.TodoItemEntity(
+                        id = "t-early", userId = "u", title = "Early",
+                        description = "", isCompleted = false, dueDate = 1000L,
+                        priority = "medium", tags = "[]", syncStatus = "synced",
+                        createdAt = 1L, updatedAt = 2L
+                    )
+                    val dueLateEntity = com.aiassistant.core.database.entity.TodoItemEntity(
+                        id = "t-late", userId = "u", title = "Late",
+                        description = "", isCompleted = false, dueDate = 9000L,
+                        priority = "medium", tags = "[]", syncStatus = "synced",
+                        createdAt = 1L, updatedAt = 2L
+                    )
+                    every { todoItemDao.getTodosByCompletion(any(), any()) } returns
+                        flowOf(listOf(dueEarlyEntity, dueLateEntity))
+
+                    repository.getTodos(TodoFilter(showCompleted = false, dueBefore = 5000L))
+                        .collect { result ->
+                            val todos = (result as ApiResult.Success).data
+                            todos.size shouldBe 1
+                            todos[0].id shouldBe "t-early"
+                        }
+                }
+            }
+        }
+
+        // ─── getCalendarEvents() ──────────────────────────────────────────────────
+
+        describe("getCalendarEvents()") {
+            it("emits Success from Room immediately") {
+                runTest {
+                    val entity = com.aiassistant.core.database.entity.CalendarEventEntity(
+                        id = "ev-1", userId = "u", title = "Stand-up",
+                        description = "", startTime = 1L, endTime = 2L,
+                        location = null, isAllDay = false, source = "local",
+                        syncStatus = "synced", createdAt = 1L, updatedAt = 2L
+                    )
+                    every { connectivityObserver.isConnected() } returns false
+                    every { calendarEventDao.getEventsInRange(any(), any(), any()) } returns
+                        flowOf(listOf(entity))
+                    coEvery { remoteSource.getGoogleCalendarEvents(any(), any()) } returns
+                        ApiResult.NetworkUnavailable
+
+                    repository.getCalendarEvents(DateRange(0L, 9999L)).collect { result ->
+                        result.shouldBeInstanceOf<ApiResult.Success<*>>()
+                        (result as ApiResult.Success).data.size shouldBe 1
+                    }
+                }
+            }
+        }
+
+        // ─── getReminders() ───────────────────────────────────────────────────────
+
+        describe("getReminders()") {
+            it("emits Success from Room") {
+                runTest {
+                    val entity = com.aiassistant.core.database.entity.ReminderEntity(
+                        id = "rem-flow", userId = "u", title = "Wake up",
+                        triggerTime = 1L, recurrenceRule = null,
+                        linkedTodoId = null, isCompleted = false,
+                        syncStatus = "synced", createdAt = 1L, updatedAt = 2L
+                    )
+                    every { reminderDao.getAllSortedByTriggerTime(any()) } returns flowOf(listOf(entity))
+
+                    repository.getReminders().collect { result ->
+                        result.shouldBeInstanceOf<ApiResult.Success<*>>()
+                        (result as ApiResult.Success).data.size shouldBe 1
+                    }
+                }
+            }
+        }
+
+        // ─── getHabits() ──────────────────────────────────────────────────────────
+
+        describe("getHabits()") {
+            it("emits Success from Room") {
+                runTest {
+                    val entity = com.aiassistant.core.database.entity.HabitDefinitionEntity(
+                        id = "h-flow",
+                        userId = "u",
+                        name = "Run",
+                        description = "",
+                        recurrence = "daily",
+                        targetFrequency = 1,
+                        createdAt = 1L,
+                        updatedAt = 2L
+                    )
+                    every { habitDefinitionDao.getAll(any()) } returns flowOf(listOf(entity))
+
+                    repository.getHabits().collect { result ->
+                        result.shouldBeInstanceOf<ApiResult.Success<*>>()
+                        (result as ApiResult.Success).data.size shouldBe 1
+                    }
+                }
+            }
+        }
+
+        // ─── getHabitEntries() ────────────────────────────────────────────────────
+
+        describe("getHabitEntries()") {
+            it("emits Success from Room for the given habitId") {
+                runTest {
+                    val entity = com.aiassistant.core.database.entity.HabitEntryEntity(
+                        id = "entry-flow",
+                        habitId = "habit-1",
+                        userId = "u",
+                        completedAt = 1L,
+                        note = null
+                    )
+                    every { habitEntryDao.getEntriesForHabit("habit-1") } returns flowOf(listOf(entity))
+
+                    repository.getHabitEntries("habit-1").collect { result ->
+                        result.shouldBeInstanceOf<ApiResult.Success<*>>()
+                        (result as ApiResult.Success).data.size shouldBe 1
+                    }
+                }
+            }
+        }
+
+        // ─── updateReminder() online path ─────────────────────────────────────────
+
+        describe("updateReminder() — online sync") {
+            it("syncs update to remote and updates Room on success") {
+                runTest {
+                    every { connectivityObserver.isConnected() } returns true
+                    coEvery { remoteSource.updateReminder(any(), any()) } returns
+                        ApiResult.Success(fakeReminderDto())
+                    coEvery { reminderDao.update(any()) } returns Unit
+
+                    repository.updateReminder(fakeReminder())
+
+                    coVerify(atLeast = 1) { remoteSource.updateReminder(any(), any()) }
+                }
+            }
+
+            it("marks reminder as FAILED in Room when remote update fails") {
+                runTest {
+                    every { connectivityObserver.isConnected() } returns true
+                    coEvery { remoteSource.updateReminder(any(), any()) } returns
+                        ApiResult.Error(DomainError.NetworkError("timeout"))
+                    coEvery { reminderDao.update(any()) } returns Unit
+
+                    repository.updateReminder(fakeReminder())
+
+                    coVerify {
+                        reminderDao.update(match { it.syncStatus == "failed" || it.syncStatus == "pending" })
+                    }
+                }
+            }
+        }
+
+        // ─── syncTodoRemote failure path ──────────────────────────────────────────
+
+        describe("createTodo() — remote sync failure marks todo FAILED") {
+            it("marks todo as FAILED in Room when remote sync returns Error") {
+                runTest {
+                    every { connectivityObserver.isConnected() } returns true
+                    coEvery { remoteSource.updateTodo(any(), any()) } returns
+                        ApiResult.Error(DomainError.NetworkError("timeout"))
+                    coEvery { todoItemDao.update(any()) } returns Unit
+
+                    repository.createTodo(fakeTodoItem())
+
+                    coVerify {
+                        todoItemDao.update(match { it.syncStatus == "failed" || it.syncStatus == "pending" })
+                    }
                 }
             }
         }

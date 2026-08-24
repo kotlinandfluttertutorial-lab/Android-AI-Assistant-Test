@@ -1,10 +1,11 @@
-﻿/*
+/*
  * ============================================================
  * Android AI Assistant (Enterprise Edition)
  * ============================================================
  * Module     : feature-productivity
- * File       : ProductivityViewModel.kt
- * Purpose    : Manages UI state and delegates actions to domain use cases for the Productivity feature
+ * File       : ReminderViewModel.kt
+ * Purpose    : Manages UI state and delegates actions to domain use cases for the Reminders
+ *              sub-feature of the Productivity Suite.
  *
  * Architecture Layer : Feature (feature-productivity)
  * Pattern Used       : MVVM ViewModel
@@ -23,8 +24,9 @@
  * Android AI Assistant (Enterprise Edition)
  * ============================================================
  * Module     : feature-productivity
- * File       : ProductivityViewModel.kt
- * Purpose    : Manages UI state and delegates actions to domain use cases for the Productivity feature
+ * File       : ReminderViewModel.kt
+ * Purpose    : Manages UI state and delegates actions to domain use cases for the Reminders
+ *              sub-feature of the Productivity Suite.
  *
  * Architecture Layer : Feature (feature-productivity)
  * Pattern Used       : MVVM ViewModel
@@ -38,7 +40,7 @@
  * ============================================================
  */
 /**
- * ProductivityViewModel.kt
+ * ReminderViewModel.kt
  *
  * Purpose: Shared ViewModel for the Productivity Suite sub-features â€” Reminders
  *          (this task), with StateFlow-backed state management, CRUD operations,
@@ -88,7 +90,7 @@ import kotlinx.coroutines.withContext
  * [ReminderEditorScreen]. All blocking I/O is dispatched on [DispatcherProvider.io].
  */
 @HiltViewModel
-class ProductivityViewModel @Inject constructor(
+class ReminderViewModel @Inject constructor(
     private val getRemindersUseCase: GetRemindersUseCase,
     private val createReminderUseCase: CreateReminderUseCase,
     private val updateReminderUseCase: UpdateReminderUseCase,
