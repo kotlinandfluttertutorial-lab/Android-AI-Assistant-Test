@@ -667,6 +667,7 @@ class DomainErrorTest :
                 fun describe(e: DomainError): String = when (e) {
                     is DomainError.NetworkError -> "NetworkError"
                     is DomainError.NetworkUnavailable -> "NetworkUnavailable"
+                    is DomainError.RequestTimeout -> "RequestTimeout"
                     is DomainError.Unauthorized -> "Unauthorized"
                     is DomainError.Forbidden -> "Forbidden"
                     is DomainError.ValidationError -> "ValidationError"

@@ -62,7 +62,7 @@ if (-not (Test-Path $GRADLEW)) {
 $GSJ = Join-Path $ROOT "app\google-services.json"
 if (-not (Test-Path $GSJ)) {
     Write-Step "Writing placeholder google-services.json..."
-    @'
+@'
 {
   "project_info": {
     "project_number": "000000000000",
