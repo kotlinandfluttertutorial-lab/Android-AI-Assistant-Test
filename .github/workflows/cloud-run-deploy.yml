@@ -298,7 +298,6 @@ jobs:
             OPENAI_API_KEY=OPENAI_API_KEY:latest
             GEMINI_API_KEY=GEMINI_API_KEY:latest
             ANTHROPIC_API_KEY=ANTHROPIC_API_KEY:latest
-            GOOGLE_CLIENT_ID=GOOGLE_CLIENT_ID:latest
           env_vars: |-
             ENVIRONMENT=production
             LOG_LEVEL=INFO

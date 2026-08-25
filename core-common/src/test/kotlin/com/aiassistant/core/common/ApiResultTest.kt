@@ -611,7 +611,7 @@ class ApiResultExtensionHelpersTest :
         }
     })
 
-// ─── DomainError sealed hierarchy ─────────────────────────────────────────────
+// ─── DomainError sealed hierarchy ────────────────────────────────────────────
 
 class DomainErrorTest :
     DescribeSpec({

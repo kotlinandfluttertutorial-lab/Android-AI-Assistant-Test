@@ -62,6 +62,31 @@ from app.services.auth_service import issue_tokens_for_user, logout_user, refres
 
 logger = logging.getLogger(__name__)
 
+# ---------------------------------------------------------------------------
+# Module-level cached Google transport Request.
+#
+# google.auth.transport.requests.Request is a thin wrapper around a
+# requests.Session that caches Google's public cert endpoint
+# (https://www.googleapis.com/oauth2/v1/certs) internally. Creating a new
+# instance per sign-in call causes a fresh HTTP round-trip to Google on every
+# authentication request, adding latency and risking a timeout under load.
+#
+# Reusing the same instance lets cached certs be reused across calls; certs
+# rotate every ~12 h and the cache respects Cache-Control, so they refresh
+# automatically.
+# ---------------------------------------------------------------------------
+_google_http_request: object | None = None
+
+
+def _get_google_http_request() -> object:
+    """Return the process-level cached Google transport Request, creating it on first use."""
+    global _google_http_request
+    if _google_http_request is None:
+        import google.auth.transport.requests as g_requests
+        _google_http_request = g_requests.Request()
+    return _google_http_request
+
+
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 
@@ -405,11 +430,10 @@ async def _google_auth_impl(
     # Verify the Google ID token in a thread pool (sync library call)
     # ------------------------------------------------------------------
     try:
-        import google.auth.transport.requests as g_requests
         import google.oauth2.id_token as g_id_token
 
         loop = asyncio.get_running_loop()
-        http_request = g_requests.Request()
+        http_request = _get_google_http_request()
 
         def _verify() -> dict:
             # Accept both the Web client ID and the Android client ID as valid
