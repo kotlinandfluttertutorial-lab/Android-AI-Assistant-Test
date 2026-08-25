@@ -123,8 +123,10 @@ class AuthViewModelTest {
         viewModel.login("user@example.com", "ValidPassword123!")
         advanceUntilIdle()
 
-        coVerify { secureStorage.saveJwt("test.jwt.token") }
-        coVerify { secureStorage.saveRefreshToken("test-refresh-token") }
+        // Token persistence is handled exclusively by AuthRepositoryImpl.persistTokens().
+        // The ViewModel no longer duplicates that write, so no storage calls are expected here.
+        coVerify(exactly = 0) { secureStorage.saveJwt(any()) }
+        coVerify(exactly = 0) { secureStorage.saveRefreshToken(any()) }
     }
 
     @org.junit.Ignore("Loading state timing is non-deterministic with test dispatchers")

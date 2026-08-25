@@ -1084,3 +1084,1005 @@ Implementation follows Clean Architecture from the ground up: core modules first
 - Backend Pytest line coverage must reach 70% before merging any PR.
 - The `feature-on-device-ai` module (task 33) may be integrated into `core-ai` or introduced as a standalone Gradle module depending on model size and build-time constraints; the decision should be made before starting task 33.1.
 - The `feature-on-device-rag` module (tasks 44–49) is a standalone Gradle module with no dependency on the Backend network layer; all inference and retrieval is performed entirely on-device.
+
+---
+
+## Task 50 — Screen-by-Screen UI Redesign Specification
+
+> **Purpose:** Define a cohesive, pixel-intentional visual redesign for eight key screens, the app-wide dark-mode implementation, and the motion/animation system. All redesign work is additive to the existing Clean Architecture and Compose infrastructure; it changes only `core-ui` design tokens and per-screen composables — no ViewModel, domain, or data layer changes are required.
+
+### Design Philosophy
+
+The redesign elevates the app from a functional utility to a premium AI product. The guiding principles are:
+
+- **Depth without clutter** — layered surfaces (elevation tiers), generous whitespace, and intentional color zoning replace the current flat card grid.
+- **Conversational warmth** — rounded corners, soft shadows, and gradient accents signal intelligence and approachability.
+- **Zero surprise motion** — every transition follows the M3 motion spec (shared element, container transform, fade-through); nothing moves purely for decoration.
+- **Dark-first** — dark mode is the primary design target; light mode is a clean inversion, not an afterthought.
+- **Type as hierarchy** — three weights of the brand typeface (Regular, Medium, SemiBold) drive all visual hierarchy; color is used for role, not decoration.
+
+---
+
+### 50.1 Design Token Additions (`core-ui`)
+
+Before tackling individual screens, extend the existing token set in `core-ui`:
+
+#### 50.1.1 Extended Color Tokens
+
+Add the following to `Color.kt` and both `LightColorScheme` / `DarkColorScheme`:
+
+| New role | Light value | Dark value | Purpose |
+|---|---|---|---|
+| `surfaceTonal1` | `#F4F6FF` | `#1E2030` | Cards floating above background |
+| `surfaceTonal2` | `#EEF0FC` | `#252740` | Nested card surfaces |
+| `surfaceTonal3` | `#E5E8F9` | `#2C2F4A` | Input field backgrounds |
+| `accentGlow` | `#1B6EF5` at 12% opacity | `#ADC6FF` at 16% opacity | Ambient AI-active glow behind avatar/orb |
+| `gradientStart` | `#1B6EF5` | `#5C8FFF` | Gradient primary start |
+| `gradientEnd` | `#705572` | `#DDB9DF` | Gradient primary end (blue→purple brand gradient) |
+| `ragAmber` | `#F59E0B` | `#FCD34D` | RAG document status: processing |
+| `ragGreen` | `#10B981` | `#34D399` | RAG document status: ready |
+| `ragRed` | `#EF4444` | `#F87171` | RAG document status: failed |
+| `ticketOpen` | `#3B82F6` | `#60A5FA` | Ticket status: open |
+| `ticketInProgress` | `#8B5CF6` | `#A78BFA` | Ticket status: in-progress |
+| `ticketClosed` | `#6B7280` | `#9CA3AF` | Ticket status: closed (neutral) |
+| `ticketUrgent` | `#EF4444` | `#F87171` | Ticket priority: urgent |
+
+#### 50.1.2 Extended Elevation Tokens
+
+Add `Elevation.kt` to `core-ui`:
+
+```kotlin
+object Elevation {
+    val none   = 0.dp   // Background plane
+    val low    = 1.dp   // Subtle lift: list items, dividers
+    val mid    = 3.dp   // Cards, bottom-bar
+    val high   = 6.dp   // Floating action elements, drawers
+    val modal  = 12.dp  // Dialogs, bottom sheets
+    val toast  = 24.dp  // Snackbars, toasts
+}
+```
+
+#### 50.1.3 Extended Spacing Tokens
+
+Add one token to the existing `Spacing` data class:
+
+```kotlin
+val screenEdge: Dp = 20.dp  // Replaces the 16dp screen-edge padding on redesigned screens
+```
+
+#### 50.1.4 Typography Additions
+
+Add three `TextStyle` extensions to `Type.kt`:
+
+| Token | Size | Weight | Use |
+|---|---|---|---|
+| `displayAI` | 48sp, `SemiBold` | SemiBold | Full-screen greeting or splash hero text |
+| `sectionLabel` | 11sp, `Medium`, 0.8sp tracking, ALL CAPS | Medium | Section dividers, group labels |
+| `chatTimestamp` | 11sp, `Normal`, 0.2sp tracking | Normal | Message timestamps, metadata |
+
+---
+
+### 50.2 Login Screen Redesign
+
+**Route:** `auth/login` · **File:** `feature-auth/LoginScreen.kt`
+
+#### Visual Layout
+
+```
+┌─────────────────────────────────┐
+│  ░░░░░░ Blurred-mesh gradient   │  ← Full-bleed animated gradient background (see §50.9)
+│                                 │
+│   ┌─────────────────────────┐   │
+│   │  ◉  AI Assistant logo   │   │  ← 72dp circular logo container, accentGlow ring
+│   │     (brand gradient)    │   │
+│   └─────────────────────────┘   │
+│                                 │
+│   Welcome back                  │  ← headlineLarge, onBackground
+│   Sign in to continue           │  ← bodyMedium, onSurfaceVariant
+│                                 │
+│  ┌───────────────────────────┐  │
+│  │  📧  Email address        │  │  ← surfaceTonal3 fill, no border in idle state
+│  └───────────────────────────┘  │  → focused: 2dp primary border + label floats up
+│                                 │
+│  ┌───────────────────────────┐  │
+│  │  🔒  Password         👁  │  │  ← same treatment, trailing show/hide icon
+│  └───────────────────────────┘  │
+│                                 │
+│  [ Forgot password? ]           │  ← right-aligned TextButton, labelMedium
+│                                 │
+│  ┌───────────────────────────┐  │
+│  │       Sign In             │  │  ← full-width, gradient fill Button (gradientStart→End)
+│  └───────────────────────────┘  │  → loading state: replaces text with 20dp CircularProgress
+│                                 │
+│  ─────────── or ───────────     │  ← divider with centered label
+│                                 │
+│  ┌──────────────────────────┐   │
+│  │  G  Continue with Google │   │  ← outlined, white bg / surface bg in dark mode
+│  └──────────────────────────┘   │
+│                                 │
+│  [ 🖐  Use biometrics ]         │  ← conditional, centered, iconButton + bodySmall label
+│                                 │
+│  Don't have an account?         │
+│  [ Create Account ]             │  ← inline TextButton, primary color
+└─────────────────────────────────┘
+```
+
+#### Interaction Details
+
+- **Background:** Animated mesh gradient that slowly shifts hue between `gradientStart` and `gradientEnd` using a 12-second `InfiniteTransition` (see §50.9.1). In dark mode the gradient is dark-desaturated so it reads as subtle depth rather than vibrant color.
+- **Logo container:** 72dp `Box` with circular `background(brush = Brush.radialGradient(...))` using brand colors. A `pulseScale` animation (0.97→1.03, 3s, `RepeatMode.Reverse`, `EaseInOutSine`) signals the AI is "alive" on the splash/login entry.
+- **Text fields:** Replace `OutlinedTextField` with a custom `SurfaceFillTextField` composable (`surfaceTonal3` background, `extraSmall` shape, no visible border in idle state, `primary`-colored 2dp border on focus). The label floats to the top-left inside the field on focus/non-empty (standard M3 behavior, but styled to the new surface).
+- **Sign In button:** `Button` using `Brush.linearGradient(gradientStart, gradientEnd)` as the container color via `ButtonDefaults.buttonColors(containerColor = Color.Transparent)` + `background(brush)` modifier. Includes a `CrossfadeAnimatedContent` between the label text and a `CircularProgressIndicator` during loading.
+- **Error banner:** Slide-down `AnimatedVisibility` from the top of the form (see §50.9.4).
+- **Biometric icon:** Only rendered when `isBiometricAvailable == true`. Uses `Icons.Filled.Fingerprint` with a scale-in `AnimatedVisibility`.
+
+#### Accessibility
+
+- `contentDescription = "Sign in to AI Assistant"` on the root `Column`.
+- Both text fields retain all existing `semantics` content descriptions.
+- The gradient button announces "Sign In button, double-tap to activate" (standard Button semantics are unchanged).
+
+---
+
+### 50.3 Home Dashboard Redesign
+
+**Route:** `home` · **File:** `app/HomeDashboard.kt`
+
+#### Visual Layout
+
+```
+┌─────────────────────────────────┐
+│  Good morning, [Name]   🔔  ⚙  │  ← headlineMedium greeting; trailing icon row
+│  Tuesday, August 25             │  ← bodySmall, onSurfaceVariant, date
+│─────────────────────────────────│
+│                                 │
+│  ┌──────────────────────────┐   │  ← "Ask AI" hero card, full-width
+│  │  ◉  What can I help      │   │     surfaceTonal1, shape.large, Elevation.mid
+│  │     you with today?      │   │     gradient left stripe (4dp, gradientStart)
+│  │  [ Type a message... ]   │   │     tapping navigates directly to ChatDetail (new)
+│  └──────────────────────────┘   │
+│                                 │
+│  Quick actions ─────────────    │  ← sectionLabel
+│                                 │
+│  ┌────┐ ┌────┐ ┌────┐ ┌────┐   │  ← horizontal LazyRow of QuickActionChip
+│  │ 💬 │ │ 🎙 │ │ 📷 │ │ 🔍 │   │     (Chat / Voice / Camera / Search)
+│  │Chat│ │Voice│ │Cam │ │RAG │   │     shape.small, surfaceTonal2, 48dp height
+│  └────┘ └────┘ └────┘ └────┘   │
+│                                 │
+│  Recent conversations ──────    │  ← sectionLabel; "See all" right-aligned TextButton
+│                                 │
+│  ┌──────────────────────────┐   │  ← ConversationPreviewCard × 3 max
+│  │ 💬 Project planning...   │   │     surfaceTonal1, shape.medium, Elevation.low
+│  │    2 hours ago           │   │     leading avatar with AI provider color dot
+│  └──────────────────────────┘   │
+│  ┌──────────────────────────┐   │
+│  │ 💬 Debug this function.. │   │
+│  │    Yesterday             │   │
+│  └──────────────────────────┘   │
+│                                 │
+│  Feature areas ─────────────    │  ← sectionLabel
+│                                 │
+│  ┌──────────┐  ┌──────────┐    │  ← 2-column LazyVerticalGrid, FeatureCard (redesigned)
+│  │ 📚 Docs  │  │ 💻 Code  │    │     130dp height, shape.large, surfaceTonal1
+│  │    & RAG │  │ Assistant│    │     icon 32dp primary tint, labelMedium, Elevation.mid
+│  └──────────┘  └──────────┘    │     hover/press: scale 0.97 with spring animation
+│  ┌──────────┐  ┌──────────┐    │
+│  │ ✉ Email  │  │ 📝 Notes │    │
+│  └──────────┘  └──────────┘    │
+│   …(remaining feature cards)…  │
+│                                 │
+│─────────────────────────────────│
+│  Chat │ History │ Voice │ Notes │  ← redesigned NavigationBar (see §50.3.1)
+└─────────────────────────────────┘
+```
+
+#### Sub-component: NavigationBar Redesign (§50.3.1)
+
+- Replace the plain `NavigationBar` with one using `surfaceTonal1` container color and `Elevation.mid` shadow.
+- Selected indicator: pill-shaped `NavigationBarItem` indicator using `primaryContainer` fill (M3 default, already correct) but with a `scaleIn` entry animation (see §50.9.3).
+- Icon size: 24dp → 22dp to tighten the visual weight.
+- Label: `labelSmall` (11sp) — unchanged size but now `Medium` weight.
+- The **Tasks** tab is renamed to **Tickets** (see §50.7) and its icon changes to `Icons.Outlined.ConfirmationNumber`.
+
+#### Sub-component: Hero "Ask AI" Card
+
+- `Card(shape = MaterialTheme.shapes.large, elevation = Elevation.mid)` with a 4dp left-side accent stripe painted as a `Box` overlay using `gradientStart` color.
+- Tapping the card navigates to `ChatRoute.detail(newConversationId)` by calling `CreateConversationUseCase` first (wired via a new `HomeDashboardViewModel` — the only ViewModel addition for this task).
+- `HomeDashboardViewModel` exposes `StateFlow<HomeDashboardUiState>` containing: `userName: String`, `recentConversations: List<Conversation>` (max 3), `todayDate: String`.
+
+#### Sub-component: QuickActionChip
+
+```kotlin
+@Composable
+fun QuickActionChip(
+    label: String,
+    icon: ImageVector,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+)
+```
+
+- `FilterChip` styled with `surfaceTonal2` background, `primary` icon tint, `labelSmall` text.
+- Press animation: `scale(0.94f)` with `spring(stiffness = Spring.StiffnessHigh)`.
+
+#### Sub-component: ConversationPreviewCard
+
+- `ListItem` wrapped in `Card(elevation = Elevation.low, shape = MaterialTheme.shapes.medium)`.
+- Leading: 40dp circular avatar showing the first letter of the conversation title on `primaryContainer` background.
+- Trailing: `chatTimestamp` style text for relative time.
+- Swipe-to-dismiss (right swipe) triggers `DeleteConversationUseCase` with an `undoSnackbar`.
+
+---
+
+### 50.4 Chat Screen Redesign
+
+**Routes:** `chat/list` · `chat/detail/{conversationId}` · **Files:** `feature-chat/ChatListScreen.kt`, `feature-chat/ChatDetailScreen.kt`
+
+#### 50.4.1 Chat List Screen
+
+```
+┌─────────────────────────────────┐
+│  Conversations          [ + ]   │  ← titleLarge; trailing FAB-style icon (not floating)
+│─────────────────────────────────│
+│  ┌───────────────────────────┐  │  ← SearchBar (M3 SearchBar, not OutlinedTextField)
+│  │ 🔍  Search conversations  │  │     surfaceTonal3 fill, shape.large, no border
+│  └───────────────────────────┘  │     expands full-screen on focus (M3 SearchBar behavior)
+│                                 │
+│  Pinned ────────────────────    │  ← sectionLabel (only shown when pins exist)
+│  ┌──────────────────────────┐   │
+│  │ 📌 Project Kickoff       │   │  ← surfaceTonal2 bg (tinted) to distinguish pinned
+│  │    3 conversations       │   │
+│  └──────────────────────────┘   │
+│                                 │
+│  Today ──────────────────────   │  ← sectionLabel
+│  ┌──────────────────────────┐   │  ← ConversationRow (redesigned):
+│  │ ◉  Project planning      │   │     40dp AI avatar (provider-colored dot badge)
+│  │    "Can you break down…" │   │     bodySmall preview text, 1-line truncated
+│  │                  2h ago  │   │     chatTimestamp, right-aligned
+│  └──────────────────────────┘   │
+│  ┌──────────────────────────┐   │
+│  │ ◉  Refactor auth flow    │   │
+│  └──────────────────────────┘   │
+│                                 │
+│  Yesterday ──────────────────   │
+│  …                              │
+└─────────────────────────────────┘
+```
+
+**Interaction details:**
+- Replace `OutlinedTextField` search with `SearchBar` (M3 `SearchBar` composable) that expands to full-screen overlay with `AnimatedContent` slide-up (see §50.9.4).
+- `ConversationRow` uses `SwipeRevealLayout` showing Pin, Rename, Delete actions on trailing swipe (colored action tiles: `primaryContainer`, `secondaryContainer`, `errorContainer`).
+- Long-press opens a `ModalBottomSheet` (M3) with the same three actions plus "Export".
+- Empty state: centered illustration (AI assistant waving, 120dp `Image` composable using vector drawable) + `headlineSmall` "No conversations yet" + `bodyMedium` suggestion.
+
+#### 50.4.2 Chat Detail Screen
+
+```
+┌─────────────────────────────────┐
+│  ←  Project planning    ···  ⚡  │  ← TopAppBar: back, title (truncated), overflow, provider
+│─────────────────────────────────│
+│  ┌─ Running on device ──────┐   │  ← conditional on-device indicator (M3 banner, tonal)
+│  └──────────────────────────┘   │
+│                                 │
+│             [8:42 AM]           │  ← chatTimestamp, centered, onSurfaceVariant
+│                                 │
+│  ┌──────────────────────────┐   │  ← user MessageBubble
+│  │ Can you break down this  │   │     primaryContainer bg, right-aligned
+│  │ project into milestones? │   │     shape.medium with 4dp top-right corner = 2dp
+│  └──────────────────────────┘   │     (M3 "tail" effect via asymmetric RoundedCornerShape)
+│                                 │
+│  ◉  ┌────────────────────────┐  │  ← assistant MessageBubble
+│     │ Sure! Here's a plan:   │  │     surfaceTonal1 bg, left-aligned, AI avatar 32dp
+│     │                        │  │     leading the bubble row
+│     │ **Phase 1 — Discovery**│  │
+│     │ - Stakeholder mapping  │  │     MarkdownText rendering
+│     │ - Requirements doc     │  │
+│     │ - Timeline draft       │  │
+│     │                        │  │
+│     │ 📎 3 sources  •  14:2s │  │  ← citation count + latency chip (if RAG)
+│     │  [Copy] [Share] [↺]    │  │  ← action row, bodySmall icons + labels
+│     └────────────────────────┘  │
+│                                 │
+│  ◉  ▌                           │  ← streaming: blinking cursor after last token
+│                                 │
+│  …(typing indicator: 3-dot      │  ← animated 3-dot pulse (see §50.9.5)
+│     pulse before first token)   │
+│                                 │
+│─────────────────────────────────│
+│  ┌───────────────────────────┐  │  ← MessageInputBar (redesigned)
+│  │ Message AI Assistant… 🎙 │  │     surfaceTonal3 bg, shape.extraLarge (pill)
+│  │                        ➤ │  │     trailing: mic icon (voice input) + send icon
+│  └───────────────────────────┘  │     send icon: primary tint when non-empty, disabled tint when empty
+│  [📷] [📎] [⚡Compare] [+More]  │  ← accessory row above keyboard
+└─────────────────────────────────┘
+```
+
+**Sub-component: MessageInputBar**
+
+```kotlin
+@Composable
+fun MessageInputBar(
+    value: String,
+    onValueChange: (String) -> Unit,
+    onSend: () -> Unit,
+    onVoiceInput: () -> Unit,
+    onAttach: () -> Unit,
+    isEnabled: Boolean,
+    characterLimit: Int = 32_000,
+    modifier: Modifier = Modifier
+)
+```
+
+- Character counter appears at `28,000 / 32,000` threshold: `labelSmall`, `error` color when over `30,000`, hides when under threshold.
+- Send button: `FilledIconButton` (M3) with `gradientStart` container when non-empty, `surfaceVariant` when empty, animated via `animateColorAsState`.
+- The outer pill shape uses `shape.extraLarge` (28dp radius).
+
+**Sub-component: ChatBubble redesign**
+
+- Extend the existing `ChatBubble` composable in `core-ui/components/ChatBubble.kt`:
+  - Add `bubbleTailPosition: BubbleTailPosition` enum (`NONE`, `USER`, `ASSISTANT`).
+  - User bubble: `RoundedCornerShape(topStart=16dp, topEnd=4dp, bottomEnd=16dp, bottomStart=16dp)`.
+  - Assistant bubble: `RoundedCornerShape(topStart=4dp, topEnd=16dp, bottomEnd=16dp, bottomStart=16dp)`.
+  - Background: user = `primaryContainer`, assistant = `surfaceTonal1`.
+  - Add `onLongPress` callback opening the message action `ModalBottomSheet`.
+
+---
+
+### 50.5 RAG Search Screen Redesign
+
+**Routes:** `rag/documents` · `rag/documents/{id}/chat` · **Files:** `feature-rag/DocumentListScreen.kt`, `feature-rag/DocumentChatScreen.kt`
+
+#### 50.5.1 Document List Screen
+
+```
+┌─────────────────────────────────┐
+│  ←  Documents              [+]  │  ← TopAppBar; [+] = upload FAB inlined in bar
+│─────────────────────────────────│
+│  ┌───────────────────────────┐  │  ← StorageSummaryCard
+│  │  💾  3 documents  •  8 MB │  │     surfaceTonal1, shape.large
+│  │  ████████░░░░░ 8/50 MB   │  │     LinearProgressIndicator showing storage used
+│  └───────────────────────────┘  │
+│                                 │
+│  ┌───────────────────────────┐  │  ← SearchBar (same as Chat list)
+│  │ 🔍  Search documents      │  │
+│  └───────────────────────────┘  │
+│                                 │
+│  Your documents ─────────────   │  ← sectionLabel
+│                                 │
+│  ┌──────────────────────────┐   │  ← DocumentCard
+│  │ 📄  Q3_Report.pdf        │   │     shape.medium, surfaceTonal1, Elevation.low
+│  │     PDF  •  2.4 MB       │   │     leading file-type icon with type-colored tint
+│  │     ● Ready              │   │     status badge: ragGreen dot + "Ready"
+│  │     Uploaded 2 days ago  │   │     chatTimestamp for upload date
+│  │  [Ask AI ›]  [⋯]         │   │     primary TextButton + overflow DropdownMenu
+│  └──────────────────────────┘   │
+│                                 │
+│  ┌──────────────────────────┐   │
+│  │ 📝  Meeting_Notes.docx   │   │
+│  │     DOCX  •  180 KB      │   │
+│  │     ◌ Processing…   [━━] │   │     ragAmber dot; indeterminate LinearProgress
+│  │     Uploaded just now    │   │
+│  └──────────────────────────┘   │
+│                                 │
+│  ┌──────────────────────────┐   │
+│  │ 📋  spec_draft.txt       │   │
+│  │     TXT  •  42 KB        │   │
+│  │     ✕ Failed             │   │     ragRed dot; "Retry" TextButton
+│  │  [Retry]  [Delete]       │   │
+│  └──────────────────────────┘   │
+│                                 │
+│       [ Upload Document ]       │  ← secondary gradient-outlined Button, centered
+│       PDF, DOCX, TXT, MD ≤50MB  │  ← bodySmall hint below button
+└─────────────────────────────────┘
+```
+
+**Interaction details:**
+- FAB becomes a `SmallFloatingActionButton` docked inside the TopAppBar trailing slot (saves vertical space).
+- `DocumentCard` uses a `SwipeRevealLayout` trailing action for Delete (single action, `errorContainer` tile).
+- Status badge uses `AnimatedContent` to cross-fade between states as the polling result updates.
+- "Processing" state shows an indeterminate `LinearProgressIndicator` in `ragAmber` color via `ProgressIndicatorDefaults.colors(trackColor = ragAmber)`.
+- File picker launches a `ModalBottomSheet` (`FilePickerBottomSheet`, already implemented) with a redesigned header using the new tokens.
+
+#### 50.5.2 Document Chat Screen (RAG Query)
+
+```
+┌─────────────────────────────────┐
+│  ←  Q3_Report.pdf  ● Ready      │  ← TopAppBar; status dot inline with title
+│─────────────────────────────────│
+│                                 │
+│  ┌──────────────────────────┐   │  ← DocumentContextBanner
+│  │ 📄 Searching across      │   │     surfaceTonal2, shape.small, collapsible
+│  │    Q3_Report.pdf         │   │     "Collapse" toggle on right
+│  └──────────────────────────┘   │
+│                                 │
+│  …chat messages identical to    │
+│    Chat Detail layout (§50.4.2) │
+│    but assistant bubbles show:  │
+│                                 │
+│  ◉  ┌────────────────────────┐  │
+│     │ According to page 14:  │  │
+│     │ "Revenue grew 23%..."  │  │     blockquote style: 4dp left border, indented
+│     │                        │  │     using `surfaceTonal2` left-border Box overlay
+│     │ ▼ Sources (2)          │  │  ← collapsible `SourcesPanel`:
+│     │   • Page 14, para 2    │  │     ChunkCitation chip per source, ragGreen tint
+│     │   • Page 22, fig. 3    │  │     Tapping a citation shows full chunk text in
+│     └────────────────────────┘  │     a `ModalBottomSheet`
+│                                 │
+│─────────────────────────────────│
+│  [  Ask about this document…  ] │  ← same MessageInputBar (§50.4.2)
+└─────────────────────────────────┘
+```
+
+**Sub-component: SourcesPanel**
+
+```kotlin
+@Composable
+fun SourcesPanel(
+    citations: List<ChunkCitation>,
+    onCitationTap: (ChunkCitation) -> Unit,
+    modifier: Modifier = Modifier
+)
+```
+
+- Collapsed by default; animated height via `animateFloatAsState` on `heightFraction`.
+- Each citation is an `AssistChip` (M3) with `ragGreen` border and document-page label.
+
+---
+
+### 50.6 Profile Screen Redesign
+
+**Route:** `profile` · **File:** `feature-profile/ProfileScreen.kt`
+
+#### Visual Layout
+
+```
+┌─────────────────────────────────┐
+│  ←  Profile                     │  ← TopAppBar (no trailing actions)
+│─────────────────────────────────│
+│                                 │
+│         ┌──────────┐            │  ← 88dp avatar circle
+│         │  [Photo] │            │     ElevatedCard shape=CircleShape Elevation.high
+│         │  or init │            │     gradient fill (gradientStart→End) when no photo
+│         └──────────┘            │     "Edit" badge: 28dp circle bottom-right, surfaceTonal3
+│         [✎]                     │
+│                                 │
+│         Alex Johnson            │  ← headlineMedium, center-aligned
+│         alex@example.com        │  ← bodyMedium, onSurfaceVariant, center
+│         Premium  •  Joined 2024 │  ← labelMedium, secondaryContainer chip + bodySmall date
+│                                 │
+│─────────────────────────────────│
+│                                 │
+│  AI Memory ─────────────────    │  ← sectionLabel
+│                                 │
+│  ┌──────────────────────────┐   │  ← MemorySummaryCard
+│  │ 🧠  23 memories stored   │   │     surfaceTonal1, shape.large, Elevation.mid
+│  │  Prefers concise answers │   │     top-3 memories shown inline as chips
+│  │  [ Python developer ]    │   │
+│  │  [ Uses dark mode ]      │   │
+│  │             [Manage all] │   │     right-aligned TextButton → MemoryListScreen
+│  └──────────────────────────┘   │
+│                                 │
+│  Account ────────────────────   │  ← sectionLabel
+│                                 │
+│  ┌──────────────────────────┐   │  ← SettingsGroup card, surfaceTonal1, shape.large
+│  │  🔒 Change password    › │   │     each row = ListItem with trailing Icon(chevron)
+│  │─────────────────────────│   │
+│  │  G  Google account     › │   │     Google linked: green check badge; unlinked: "Link"
+│  │─────────────────────────│   │
+│  │  📤 Export my data     › │   │
+│  │─────────────────────────│   │
+│  │  🗑  Delete account       │   │     error color icon + label; opens ConfirmationDialog
+│  └──────────────────────────┘   │
+│                                 │
+│  ┌──────────────────────────┐   │  ← sign-out row, separate card
+│  │  Sign Out                │   │     errorContainer subtle tint, centered label
+│  └──────────────────────────┘   │
+└─────────────────────────────────┘
+```
+
+**Sub-component: MemorySummaryCard**
+
+- Each memory fact is an `InputChip` (M3) with a trailing `close` icon to delete inline.
+- Chip list uses `FlowRow` layout (Compose Foundation) to wrap chips naturally.
+- Tapping "Manage all" navigates to `MemoryListScreen` using a `SharedTransitionLayout` hero animation on the card (see §50.9.2).
+
+**Sub-component: SettingsGroup**
+
+```kotlin
+@Composable
+fun SettingsGroup(
+    items: List<SettingsGroupItem>,
+    modifier: Modifier = Modifier
+)
+```
+
+A `Column` inside a `Card`. Each `SettingsGroupItem` is a `ListItem` with optional `icon`, `title`, `subtitle`, `trailing` slot, and `onClick`. Dividers between rows use `HorizontalDivider` at 1dp / `outlineVariant`.
+
+---
+
+### 50.7 Tickets Screen — New Feature
+
+> **Note:** The "Tasks / Productivity" navigation tab (currently labelled **Tasks**) is repurposed and renamed to **Tickets**. This is the existing `feature-productivity` module's `TodoList` screen, elevated into a full ticket-management UI. No new module is created; the screen composables in `feature-productivity` are redesigned in-place.
+
+**Route:** `productivity/list` · **File:** `feature-productivity/TodoListScreen.kt` (rename to `TicketsScreen.kt`)
+
+#### Visual Layout
+
+```
+┌─────────────────────────────────┐
+│  Tickets                 [⚡] [+]│  ← titleLarge; [⚡] = AI Generate; [+] = New Ticket
+│─────────────────────────────────│
+│  ┌─────┐ ┌─────────┐ ┌───────┐ │  ← FilterChipRow (horizontal scroll)
+│  │ All │ │ Open    │ │ In    │ │     "All" selected by default
+│  │  12 │ │   7     │ │Progress│ │     count badge inside each chip using labelSmall
+│  └─────┘ └─────────┘ └───────┘ │
+│  ┌──────┐ ┌────────┐            │
+│  │ Done │ │ Urgent │            │
+│  │   3  │ │   2    │            │
+│  └──────┘ └────────┘            │
+│                                 │
+│  [ 🔍  Search tickets…    ]     │  ← SearchBar
+│                                 │
+│  Urgent ─────────────────────   │  ← sectionLabel (only when Urgent tickets exist)
+│                                 │
+│  ┌──────────────────────────┐   │  ← TicketCard (urgent)
+│  │ 🔴 Fix auth token expiry │   │     left-border 4dp ticketUrgent color
+│  │    #T-042               │   │     ticket ID in labelSmall, onSurfaceVariant
+│  │    Open  •  Due Today    │   │     status chip + due date
+│  │    Assigned: You         │   │     assignee row
+│  │    [ → In Progress ]     │   │     quick-action button (moves to next status)
+│  └──────────────────────────┘   │
+│                                 │
+│  Open ────────────────────────  │
+│                                 │
+│  ┌──────────────────────────┐   │  ← TicketCard (open)
+│  │ 🔵 Add dark mode support │   │     left-border ticketOpen color
+│  │    #T-041  •  Open       │   │
+│  │    Due Aug 30            │   │
+│  └──────────────────────────┘   │
+│                                 │
+│  ┌──────────────────────────┐   │  ← TicketCard (in-progress)
+│  │ 🟣 Redesign profile page │   │     left-border ticketInProgress color
+│  │    #T-039  •  In Progress│   │
+│  └──────────────────────────┘   │
+└─────────────────────────────────┘
+```
+
+#### Sub-component: TicketCard
+
+```kotlin
+@Composable
+fun TicketCard(
+    ticket: TodoItem,
+    onStatusChange: (TodoStatus) -> Unit,
+    onTap: () -> Unit,
+    modifier: Modifier = Modifier
+)
+```
+
+- `Card(shape = MaterialTheme.shapes.medium, elevation = Elevation.low)` with a 4dp left accent `Box` overlay colored per `ticket.priority`:
+  - `URGENT` → `ticketUrgent`
+  - `HIGH` → `ticketOpen`
+  - `MEDIUM` → `ticketInProgress`
+  - `LOW` → `NeutralVariant60`
+- Status `FilterChip` (non-interactive display) shows current status with matching `ticketOpen` / `ticketInProgress` / `ticketClosed` color.
+- "Quick move" `Button` text: Open → "Start" (moves to In Progress), In Progress → "Resolve" (moves to Done).
+- Long-press opens a `ModalBottomSheet` with full ticket actions: Edit, Duplicate, Move to status, Delete.
+- Swipe-left reveals a single Delete action tile (`errorContainer`).
+
+#### Ticket Detail Screen
+
+When a `TicketCard` is tapped, navigate to a `TicketDetailScreen` (new composable):
+
+```
+┌─────────────────────────────────┐
+│  ←  #T-042              🔴 Urg  │  ← TopAppBar; priority badge chip
+│─────────────────────────────────│
+│                                 │
+│  Fix auth token expiry          │  ← headlineMedium
+│                                 │
+│  Status   [ Open ▼ ]            │  ← inline status selector (DropdownMenu)
+│  Due       Aug 30, 2026         │  ← bodyMedium
+│  Assigned  You                  │
+│  Tags      [ auth ] [ backend ] │  ← InputChip tags (FlowRow)
+│                                 │
+│  Description ────────────────   │  ← sectionLabel
+│  The JWT access token does not  │
+│  refresh correctly after 15 min │  ← bodyMedium
+│                                 │
+│  ✨ AI Actions ───────────────  │  ← sectionLabel
+│  ┌──────────────────────────┐   │  ← AI suggestion chips
+│  │ Draft a fix plan         │   │     AssistChip row
+│  │ Break into subtasks      │   │
+│  │ Estimate effort          │   │
+│  └──────────────────────────┘   │
+│                                 │
+│  [  Save Changes  ]             │  ← full-width gradient Button
+└─────────────────────────────────┘
+```
+
+---
+
+### 50.8 Dark Mode Specification
+
+**Files:** `core-ui/Color.kt`, `core-ui/AppTheme.kt`, `feature-settings/SettingsScreen.kt`
+
+#### Color Scheme Audit
+
+The existing `DarkColorScheme` is largely correct. Apply the following targeted corrections for the redesign:
+
+| Role | Current dark value | Corrected dark value | Reason |
+|---|---|---|---|
+| `background` | `Neutral10 = #1A1B1F` | `#111318` | Deeper true-dark base; OLED-friendly |
+| `surface` | `#1A1B1F` | `#111318` | Matches background for seamless base layer |
+| `surfaceTonal1` | (new token) | `#1E2030` | First elevation above background; blue-shifted dark |
+| `surfaceTonal2` | (new token) | `#252740` | Second elevation |
+| `surfaceTonal3` | (new token) | `#2C2F4A` | Input field backgrounds (higher saturation so fields are visible) |
+| `onBackground` | `Neutral90 = #E3E2E6` | `#E2E2E9` | Slightly cooler for dark-mode readability |
+| `outlineVariant` | `NeutralVariant30 = #44474F` | `#3A3D4A` | Less prominent dividers on dark surfaces |
+
+#### Dark Mode Surface Layering Model
+
+The redesigned app uses a **5-tier surface model** to create depth on OLED screens:
+
+| Tier | Token | Dark Value | Used For |
+|---|---|---|---|
+| 0 | `background` | `#111318` | Root scaffold background |
+| 1 | `surface` | `#111318` | Same as background (M3 spec) |
+| 2 | `surfaceTonal1` | `#1E2030` | Cards, bottom bar, side rail |
+| 3 | `surfaceTonal2` | `#252740` | Nested card surfaces, modal sheets |
+| 4 | `surfaceTonal3` | `#2C2F4A` | Input fields, code block backgrounds |
+
+All existing composables that currently use `surfaceVariant` as card background are migrated to `surfaceTonal1` during the redesign.
+
+#### Theme Toggle UX
+
+The theme toggle in `SettingsScreen` is redesigned from a plain `RadioButton` group to an `icon-button trio`:
+
+```
+  ☀  Light    ◐  System    ☾  Dark
+  [ ] ────────[●]──────────[ ]
+```
+
+Each option is a `SegmentedButton` (M3 `SingleChoiceSegmentedButtonRow`) with icon + label. The selected state uses `primaryContainer` fill with an animated `colorAnimation` (see §50.9.6).
+
+#### Gradient and Glow Behavior in Dark Mode
+
+- The login background gradient uses desaturated variants: `#1A2040` → `#2A1A30` (subtle blue-to-purple).
+- The `accentGlow` ring around the logo orb is more visible in dark mode (16% opacity vs 12% in light).
+- The "Ask AI" hero card gradient stripe uses `gradientStart` at full opacity in both modes.
+- `ChatBubble` user bubbles use `primary` at 90% opacity for the background in dark mode (avoid pure `primaryContainer` which can be too saturated).
+
+#### Contrast Validation Checklist
+
+All text/icon-on-background combinations must satisfy WCAG 2.1 AA (4.5:1 normal, 3:1 large):
+
+| Pair | Dark mode ratio | Result |
+|---|---|---|
+| `onBackground` (#E2E2E9) on `background` (#111318) | ~14.5:1 | ✓ AAA |
+| `primary` (#ADC6FF) on `background` (#111318) | ~9.3:1 | ✓ AAA |
+| `onSurfaceVariant` on `surfaceTonal1` (#1E2030) | ~8.1:1 | ✓ AAA |
+| `chatTimestamp` `onSurfaceVariant` on `surfaceTonal1` | ~6.2:1 | ✓ AA |
+| `ragAmber` on `surfaceTonal1` | ~4.8:1 | ✓ AA |
+
+---
+
+### 50.9 Animation and Motion Specification
+
+**Files:** `core-ui/motion/` (new package), individual screen composables
+
+#### 50.9.1 Animated Mesh Gradient Background (Login, Splash)
+
+```kotlin
+// core-ui/motion/MeshGradientBackground.kt
+
+@Composable
+fun MeshGradientBackground(
+    modifier: Modifier = Modifier,
+    content: @Composable BoxScope.() -> Unit
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "meshGradient")
+
+    val color1 by infiniteTransition.animateColor(
+        initialValue = gradientStart,
+        targetValue = gradientEnd,
+        animationSpec = infiniteRepeatable(
+            animation = tween(12_000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "color1"
+    )
+    // Rendered as Brush.sweepGradient or radialGradient over a full-screen Canvas
+    // In dark mode: colors are pre-multiplied by 0.35f alpha to prevent harshness
+}
+```
+
+- Duration: 12 seconds per cycle, `RepeatMode.Reverse`.
+- Performance: `Canvas` draw, no Compose recomposition on each frame (uses `drawBehind` with `rememberUpdatedState`).
+- Reduced motion: when `LocalReducedMotionEnabled.current == true`, render static gradient, no animation.
+
+#### 50.9.2 Shared Element Transition (Home → Chat, Home → Profile)
+
+Implement `SharedTransitionLayout` (available in `androidx.compose.animation:animation 1.7+`) for:
+
+- **Home → Chat Detail:** The "Ask AI" hero card morphs into the `ChatDetailScreen` TopAppBar via container transform.
+- **Profile card → Memory List:** The `MemorySummaryCard` morphs into the `MemoryListScreen` background card.
+
+```kotlin
+// Usage pattern:
+SharedTransitionLayout {
+    AnimatedContent(targetState = currentDestination) { destination ->
+        when (destination) {
+            Destination.Home -> {
+                HeroCard(
+                    modifier = Modifier.sharedElement(
+                        state = rememberSharedContentState("hero-card"),
+                        animatedVisibilityScope = this
+                    )
+                )
+            }
+            Destination.ChatDetail -> {
+                ChatDetailTopBar(
+                    modifier = Modifier.sharedBounds(
+                        sharedContentState = rememberSharedContentState("hero-card"),
+                        animatedVisibilityScope = this
+                    )
+                )
+            }
+        }
+    }
+}
+```
+
+- Duration: 350ms, `FastOutSlowInEasing`.
+- Fallback for Compose versions < 1.7: use `Crossfade` with 250ms duration.
+
+#### 50.9.3 Navigation Indicator Animation (Bottom Nav)
+
+The `NavigationBarItem` selected indicator pill uses:
+
+- **Enter:** `scaleIn(initialScale = 0.6f, animationSpec = spring(stiffness = Spring.StiffnessMedium))` + `fadeIn(tween(150))`
+- **Exit:** `scaleOut(targetScale = 0.6f)` + `fadeOut(tween(100))`
+
+Implemented by wrapping the indicator composable slot with `AnimatedContent`.
+
+#### 50.9.4 Screen Entry / Exit Transitions
+
+Define a sealed class `AppTransition` in `core-ui/motion/AppTransition.kt`:
+
+```kotlin
+sealed class AppTransition {
+
+    /** Standard forward push: new screen slides in from right */
+    data object Push : AppTransition()
+
+    /** Back navigation: current screen slides out to right */
+    data object Pop : AppTransition()
+
+    /** Modal entry: sheet/dialog slides up from bottom */
+    data object Modal : AppTransition()
+
+    /** Fade-through for tab switches (M3 spec) */
+    data object FadeThrough : AppTransition()
+}
+```
+
+Apply to `NavHost` via the `enterTransition` / `exitTransition` parameters:
+
+| Navigation event | Enter | Exit |
+|---|---|---|
+| Forward push (new screen) | `slideInHorizontally { fullWidth } + fadeIn(tween(300))` | `slideOutHorizontally { -fullWidth/3 } + fadeOut(tween(200))` |
+| Back pop | `slideInHorizontally { -fullWidth/3 } + fadeIn(tween(200))` | `slideOutHorizontally { fullWidth } + fadeOut(tween(300))` |
+| Tab switch | `fadeIn(tween(200)) + scaleIn(0.92f, tween(200))` | `fadeOut(tween(150)) + scaleOut(0.92f, tween(150))` |
+| Modal bottom sheet | (M3 `ModalBottomSheet` handles internally) | — |
+
+Duration values are chosen to be fast enough not to feel sluggish on mid-range devices (300ms push, 200ms pop).
+
+#### 50.9.5 Typing Indicator Animation (Chat)
+
+```kotlin
+// core-ui/components/TypingIndicator.kt
+
+@Composable
+fun TypingIndicator(modifier: Modifier = Modifier) {
+    val infiniteTransition = rememberInfiniteTransition(label = "typing")
+    // Three dots, each animating vertically -6dp→0dp with 200ms stagger
+    Row(modifier, horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+        repeat(3) { index ->
+            val offsetY by infiniteTransition.animateFloat(
+                initialValue = 0f,
+                targetValue = -6f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(500, delayMillis = index * 150, easing = EaseInOutSine),
+                    repeatMode = RepeatMode.Reverse
+                ),
+                label = "dot$index"
+            )
+            Box(
+                Modifier
+                    .size(8.dp)
+                    .offset(y = offsetY.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f))
+            )
+        }
+    }
+}
+```
+
+- Three dots, 8dp each, 4dp gap.
+- Stagger: 0ms, 150ms, 300ms — creates a wave effect.
+- Reduced motion: render three static dots, no animation.
+
+#### 50.9.6 Theme Switch Animation
+
+When `ThemeMode` changes (via Settings segmented button), apply a `Crossfade` at the root `AppTheme` level:
+
+```kotlin
+@Composable
+fun AppTheme(themeMode: ThemeMode = ThemeMode.SYSTEM, ...) {
+    Crossfade(
+        targetState = isDark,
+        animationSpec = tween(400, easing = FastOutSlowInEasing),
+        label = "themeSwitch"
+    ) { dark ->
+        val scheme = if (dark) DarkColorScheme else LightColorScheme
+        CompositionLocalProvider(...) {
+            MaterialTheme(colorScheme = scheme, ...) {
+                content()
+            }
+        }
+    }
+}
+```
+
+Duration: 400ms — long enough to be visible but not disruptive.
+
+#### 50.9.7 Card Press Feedback (FeatureCard, TicketCard, DocumentCard)
+
+Apply a uniform press-scale effect using `Modifier.graphicsLayer`:
+
+```kotlin
+fun Modifier.pressScale(
+    targetScale: Float = 0.96f,
+    stiffness: Float = Spring.StiffnessHigh
+): Modifier = composed {
+    var pressed by remember { mutableStateOf(false) }
+    val scale by animateFloatAsState(
+        targetValue = if (pressed) targetScale else 1f,
+        animationSpec = spring(stiffness = stiffness),
+        label = "pressScale"
+    )
+    this
+        .graphicsLayer { scaleX = scale; scaleY = scale }
+        .pointerInput(Unit) {
+            detectTapGestures(
+                onPress = {
+                    pressed = true
+                    tryAwaitRelease()
+                    pressed = false
+                }
+            )
+        }
+}
+```
+
+Use `targetScale = 0.96f` for large cards, `0.94f` for small chips.
+
+#### 50.9.8 Reduced Motion Support
+
+All animation composables check `LocalReducedMotionEnabled`:
+
+```kotlin
+// core-ui/motion/ReducedMotion.kt
+val LocalReducedMotionEnabled = compositionLocalOf { false }
+
+// In AppTheme, provide based on system setting:
+val reduceMotion = LocalContext.current.resources
+    .configuration
+    .isAccessibilityFeatureEnabled(ACCESSIBILITY_SERVICE_ANIMATIONS_DISABLED)
+    // Or use the Accompanist / official API when available
+CompositionLocalProvider(LocalReducedMotionEnabled provides reduceMotion) { ... }
+```
+
+When `LocalReducedMotionEnabled.current == true`:
+- `MeshGradientBackground`: static gradient.
+- `TypingIndicator`: three static dots.
+- `SharedTransitionLayout`: instant switch (0ms `tween`).
+- Navigation transitions: `fadeIn/fadeOut` only (no slide/scale).
+- Theme switch: instant (0ms `tween`).
+
+---
+
+### 50.10 Implementation Tasks
+
+> These are the actionable sub-tasks for the redesign. Each maps to one or more of the screen specs above.
+
+- [ ] 50.1 Extend `core-ui` design tokens
+  - Add `surfaceTonal1/2/3`, `accentGlow`, `gradientStart/End`, `ragAmber/Green/Red`, `ticketOpen/InProgress/Closed/Urgent` color tokens to `Color.kt` and both color schemes
+  - Add `Elevation.kt` with 6-tier elevation constants
+  - Add `screenEdge` spacing token to `Spacing.kt`
+  - Add `displayAI`, `sectionLabel`, `chatTimestamp` text styles to `Type.kt`
+  - Create `core-ui/motion/` package with `MeshGradientBackground.kt`, `AppTransition.kt`, `ReducedMotion.kt`, `TypingIndicator.kt`
+  - Add `pressScale` modifier extension to a new `core-ui/motion/Modifiers.kt`
+  - _Requirements: 24.1, 24.2, 24.3_
+
+- [ ] 50.2 Redesign Login Screen
+  - Replace static background with `MeshGradientBackground` composable
+  - Replace `OutlinedTextField` instances with new `SurfaceFillTextField` composable (add to `core-ui/components/`)
+  - Replace plain `Button` with gradient-fill button (using `Brush.linearGradient` modifier pattern)
+  - Add `CrossfadeAnimatedContent` for loading state inside Sign In button
+  - Replace static Google sign-in button with outlined variant following new design tokens
+  - Add `AnimatedVisibility` slide-down for `ErrorBanner`
+  - Add brand logo `pulseScale` animation
+  - _Requirements: 1.1, 1.6, 1.7, 24.1, 24.3_
+
+- [ ] 50.3 Redesign Home Dashboard with new `HomeDashboardViewModel`
+  - Create `HomeDashboardViewModel` (Hilt) exposing `userName`, `recentConversations` (max 3), `todayDate`
+  - Add hero "Ask AI" card with gradient accent stripe and navigation to new `ChatDetail`
+  - Replace `LazyVerticalGrid` feature cards with redesigned `FeatureCard` composable using new tokens and `pressScale` modifier
+  - Add `QuickActionChip` horizontal `LazyRow`
+  - Add `ConversationPreviewCard` list (max 3) with swipe-to-dismiss
+  - Apply `pressScale` to all tappable cards
+  - Redesign `NavigationBar` with new surface tokens and animated selected indicator
+  - Rename "Tasks" tab to "Tickets" with `Icons.Outlined.ConfirmationNumber` icon
+  - Apply navigation transitions via `AppTransition` in root `NavHost`
+  - _Requirements: 19.1, 24.1, 24.2_
+
+- [ ] 50.4 Redesign Chat Screens
+  - Replace `OutlinedTextField` search with M3 `SearchBar` in `ChatListScreen`
+  - Add `SwipeRevealLayout` composable (new, in `core-ui/components/`) for swipe-to-action on list rows
+  - Extend `ChatBubble` in `core-ui` with asymmetric corner radii, provider avatar, long-press action callback
+  - Build redesigned `MessageInputBar` composable in `feature-chat` with pill shape, character counter, gradient send button
+  - Add accessory row (camera, attach, compare, more) above keyboard in `ChatDetailScreen`
+  - Add `TypingIndicator` to `ChatDetailScreen` before first streaming token
+  - Integrate `SharedTransitionLayout` hero transition from Home hero card to `ChatDetailScreen`
+  - _Requirements: 2.1, 2.2, 2.5, 24.1, 24.3_
+
+- [ ] 50.5 Redesign RAG Search Screens
+  - Add `StorageSummaryCard` to `DocumentListScreen` showing document count + storage `LinearProgressIndicator`
+  - Replace `DocumentCard` styling with new token-based design (status badge colors, `SwipeRevealLayout` delete)
+  - Animate status badge transitions with `AnimatedContent`
+  - Build `SourcesPanel` composable for collapsible RAG citations in `DocumentChatScreen`
+  - Add blockquote styling to assistant bubbles in `DocumentChatScreen` (4dp left-border Box overlay)
+  - _Requirements: 4.1, 4.6, 4.7, 24.1_
+
+- [ ] 50.6 Redesign Profile Screen
+  - Redesign avatar section with gradient fill, `ElevatedCard` shape, edit badge
+  - Add account tier chip (`Premium` / `Free` `SuggestionChip`)
+  - Build `MemorySummaryCard` with `FlowRow` chip layout and `SharedTransitionLayout` hero to `MemoryListScreen`
+  - Build `SettingsGroup` composable for grouped action rows
+  - Separate sign-out into its own card with `errorContainer` styling
+  - _Requirements: 7.3, 7.4, 28.1, 28.2, 24.1_
+
+- [ ] 50.7 Redesign Tickets Screen (repurposed from Productivity Tasks)
+  - Rename `TodoListScreen.kt` → `TicketsScreen.kt`; update navigation route references
+  - Build `FilterChipRow` for status/priority filters with count badges
+  - Build `TicketCard` composable with priority-colored left border accent, `pressScale` modifier, quick-move `Button`
+  - Build `TicketDetailScreen` composable with inline status selector, `FlowRow` tags, AI action chips
+  - Apply `SwipeRevealLayout` for delete action on `TicketCard`
+  - Update `NavigationBar` tab to use `Icons.Outlined.ConfirmationNumber` and label "Tickets"
+  - _Requirements: 29.1, 29.2, 24.1_
+
+- [ ] 50.8 Implement Dark Mode refinements
+  - Update `DarkColorScheme` in `Color.kt` with corrected `background` (#111318), `surface` (#111318), and new `surfaceTonal1/2/3` tokens
+  - Update all screen composables that use `surfaceVariant` as a card background to use `surfaceTonal1` instead
+  - Update `ChatBubble` user bubble to use `primary.copy(alpha = 0.9f)` in dark mode
+  - Update login gradient to use dark-desaturated color variants in dark mode
+  - Wrap `AppTheme` content in `Crossfade` (400ms) for animated theme switching
+  - Verify all contrast ratios in the checklist table (§50.8) by running Compose UI tests
+  - _Requirements: 24.1, 24.2, 24.3_
+
+- [ ] 50.9 Implement animation system
+  - Implement `MeshGradientBackground` (§50.9.1) with reduced-motion fallback
+  - Wire `SharedTransitionLayout` for Home→Chat and Profile→Memory transitions (§50.9.2)
+  - Apply `AppTransition` specs to `NavHost` `enterTransition`/`exitTransition`/`popEnterTransition`/`popExitTransition` (§50.9.4)
+  - Implement `TypingIndicator` composable with 3-dot stagger animation (§50.9.5)
+  - Implement `pressScale` modifier (§50.9.7)
+  - Provide `LocalReducedMotionEnabled` in `AppTheme`; gate all animations (§50.9.8)
+  - Write Compose UI tests asserting: TypingIndicator is hidden after first streaming token; navigation indicator animates on tab switch; theme `Crossfade` is applied when `ThemeMode` changes; all animations are disabled when `LocalReducedMotionEnabled == true`
+  - _Requirements: 23.1, 23.2, 24.1, 24.3_
+
+- [ ] 50.10 Update Task Dependency Graph wave entry for Task 50
+  - Wave 12: Task 50 (UI Redesign) — depends on Tasks 3, 11, 12, 14, 21, 20.5; can run in parallel with Tasks 44–49 as it touches only `core-ui` and feature-level composable files
+  - _Requirements: 24.1, 24.2, 24.3_

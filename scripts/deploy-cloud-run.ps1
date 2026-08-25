@@ -21,7 +21,7 @@ Write-Host "=== Deploying to Cloud Run (pinned clean secret versions) ===" -Fore
     --allow-unauthenticated `
     --port=8000 `
     --set-secrets="SECRET_KEY=SECRET_KEY:3,AES_ENCRYPTION_KEY=AES_ENCRYPTION_KEY:3,DATABASE_URL=DATABASE_URL:7,REDIS_URL=REDIS_URL:3,MINIO_ACCESS_KEY=MINIO_ACCESS_KEY:3,MINIO_SECRET_KEY=MINIO_SECRET_KEY:3,OPENAI_API_KEY=OPENAI_API_KEY:3,GEMINI_API_KEY=GEMINI_API_KEY:6" `
-    --set-env-vars="ENVIRONMENT=production,LOG_LEVEL=INFO,MINIO_ENDPOINT=storage.googleapis.com,MINIO_BUCKET_NAME=$PROJECT-files,CHROMA_PORT=8001,LLM_FALLBACK_PROVIDER=,DEFAULT_LLM_PROVIDER=gemini" `
+    --set-env-vars="ENVIRONMENT=production,LOG_LEVEL=INFO,MINIO_ENDPOINT=storage.googleapis.com,MINIO_BUCKET_NAME=$PROJECT-files,CHROMA_PORT=8001,LLM_FALLBACK_PROVIDER=,DEFAULT_LLM_PROVIDER=gemini,GOOGLE_CLIENT_ID=106071012091-d4brm5cng1gaor0al51veafjd0fa239v.apps.googleusercontent.com,GOOGLE_ANDROID_CLIENT_ID=106071012091-0cu6q2e6b4tsa1qrauutqt70ms13otn6.apps.googleusercontent.com" `
     2>&1
 
 Write-Host "=== Done ===" -ForegroundColor Green

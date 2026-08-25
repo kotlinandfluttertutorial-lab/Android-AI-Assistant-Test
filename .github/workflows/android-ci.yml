@@ -147,7 +147,7 @@ jobs:
           fi
 
       - name: Run KSP Hilt code generation (debug)
-        run: ./gradlew :app:kspDebugKotlin --stacktrace
+        run: ./gradlew :app:kspLocalDebugKotlin :app:kspCloudDebugKotlin --stacktrace
 
       - name: Confirm zero Hilt binding errors
         run: |
@@ -196,7 +196,7 @@ jobs:
           fi
 
       - name: Run KSP code generation for Hilt (debug)
-        run: ./gradlew :app:kspDebugKotlin --stacktrace
+        run: ./gradlew :app:kspLocalDebugKotlin :app:kspCloudDebugKotlin --stacktrace
 
       - name: Confirm zero Hilt binding errors
         run: |
@@ -693,7 +693,7 @@ jobs:
           fi
 
       - name: Run Hilt binding check (KSP)
-        run: ./gradlew :app:kspDebugKotlin --stacktrace
+        run: ./gradlew :app:kspLocalDebugKotlin :app:kspCloudDebugKotlin --stacktrace
 
   # ──────────────────────────────────────────────────────────────────────────
   # 7. Backend Unit Tests — pytest backend/tests/unit/
