@@ -89,6 +89,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import java.util.concurrent.TimeUnit
+import javax.inject.Named
 import javax.inject.Singleton
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
@@ -135,13 +136,15 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideLoggingInterceptor(): HttpLoggingInterceptor = HttpLoggingInterceptor().apply {
-        level = if (isDebugBuild()) {
+    fun provideLoggingInterceptor(
+        @Named("isDebugBuild") isDebug: Boolean,
+    ): HttpLoggingInterceptor = HttpLoggingInterceptor().apply {
+        level = if (isDebug) {
             HttpLoggingInterceptor.Level.BODY
         } else {
             HttpLoggingInterceptor.Level.NONE
         }
-        if (isDebugBuild()) {
+        if (isDebug) {
             redactHeader("Authorization")
         }
     }
@@ -150,8 +153,14 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideCertificatePinningInterceptor(): CertificatePinningInterceptor = if (BuildConfig.DEBUG) {
+    fun provideCertificatePinningInterceptor(
+        @Named("isDebugBuild") isDebug: Boolean,
+    ): CertificatePinningInterceptor = if (isDebug) {
         // In debug builds bypass pinning entirely so local/staging servers work.
+        // NOTE: do NOT use BuildConfig.DEBUG from core-network here — library module
+        // BuildConfig.DEBUG is always false regardless of the app's build type. The
+        // correct value is injected via @Named("isDebugBuild") from AppModule, which
+        // reads from the *app* module's BuildConfig.DEBUG.
         CertificatePinningInterceptor(pinnedSha256Hashes = emptySet(), bypass = true)
     } else {
         // In release builds read the pin set from BuildConfig.
@@ -239,11 +248,4 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideLogoutEventBus(): LogoutEventBus = LogoutEventBus()
-
-    // â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-    /**
-     * Returns `true` when the app is running in a debug build.
-     */
-    private fun isDebugBuild(): Boolean = BuildConfig.DEBUG
 }
