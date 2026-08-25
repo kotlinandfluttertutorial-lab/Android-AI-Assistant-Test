@@ -71,6 +71,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import java.util.concurrent.TimeUnit
+import javax.inject.Named
 import javax.inject.Qualifier
 import javax.inject.Singleton
 import kotlinx.serialization.json.Json
@@ -111,11 +112,15 @@ object FederationModule {
 
     @Provides
     @Singleton
-    fun provideFederationConfigRepository(remoteConfig: FirebaseRemoteConfig, json: Json): FederationConfigRepository =
+    fun provideFederationConfigRepository(
+        remoteConfig: FirebaseRemoteConfig,
+        json: Json,
+        @Named("isDebugBuild") isDebug: Boolean,
+    ): FederationConfigRepository =
         FederationConfigRepository(
             remoteConfig = remoteConfig,
             json = json,
-            isDebugBuild = BuildConfig.DEBUG
+            isDebugBuild = isDebug
         )
 
     @Provides
