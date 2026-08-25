@@ -109,13 +109,8 @@ class AuthViewModel @Inject constructor(
                 loginWithGoogleUseCase(idToken)
             }
             _uiState.value = when (result) {
-                is ApiResult.Success -> {
-                    withContext(dispatchers.io) {
-                        secureStorage.saveJwt(result.data.jwt)
-                        secureStorage.saveRefreshToken(result.data.refreshToken)
-                    }
-                    AuthUiState.Authenticated
-                }
+                // Tokens are already persisted by AuthRepositoryImpl.persistTokens().
+                is ApiResult.Success -> AuthUiState.Authenticated
                 is ApiResult.Error -> result.error.toAuthError()
                 is ApiResult.NetworkUnavailable -> AuthUiState.Error(
                     message = "No network connection. Please check your connection and try again."
@@ -139,13 +134,8 @@ class AuthViewModel @Inject constructor(
                 loginUseCase(email, password)
             }
             _uiState.value = when (result) {
-                is ApiResult.Success -> {
-                    withContext(dispatchers.io) {
-                        secureStorage.saveJwt(result.data.jwt)
-                        secureStorage.saveRefreshToken(result.data.refreshToken)
-                    }
-                    AuthUiState.Authenticated
-                }
+                // Tokens are already persisted by AuthRepositoryImpl.persistTokens().
+                is ApiResult.Success -> AuthUiState.Authenticated
                 is ApiResult.Error -> result.error.toAuthError()
                 is ApiResult.NetworkUnavailable -> AuthUiState.Error(
                     message = "No network connection. Please check your connection and try again."
@@ -169,13 +159,8 @@ class AuthViewModel @Inject constructor(
                 registerUseCase(email, password)
             }
             _uiState.value = when (result) {
-                is ApiResult.Success -> {
-                    withContext(dispatchers.io) {
-                        secureStorage.saveJwt(result.data.jwt)
-                        secureStorage.saveRefreshToken(result.data.refreshToken)
-                    }
-                    AuthUiState.Authenticated
-                }
+                // Tokens are already persisted by AuthRepositoryImpl.persistTokens().
+                is ApiResult.Success -> AuthUiState.Authenticated
                 is ApiResult.Error -> result.error.toAuthError()
                 is ApiResult.NetworkUnavailable -> AuthUiState.Error(
                     message = "No network connection. Please check your connection and try again."
@@ -276,6 +261,9 @@ class AuthViewModel @Inject constructor(
         )
         is DomainError.Unauthorized -> AuthUiState.Error(
             message = "Invalid email or password. Please try again."
+        )
+        is DomainError.RequestTimeout -> AuthUiState.Error(
+            message = "The server took too long to respond. Please try again."
         )
         is DomainError.NetworkError -> AuthUiState.Error(
             message = "A network error occurred. Please try again."

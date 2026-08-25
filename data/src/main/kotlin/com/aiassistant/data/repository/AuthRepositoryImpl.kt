@@ -80,8 +80,10 @@ import com.aiassistant.data.remote.auth.RegisterRequest
 import com.aiassistant.domain.model.AuthTokens
 import com.aiassistant.domain.repository.AuthRepository
 import java.io.IOException
+import java.net.SocketTimeoutException
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import retrofit2.HttpException
 import timber.log.Timber
@@ -261,33 +263,67 @@ class AuthRepositoryImpl @Inject constructor(
      * Wraps a suspending [block] that calls a Retrofit endpoint and maps any exception
      * to a typed [ApiResult.Error].
      *
+     * Retry behaviour:
+     * - [SocketTimeoutException] is retried up to [MAX_RETRIES] times with exponential
+     *   backoff (1 s, 2 s). This handles Cloud Run cold-start latency transparently.
+     * - All other exceptions are not retried.
+     *
      * Mapping rules:
      * - [HttpException] with status 401 → [DomainError.Unauthorized]
      * - [HttpException] with status 403 → [DomainError.Forbidden]
      * - [HttpException] with 4xx status → [DomainError.ValidationError]
      * - [HttpException] with 5xx status → [DomainError.ServerError]
-     * - [IOException]                   → [DomainError.NetworkError]
+     * - [SocketTimeoutException] (exhausted retries) → [DomainError.RequestTimeout]
+     * - Other [IOException]               → [DomainError.NetworkError]
      *
      * @param block Suspending lambda that performs the Retrofit call and returns [T].
      * @return [ApiResult.Success] wrapping the result, or [ApiResult.Error] on failure.
      */
-    private suspend fun <T> safeApiCall(block: suspend () -> T): ApiResult<T> = try {
-        val result = block()
-        Timber.d("AUTH_DEBUG safeApiCall SUCCESS")
-        ApiResult.Success(result)
-    } catch (e: HttpException) {
-        Timber.e(
-            "AUTH_DEBUG safeApiCall HttpException code=${e.code()} body=${e.response()?.errorBody()?.string()}"
-        )
-        ApiResult.Error(e.todomainError())
-    } catch (e: IOException) {
-        Timber.e(e, "AUTH_DEBUG safeApiCall IOException message=${e.message} cause=${e.cause}")
-        ApiResult.Error(
-            DomainError.NetworkError(
-                message = e.message ?: "A network I/O error occurred.",
-                cause = e
+    private suspend fun <T> safeApiCall(block: suspend () -> T): ApiResult<T> {
+        var lastTimeoutException: SocketTimeoutException? = null
+        repeat(MAX_RETRIES + 1) { attempt ->
+            try {
+                val result = block()
+                Timber.d("AUTH_DEBUG safeApiCall SUCCESS attempt=$attempt")
+                return ApiResult.Success(result)
+            } catch (e: SocketTimeoutException) {
+                lastTimeoutException = e
+                if (attempt < MAX_RETRIES) {
+                    val delayMs = RETRY_BASE_DELAY_MS * (1L shl attempt) // 1s, 2s
+                    Timber.w(e, "AUTH_DEBUG safeApiCall timeout attempt=$attempt, retrying in ${delayMs}ms")
+                    delay(delayMs)
+                } else {
+                    Timber.e(e, "AUTH_DEBUG safeApiCall timeout exhausted after ${MAX_RETRIES + 1} attempts")
+                }
+            } catch (e: HttpException) {
+                Timber.e(
+                    "AUTH_DEBUG safeApiCall HttpException code=${e.code()} body=${e.response()?.errorBody()?.string()}"
+                )
+                return ApiResult.Error(e.todomainError())
+            } catch (e: IOException) {
+                Timber.e(e, "AUTH_DEBUG safeApiCall IOException message=${e.message} cause=${e.cause}")
+                return ApiResult.Error(
+                    DomainError.NetworkError(
+                        message = e.message ?: "A network I/O error occurred.",
+                        cause = e
+                    )
+                )
+            }
+        }
+        // All retry attempts timed out.
+        return ApiResult.Error(
+            DomainError.RequestTimeout(
+                message = lastTimeoutException?.message ?: "The request timed out. Please try again.",
+                cause = lastTimeoutException
             )
         )
+    }
+
+    private companion object {
+        /** Number of additional attempts after the initial one (so total = MAX_RETRIES + 1). */
+        const val MAX_RETRIES = 2
+        /** Base delay in milliseconds; doubled on each subsequent attempt. */
+        const val RETRY_BASE_DELAY_MS = 1_000L
     }
 
     /**

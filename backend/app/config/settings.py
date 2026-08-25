@@ -508,8 +508,17 @@ class Settings(BaseSettings):
 
     GOOGLE_CLIENT_ID: str = Field(
         default="",
-        description="Google OAuth2 client ID. Required for Google sign-in. "
-        "Obtain from Google Cloud Console → APIs & Services → Credentials.",
+        description="Google OAuth2 Web client ID. Used as the expected audience when "
+        "verifying Google ID tokens on the server. "
+        "Obtain from Google Cloud Console → APIs & Services → Credentials → Web application.",
+    )
+
+    GOOGLE_ANDROID_CLIENT_ID: str = Field(
+        default="",
+        description="Google OAuth2 Android client ID. Accepted as an alternative audience "
+        "when verifying Google ID tokens (Credential Manager sets aud to the Web client ID, "
+        "but this field is checked as a fallback). "
+        "Obtain from Google Cloud Console → APIs & Services → Credentials → Android.",
     )
 
     GOOGLE_CLIENT_SECRET: str = Field(

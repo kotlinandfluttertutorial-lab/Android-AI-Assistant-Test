@@ -116,7 +116,9 @@ object NetworkModule {
     //   ci/staging      → pass -Pbase_url="https://your-cloud-run-url.run.app/"
 
     private const val CONNECT_TIMEOUT_SECONDS = 30L
-    private const val READ_TIMEOUT_SECONDS = 60L
+    // 90 s gives Cloud Run cold-start containers (typically 10–60 s) time to respond
+    // before the client gives up. The previous value of 60 s was too tight.
+    private const val READ_TIMEOUT_SECONDS = 90L
     private const val WRITE_TIMEOUT_SECONDS = 60L
 
     // â”€â”€â”€ JSON serializer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€

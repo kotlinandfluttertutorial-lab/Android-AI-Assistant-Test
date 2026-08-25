@@ -412,11 +412,31 @@ async def _google_auth_impl(
         http_request = g_requests.Request()
 
         def _verify() -> dict:
-            return g_id_token.verify_oauth2_token(
+            # Accept both the Web client ID and the Android client ID as valid
+            # audiences. Google Credential Manager on Android sets aud to the
+            # Web client ID, but we also allow the Android client ID in case
+            # the token was obtained via a different OAuth flow.
+            # If GOOGLE_CLIENT_ID is empty we skip audience verification —
+            # the token is still signature-verified against Google's public keys.
+            audience = settings.GOOGLE_CLIENT_ID or None
+            id_info = g_id_token.verify_oauth2_token(
                 body.id_token,
                 http_request,
-                settings.GOOGLE_CLIENT_ID,
+                audience,
             )
+            # Manually validate audience if we have a client ID configured
+            if settings.GOOGLE_CLIENT_ID:
+                valid_audiences = {
+                    settings.GOOGLE_CLIENT_ID,
+                    settings.GOOGLE_ANDROID_CLIENT_ID,
+                }
+                valid_audiences.discard("")
+                token_aud = id_info.get("aud", "")
+                if token_aud not in valid_audiences:
+                    raise ValueError(
+                        f"Token audience '{token_aud}' is not in the allowed set."
+                    )
+            return id_info
 
         id_info: dict = await loop.run_in_executor(None, _verify)
     except ValueError as exc:

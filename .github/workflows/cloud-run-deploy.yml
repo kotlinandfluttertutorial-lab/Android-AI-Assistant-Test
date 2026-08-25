@@ -308,6 +308,8 @@ jobs:
             CHROMA_PORT=8001
             DEFAULT_LLM_PROVIDER=gemini
             LLM_FALLBACK_PROVIDER=openai
+            GOOGLE_CLIENT_ID=106071012091-d4brm5cng1gaor0al51veafjd0fa239v.apps.googleusercontent.com
+            GOOGLE_ANDROID_CLIENT_ID=106071012091-0cu6q2e6b4tsa1qrauutqt70ms13otn6.apps.googleusercontent.com
             LLM_MAX_OUTPUT_TOKENS_OPENAI=2048
             LLM_MAX_OUTPUT_TOKENS_GEMINI=4096
             LLM_MAX_OUTPUT_TOKENS_CLAUDE=2048

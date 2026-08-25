@@ -79,6 +79,21 @@ sealed class DomainError(override val message: String, override val cause: Throw
     ) : DomainError(message, cause)
 
     /**
+     * A network call timed out before the server returned a response.
+     *
+     * Distinct from [NetworkError] so the UI can show a retry-oriented message rather
+     * than a generic "network error" — a timeout is often transient (e.g. Cloud Run
+     * cold-start) and a second attempt frequently succeeds.
+     *
+     * @param message Human-readable description of the timeout.
+     * @param cause   Original [java.net.SocketTimeoutException] from the HTTP client.
+     */
+    data class RequestTimeout(
+        override val message: String = "The request timed out. Please try again.",
+        override val cause: Throwable? = null
+    ) : DomainError(message, cause)
+
+    /**
      * The device has no active network interface. No network call was attempted.
      *
      * Distinct from [NetworkError] so the UI can show an offline banner rather than
