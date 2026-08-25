@@ -54,6 +54,8 @@ import androidx.work.WorkerParameters
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import java.io.IOException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.coroutines.withTimeoutOrNull
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -114,11 +116,11 @@ class FederationHealthCheckWorker @AssistedInject constructor(
      * Sends a GET request to `<baseUrl>/health` and returns the round-trip time in ms.
      * Returns [UNREACHABLE_LATENCY] on error or timeout.
      */
-    private suspend fun measureLatency(baseUrl: String): Long {
+    private suspend fun measureLatency(baseUrl: String): Long = withContext(Dispatchers.IO) {
         val url = baseUrl.trimEnd('/') + "/$HEALTH_PATH"
         val request = Request.Builder().url(url).get().build()
 
-        return withTimeoutOrNull(HEALTH_PING_TIMEOUT_MS) {
+        withTimeoutOrNull(HEALTH_PING_TIMEOUT_MS) {
             val start = System.currentTimeMillis()
             try {
                 okHttpClient.newCall(request).execute().use { response ->

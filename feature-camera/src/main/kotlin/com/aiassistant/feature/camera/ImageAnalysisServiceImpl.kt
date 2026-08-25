@@ -51,6 +51,7 @@ package com.aiassistant.feature.camera
 
 import android.graphics.Bitmap
 import android.util.Base64
+import com.aiassistant.core.common.DispatcherProvider
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.latin.TextRecognizerOptions
@@ -58,6 +59,7 @@ import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 import kotlin.coroutines.resume
 import kotlinx.coroutines.suspendCancellableCoroutine
+import kotlinx.coroutines.withContext
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -73,10 +75,12 @@ import org.json.JSONObject
  *
  * @param okHttpClient Authenticated OkHttpClient provided by the `core-network` module.
  * @param backendBaseUrl Base URL of the FastAPI backend (e.g. `https://api.example.com`).
+ * @param dispatchers Coroutine dispatcher abstraction for main-safe execution.
  */
 class ImageAnalysisServiceImpl @Inject constructor(
     private val okHttpClient: OkHttpClient,
-    private val backendBaseUrl: String
+    private val backendBaseUrl: String,
+    private val dispatchers: DispatcherProvider
 ) : ImageAnalysisService {
 
     private val textRecognizer = TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
@@ -124,34 +128,36 @@ class ImageAnalysisServiceImpl @Inject constructor(
         bitmap: Bitmap,
         userPrompt: String,
         provider: String
-    ): VisionAnalysisResult = try {
-        val imageBase64 = bitmapToBase64(bitmap)
-        val json = JSONObject().apply {
-            put("image_base64", imageBase64)
-            put("prompt", userPrompt)
-            put("provider", provider)
-        }
-        val requestBody = json.toString()
-            .toRequestBody("application/json".toMediaType())
+    ): VisionAnalysisResult = withContext(dispatchers.io) {
+        try {
+            val imageBase64 = bitmapToBase64(bitmap)
+            val json = JSONObject().apply {
+                put("image_base64", imageBase64)
+                put("prompt", userPrompt)
+                put("provider", provider)
+            }
+            val requestBody = json.toString()
+                .toRequestBody("application/json".toMediaType())
 
-        val request = Request.Builder()
-            .url("$backendBaseUrl/vision/analyze")
-            .post(requestBody)
-            .build()
+            val request = Request.Builder()
+                .url("$backendBaseUrl/vision/analyze")
+                .post(requestBody)
+                .build()
 
-        val response = okHttpClient.newCall(request).execute()
-        if (response.isSuccessful) {
-            val body = response.body?.string() ?: ""
-            val responseJson = JSONObject(body)
-            val analysisText = responseJson.optString("analysis", body)
-            VisionAnalysisResult.Success(response = analysisText)
-        } else {
-            VisionAnalysisResult.Failure(
-                message = "Backend returned HTTP ${response.code}: ${response.message}"
-            )
+            val response = okHttpClient.newCall(request).execute()
+            if (response.isSuccessful) {
+                val body = response.body?.string() ?: ""
+                val responseJson = JSONObject(body)
+                val analysisText = responseJson.optString("analysis", body)
+                VisionAnalysisResult.Success(response = analysisText)
+            } else {
+                VisionAnalysisResult.Failure(
+                    message = "Backend returned HTTP ${response.code}: ${response.message}"
+                )
+            }
+        } catch (e: Exception) {
+            VisionAnalysisResult.Failure(message = e.message ?: "Vision analysis failed")
         }
-    } catch (e: Exception) {
-        VisionAnalysisResult.Failure(message = e.message ?: "Vision analysis failed")
     }
 
     // â”€â”€â”€ Private helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
