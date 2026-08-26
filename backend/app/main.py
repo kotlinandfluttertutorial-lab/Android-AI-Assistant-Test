@@ -28,6 +28,17 @@ from pathlib import Path
 from fastapi import FastAPI
 
 # ---------------------------------------------------------------------------
+# Structured JSON logging — must be configured before ANY other import that
+# might call logging.basicConfig() (e.g. uvicorn, sqlalchemy).
+# configure_logging() reads LOG_LEVEL from the environment; the .env file
+# is loaded on the next block so the env var must come from the shell / Cloud
+# Run env vars (which is correct — LOG_LEVEL is a non-secret plain var).
+# ---------------------------------------------------------------------------
+from app.observability.logging_setup import configure_logging  # noqa: E402
+
+configure_logging()
+
+# ---------------------------------------------------------------------------
 # Load .env early — before any os.environ reads or pydantic-settings init.
 # Using an absolute path anchored to this file means uvicorn can be launched
 # from any working directory and still pick up backend/.env correctly.
@@ -181,6 +192,13 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     from app.workers.metrics import setup_celery_metrics
 
     setup_celery_metrics(celery_app)
+
+    # Initialise OpenTelemetry distributed tracing.
+    # This patches FastAPI, SQLAlchemy, httpx, and Redis automatically.
+    # Controlled by OTEL_ENABLED env var (default: true).
+    from app.observability.tracing import setup_tracing
+
+    setup_tracing()
 
     # Warm up the SentenceTransformer embedding model so the first real
     # request doesn't pay the 30-40 s cold-start cost of loading the model

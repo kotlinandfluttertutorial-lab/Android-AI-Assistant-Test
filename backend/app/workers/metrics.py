@@ -49,15 +49,20 @@ from __future__ import annotations
 
 import logging
 
-from prometheus_client import CollectorRegistry, Counter, Gauge
+from prometheus_client import REGISTRY, Counter, Gauge
 
 logger = logging.getLogger(__name__)
 
 # ---------------------------------------------------------------------------
 # Registry
 # ---------------------------------------------------------------------------
+# FIX: use the global default REGISTRY (prometheus_client.REGISTRY) instead of
+# a separate CollectorRegistry.  The previous isolated registry was never merged
+# into /metrics, so Celery and LLM metrics were invisible to Prometheus.
+# prometheus-fastapi-instrumentator also uses REGISTRY by default, so all
+# metrics now appear on the same /metrics endpoint.
 
-celery_metrics_registry = CollectorRegistry(auto_describe=True)
+celery_metrics_registry = REGISTRY  # kept for import compatibility
 
 # ---------------------------------------------------------------------------
 # Gauges
@@ -67,14 +72,12 @@ celery_queue_depth: Gauge = Gauge(
     "celery_queue_depth",
     "Number of pending tasks waiting in the Celery queue.",
     labelnames=["queue"],
-    registry=celery_metrics_registry,
 )
 
 celery_active_tasks: Gauge = Gauge(
     "celery_active_tasks",
     "Number of actively executing Celery tasks.",
     labelnames=["queue"],
-    registry=celery_metrics_registry,
 )
 
 # ---------------------------------------------------------------------------
@@ -85,14 +88,12 @@ celery_failed_tasks_total: Counter = Counter(
     "celery_failed_tasks_total",
     "Total number of permanently failed Celery tasks (after retries exhausted).",
     labelnames=["task_name"],
-    registry=celery_metrics_registry,
 )
 
 celery_completed_tasks_total: Counter = Counter(
     "celery_completed_tasks_total",
     "Total number of successfully completed Celery tasks.",
     labelnames=["task_name"],
-    registry=celery_metrics_registry,
 )
 
 # ---------------------------------------------------------------------------
@@ -103,21 +104,18 @@ llm_token_cost_usd_total: Counter = Counter(
     "llm_token_cost_usd_total",
     "Cumulative USD cost of LLM calls, broken down by provider.",
     labelnames=["provider"],
-    registry=celery_metrics_registry,
 )
 
 llm_input_tokens_total: Counter = Counter(
     "llm_input_tokens_total",
     "Cumulative number of input (prompt) tokens sent to LLM providers.",
     labelnames=["provider"],
-    registry=celery_metrics_registry,
 )
 
 llm_output_tokens_total: Counter = Counter(
     "llm_output_tokens_total",
     "Cumulative number of output (completion) tokens received from LLM providers.",
     labelnames=["provider"],
-    registry=celery_metrics_registry,
 )
 
 

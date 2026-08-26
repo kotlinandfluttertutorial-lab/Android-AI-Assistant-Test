@@ -96,6 +96,16 @@ firebase-admin==6.5.0
 prometheus-fastapi-instrumentator==8.1.0
 python-logging-loki==0.3.1
 
+# ── OpenTelemetry distributed tracing ────────────────────────────────────────
+# Core SDK + OTLP exporter for Cloud Trace / Jaeger.
+# Instrumentations auto-patch FastAPI, SQLAlchemy, httpx, and redis.
+opentelemetry-sdk==1.27.0
+opentelemetry-exporter-otlp-proto-grpc==1.27.0
+opentelemetry-instrumentation-fastapi==0.48b0
+opentelemetry-instrumentation-sqlalchemy==0.48b0
+opentelemetry-instrumentation-httpx==0.48b0
+opentelemetry-instrumentation-redis==0.48b0
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Environment & file utilities
 # ──────────────────────────────────────────────────────────────────────────────

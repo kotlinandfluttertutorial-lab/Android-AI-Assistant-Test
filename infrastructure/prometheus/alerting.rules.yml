@@ -1,0 +1,203 @@
+# ============================================================================
+# Android AI Assistant — Prometheus alerting rules
+# ============================================================================
+#
+# HOW ALERTS WORK:
+#   1. Prometheus evaluates every rule at evaluation_interval (15s).
+#   2. When a rule's expression is true for >= `for` duration, the alert fires.
+#   3. Fired alerts are sent to Alertmanager (not configured here) which
+#      routes them to Slack, email, PagerDuty, etc.
+#
+# ALERT SEVERITY LABELS:
+#   critical — production is broken; wake someone up
+#   warning  — degraded; investigate within business hours
+#   info     — informational; no immediate action required
+#
+# TEST RULES LOCALLY:
+#   promtool check rules infrastructure/prometheus/alerting.rules.yml
+#   promtool test rules infrastructure/prometheus/tests/alerting_test.yml
+# ============================================================================
+
+groups:
+
+  # ── HTTP error rates ───────────────────────────────────────────────────────
+  - name: http_errors
+    interval: 30s   # evaluate this group every 30s (overrides global 15s)
+    rules:
+
+      - alert: HighHTTP5xxErrorRate
+        # Fires when more than 5% of requests in the last 5 minutes return 5xx.
+        # http_requests_total is exposed by prometheus-fastapi-instrumentator.
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m]))
+            /
+            sum(rate(http_requests_total[5m]))
+          ) > 0.05
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High HTTP 5xx error rate ({{ $value | humanizePercentage }})"
+          description: >
+            More than 5% of HTTP requests are returning 5xx errors over the last
+            5 minutes. Current rate: {{ $value | humanizePercentage }}.
+            Check Cloud Run logs: gcloud run services logs read ai-assistant-backend
+            --region=asia-south1 --limit=50
+
+      - alert: HighHTTP4xxErrorRate
+        # 4xx at > 20% suggests a client bug or auth misconfiguration.
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"4.."}[5m]))
+            /
+            sum(rate(http_requests_total[5m]))
+          ) > 0.20
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High HTTP 4xx error rate ({{ $value | humanizePercentage }})"
+          description: >
+            More than 20% of HTTP requests are returning 4xx errors over the last
+            5 minutes. This may indicate expired tokens, permission errors, or a
+            mobile app bug. Current rate: {{ $value | humanizePercentage }}.
+
+      - alert: UnhandledExceptions
+        # Fires when unhandled exceptions are being thrown inside request handlers.
+        # http_unhandled_exceptions_total is the custom counter in logging_middleware.py.
+        expr: |
+          sum(rate(http_unhandled_exceptions_total[5m])) > 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Unhandled exceptions in HTTP handlers"
+          description: >
+            Unhandled exceptions are occurring in HTTP request handlers.
+            Rate over last 5m: {{ $value }}/s.
+            Check logs for stack traces: gcloud run services logs read ai-assistant-backend
+
+  # ── Request latency ────────────────────────────────────────────────────────
+  - name: latency
+    rules:
+
+      - alert: HighP95Latency
+        # Fires when the 95th-percentile response time exceeds 2 seconds.
+        # http_request_duration_seconds is the histogram from prometheus-fastapi-instrumentator.
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le, handler)
+          ) > 2.0
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High P95 latency on {{ $labels.handler }} ({{ $value | humanizeDuration }})"
+          description: >
+            The 95th-percentile response time for {{ $labels.handler }} has exceeded
+            2 seconds for 3 consecutive minutes.
+            Current P95: {{ $value | humanizeDuration }}.
+            Investigate slow LLM calls, database queries, or ChromaDB retrieval.
+
+      - alert: CriticalP99Latency
+        expr: |
+          histogram_quantile(
+            0.99,
+            sum(rate(http_request_duration_seconds_bucket[5m])) by (le)
+          ) > 10.0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "P99 latency exceeds 10s ({{ $value | humanizeDuration }})"
+          description: >
+            The 99th-percentile response time has exceeded 10 seconds.
+            This likely indicates a hung LLM call, database connection pool
+            exhaustion, or an unresponsive external API.
+
+  # ── LLM cost and token usage ───────────────────────────────────────────────
+  - name: llm_cost
+    rules:
+
+      - alert: LLMCostSpike
+        # Fires when USD spend rate exceeds $0.10 per minute for 5 minutes.
+        # This catches a runaway loop calling the LLM in rapid succession.
+        # llm_token_cost_usd_total is the Counter in backend/app/workers/metrics.py.
+        expr: |
+          sum(rate(llm_token_cost_usd_total[1m])) * 60 > 0.10
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "LLM cost spike — ${{ $value | humanize }}/min"
+          description: >
+            LLM spend rate has exceeded $0.10/minute for 5 consecutive minutes.
+            This may indicate an infinite retry loop, a missing circuit breaker,
+            or an unusually large prompt being sent repeatedly.
+            Breakdown by provider is available in the ai_cost Grafana dashboard.
+
+      - alert: LLMHighTokenUsage
+        # Fires when output tokens exceed 10,000 per minute across all providers.
+        expr: |
+          sum(rate(llm_output_tokens_total[1m])) * 60 > 10000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High LLM output token usage ({{ $value | humanize }} tokens/min)"
+          description: >
+            LLM output token usage has exceeded 10,000 tokens/minute.
+            Check LLM_MAX_OUTPUT_TOKENS_* env vars and whether a client is
+            sending unusually large requests.
+
+  # ── Celery task health ─────────────────────────────────────────────────────
+  - name: celery
+    rules:
+
+      - alert: HighCeleryTaskFailureRate
+        # celery_failed_tasks_total is the Counter in workers/metrics.py.
+        expr: |
+          sum(rate(celery_failed_tasks_total[5m])) by (task_name) > 0.05
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High Celery task failure rate for {{ $labels.task_name }}"
+          description: >
+            Celery task {{ $labels.task_name }} is failing at > 3/min
+            after retries are exhausted.
+            Rate: {{ $value | humanize }} failures/s.
+            Check Celery worker logs for stack traces.
+
+      - alert: CeleryQueueBacklog
+        # Fires when the Celery queue has been building for 10 minutes.
+        # This means workers are not keeping up with incoming tasks.
+        expr: celery_queue_depth > 100
+        for: 10m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Celery queue backlog ({{ $value }} pending tasks)"
+          description: >
+            The Celery queue has {{ $value }} pending tasks and has been growing
+            for 10 minutes. Consider scaling the Celery worker replicas.
+
+  # ── Service availability ───────────────────────────────────────────────────
+  - name: availability
+    rules:
+
+      - alert: BackendDown
+        # Fires immediately when Prometheus cannot scrape the backend.
+        # up == 0 means the /metrics endpoint returned an error or timed out.
+        expr: up{job="ai_assistant_backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "AI Assistant backend is unreachable"
+          description: >
+            Prometheus cannot scrape {{ $labels.instance }}.
+            The service may be crashed or the Cloud Run health check is failing.
+            Check: curl https://ai-assistant-backend-106071012091.asia-south1.run.app/health
