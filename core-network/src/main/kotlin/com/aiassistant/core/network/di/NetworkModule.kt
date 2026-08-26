@@ -84,6 +84,7 @@ import com.aiassistant.core.network.ConnectivityObserver
 import com.aiassistant.core.network.LogoutEventBus
 import com.aiassistant.core.network.NetworkConnectivityObserver
 import com.aiassistant.core.network.RefreshTokenInterceptor
+import com.aiassistant.core.network.observability.NetworkObservabilityInterceptor
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -182,13 +183,18 @@ object NetworkModule {
         authInterceptor: AuthInterceptor,
         certificatePinningInterceptor: CertificatePinningInterceptor,
         refreshTokenInterceptor: RefreshTokenInterceptor,
-        loggingInterceptor: HttpLoggingInterceptor
+        observabilityInterceptor: NetworkObservabilityInterceptor,
+        loggingInterceptor: HttpLoggingInterceptor,
     ): OkHttpClient = OkHttpClient.Builder()
         // Application-level interceptors run for every request (including retries).
         .addInterceptor(authInterceptor)
         .addInterceptor(certificatePinningInterceptor)
         // Authenticator is called only when the server returns HTTP 401.
         .authenticator(refreshTokenInterceptor)
+        // Observability: captures latency, status codes, and errors as structured events.
+        // Positioned after auth/pinning so the final request state is measured,
+        // and before logging so all events are emitted even if the logger is NONE.
+        .addInterceptor(observabilityInterceptor)
         // For binary request/response bodies (multipart uploads, PDF downloads etc.)
         // temporarily drop the logging level to HEADERS to prevent raw bytes flooding
         // logcat. Level is restored after the call completes.
