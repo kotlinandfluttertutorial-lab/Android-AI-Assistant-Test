@@ -67,6 +67,11 @@ class DashboardViewModel @Inject constructor(
     private val _chatState = MutableStateFlow<ChatUiState>(ChatUiState.Idle)
     val chatState: StateFlow<ChatUiState> = _chatState.asStateFlow()
 
+    // ── Remediation state (Phase 15) ───────────────────────────────────────────
+
+    private val _remediationState = MutableStateFlow<RemediationUiState>(RemediationUiState.Idle)
+    val remediationState: StateFlow<RemediationUiState> = _remediationState.asStateFlow()
+
     init {
         load()
     }
@@ -105,6 +110,46 @@ class DashboardViewModel @Inject constructor(
     /** Clear the chat result so the input is blank again. */
     fun clearChat() {
         _chatState.value = ChatUiState.Idle
+    }
+
+    // ── Remediation actions (Phase 15) ─────────────────────────────────────────
+
+    /** Request remediation recommendations for an incident. */
+    fun recommendRemediation(incidentId: String) {
+        viewModelScope.launch {
+            _remediationState.value = RemediationUiState.Loading
+            val result = withContext(dispatchers.io) {
+                // Uses DevOpsRepository which can be extended with a RemediationApiService
+                // For now delegates to the existing DevOps infrastructure
+                runCatching {
+                    // Stub: real implementation calls
+                    // POST /incidents/{incidentId}/remediation/recommend
+                    // via a RemediationRepository (extend data module following IncidentRepositoryImpl pattern)
+                    null // returns null until RemediationRepository is wired
+                }.getOrNull()
+            }
+            // Graceful placeholder — real implementation returns RemediationPlanDto
+            _remediationState.value = RemediationUiState.Idle
+        }
+    }
+
+    /** Record human approval of a remediation action. */
+    fun approveAction(incidentId: String, actionId: String) {
+        viewModelScope.launch {
+            withContext(dispatchers.io) {
+                // POST /incidents/{incidentId}/remediation/{actionId}/approve
+                // Extend RemediationRepository when data layer is wired
+            }
+        }
+    }
+
+    /** Record human rejection of a remediation action. */
+    fun rejectAction(incidentId: String, actionId: String, reason: String = "") {
+        viewModelScope.launch {
+            withContext(dispatchers.io) {
+                // POST /incidents/{incidentId}/remediation/{actionId}/reject
+            }
+        }
     }
 
     // ── Private helpers ────────────────────────────────────────────────────────

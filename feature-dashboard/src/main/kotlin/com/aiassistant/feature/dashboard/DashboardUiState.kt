@@ -22,6 +22,30 @@ data class IncidentCounts(
     val total: Int get() = critical + high + medium + low
 }
 
+/** A single recommended remediation action (Android-side model). */
+data class RemediationActionUiItem(
+    val id:         String,
+    val rank:       Int,
+    val title:      String,
+    val actionType: String,
+    val riskTier:   String,
+    val reasoning:  String,
+    val confidence: Double?,
+    val status:     String,
+)
+
+/** State for the remediation panel tied to one incident. */
+sealed class RemediationUiState {
+    data object Idle                                          : RemediationUiState()
+    data object Loading                                       : RemediationUiState()
+    data class Content(
+        val incidentId:            String,
+        val actions:               List<RemediationActionUiItem>,
+        val lowConfidenceWarning:  String?,
+    )                                                         : RemediationUiState()
+    data class Error(val message: String)                     : RemediationUiState()
+}
+
 sealed class DashboardUiState {
 
     /** First load — spinner shown. */

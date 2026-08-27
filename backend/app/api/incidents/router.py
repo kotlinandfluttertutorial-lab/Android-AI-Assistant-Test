@@ -337,3 +337,211 @@ async def get_rca(
         )
 
     return service._cached_response(rca_id=incident.rca_analysis_id, incident=incident)
+
+
+# ---------------------------------------------------------------------------
+# Phase 15 — AIOps: Remediation endpoints
+# ---------------------------------------------------------------------------
+
+
+class RemediationActionResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id:               uuid.UUID
+    incident_id:      str
+    title:            str
+    action_type:      str
+    risk_tier:        str
+    reasoning:        str
+    confidence:       float | None
+    rank:             int
+    params:           dict
+    status:           str
+    reviewed_by:      str | None
+    rejection_reason: str | None
+    created_at:       str
+    reviewed_at:      str | None
+
+    @classmethod
+    def from_orm_model(cls, a) -> "RemediationActionResponse":
+        import json as _json
+        try:
+            params = _json.loads(a.params_json or "{}")
+        except Exception:
+            params = {}
+        return cls(
+            id               = a.id,
+            incident_id      = a.incident_id,
+            title            = a.title,
+            action_type      = a.action_type,
+            risk_tier        = a.risk_tier,
+            reasoning        = a.reasoning,
+            confidence       = a.confidence,
+            rank             = a.rank,
+            params           = params,
+            status           = a.status,
+            reviewed_by      = a.reviewed_by,
+            rejection_reason = a.rejection_reason,
+            created_at       = a.created_at.isoformat() if a.created_at else "",
+            reviewed_at      = a.reviewed_at.isoformat() if a.reviewed_at else None,
+        )
+
+
+class RemediationPlanResponse(BaseModel):
+    incident_id:             str
+    incident_title:          str
+    ai_summary:              str
+    actions:                 list[RemediationActionResponse]
+    low_confidence_warning:  str | None
+
+
+class ApproveRequest(BaseModel):
+    pass   # reviewer ID comes from JWT
+
+
+class RejectRequest(BaseModel):
+    reason: str = Field(default="", description="Optional reason for rejection")
+
+
+@router.post(
+    "/{incident_id}/remediation/recommend",
+    response_model=RemediationPlanResponse,
+    summary="Generate remediation recommendations for an incident",
+    description=(
+        "Generates a ranked list of remediation actions based on the incident's "
+        "AI analysis (Phase 10) and RCA (Phase 12). "
+        "Actions are recommendation-only — NO automated execution happens. "
+        "Human approval via POST /{id}/remediation/{action_id}/approve is required. "
+        "Phase 15 — AIOps."
+    ),
+)
+async def recommend_remediation(
+    incident_id: uuid.UUID,
+    current_user: TokenPayload = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> RemediationPlanResponse:
+    """Generate remediation recommendations for an incident.
+
+    Phase 15 — AIOps
+    """
+    from app.services.remediation_service import RemediationService
+
+    service = RemediationService(db)
+    plan    = await service.recommend(incident_id)
+
+    return RemediationPlanResponse(
+        incident_id            = plan.incident_id,
+        incident_title         = plan.incident_title,
+        ai_summary             = plan.ai_summary,
+        actions                = [
+            RemediationActionResponse(
+                id               = uuid.uuid4(),  # not yet persisted — temp
+                incident_id      = plan.incident_id,
+                title            = r.title,
+                action_type      = r.action_type,
+                risk_tier        = r.risk_tier,
+                reasoning        = r.reasoning,
+                confidence       = r.confidence,
+                rank             = r.rank,
+                params           = r.params,
+                status           = "RECOMMENDED",
+                reviewed_by      = None,
+                rejection_reason = None,
+                created_at       = "",
+                reviewed_at      = None,
+            )
+            for r in plan.recommendations
+        ],
+        low_confidence_warning = plan.low_confidence_warning,
+    )
+
+
+@router.get(
+    "/{incident_id}/remediation",
+    response_model=list[RemediationActionResponse],
+    summary="List all remediation actions for an incident",
+)
+async def list_remediation(
+    incident_id: uuid.UUID,
+    current_user: TokenPayload = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> list[RemediationActionResponse]:
+    """Return all remediation actions for an incident ordered by rank.
+
+    Phase 15 — AIOps
+    """
+    from app.services.remediation_service import RemediationService
+
+    service = RemediationService(db)
+    actions = await service.list_actions(incident_id)
+    return [RemediationActionResponse.from_orm_model(a) for a in actions]
+
+
+@router.post(
+    "/{incident_id}/remediation/{action_id}/approve",
+    response_model=RemediationActionResponse,
+    summary="Approve a remediation action",
+    description=(
+        "Records human approval of a recommended remediation action. "
+        "Sets status to APPROVED. "
+        "⚠️ Phase 15 initial delivery — APPROVAL IS RECORDED but no automated "
+        "execution happens. The engineer executes the action manually using "
+        "the params field as a guide. "
+        "Phase 15 — AIOps."
+    ),
+)
+async def approve_remediation(
+    incident_id: uuid.UUID,
+    action_id:   uuid.UUID,
+    current_user: TokenPayload = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> RemediationActionResponse:
+    """Approve a remediation action.
+
+    Phase 15 — AIOps
+    """
+    from app.services.remediation_service import RemediationService
+
+    service = RemediationService(db)
+    action  = await service.approve(
+        action_id        = action_id,
+        reviewer_user_id = current_user.sub,
+    )
+    if action is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Remediation action {action_id} not found.",
+        )
+    return RemediationActionResponse.from_orm_model(action)
+
+
+@router.post(
+    "/{incident_id}/remediation/{action_id}/reject",
+    response_model=RemediationActionResponse,
+    summary="Reject a remediation action",
+)
+async def reject_remediation(
+    incident_id: uuid.UUID,
+    action_id:   uuid.UUID,
+    body:        RejectRequest,
+    current_user: TokenPayload = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> RemediationActionResponse:
+    """Reject a remediation action with an optional reason.
+
+    Phase 15 — AIOps
+    """
+    from app.services.remediation_service import RemediationService
+
+    service = RemediationService(db)
+    action  = await service.reject(
+        action_id        = action_id,
+        reviewer_user_id = current_user.sub,
+        reason           = body.reason,
+    )
+    if action is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Remediation action {action_id} not found.",
+        )
+    return RemediationActionResponse.from_orm_model(action)

@@ -312,4 +312,91 @@ class AnomalyDetectionService:
             )
 
         await self._db.commit()
+
+        # Phase 15 — AIOps: notify all admin users about the new incident.
+        # Uses the existing send_push_notification Celery task (non-blocking).
+        # Failure to notify never rolls back the incident.
+        try:
+            await self._notify_admins(incident.id, result.title, result.severity)
+        except Exception as exc:
+            logger.warning(
+                "anomaly_detection: admin push notification failed for incident %s "
+                "(incident still created): %s",
+                incident.id,
+                exc,
+            )
+
         return incident.id
+
+    async def _notify_admins(
+        self,
+        incident_id: "uuid.UUID",
+        title: str,
+        severity: str,
+    ) -> None:
+        """Send FCM push notifications to all admin users with a registered device token.
+
+        This implements the Phase 15 AIOps loop step:
+          "Remediation Recommendation → 📱 Push Notification → Developer"
+
+        Admin users are defined by ``UserRole.admin`` on the User model.
+        Only users with a non-null ``fcm_token`` receive the notification.
+
+        The push notification deep links the developer directly to the incident
+        detail on the Android Dashboard so they can review the AI analysis and
+        approve or reject the recommended remediation.
+
+        Phase 15 — AIOps
+        """
+        from sqlalchemy import select
+
+        from app.models.user import User, UserRole
+        from app.workers.notification_worker import send_push_notification
+
+        try:
+            # Fetch all admin users who have a registered FCM token
+            result = await self._db.execute(
+                select(User.id, User.fcm_token).where(
+                    User.role == UserRole.admin,
+                    User.fcm_token.isnot(None),
+                    User.is_active.is_(True),
+                )
+            )
+            admin_users = result.all()
+
+            if not admin_users:
+                logger.debug(
+                    "anomaly_detection: no admin users with FCM tokens — skipping notification"
+                )
+                return
+
+            severity_emoji = {
+                "CRITICAL": "🔴",
+                "HIGH":     "🟠",
+                "MEDIUM":   "🟡",
+                "LOW":      "🔵",
+            }.get(severity.upper(), "⚪")
+
+            for user_id, _fcm_token in admin_users:
+                send_push_notification.delay(
+                    user_id=str(user_id),
+                    title=f"{severity_emoji} {severity} Incident Detected",
+                    body=title,
+                    data={
+                        "type":        "incident_created",
+                        "incident_id": str(incident_id),
+                        "severity":    severity,
+                        "screen":      f"devops/incident/{incident_id}",
+                    },
+                )
+
+            logger.info(
+                "anomaly_detection: push notifications queued for %d admin user(s) "
+                "— incident=%s severity=%s",
+                len(admin_users),
+                incident_id,
+                severity,
+            )
+        except Exception as exc:
+            # Non-fatal — log and continue
+            raise exc
