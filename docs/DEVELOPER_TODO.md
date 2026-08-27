@@ -228,7 +228,7 @@ The workflow is `.github/workflows/cloud-run-deploy.yml`.
 - [ ] GCP project created + APIs enabled
 - [ ] Neon PostgreSQL free tier created, connection string in Secret Manager
 - [ ] ChromaDB deployed to Cloud Run (internal)
-- [ ] Cloud Storage bucket created — run `.\scripts\setup-gcs.ps1`, then `.\scripts\update-minio-secrets.ps1`
+- [ ] Cloud Storage bucket + HMAC keys created — run `.\scripts\setup-gcs.ps1`, then `.\scripts\update-minio-secrets.ps1`
 - [ ] All backend secrets stored in Secret Manager
 - [ ] Workload Identity Federation configured
 - [ ] All GitHub Secrets above added
@@ -236,6 +236,7 @@ The workflow is `.github/workflows/cloud-run-deploy.yml`.
 - [ ] Android / Firebase secrets added
 - [ ] First deploy triggered: `git push origin main` or via Actions → cloud-run-deploy → Run workflow
 - [ ] `CLOUD_RUN_SERVICE_URL` secret updated with the URL printed by the first deploy
+- [ ] Seed knowledge base: `python backend/scripts/seed_knowledge.py` (auto-runs on startup; or call `POST /admin/rag/reindex`)
 
 ---
 

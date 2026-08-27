@@ -47,6 +47,7 @@ from datetime import datetime
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
 from redis.asyncio import Redis
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -569,4 +570,54 @@ async def get_privacy_budgets(
     return PrivacyBudgetResponse(
         budgets=budget_entries,
         total_users_tracked=len(budget_entries),
+    )
+
+
+# ---------------------------------------------------------------------------
+# POST /admin/rag/reindex
+# ---------------------------------------------------------------------------
+
+
+class ReindexResponse(BaseModel):
+    """Response body for POST /admin/rag/reindex."""
+
+    status: str
+    files_indexed: int
+    chunks_indexed: int
+    collection_size: int
+    errors: list[str]
+
+
+@router.post(
+    "/rag/reindex",
+    summary="Re-index the DevOps knowledge base into ChromaDB",
+    description=(
+        "Ingests all Markdown and text files from the knowledge/ folder into the "
+        "shared 'devops_knowledge' ChromaDB collection. "
+        "Idempotent — safe to call multiple times. "
+        "Use after adding new knowledge documents or after a Cloud Run deployment "
+        "that wiped the ephemeral ChromaDB filesystem. "
+        "Requires admin role."
+    ),
+)
+async def reindex_knowledge_base() -> ReindexResponse:
+    """Re-index all documents from knowledge/ into the devops_knowledge ChromaDB collection.
+
+    This endpoint is the HTTP equivalent of running
+    ``python backend/scripts/seed_knowledge.py`` from the CLI.
+
+    Returns a summary of files indexed, chunks created, and any errors.
+    """
+    from pathlib import Path as _Path
+
+    from scripts.seed_knowledge import KNOWLEDGE_DIR, seed_async
+
+    result = await seed_async(knowledge_dir=_Path(KNOWLEDGE_DIR))
+
+    return ReindexResponse(
+        status=result.get("status", "unknown"),
+        files_indexed=result.get("files", 0),
+        chunks_indexed=result.get("chunks", 0),
+        collection_size=result.get("collection_size", 0),
+        errors=result.get("errors", []),
     )

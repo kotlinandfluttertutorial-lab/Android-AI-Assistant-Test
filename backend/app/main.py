@@ -200,6 +200,36 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
     setup_tracing()
 
+    # Seed the DevOps knowledge base into ChromaDB on every startup.
+    # ChromaDB uses ephemeral storage on Cloud Run — the index is wiped on each
+    # new revision. This call is non-blocking (runs in a thread) and non-fatal
+    # (a ChromaDB failure at startup is already logged as a warning above).
+    # The seed is idempotent — re-running it rewrites existing chunks in place.
+    try:
+        import asyncio as _asyncio
+        from pathlib import Path as _Path
+
+        _knowledge_dir = _Path(__file__).resolve().parents[2] / "knowledge"
+        if _knowledge_dir.exists():
+            from scripts.seed_knowledge import seed_async as _seed_async
+
+            _seed_result = await _asyncio.wait_for(
+                _seed_async(knowledge_dir=_knowledge_dir),
+                timeout=120.0,  # 2 minute cap — large knowledge base on slow CPU
+            )
+            logger.info(
+                "STARTUP: knowledge base seeded — files=%d chunks=%d status=%s",
+                _seed_result.get("files", 0),
+                _seed_result.get("chunks", 0),
+                _seed_result.get("status", "unknown"),
+            )
+        else:
+            logger.info("STARTUP: knowledge/ directory not found — skipping knowledge base seed")
+    except Exception as _exc:
+        # Non-fatal: RAG queries will return empty results until ChromaDB is reachable
+        # and the admin triggers POST /admin/rag/reindex
+        logger.warning("STARTUP: knowledge base seeding failed (non-fatal): %s", _exc)
+
     # Warm up the SentenceTransformer embedding model so the first real
     # request doesn't pay the 30-40 s cold-start cost of loading the model
     # from disk and running a JIT compilation pass.
