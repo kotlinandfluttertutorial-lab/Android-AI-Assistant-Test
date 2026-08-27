@@ -98,6 +98,16 @@ private val NeutralVariant60 = Color(0xFF8E9099)
 private val NeutralVariant80 = Color(0xFFC4C6D0)
 private val NeutralVariant90 = Color(0xFFE3E2EC)
 
+// ── Warning / amber (Phase 14 — DevOps severity badges) ──────────────────────
+// Material 3 does not have a built-in "warning" role; we add one as a custom
+// extension token following the same naming convention (Amber40 / Amber80 / etc.)
+
+internal val Warning40  = Color(0xFFB25B00)  // warning on light background
+internal val Warning80  = Color(0xFFFFB956)  // warning on dark background
+internal val Warning90  = Color(0xFFFFDDB3)  // warning container (light)
+internal val Warning20  = Color(0xFF5B2D00)  // on-warning-container (light)
+internal val WarningDark = Color(0xFF3A1D00) // warning container (dark)
+
 // â”€â”€â”€ Light color scheme â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 /**
