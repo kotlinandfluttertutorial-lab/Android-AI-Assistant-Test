@@ -159,3 +159,148 @@ class ObservabilityEventRepository:
             select(ObservabilityEvent).where(ObservabilityEvent.id == event_id)
         )
         return result.scalar_one_or_none()
+
+    # ── Aggregation queries for anomaly detection (Phase 11) ──────────────────
+
+    async def count_errors_in_window(
+        self,
+        minutes: int = 5,
+        levels: list[str] | None = None,
+    ) -> int:
+        """Count ERROR/CRITICAL events in the last N minutes.
+
+        Used by Stage 1 rule-based detection to check the error rate threshold.
+
+        Args:
+            minutes: Look-back window in minutes.
+            levels:  Severity levels to count. Defaults to ["ERROR", "CRITICAL"].
+
+        Returns:
+            Integer count of matching events.
+        """
+        from sqlalchemy import func as _func
+
+        if levels is None:
+            levels = ["ERROR", "CRITICAL"]
+
+        cutoff = datetime.now(tz=UTC) - timedelta(minutes=minutes)
+
+        result = await self._db.execute(
+            select(_func.count(ObservabilityEvent.id)).where(
+                and_(
+                    ObservabilityEvent.level.in_(levels),
+                    ObservabilityEvent.received_at >= cutoff,
+                )
+            )
+        )
+        return result.scalar_one() or 0
+
+    async def count_all_in_window(self, minutes: int = 5) -> int:
+        """Count ALL events (any level) in the last N minutes.
+
+        Used as the denominator when calculating error rate percentage.
+
+        Args:
+            minutes: Look-back window in minutes.
+
+        Returns:
+            Integer count of all events.
+        """
+        from sqlalchemy import func as _func
+
+        cutoff = datetime.now(tz=UTC) - timedelta(minutes=minutes)
+        result = await self._db.execute(
+            select(_func.count(ObservabilityEvent.id)).where(
+                ObservabilityEvent.received_at >= cutoff
+            )
+        )
+        return result.scalar_one() or 0
+
+    async def compute_event_rate_stats(
+        self,
+        level: str,
+        window_minutes: int = 60,
+        bucket_minutes: int = 5,
+    ) -> dict:
+        """Compute rolling mean and standard deviation of event counts.
+
+        Splits the look-back window into fixed-size buckets, counts events per
+        bucket, then returns mean, std_dev, and the most recent bucket count.
+
+        Used by Stage 2 statistical detection to identify anomalies beyond
+        static thresholds.
+
+        Args:
+            level:          Event level to analyse (e.g. "ERROR").
+            window_minutes: Total history window in minutes (default 60).
+            bucket_minutes: Size of each time bucket in minutes (default 5).
+
+        Returns:
+            Dict with keys:
+                mean          — average event count per bucket
+                std_dev       — standard deviation of bucket counts
+                current       — count in the most recent bucket
+                bucket_count  — number of buckets used
+                is_anomaly    — True if current > mean + 2 * std_dev
+        """
+        import math
+
+        cutoff = datetime.now(tz=UTC) - timedelta(minutes=window_minutes)
+
+        # Fetch all matching events in the full window
+        result = await self._db.execute(
+            select(ObservabilityEvent.received_at).where(
+                and_(
+                    ObservabilityEvent.level == level.upper(),
+                    ObservabilityEvent.received_at >= cutoff,
+                )
+            ).order_by(ObservabilityEvent.received_at.asc())
+        )
+        timestamps = [row[0] for row in result.all()]
+
+        if not timestamps:
+            return {
+                "mean": 0.0,
+                "std_dev": 0.0,
+                "current": 0,
+                "bucket_count": 0,
+                "is_anomaly": False,
+            }
+
+        # Build buckets
+        now = datetime.now(tz=UTC)
+        num_buckets = window_minutes // bucket_minutes
+        buckets: list[int] = [0] * num_buckets
+
+        for ts in timestamps:
+            # Make ts timezone-aware if it isn't (defensive)
+            if ts.tzinfo is None:
+                from datetime import timezone
+                ts = ts.replace(tzinfo=timezone.utc)
+            age_minutes = (now - ts).total_seconds() / 60
+            bucket_idx = int(age_minutes // bucket_minutes)
+            if 0 <= bucket_idx < num_buckets:
+                # Buckets are indexed oldest→newest; reverse for age
+                reversed_idx = num_buckets - 1 - bucket_idx
+                buckets[reversed_idx] += 1
+
+        # Statistical computations
+        mean = sum(buckets) / len(buckets) if buckets else 0.0
+        variance = (
+            sum((b - mean) ** 2 for b in buckets) / len(buckets) if buckets else 0.0
+        )
+        std_dev = math.sqrt(variance)
+
+        # "current" is the most recent bucket (last element after reverse)
+        current = buckets[-1] if buckets else 0
+
+        # Anomaly: current count exceeds mean + 2 standard deviations
+        is_anomaly = std_dev > 0 and current > (mean + 2 * std_dev)
+
+        return {
+            "mean": round(mean, 2),
+            "std_dev": round(std_dev, 2),
+            "current": current,
+            "bucket_count": num_buckets,
+            "is_anomaly": is_anomaly,
+        }
