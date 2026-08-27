@@ -29,6 +29,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navDeepLink
 import com.aiassistant.core.ui.AppTheme
+import com.aiassistant.observability.observabilityNavTracker
 import com.aiassistant.feature.auth.AuthRoute
 import com.aiassistant.feature.auth.authNavGraph
 import com.aiassistant.feature.camera.cameraNavGraph
@@ -72,6 +73,10 @@ class MainActivity : ComponentActivity() {
 
                 // Track screen_view events automatically on every destination change.
                 screenViewTracker(navController = navController)
+
+                // Also emit SCREEN_VIEW events to our own observability pipeline
+                // so the AI analysis layer can correlate errors with screen context.
+                observabilityNavTracker(navController = navController)
 
                 rootNavHost(navController = navController)
             }
