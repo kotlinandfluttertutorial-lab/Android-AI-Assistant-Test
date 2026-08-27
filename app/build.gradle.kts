@@ -151,6 +151,7 @@ dependencies {
     implementation(project(":feature-on-device-ai"))
     implementation(project(":feature-search"))
     implementation(project(":feature-persona"))
+    implementation(project(":feature-dashboard"))
 
     // AndroidX Core
     implementation(libs.androidx.core.ktx)

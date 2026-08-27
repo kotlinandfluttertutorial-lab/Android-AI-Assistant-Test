@@ -29,6 +29,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navDeepLink
 import com.aiassistant.core.ui.AppTheme
+import com.aiassistant.feature.dashboard.DashboardRoute
+import com.aiassistant.feature.dashboard.dashboardNavGraph
 import com.aiassistant.observability.observabilityNavTracker
 import com.aiassistant.feature.auth.AuthRoute
 import com.aiassistant.feature.auth.authNavGraph
