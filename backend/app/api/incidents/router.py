@@ -238,3 +238,102 @@ async def create_incident(
         current_user.sub,
     )
     return IncidentResponse.from_orm_model(incident)
+
+
+# ---------------------------------------------------------------------------
+# Phase 12 — Root Cause Analysis endpoints
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/{incident_id}/rca",
+    summary="Run Root Cause Analysis for an incident",
+    description=(
+        "Runs the full Phase 12 RCA pipeline for a specific incident:\n\n"
+        "1. Load incident and its Phase 10 analysis\n"
+        "2. Collect observability events + server error logs in the evidence window\n"
+        "3. Build a correlated timeline across all sources\n"
+        "4. RAG search the knowledge base for relevant runbooks and incidents\n"
+        "5. Chain-of-thought LLM reasoning → ranked root cause candidates\n"
+        "6. Apply confidence gate (< 0.6 → manual investigation warning)\n"
+        "7. Persist result on the incident row\n\n"
+        "If RCA has already been run for this incident, returns the cached result. "
+        "Pass ``force_rerun: true`` to override."
+    ),
+)
+async def run_rca(
+    incident_id: uuid.UUID,
+    body: "RcaRequest | None" = None,
+    current_user: TokenPayload = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> "RcaAnalysisResponse":
+    """Trigger RCA for a specific incident.
+
+    Phase 12 — Root Cause Analysis
+    """
+    from app.schemas.rca import RcaAnalysisResponse, RcaRequest
+    from app.services.rca_service import RcaService
+
+    if body is None:
+        from app.schemas.rca import RcaRequest as _RcaRequest
+        body = _RcaRequest()
+
+    logger.info(
+        "incidents/%s/rca: triggered by user=%s window=%dm force=%s",
+        incident_id,
+        current_user.sub,
+        body.evidence_window_minutes,
+        body.force_rerun,
+    )
+
+    try:
+        service = RcaService(db)
+        return await service.run(incident_id=incident_id, request=body)
+    except Exception as exc:
+        logger.error("incidents/%s/rca: unexpected error — %s", incident_id, exc, exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="RCA analysis failed unexpectedly. Check application logs.",
+        ) from exc
+
+
+@router.get(
+    "/{incident_id}/rca",
+    summary="Fetch cached RCA result for an incident",
+    description=(
+        "Returns the most recent RCA result stored on the incident row. "
+        "If no RCA has been run yet, returns a 404. "
+        "Call POST /{id}/rca first to trigger analysis."
+    ),
+)
+async def get_rca(
+    incident_id: uuid.UUID,
+    current_user: TokenPayload = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> "RcaAnalysisResponse":
+    """Return the cached RCA result for an incident.
+
+    Phase 12 — Root Cause Analysis
+    """
+    from app.schemas.rca import RcaAnalysisResponse
+    from app.services.rca_service import RcaService
+
+    service = RcaService(db)
+    incident = await service._inc_repo.get_by_id(incident_id)
+
+    if incident is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Incident {incident_id} not found.",
+        )
+
+    if not incident.rca_analysis_id:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=(
+                f"No RCA result found for incident {incident_id}. "
+                "Call POST /incidents/{id}/rca to trigger analysis."
+            ),
+        )
+
+    return service._cached_response(rca_id=incident.rca_analysis_id, incident=incident)

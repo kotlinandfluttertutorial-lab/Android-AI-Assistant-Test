@@ -134,6 +134,42 @@ class Incident(Base):
         comment="Time window (minutes) used for the anomaly detection check",
     )
 
+    # ── RCA fields (Phase 12) ─────────────────────────────────────────────────
+    # UUID of the RcaAnalysisResponse for this incident
+    rca_analysis_id: Mapped[str | None] = mapped_column(
+        String(128),
+        nullable=True,
+        comment="UUID of the Phase 12 RCA run for this incident",
+    )
+
+    # One-line RCA summary
+    rca_summary: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+        comment="One-line RCA summary from chain-of-thought reasoning",
+    )
+
+    # Overall RCA confidence (0.0 – 1.0)
+    rca_confidence: Mapped[float | None] = mapped_column(
+        Float,
+        nullable=True,
+        comment="Overall RCA confidence score 0.0–1.0",
+    )
+
+    # JSON-encoded list of RootCauseCandidate dicts (ranked, with per-candidate confidence)
+    rca_candidates_json: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+        comment="JSON list of ranked root cause candidates with per-candidate confidence",
+    )
+
+    # JSON-encoded list of investigation step strings
+    rca_investigation_steps_json: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+        comment="JSON list of recommended investigation steps from RCA",
+    )
+
     # ── Lifecycle timestamps ──────────────────────────────────────────────────
     detected_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),

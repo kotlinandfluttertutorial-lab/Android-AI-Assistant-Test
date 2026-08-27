@@ -68,6 +68,26 @@ class IncidentRepository:
         incident.ai_recommended_fix = ai_recommended_fix
         await self._db.flush()
 
+    async def attach_rca(
+        self,
+        incident_id: uuid.UUID,
+        rca_analysis_id: str,
+        rca_summary: str,
+        rca_confidence: float,
+        rca_candidates_json: str,
+        rca_investigation_steps_json: str,
+    ) -> None:
+        """Link a Phase 12 RCA result to an incident."""
+        incident = await self.get_by_id(incident_id)
+        if incident is None:
+            return
+        incident.rca_analysis_id             = rca_analysis_id
+        incident.rca_summary                 = rca_summary
+        incident.rca_confidence              = rca_confidence
+        incident.rca_candidates_json         = rca_candidates_json
+        incident.rca_investigation_steps_json = rca_investigation_steps_json
+        await self._db.flush()
+
     async def update_status(
         self,
         incident_id: uuid.UUID,
