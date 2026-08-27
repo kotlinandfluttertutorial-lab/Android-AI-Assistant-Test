@@ -48,6 +48,7 @@ import androidx.compose.material.icons.outlined.NoteAlt
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.TaskAlt
+import androidx.compose.material.icons.outlined.MonitorHeart
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -79,7 +80,7 @@ import com.aiassistant.feature.resume.ResumeRoute
 import com.aiassistant.feature.settings.SettingsRoute
 import com.aiassistant.feature.translator.TRANSLATOR_ROUTE
 import com.aiassistant.feature.voice.VoiceRoute
-
+import com.aiassistant.feature.dashboard.DashboardRoute
 // â”€â”€â”€ Bottom navigation items â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 private data class BottomNavItem(val label: String, val icon: ImageVector, val route: String)
@@ -105,7 +106,8 @@ private val featureCards = listOf(
     FeatureCardItem("Meeting\nRecorder", Icons.Outlined.MeetingRoom, meetingRoute()),
     FeatureCardItem("Translator", Icons.Outlined.GTranslate, TRANSLATOR_ROUTE),
     FeatureCardItem("Settings", Icons.Outlined.Settings, SettingsRoute.SCREEN),
-    FeatureCardItem("Profile", Icons.Outlined.Person, ProfileRoute.SCREEN)
+    FeatureCardItem("Profile", Icons.Outlined.Person, ProfileRoute.SCREEN),
+    FeatureCardItem("DevOps\nDashboard", Icons.Outlined.MonitorHeart, DashboardRoute.SCREEN),
 )
 
 /**

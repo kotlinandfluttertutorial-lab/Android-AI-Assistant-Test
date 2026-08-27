@@ -313,5 +313,8 @@ private fun rootNavHost(navController: NavHostController) {
             navController = navController,
             onNavigateUp = { navController.popBackStack() }
         )
+
+        // ── AI DevOps Dashboard (Phase 14) ────────────────────────────────────────
+        dashboardNavGraph(navController = navController)
     }
 }

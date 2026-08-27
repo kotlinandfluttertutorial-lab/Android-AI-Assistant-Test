@@ -36,7 +36,7 @@ $ErrorActionPreference = "Continue"
 $ROOT        = $PSScriptRoot
 $BACKEND_DIR = Join-Path $ROOT "backend"
 
-# ── Detect Python venv ──────────────────────────────────────────────────────
+# -- Detect Python venv ------------------------------------------------------
 # Prefer venv311 (project standard), fall back to venv, then system Python.
 $VENV311   = Join-Path $BACKEND_DIR "venv311\Scripts\python.exe"
 $VENV      = Join-Path $BACKEND_DIR "venv\Scripts\python.exe"
@@ -45,12 +45,12 @@ if     (Test-Path $VENV311) { $PYTHON = $VENV311 ; $PIP = Join-Path $BACKEND_DIR
 elseif (Test-Path $VENV)    { $PYTHON = $VENV    ; $PIP = Join-Path $BACKEND_DIR "venv\Scripts\pip.exe"    }
 else                         { $PYTHON = "python" ; $PIP = "pip" }
 
-# ── Colour helpers ──────────────────────────────────────────────────────────
+# -- Colour helpers ----------------------------------------------------------
 function Write-Header([string]$msg) {
     Write-Host ""
-    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor DarkCyan
+    Write-Host "===================================================" -ForegroundColor DarkCyan
     Write-Host "  $msg" -ForegroundColor Cyan
-    Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor DarkCyan
+    Write-Host "===================================================" -ForegroundColor DarkCyan
 }
 function Write-Step([string]$msg)  { Write-Host "`n  ▶ $msg" -ForegroundColor Yellow }
 function Write-Pass([string]$msg)  { Write-Host "  ✅ $msg" -ForegroundColor Green  }
@@ -58,15 +58,15 @@ function Write-Fail([string]$msg)  { Write-Host "  ❌ $msg" -ForegroundColor Re
 function Write-Skip([string]$msg)  { Write-Host "  ⏭  $msg" -ForegroundColor Gray   }
 function Write-Info([string]$msg)  { Write-Host "     $msg" -ForegroundColor Gray   }
 
-# ── Result tracking ─────────────────────────────────────────────────────────
+# -- Result tracking ---------------------------------------------------------
 $results = [ordered]@{}   # name → "PASS" | "FAIL" | "SKIP"
 
-function Run-Check {
+function Invoke-Check {
     param(
         [string]   $Name,
         [string]   $Dir,
         [string]   $Cmd,
-        [string[]] $Args,
+        [string[]] $Arguments,
         [hashtable]$Env = @{}
     )
 
@@ -81,7 +81,7 @@ function Run-Check {
 
     Push-Location $Dir
     try {
-        & $Cmd @Args
+        & $Cmd @Arguments
         $code = $LASTEXITCODE
     } catch {
         Write-Info "Exception: $_"
@@ -140,7 +140,7 @@ if ($SkipAndroid) {
     Skip-Check "Android Unit Tests" "-SkipAndroid flag"
     Skip-Check "Module Dependency Lint" "-SkipAndroid flag"
 } else {
-    # ── 1. Module Dependency Graph Lint ─────────────────────────────────────
+    # -- 1. Module Dependency Graph Lint -------------------------------------
     # Pure text scan — runs in seconds, no Gradle needed.
     Write-Step "Module Dependency Graph Lint"
     $depViolations = 0
@@ -156,15 +156,12 @@ if ($SkipAndroid) {
 
     foreach ($file in $gradleFiles) {
         $ownerName = $file.Directory.Name
-        $content   = Get-Content $file.FullName -Raw
-        $lineNum   = 0
         foreach ($line in (Get-Content $file.FullName)) {
-            $lineNum++
             if ($line -match 'project\(":([\w-]+)"\)') {
                 $dep = $Matches[1]
                 foreach ($rule in $forbidden) {
                     if ($ownerName -match $rule.OwnerPattern -and $dep -match $rule.DepPattern) {
-                        Write-Fail "$($rule.Rule) in $($file.FullName):$lineNum"
+                        Write-Fail "$($rule.Rule) in $($file.FullName)"
                         Write-Info "  → $line"
                         $depViolations++
                     }
@@ -181,30 +178,30 @@ if ($SkipAndroid) {
         $results["Module Dependency Lint"] = "FAIL"
     }
 
-    # ── 2. Android Lint ─────────────────────────────────────────────────────
-    Run-Check -Name "Android Lint" `
-              -Dir  $ROOT `
-              -Cmd  ".\gradlew" `
-              -Args @("lintDebug", "--continue", "--quiet")
+    # -- 2. Android Lint -----------------------------------------------------
+    Invoke-Check -Name "Android Lint" `
+                 -Dir  $ROOT `
+                 -Cmd  ".\gradlew" `
+                 -Args @("lintDebug", "--continue", "--quiet")
 
-    # ── 3. ktlint ───────────────────────────────────────────────────────────
-    Run-Check -Name "ktlint" `
-              -Dir  $ROOT `
-              -Cmd  ".\gradlew" `
-              -Args @("ktlintCheck", "--quiet")
+    # -- 3. ktlint -----------------------------------------------------------
+    Invoke-Check -Name "ktlint" `
+                 -Dir  $ROOT `
+                 -Cmd  ".\gradlew" `
+                 -Args @("ktlintCheck", "--quiet")
 
-    # ── 4. Detekt ───────────────────────────────────────────────────────────
-    Run-Check -Name "Detekt" `
-              -Dir  $ROOT `
-              -Cmd  ".\gradlew" `
-              -Args @("detekt", "--quiet")
+    # -- 4. Detekt -----------------------------------------------------------
+    Invoke-Check -Name "Detekt" `
+                 -Dir  $ROOT `
+                 -Cmd  ".\gradlew" `
+                 -Args @("detekt", "--quiet")
 
-    # ── 5. Android Unit Tests ───────────────────────────────────────────────
-    Run-Check -Name "Android Unit Tests" `
-              -Dir  $ROOT `
-              -Cmd  ".\gradlew" `
-              -Args @("testDebugUnitTest", "--continue", "--quiet",
-                      "-Porg.gradle.jvmargs=-Xmx4g")
+    # -- 5. Android Unit Tests -----------------------------------------------
+    Invoke-Check -Name "Android Unit Tests" `
+                 -Dir  $ROOT `
+                 -Cmd  ".\gradlew" `
+                 -Args @("testDebugUnitTest", "--continue", "--quiet",
+                         "-Porg.gradle.jvmargs=-Xmx4g")
 }
 
 # ============================================================================
@@ -235,25 +232,25 @@ if ($SkipBackend) {
         AES_ENCRYPTION_KEY = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
     }
 
-    # ── 6. Backend Unit Tests ────────────────────────────────────────────────
-    Run-Check -Name "Backend Unit Tests" `
-              -Dir  $BACKEND_DIR `
-              -Cmd  $PYTHON `
-              -Args @("-m", "pytest", "tests/unit/",
-                      "--tb=short", "-q",
-                      "--junit-xml=unit-test-results.xml") `
-              -Env  $testEnv
+    # -- 6. Backend Unit Tests ------------------------------------------------
+    Invoke-Check -Name "Backend Unit Tests" `
+                 -Dir  $BACKEND_DIR `
+                 -Cmd  $PYTHON `
+                 -Args @("-m", "pytest", "tests/unit/",
+                         "--tb=short", "-q",
+                         "--junit-xml=unit-test-results.xml") `
+                 -Env  $testEnv
 
-    # ── 7. Backend Integration Tests (mocked — no live DB/Redis required) ───
+    # -- 7. Backend Integration Tests (mocked — no live DB/Redis required) ---
     # NOTE: If PostgreSQL + Redis are not running locally, these will be skipped
     #       automatically by the conftest fixture guards.
-    Run-Check -Name "Backend Integration Tests" `
-              -Dir  $BACKEND_DIR `
-              -Cmd  $PYTHON `
-              -Args @("-m", "pytest", "tests/integration/",
-                      "--tb=short", "-q", "--timeout=30",
-                      "--junit-xml=integration-test-results.xml") `
-              -Env  $testEnv
+    Invoke-Check -Name "Backend Integration Tests" `
+                 -Dir  $BACKEND_DIR `
+                 -Cmd  $PYTHON `
+                 -Args @("-m", "pytest", "tests/integration/",
+                         "--tb=short", "-q", "--timeout=30",
+                         "--junit-xml=integration-test-results.xml") `
+                 -Env  $testEnv
 }
 
 # ============================================================================
@@ -265,7 +262,7 @@ if ($SkipSecurity) {
     Skip-Check "Bandit"    "-SkipSecurity flag"
     Skip-Check "pip-audit" "-SkipSecurity flag"
 } else {
-    # ── 8. Bandit — Python SAST ──────────────────────────────────────────────
+    # -- 8. Bandit — Python SAST ---------------------------------------------
     Write-Step "Bandit (HIGH severity + HIGH confidence gate)"
     Push-Location $BACKEND_DIR
     try {
@@ -301,7 +298,7 @@ if ($SkipSecurity) {
         $results["Bandit"] = "FAIL"
     }
 
-    # ── 9. pip-audit — dependency CVE check ──────────────────────────────────
+    # -- 9. pip-audit — dependency CVE check ---------------------------------
     Write-Step "pip-audit (CVE check)"
     Push-Location $BACKEND_DIR
     try {
@@ -339,9 +336,9 @@ if ($SkipSecurity) {
 # FINAL SUMMARY
 # ============================================================================
 Write-Host ""
-Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor DarkCyan
+Write-Host "===================================================" -ForegroundColor DarkCyan
 Write-Host "  Pre-Push Check Summary" -ForegroundColor Cyan
-Write-Host "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━" -ForegroundColor DarkCyan
+Write-Host "===================================================" -ForegroundColor DarkCyan
 
 $passed  = 0
 $failed  = 0
@@ -361,7 +358,7 @@ Write-Host "  Passed : $passed   Failed : $failed   Skipped : $skipped" -Foregro
 Write-Host ""
 
 if ($failed -gt 0) {
-    Write-Host "  🚫 DO NOT PUSH — fix the $failed failing check(s) above first." -ForegroundColor Red
+    Write-Host "  ⚠  DO NOT PUSH — fix the $failed failing check(s) above first." -ForegroundColor Red
     Write-Host ""
     Write-Host "  Lint reports : **/build/reports/lint-results*.html"      -ForegroundColor Gray
     Write-Host "  ktlint       : **/build/reports/ktlint/"                 -ForegroundColor Gray
