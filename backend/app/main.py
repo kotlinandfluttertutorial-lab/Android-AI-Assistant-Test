@@ -91,6 +91,7 @@ from app.api.websocket.router import router as websocket_router  # noqa: E402
 from app.api.observability.router import router as observability_router  # noqa: E402
 from app.api.analysis.router import router as analysis_router  # noqa: E402
 from app.api.incidents.router import router as incidents_router  # noqa: E402
+from app.api.devops.router import router as devops_router  # noqa: E402
 from app.config.settings import get_settings  # noqa: E402
 from app.middleware.data_residency import DataResidencyMiddleware  # noqa: E402
 from app.middleware.logging_middleware import RequestLoggingMiddleware  # noqa: E402
@@ -373,6 +374,9 @@ app.include_router(analysis_router)
 
 # Phase 11 — Anomaly Detection
 app.include_router(incidents_router)
+
+# Phase 13 — AI DevOps Assistant
+app.include_router(devops_router)
 
 # ---------------------------------------------------------------------------
 # Prometheus instrumentation (Requirements: 27.1–27.4)

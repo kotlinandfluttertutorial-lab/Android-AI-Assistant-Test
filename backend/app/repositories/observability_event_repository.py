@@ -304,3 +304,59 @@ class ObservabilityEventRepository:
             "bucket_count": num_buckets,
             "is_anomaly": is_anomaly,
         }
+
+    async def search_logs(
+        self,
+        query: str | None = None,
+        level: str | None = None,
+        event_type: str | None = None,
+        minutes: int = 60,
+        limit: int = 50,
+    ) -> list[ObservabilityEvent]:
+        """Full-text-style search over recent observability events.
+
+        Used by the Phase 13 DevOps Assistant ``search_logs`` tool.
+
+        Args:
+            query:      Optional substring to match against ``message``.
+                        Case-insensitive. None = no message filter.
+            level:      Optional severity filter: DEBUG|INFO|WARN|ERROR|CRITICAL.
+                        None = all levels.
+            event_type: Optional exact event_type match (e.g. "http_error").
+                        None = all types.
+            minutes:    Look-back window in minutes (default 60).
+            limit:      Maximum rows to return (default 50).
+
+        Returns:
+            Matching events ordered newest-first so the assistant sees
+            the most recent context first.
+        """
+        from sqlalchemy import func as _func
+
+        cutoff = datetime.now(tz=UTC) - timedelta(minutes=minutes)
+
+        stmt = (
+            select(ObservabilityEvent)
+            .where(ObservabilityEvent.received_at >= cutoff)
+            .order_by(ObservabilityEvent.received_at.desc())
+            .limit(limit)
+        )
+
+        if level:
+            stmt = stmt.where(
+                ObservabilityEvent.level == level.upper()
+            )
+
+        if event_type:
+            stmt = stmt.where(
+                ObservabilityEvent.event_type == event_type.lower()
+            )
+
+        if query:
+            # Postgres ILIKE for case-insensitive substring match
+            stmt = stmt.where(
+                ObservabilityEvent.message.ilike(f"%{query}%")
+            )
+
+        result = await self._db.execute(stmt)
+        return list(result.scalars().all())
