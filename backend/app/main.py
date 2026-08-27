@@ -88,6 +88,8 @@ from app.api.translation.router import router as translation_router  # noqa: E40
 from app.api.usage.router import router as usage_router  # noqa: E402
 from app.api.users.router import router as users_router  # noqa: E402
 from app.api.websocket.router import router as websocket_router  # noqa: E402
+from app.api.observability.router import router as observability_router  # noqa: E402
+from app.api.analysis.router import router as analysis_router  # noqa: E402
 from app.config.settings import get_settings  # noqa: E402
 from app.middleware.data_residency import DataResidencyMiddleware  # noqa: E402
 from app.middleware.logging_middleware import RequestLoggingMiddleware  # noqa: E402
@@ -363,6 +365,10 @@ app.include_router(search_router)
 app.include_router(usage_router)
 app.include_router(personas_router)
 app.include_router(suggestions_router)
+
+# Phase 10 — AI Error Analysis
+app.include_router(observability_router)
+app.include_router(analysis_router)
 
 # ---------------------------------------------------------------------------
 # Prometheus instrumentation (Requirements: 27.1–27.4)
