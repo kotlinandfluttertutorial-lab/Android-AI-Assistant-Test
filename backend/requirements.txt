@@ -99,12 +99,17 @@ python-logging-loki==0.3.1
 # ── OpenTelemetry distributed tracing ────────────────────────────────────────
 # Core SDK + OTLP exporter for Cloud Trace / Jaeger.
 # Instrumentations auto-patch FastAPI, SQLAlchemy, httpx, and redis.
-opentelemetry-sdk==1.27.0
-opentelemetry-exporter-otlp-proto-grpc==1.27.0
-opentelemetry-instrumentation-fastapi==0.48b0
-opentelemetry-instrumentation-sqlalchemy==0.48b0
-opentelemetry-instrumentation-httpx==0.48b0
-opentelemetry-instrumentation-redis==0.48b0
+#
+# IMPORTANT: opentelemetry-proto==1.27.0 required protobuf<5.0, which conflicts
+# with our protobuf>=5.29.6 floor (CVE-2025-4565 fix). opentelemetry-proto==1.28.0
+# bumped that requirement to protobuf<6.0,>=5.0 — resolving the conflict.
+# All packages must move together (sdk ↔ exporter ↔ instrumentation are version-locked).
+opentelemetry-sdk==1.28.0
+opentelemetry-exporter-otlp-proto-grpc==1.28.0
+opentelemetry-instrumentation-fastapi==0.49b0
+opentelemetry-instrumentation-sqlalchemy==0.49b0
+opentelemetry-instrumentation-httpx==0.49b0
+opentelemetry-instrumentation-redis==0.49b0
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Environment & file utilities
