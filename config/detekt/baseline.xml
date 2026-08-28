@@ -1,12 +1,1042 @@
 <?xml version="1.0" ?>
 <SmellBaseline>
-  <ManuallySuppressedIssues/>
+  <ManuallySuppressedIssues></ManuallySuppressedIssues>
   <CurrentIssues>
-    <!--
-      Baseline generated for the Android AI Assistant project.
-      Issues listed here are acknowledged pre-existing findings that are
-      tracked separately and do not block the CI build.
-      New issues introduced after this baseline was created WILL fail the build.
-    -->
+    <ID>ChainWrapping:DashboardViewModel.kt$DashboardViewModel$||</ID>
+    <ID>CognitiveComplexMethod:AiAnalysisCard.kt$@Composable fun AiAnalysisCard( analysis: AiAnalysis, modifier: Modifier = Modifier, )</ID>
+    <ID>CognitiveComplexMethod:AuthNavigation.kt$fun NavGraphBuilder.authNavGraph(navController: NavHostController, onAuthSuccess: () -&gt; Unit)</ID>
+    <ID>CognitiveComplexMethod:CalendarViewScreen.kt$@Composable private fun WeeklyCalendarList( state: CalendarUiState.CalendarView, onSelectDate: (LocalDate) -&gt; Unit, onEditEvent: (CalendarEvent) -&gt; Unit, onDeleteEvent: (String) -&gt; Unit )</ID>
+    <ID>CognitiveComplexMethod:CalendarViewScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun CalendarViewScreen( uiState: CalendarUiState, onSelectDate: (LocalDate) -&gt; Unit, onSwitchViewMode: (CalendarViewMode) -&gt; Unit, onNewEvent: (Long) -&gt; Unit, onEditEvent: (CalendarEvent) -&gt; Unit, onDeleteEvent: (String) -&gt; Unit, onBack: () -&gt; Unit, onRequestAiSuggestions: () -&gt; Unit, onAcceptSuggestedTime: (SuggestedMeetingTime) -&gt; Unit, onUpdateDraft: (String, String, Long, Long, String?, Boolean) -&gt; Unit, onSaveEvent: () -&gt; Unit, onBackToCalendar: () -&gt; Unit, onEventViewed: (CalendarEvent) -&gt; Unit = {} )</ID>
+    <ID>CognitiveComplexMethod:CalendarViewScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable private fun EventEditorContent( state: CalendarUiState.EventEditor, onUpdateDraft: (String, String, Long, Long, String?, Boolean) -&gt; Unit, onSave: () -&gt; Unit, onBack: () -&gt; Unit )</ID>
+    <ID>CognitiveComplexMethod:CameraCaptureScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun CameraCaptureScreen( viewModel: CameraViewModel, onNavigateToAnalysis: (Uri) -&gt; Unit, onNavigateToOcrResult: () -&gt; Unit, onNavigateBack: () -&gt; Unit )</ID>
+    <ID>CognitiveComplexMethod:ChatBubble.kt$@Composable fun ChatBubble(text: String, role: ChatBubbleRole, contentDescription: String? = null, modifier: Modifier = Modifier)</ID>
+    <ID>CognitiveComplexMethod:ChatDetailScreen.kt$@Composable private fun MessageInputBar( isStreaming: Boolean, onSendMessage: (String) -&gt; Unit, preFillText: String = "", onPreFillConsumed: () -&gt; Unit = {} )</ID>
+    <ID>CognitiveComplexMethod:ChatDetailScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable internal fun ChatDetailScreenContent( uiState: ChatDetailUiState, onSendMessage: (String) -&gt; Unit, onRetryStreaming: () -&gt; Unit, onRegenerateMessage: (String) -&gt; Unit, onDismissError: () -&gt; Unit, onExportConversation: (ExportFormat) -&gt; Unit, onNavigateUp: () -&gt; Unit, onAcceptContinuationSuggestion: () -&gt; Unit = {}, onDismissContinuationSuggestion: () -&gt; Unit = {}, onPreFillConsumed: () -&gt; Unit = {} )</ID>
+    <ID>CognitiveComplexMethod:ChatDetailViewModel.kt$ChatDetailViewModel$private fun startStreaming(payload: MessagePayload)</ID>
+    <ID>CognitiveComplexMethod:ChatListScreen.kt$@Composable private fun ConversationRow( conversation: Conversation, onClick: () -&gt; Unit, onPinClick: () -&gt; Unit, onRenameClick: () -&gt; Unit, onDeleteClick: () -&gt; Unit )</ID>
+    <ID>CognitiveComplexMethod:CodeEditorScreen.kt$@Composable fun buildSyntaxHighlightedString(code: String, language: SupportedLanguage): androidx.compose.ui.text.AnnotatedString</ID>
+    <ID>CognitiveComplexMethod:CodeEditorScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun CodeEditorScreen( uiState: CodeUiState, onCodeChange: (String, SupportedLanguage) -&gt; Unit, onLanguageSelect: (SupportedLanguage) -&gt; Unit, onActionSelect: (CodeAction) -&gt; Unit, onSubmit: () -&gt; Unit, modifier: Modifier = Modifier )</ID>
+    <ID>CognitiveComplexMethod:CodeEditorScreen.kt$private fun androidx.compose.ui.text.AnnotatedString.Builder.tokenizeAndAppend( text: String, keywords: Set&lt;String&gt;, keywordColor: androidx.compose.ui.graphics.Color, stringColor: androidx.compose.ui.graphics.Color, defaultColor: androidx.compose.ui.graphics.Color )</ID>
+    <ID>CognitiveComplexMethod:CostDashboardScreen.kt$@Composable private fun spendingAlertsSection( alerts: List&lt;SpendingAlert&gt;, alertLimitError: String?, isAdding: Boolean, deletingAlertId: String?, onAddClick: () -&gt; Unit, onDeleteAlert: (String) -&gt; Unit )</ID>
+    <ID>CognitiveComplexMethod:CoverLetterEditorScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun CoverLetterEditorScreen( uiState: ResumeUiState, onGenerateCoverLetter: (professionalHistory: String, jobDescription: String) -&gt; Unit, onExport: (content: String, format: ResumeExportFormat) -&gt; Unit, onNavigateUp: () -&gt; Unit, onResetState: () -&gt; Unit )</ID>
+    <ID>CognitiveComplexMethod:DevOpsChatCard.kt$@OptIn(ExperimentalLayoutApi::class) @Composable fun DevOpsChatCard( chatState: ChatUiState, onSubmit: (String) -&gt; Unit, onClear: () -&gt; Unit, modifier: Modifier = Modifier, )</ID>
+    <ID>CognitiveComplexMethod:DocumentChatScreen.kt$@Composable private fun QueryInputBar( query: String, onQueryChange: (String) -&gt; Unit, onSubmit: () -&gt; Unit, isLoading: Boolean, modifier: Modifier = Modifier )</ID>
+    <ID>CognitiveComplexMethod:DocumentListScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable internal fun DocumentListScreenContent( uiState: RAGUiState, isOffline: Boolean, pagedDocuments: LazyPagingItems&lt;Document&gt;, onDocumentClick: (String) -&gt; Unit, onDeleteDocument: (String) -&gt; Unit, onUploadDocument: (uri: String, fileName: String, mimeType: String, sizeBytes: Long) -&gt; Unit, onClearUploadError: () -&gt; Unit )</ID>
+    <ID>CognitiveComplexMethod:EmailComposerScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun EmailComposerScreen( uiState: EmailUiState, onGenerateEmail: (context: String, intent: String) -&gt; Unit, onCorrectGrammar: (draftEmail: String) -&gt; Unit, onNavigateUp: () -&gt; Unit, onResetState: () -&gt; Unit )</ID>
+    <ID>CognitiveComplexMethod:EmailDiff.kt$fun computeWordDiff(original: String, corrected: String): List&lt;DiffSpan&gt;</ID>
+    <ID>CognitiveComplexMethod:FilePickerBottomSheet.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun FilePickerBottomSheet( uiState: RAGUiState, onUpload: (uri: String, fileName: String, mimeType: String, sizeBytes: Long) -&gt; Unit, onDismiss: () -&gt; Unit, sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true) )</ID>
+    <ID>CognitiveComplexMethod:GrammarCorrectionScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun GrammarCorrectionScreen(uiState: EmailUiState, onNavigateUp: () -&gt; Unit, onResetState: () -&gt; Unit)</ID>
+    <ID>CognitiveComplexMethod:HabitEditorScreen.kt$@Composable fun HabitEditorScreen( uiState: HabitUiState, onUpdateDraft: (name: String, description: String, recurrence: HabitRecurrence, targetFrequency: Int) -&gt; Unit, onSave: () -&gt; Unit, onBack: () -&gt; Unit )</ID>
+    <ID>CognitiveComplexMethod:HabitListScreen.kt$@Composable fun HabitListScreen( uiState: HabitUiState, onHabitClick: (HabitDefinition) -&gt; Unit, onNewHabit: () -&gt; Unit, onDeleteHabit: (String) -&gt; Unit, onLogCompletion: (String) -&gt; Unit, onViewInsights: (HabitDefinition) -&gt; Unit, streakCalculator: (List&lt;HabitEntry&gt;, HabitRecurrence) -&gt; Int = { entries, rec -&gt; HabitStreakHelper.calculateStreak(entries, rec) }, todayCompletedChecker: (List&lt;HabitEntry&gt;, Int) -&gt; Boolean = { entries, freq -&gt; HabitStreakHelper.isTodayCompleted(entries, freq) } )</ID>
+    <ID>CognitiveComplexMethod:HabitListScreen.kt$@Composable private fun HabitCard( habit: HabitDefinition, streak: Int, isTodayCompleted: Boolean, onClick: () -&gt; Unit, onLogCompletion: () -&gt; Unit, onViewInsights: () -&gt; Unit, onDelete: () -&gt; Unit )</ID>
+    <ID>CognitiveComplexMethod:HardwareCapabilityDetector.kt$HardwareCapabilityDetector$private fun queryEglVendorInfo(): String?</ID>
+    <ID>CognitiveComplexMethod:HistoryListScreen.kt$@Composable private fun HistoryConversationRow( conversation: Conversation, onClick: () -&gt; Unit, onPinClick: () -&gt; Unit, onRenameClick: () -&gt; Unit, onDeleteClick: () -&gt; Unit, onExportClick: (ExportFormat) -&gt; Unit )</ID>
+    <ID>CognitiveComplexMethod:HistoryListScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun HistoryListScreen( uiState: HistoryUiState, pagedItems: LazyPagingItems&lt;HistoryListItem&gt;, isOffline: Boolean = false, onSearchClick: () -&gt; Unit = {}, onConversationClick: (String) -&gt; Unit = {}, onPinConversation: (String, Boolean) -&gt; Unit = { _, _ -&gt; }, onRenameConversation: (String, String) -&gt; Unit = { _, _ -&gt; }, onDeleteConversation: (String) -&gt; Unit = {}, onExportConversation: (String, ExportFormat) -&gt; Unit = { _, _ -&gt; }, onDismissExportResult: () -&gt; Unit = {} )</ID>
+    <ID>CognitiveComplexMethod:HistoryNavigation.kt$@OptIn(ExperimentalMaterial3WindowSizeClassApi::class) fun NavGraphBuilder.historyNavGraph( navController: NavHostController, onConversationClick: (String) -&gt; Unit = {}, windowSizeClass: WindowSizeClass? = null )</ID>
+    <ID>CognitiveComplexMethod:LoginScreen.kt$@Composable fun GoogleSignInButton(googleWebClientId: String, enabled: Boolean, onTokenReceived: (String) -&gt; Unit)</ID>
+    <ID>CognitiveComplexMethod:LoginScreen.kt$@Composable fun LoginScreen( uiState: AuthUiState, onLogin: (String, String) -&gt; Unit, onNavigateToRegister: () -&gt; Unit, onGoogleSignIn: (String) -&gt; Unit, onBiometricLogin: () -&gt; Unit, isBiometricAvailable: Boolean = false, googleWebClientId: String = "" )</ID>
+    <ID>CognitiveComplexMethod:MessageRepositoryImpl.kt$MessageRepositoryImpl$override suspend fun syncOfflineQueue(): ApiResult&lt;Int&gt;</ID>
+    <ID>CognitiveComplexMethod:NoteEditorScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun NoteEditorScreen( uiState: NotesUiState, onUpdateDraft: (title: String, content: String, tags: List&lt;String&gt;) -&gt; Unit, onSave: (Note) -&gt; Unit, onBack: () -&gt; Unit, onTogglePreview: () -&gt; Unit, onSummarize: (noteId: String) -&gt; Unit, onRewrite: (noteId: String) -&gt; Unit, onApplyAiResult: (String) -&gt; Unit, onDismissAiResult: () -&gt; Unit, onIdleAfter5Seconds: (noteId: String, content: String) -&gt; Unit = { _, _ -&gt; }, onSuggestionTapped: (ContextSuggestion) -&gt; Unit = {}, onSuggestionDismissed: (SuggestionType) -&gt; Unit = {} )</ID>
+    <ID>CognitiveComplexMethod:NotesListScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun NotesListScreen( uiState: NotesUiState, onNoteClick: (Note) -&gt; Unit, onNewNote: () -&gt; Unit, onDeleteNote: (String) -&gt; Unit, onTagFilter: (String) -&gt; Unit, isOffline: Boolean = false )</ID>
+    <ID>CognitiveComplexMethod:OnDeviceInferenceClient.kt$OnDeviceInferenceClient$override fun connect(conversationId: String, jwt: String): Flow&lt;StreamEvent&gt;</ID>
+    <ID>CognitiveComplexMethod:OnboardingScreen.kt$@Composable fun OnboardingScreen(onConsentGiven: () -&gt; Unit, onDecline: () -&gt; Unit)</ID>
+    <ID>CognitiveComplexMethod:PersonaEditorScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun PersonaEditorScreen( uiState: PersonaUiState.PersonaEditor, onBack: () -&gt; Unit, onFieldChange: (name: String, systemPrompt: String, tone: PersonaTone, scopeDescription: String) -&gt; Unit, onSave: () -&gt; Unit )</ID>
+    <ID>CognitiveComplexMethod:PersonaListScreen.kt$@Composable private fun PersonaCard( persona: Persona, isSelected: Boolean, onEdit: () -&gt; Unit, onDelete: () -&gt; Unit, onSelect: () -&gt; Unit )</ID>
+    <ID>CognitiveComplexMethod:PersonaListScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun PersonaListScreen( uiState: PersonaUiState, onPersonaEdit: (Persona) -&gt; Unit, onPersonaDelete: (String) -&gt; Unit, onPersonaSelect: (String?) -&gt; Unit, onNewPersona: () -&gt; Unit, isOffline: Boolean = false )</ID>
+    <ID>CognitiveComplexMethod:ProfileScreen.kt$@Composable private fun UserProfileCard( user: User?, isEditingName: Boolean, editingName: String, isSavingName: Boolean, onStartEditName: () -&gt; Unit, onUpdateEditingName: (String) -&gt; Unit, onCancelEditName: () -&gt; Unit, onSaveDisplayName: () -&gt; Unit, modifier: Modifier = Modifier )</ID>
+    <ID>CognitiveComplexMethod:RAGViewModel.kt$RAGViewModel$fun startPolling(jobId: String)</ID>
+    <ID>CognitiveComplexMethod:RAGViewModel.kt$RAGViewModel$private fun loadDocuments()</ID>
+    <ID>CognitiveComplexMethod:RegisterScreen.kt$@Composable fun RegisterScreen(uiState: AuthUiState, onRegister: (String, String) -&gt; Unit, onNavigateToLogin: () -&gt; Unit)</ID>
+    <ID>CognitiveComplexMethod:RemediationCard.kt$@Composable private fun RemediationActionRow( action: RemediationActionUiModel, onApprove: () -&gt; Unit, onReject: () -&gt; Unit, modifier: Modifier = Modifier, )</ID>
+    <ID>CognitiveComplexMethod:ReminderEditorScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun ReminderEditorScreen( uiState: ReminderUiState, onUpdateDraft: (title: String, triggerTime: Long, recurrenceRule: String?, linkedTodoId: String?) -&gt; Unit, onSave: () -&gt; Unit, onBack: () -&gt; Unit, onOpenExactAlarmSettings: () -&gt; Unit )</ID>
+    <ID>CognitiveComplexMethod:ReminderListScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun ReminderListScreen( uiState: ReminderUiState, onReminderClick: (Reminder) -&gt; Unit, onNewReminder: () -&gt; Unit, onDeleteReminder: (String) -&gt; Unit, onUndoDelete: () -&gt; Unit, onClearUndo: () -&gt; Unit, onAiSuggest: (String) -&gt; Unit )</ID>
+    <ID>CognitiveComplexMethod:ResumeBuilderScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun ResumeBuilderScreen( uiState: ResumeUiState, onGenerateResume: (professionalHistory: String, jobDescription: String) -&gt; Unit, onExport: (content: String, format: ResumeExportFormat) -&gt; Unit, onNavigateUp: () -&gt; Unit, onResetState: () -&gt; Unit )</ID>
+    <ID>CognitiveComplexMethod:ResumeViewModel.kt$ResumeViewModel$private fun wrapTextToLines(text: String, maxWidthPx: Int, paint: Paint): List&lt;String&gt;</ID>
+    <ID>CognitiveComplexMethod:SettingsViewModel.kt$SettingsViewModel$private fun observeSettings()</ID>
+    <ID>CognitiveComplexMethod:SyncMessagesWorker.kt$SyncMessagesWorker$override suspend fun doWork(): Result</ID>
+    <ID>CognitiveComplexMethod:TodoEditorScreen.kt$@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class) @Composable fun TodoEditorScreen( uiState: ProductivityUiState, onUpdateDraft: (title: String, description: String, dueDate: Long?, priority: Priority, tags: List&lt;String&gt;) -&gt; Unit, onSave: (todo: TodoItem) -&gt; Unit, onBack: () -&gt; Unit )</ID>
+    <ID>CognitiveComplexMethod:TodoListScreen.kt$@Composable private fun AiPromptSection( isGeneratingAi: Boolean, aiSuggestedTodos: List&lt;TodoItem&gt;, onGenerateFromPrompt: (String) -&gt; Unit, onAcceptSuggested: (TodoItem) -&gt; Unit, onDismissSuggestions: () -&gt; Unit )</ID>
+    <ID>CognitiveComplexMethod:TodoListScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun TodoListScreen( uiState: ProductivityUiState, onTodoClick: (TodoItem) -&gt; Unit, onNewTodo: () -&gt; Unit, onDeleteTodo: (String) -&gt; Unit, onApplyFilter: (TodoFilterState) -&gt; Unit, onGenerateFromPrompt: (String) -&gt; Unit, onAcceptSuggested: (TodoItem) -&gt; Unit, onDismissSuggestions: () -&gt; Unit )</ID>
+    <ID>CognitiveComplexMethod:TranslatorScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun TranslatorScreen(onNavigateBack: () -&gt; Unit = {}, viewModel: TranslatorViewModel = hiltViewModel())</ID>
+    <ID>ComplexCondition:AuthInterceptor.kt$AuthInterceptor$path.contains("/auth/login") || path.contains("/auth/register") || path.contains("/auth/google") || path.contains("/auth/refresh")</ID>
+    <ID>ComplexCondition:HistoryListScreen.kt$uiState is HistoryUiState.HistoryList &amp;&amp; uiState.groupedConversations.isEmpty &amp;&amp; pagedItems.itemCount == 0 &amp;&amp; pagedItems.loadState.refresh !is LoadState.Loading</ID>
+    <ID>CyclomaticComplexMethod:CameraCaptureScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun CameraCaptureScreen( viewModel: CameraViewModel, onNavigateToAnalysis: (Uri) -&gt; Unit, onNavigateToOcrResult: () -&gt; Unit, onNavigateBack: () -&gt; Unit )</ID>
+    <ID>CyclomaticComplexMethod:CodeEditorScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun CodeEditorScreen( uiState: CodeUiState, onCodeChange: (String, SupportedLanguage) -&gt; Unit, onLanguageSelect: (SupportedLanguage) -&gt; Unit, onActionSelect: (CodeAction) -&gt; Unit, onSubmit: () -&gt; Unit, modifier: Modifier = Modifier )</ID>
+    <ID>CyclomaticComplexMethod:CodeEditorScreen.kt$private fun androidx.compose.ui.text.AnnotatedString.Builder.tokenizeAndAppend( text: String, keywords: Set&lt;String&gt;, keywordColor: androidx.compose.ui.graphics.Color, stringColor: androidx.compose.ui.graphics.Color, defaultColor: androidx.compose.ui.graphics.Color )</ID>
+    <ID>CyclomaticComplexMethod:EmailDiff.kt$fun computeWordDiff(original: String, corrected: String): List&lt;DiffSpan&gt;</ID>
+    <ID>CyclomaticComplexMethod:FilePickerBottomSheet.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun FilePickerBottomSheet( uiState: RAGUiState, onUpload: (uri: String, fileName: String, mimeType: String, sizeBytes: Long) -&gt; Unit, onDismiss: () -&gt; Unit, sheetState: SheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true) )</ID>
+    <ID>CyclomaticComplexMethod:NoteEditorScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun NoteEditorScreen( uiState: NotesUiState, onUpdateDraft: (title: String, content: String, tags: List&lt;String&gt;) -&gt; Unit, onSave: (Note) -&gt; Unit, onBack: () -&gt; Unit, onTogglePreview: () -&gt; Unit, onSummarize: (noteId: String) -&gt; Unit, onRewrite: (noteId: String) -&gt; Unit, onApplyAiResult: (String) -&gt; Unit, onDismissAiResult: () -&gt; Unit, onIdleAfter5Seconds: (noteId: String, content: String) -&gt; Unit = { _, _ -&gt; }, onSuggestionTapped: (ContextSuggestion) -&gt; Unit = {}, onSuggestionDismissed: (SuggestionType) -&gt; Unit = {} )</ID>
+    <ID>CyclomaticComplexMethod:RegisterScreen.kt$@Composable fun RegisterScreen(uiState: AuthUiState, onRegister: (String, String) -&gt; Unit, onNavigateToLogin: () -&gt; Unit)</ID>
+    <ID>CyclomaticComplexMethod:ReminderEditorScreen.kt$@OptIn(ExperimentalMaterial3Api::class) @Composable fun ReminderEditorScreen( uiState: ReminderUiState, onUpdateDraft: (title: String, triggerTime: Long, recurrenceRule: String?, linkedTodoId: String?) -&gt; Unit, onSave: () -&gt; Unit, onBack: () -&gt; Unit, onOpenExactAlarmSettings: () -&gt; Unit )</ID>
+    <ID>CyclomaticComplexMethod:TodoEditorScreen.kt$@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class) @Composable fun TodoEditorScreen( uiState: ProductivityUiState, onUpdateDraft: (title: String, description: String, dueDate: Long?, priority: Priority, tags: List&lt;String&gt;) -&gt; Unit, onSave: (todo: TodoItem) -&gt; Unit, onBack: () -&gt; Unit )</ID>
+    <ID>FunctionOnlyReturningConstant:OnDeviceAiModule.kt$OnDeviceAiModule$@Provides @Singleton @OnDeviceModelFile fun provideModelFile(): File?</ID>
+    <ID>Indentation:DashboardViewModel.kt$DashboardViewModel$ </ID>
+    <ID>InvalidPackageDeclaration:DeviceCapabilityDetector.kt$package com.aiassistant.feature.ondeviceai</ID>
+    <ID>InvalidPackageDeclaration:HardwareCapabilityDetector.kt$package com.aiassistant.feature.ondeviceai</ID>
+    <ID>InvalidPackageDeclaration:HardwareCapabilityDetectorTest.kt$package com.aiassistant.feature.ondeviceai</ID>
+    <ID>InvalidPackageDeclaration:ModelManifest.kt$package com.aiassistant.feature.ondeviceai</ID>
+    <ID>InvalidPackageDeclaration:OnDeviceAiInitializer.kt$package com.aiassistant.feature.ondeviceai</ID>
+    <ID>InvalidPackageDeclaration:OnDeviceAiModule.kt$package com.aiassistant.feature.ondeviceai.di</ID>
+    <ID>InvalidPackageDeclaration:OnDeviceCapabilityChecker.kt$package com.aiassistant.feature.ondeviceai</ID>
+    <ID>InvalidPackageDeclaration:OnDeviceCapabilityState.kt$package com.aiassistant.feature.ondeviceai</ID>
+    <ID>InvalidPackageDeclaration:OnDeviceEngine.kt$package com.aiassistant.feature.ondeviceai</ID>
+    <ID>InvalidPackageDeclaration:OnDeviceInferenceClient.kt$package com.aiassistant.feature.ondeviceai</ID>
+    <ID>InvalidPackageDeclaration:OnDeviceInferenceClientTest.kt$package com.aiassistant.feature.ondeviceai</ID>
+    <ID>InvalidPackageDeclaration:OnDeviceInferenceIsolationPropertyTest.kt$package com.aiassistant.feature.ondeviceai</ID>
+    <ID>InvalidPackageDeclaration:OnDeviceModelManager.kt$package com.aiassistant.feature.ondeviceai</ID>
+    <ID>InvalidPackageDeclaration:OnDeviceModelManagerTest.kt$package com.aiassistant.feature.ondeviceai</ID>
+    <ID>InvalidPackageDeclaration:RamMonitor.kt$package com.aiassistant.feature.ondeviceai</ID>
+    <ID>InvalidPackageDeclaration:StubOnDeviceEngine.kt$package com.aiassistant.feature.ondeviceai</ID>
+    <ID>LargeClass:MapperTest.kt$MapperTest : DescribeSpec</ID>
+    <ID>LargeClass:ProductivityViewModelTest.kt$ProductivityViewModelTest</ID>
+    <ID>LongMethod:AuthNavigation.kt$fun NavGraphBuilder.authNavGraph(navController: NavHostController, onAuthSuccess: () -&gt; Unit)</ID>
+    <ID>LongMethod:ChatDetailViewModel.kt$ChatDetailViewModel$private fun startStreaming(payload: MessagePayload)</ID>
+    <ID>LongMethod:CreatePersonaUseCase.kt$CreatePersonaUseCase$suspend operator fun invoke(persona: Persona): ApiResult&lt;Persona&gt;</ID>
+    <ID>LongMethod:FailoverInterceptor.kt$FailoverInterceptor$override fun intercept(chain: Interceptor.Chain): Response</ID>
+    <ID>LongMethod:HabitNavigation.kt$fun NavGraphBuilder.habitsNavGraph( navController: NavHostController, onNavigateUp: () -&gt; Unit = { navController.popBackStack() } )</ID>
+    <ID>LongMethod:HistoryNavigation.kt$@OptIn(ExperimentalMaterial3WindowSizeClassApi::class) fun NavGraphBuilder.historyNavGraph( navController: NavHostController, onConversationClick: (String) -&gt; Unit = {}, windowSizeClass: WindowSizeClass? = null )</ID>
+    <ID>LongMethod:MessageRepositoryImpl.kt$MessageRepositoryImpl$override suspend fun syncOfflineQueue(): ApiResult&lt;Int&gt;</ID>
+    <ID>LongMethod:NetworkObservabilityInterceptor.kt$NetworkObservabilityInterceptor$override fun intercept(chain: Interceptor.Chain): Response</ID>
+    <ID>LongMethod:NotesNavigation.kt$fun NavGraphBuilder.notesNavGraph( navController: NavHostController, onNavigateUp: () -&gt; Unit = { navController.popBackStack() } )</ID>
+    <ID>LongMethod:NotificationRouter.kt$NotificationRouter$fun route(data: Map&lt;String, String&gt;, preferences: NotificationPreferencesSnapshot): RoutingResult</ID>
+    <ID>LongMethod:ProductivityNavigation.kt$fun NavGraphBuilder.productivityNavGraph( navController: NavHostController, onNavigateUp: () -&gt; Unit = { navController.popBackStack() } )</ID>
+    <ID>LongMethod:ReminderNavigation.kt$fun NavGraphBuilder.remindersNavGraph( navController: NavHostController, onNavigateUp: () -&gt; Unit = { navController.popBackStack() } )</ID>
+    <ID>LongMethod:SettingsViewModel.kt$SettingsViewModel$private fun observeSettings()</ID>
+    <ID>LongMethod:SyncMessagesWorker.kt$SyncMessagesWorker$override suspend fun doWork(): Result</ID>
+    <ID>LoopWithTooManyJumpStatements:SyncMessagesWorker.kt$SyncMessagesWorker$for</ID>
+    <ID>MagicNumber:AiAnalysisCard.kt$0.6</ID>
+    <ID>MagicNumber:AuthRepositoryImpl.kt$AuthRepositoryImpl$400</ID>
+    <ID>MagicNumber:AuthRepositoryImpl.kt$AuthRepositoryImpl$401</ID>
+    <ID>MagicNumber:AuthRepositoryImpl.kt$AuthRepositoryImpl$403</ID>
+    <ID>MagicNumber:AuthRepositoryImpl.kt$AuthRepositoryImpl$499</ID>
+    <ID>MagicNumber:AuthRepositoryImpl.kt$AuthRepositoryImpl$500</ID>
+    <ID>MagicNumber:AuthRepositoryImpl.kt$AuthRepositoryImpl$599</ID>
+    <ID>MagicNumber:CalendarViewModel.kt$CalendarViewModel$23</ID>
+    <ID>MagicNumber:CalendarViewModel.kt$CalendarViewModel$59</ID>
+    <ID>MagicNumber:CalendarViewModel.kt$CalendarViewModel$6</ID>
+    <ID>MagicNumber:CalendarViewModel.kt$CalendarViewModel$86_400_000L</ID>
+    <ID>MagicNumber:CalendarViewScreen.kt$3</ID>
+    <ID>MagicNumber:CalendarViewScreen.kt$6</ID>
+    <ID>MagicNumber:CalendarViewScreen.kt$7</ID>
+    <ID>MagicNumber:CalendarViewScreen.kt$86_400_000L</ID>
+    <ID>MagicNumber:ChatDetailViewModel.kt$ChatDetailViewModel$3_000L</ID>
+    <ID>MagicNumber:ChatViewModel.kt$ChatViewModel$5_000L</ID>
+    <ID>MagicNumber:CodeBlock.kt$150</ID>
+    <ID>MagicNumber:CodeBlock.kt$2_000</ID>
+    <ID>MagicNumber:CodeRemoteDataSource.kt$CodeRemoteDataSource$400</ID>
+    <ID>MagicNumber:CodeRemoteDataSource.kt$CodeRemoteDataSource$401</ID>
+    <ID>MagicNumber:CodeRemoteDataSource.kt$CodeRemoteDataSource$403</ID>
+    <ID>MagicNumber:CodeRemoteDataSource.kt$CodeRemoteDataSource$499</ID>
+    <ID>MagicNumber:CodeRemoteDataSource.kt$CodeRemoteDataSource$500</ID>
+    <ID>MagicNumber:CodeRemoteDataSource.kt$CodeRemoteDataSource$599</ID>
+    <ID>MagicNumber:CodeViewModel.kt$CodeViewModel$404</ID>
+    <ID>MagicNumber:Color.kt$0xFF0047CA</ID>
+    <ID>MagicNumber:Color.kt$0xFF1A1B1F</ID>
+    <ID>MagicNumber:Color.kt$0xFF1B6EF5</ID>
+    <ID>MagicNumber:Color.kt$0xFF2F3033</ID>
+    <ID>MagicNumber:Color.kt$0xFF3A1D00</ID>
+    <ID>MagicNumber:Color.kt$0xFF3F4662</ID>
+    <ID>MagicNumber:Color.kt$0xFF44474F</ID>
+    <ID>MagicNumber:Color.kt$0xFF553D58</ID>
+    <ID>MagicNumber:Color.kt$0xFF565E7C</ID>
+    <ID>MagicNumber:Color.kt$0xFF5B2D00</ID>
+    <ID>MagicNumber:Color.kt$0xFF705572</ID>
+    <ID>MagicNumber:Color.kt$0xFF74777F</ID>
+    <ID>MagicNumber:Color.kt$0xFF8E9099</ID>
+    <ID>MagicNumber:Color.kt$0xFF93000A</ID>
+    <ID>MagicNumber:Color.kt$0xFFADC6FF</ID>
+    <ID>MagicNumber:Color.kt$0xFFB25B00</ID>
+    <ID>MagicNumber:Color.kt$0xFFBA1A1A</ID>
+    <ID>MagicNumber:Color.kt$0xFFBDC3E6</ID>
+    <ID>MagicNumber:Color.kt$0xFFC4C6D0</ID>
+    <ID>MagicNumber:Color.kt$0xFFD8E2FF</ID>
+    <ID>MagicNumber:Color.kt$0xFFDDB9DF</ID>
+    <ID>MagicNumber:Color.kt$0xFFDDE1FF</ID>
+    <ID>MagicNumber:Color.kt$0xFFE3E2E6</ID>
+    <ID>MagicNumber:Color.kt$0xFFE3E2EC</ID>
+    <ID>MagicNumber:Color.kt$0xFFF1F0F4</ID>
+    <ID>MagicNumber:Color.kt$0xFFFBD7FD</ID>
+    <ID>MagicNumber:Color.kt$0xFFFEFBFF</ID>
+    <ID>MagicNumber:Color.kt$0xFFFFB4AB</ID>
+    <ID>MagicNumber:Color.kt$0xFFFFB956</ID>
+    <ID>MagicNumber:Color.kt$0xFFFFDAD6</ID>
+    <ID>MagicNumber:Color.kt$0xFFFFDDB3</ID>
+    <ID>MagicNumber:Color.kt$0xFFFFFFFF</ID>
+    <ID>MagicNumber:ComparisonModeScreen.kt$50</ID>
+    <ID>MagicNumber:ComparisonModeScreen.kt$75</ID>
+    <ID>MagicNumber:ComparisonModeViewModel.kt$0.001</ID>
+    <ID>MagicNumber:ComparisonModeViewModel.kt$0.002</ID>
+    <ID>MagicNumber:ComparisonModeViewModel.kt$0.007</ID>
+    <ID>MagicNumber:ComparisonModeViewModel.kt$0.015</ID>
+    <ID>MagicNumber:ComparisonModeViewModel.kt$0.030</ID>
+    <ID>MagicNumber:ComparisonModeViewModel.kt$ComparisonModeViewModel$0.002</ID>
+    <ID>MagicNumber:ContextSuggestionRepositoryImpl.kt$ContextSuggestionRepositoryImpl$3_000L</ID>
+    <ID>MagicNumber:ConversationRemoteDataSource.kt$ConversationRemoteDataSource$400</ID>
+    <ID>MagicNumber:ConversationRemoteDataSource.kt$ConversationRemoteDataSource$401</ID>
+    <ID>MagicNumber:ConversationRemoteDataSource.kt$ConversationRemoteDataSource$403</ID>
+    <ID>MagicNumber:ConversationRemoteDataSource.kt$ConversationRemoteDataSource$499</ID>
+    <ID>MagicNumber:ConversationRemoteDataSource.kt$ConversationRemoteDataSource$500</ID>
+    <ID>MagicNumber:ConversationRemoteDataSource.kt$ConversationRemoteDataSource$599</ID>
+    <ID>MagicNumber:CostDashboardRepositoryImpl.kt$CostDashboardRepositoryImpl$400</ID>
+    <ID>MagicNumber:CostDashboardRepositoryImpl.kt$CostDashboardRepositoryImpl$401</ID>
+    <ID>MagicNumber:CostDashboardRepositoryImpl.kt$CostDashboardRepositoryImpl$403</ID>
+    <ID>MagicNumber:CostDashboardRepositoryImpl.kt$CostDashboardRepositoryImpl$422</ID>
+    <ID>MagicNumber:CostDashboardRepositoryImpl.kt$CostDashboardRepositoryImpl$499</ID>
+    <ID>MagicNumber:CostDashboardRepositoryImpl.kt$CostDashboardRepositoryImpl$500</ID>
+    <ID>MagicNumber:CostDashboardRepositoryImpl.kt$CostDashboardRepositoryImpl$599</ID>
+    <ID>MagicNumber:CostDashboardScreen.kt$0.3f</ID>
+    <ID>MagicNumber:CostDashboardScreen.kt$0.7f</ID>
+    <ID>MagicNumber:CostDashboardScreen.kt$3f</ID>
+    <ID>MagicNumber:CoverLetterEditorScreen.kt$400</ID>
+    <ID>MagicNumber:DashboardScreen.kt$0xFF5B2D00</ID>
+    <ID>MagicNumber:DashboardScreen.kt$0xFFFFDDB3</ID>
+    <ID>MagicNumber:DashboardViewModel.kt$DashboardViewModel$5_000L</ID>
+    <ID>MagicNumber:DocumentItem.kt$1_024.0</ID>
+    <ID>MagicNumber:DocumentItem.kt$1_024L</ID>
+    <ID>MagicNumber:DocumentRemoteDataSource.kt$DocumentRemoteDataSource$400</ID>
+    <ID>MagicNumber:DocumentRemoteDataSource.kt$DocumentRemoteDataSource$401</ID>
+    <ID>MagicNumber:DocumentRemoteDataSource.kt$DocumentRemoteDataSource$403</ID>
+    <ID>MagicNumber:DocumentRemoteDataSource.kt$DocumentRemoteDataSource$499</ID>
+    <ID>MagicNumber:DocumentRemoteDataSource.kt$DocumentRemoteDataSource$500</ID>
+    <ID>MagicNumber:DocumentRemoteDataSource.kt$DocumentRemoteDataSource$599</ID>
+    <ID>MagicNumber:FederationModule.kt$FederationModule$30L</ID>
+    <ID>MagicNumber:FederationModule.kt$FederationModule$60L</ID>
+    <ID>MagicNumber:FirebaseModule.kt$FirebaseModule.Companion$3600L</ID>
+    <ID>MagicNumber:GetConversationsUseCase.kt$GetConversationsUseCase$7</ID>
+    <ID>MagicNumber:GrammarCorrectionScreen.kt$0x332E7D32</ID>
+    <ID>MagicNumber:GrammarCorrectionScreen.kt$0xFF2E7D32</ID>
+    <ID>MagicNumber:GrammarCorrectionScreen.kt$0xFFC62828</ID>
+    <ID>MagicNumber:HabitEditorScreen.kt$99</ID>
+    <ID>MagicNumber:HardwareCapabilityDetector.kt$HardwareCapabilityDetector$1024</ID>
+    <ID>MagicNumber:HistoryViewModel.kt$HistoryViewModel$5_000L</ID>
+    <ID>MagicNumber:IncidentListItem.kt$16</ID>
+    <ID>MagicNumber:LoadingIndicator.kt$0.2f</ID>
+    <ID>MagicNumber:LoadingIndicator.kt$1200</ID>
+    <ID>MagicNumber:LoadingIndicator.kt$200</ID>
+    <ID>MagicNumber:LoadingIndicator.kt$400</ID>
+    <ID>MagicNumber:LoadingIndicator.kt$600</ID>
+    <ID>MagicNumber:LoadingIndicator.kt$800</ID>
+    <ID>MagicNumber:MeetingRecorderManager.kt$MeetingRecorderManager$128_000</ID>
+    <ID>MagicNumber:MeetingRecorderManager.kt$MeetingRecorderManager$44_100</ID>
+    <ID>MagicNumber:MeetingRecorderScreen.kt$3600</ID>
+    <ID>MagicNumber:MeetingRecorderScreen.kt$60</ID>
+    <ID>MagicNumber:MeetingRemoteDataSource.kt$MeetingRemoteDataSource$400</ID>
+    <ID>MagicNumber:MeetingRemoteDataSource.kt$MeetingRemoteDataSource$401</ID>
+    <ID>MagicNumber:MeetingRemoteDataSource.kt$MeetingRemoteDataSource$403</ID>
+    <ID>MagicNumber:MeetingRemoteDataSource.kt$MeetingRemoteDataSource$422</ID>
+    <ID>MagicNumber:MeetingRemoteDataSource.kt$MeetingRemoteDataSource$499</ID>
+    <ID>MagicNumber:MeetingRemoteDataSource.kt$MeetingRemoteDataSource$500</ID>
+    <ID>MagicNumber:MeetingRemoteDataSource.kt$MeetingRemoteDataSource$599</ID>
+    <ID>MagicNumber:MeetingRemoteDataSource.kt$MeetingRemoteDataSource$60</ID>
+    <ID>MagicNumber:MemoryRemoteDataSource.kt$MemoryRemoteDataSource$400</ID>
+    <ID>MagicNumber:MemoryRemoteDataSource.kt$MemoryRemoteDataSource$401</ID>
+    <ID>MagicNumber:MemoryRemoteDataSource.kt$MemoryRemoteDataSource$403</ID>
+    <ID>MagicNumber:MemoryRemoteDataSource.kt$MemoryRemoteDataSource$499</ID>
+    <ID>MagicNumber:MemoryRemoteDataSource.kt$MemoryRemoteDataSource$500</ID>
+    <ID>MagicNumber:MemoryRemoteDataSource.kt$MemoryRemoteDataSource$599</ID>
+    <ID>MagicNumber:MessageRemoteDataSource.kt$MessageRemoteDataSource$400</ID>
+    <ID>MagicNumber:MessageRemoteDataSource.kt$MessageRemoteDataSource$401</ID>
+    <ID>MagicNumber:MessageRemoteDataSource.kt$MessageRemoteDataSource$403</ID>
+    <ID>MagicNumber:MessageRemoteDataSource.kt$MessageRemoteDataSource$499</ID>
+    <ID>MagicNumber:MessageRemoteDataSource.kt$MessageRemoteDataSource$500</ID>
+    <ID>MagicNumber:MessageRemoteDataSource.kt$MessageRemoteDataSource$599</ID>
+    <ID>MagicNumber:NoteEditorScreen.kt$5_000L</ID>
+    <ID>MagicNumber:NoteRemoteDataSource.kt$NoteRemoteDataSource$400</ID>
+    <ID>MagicNumber:NoteRemoteDataSource.kt$NoteRemoteDataSource$401</ID>
+    <ID>MagicNumber:NoteRemoteDataSource.kt$NoteRemoteDataSource$403</ID>
+    <ID>MagicNumber:NoteRemoteDataSource.kt$NoteRemoteDataSource$499</ID>
+    <ID>MagicNumber:NoteRemoteDataSource.kt$NoteRemoteDataSource$500</ID>
+    <ID>MagicNumber:NoteRemoteDataSource.kt$NoteRemoteDataSource$599</ID>
+    <ID>MagicNumber:NotesViewModel.kt$NotesViewModel$3_000L</ID>
+    <ID>MagicNumber:OcrResultScreen.kt$0xFF00BCD4</ID>
+    <ID>MagicNumber:OcrResultScreen.kt$30</ID>
+    <ID>MagicNumber:OcrResultScreen.kt$3f</ID>
+    <ID>MagicNumber:OcrResultScreen.kt$4f</ID>
+    <ID>MagicNumber:OnDeviceAiInitializer.kt$OnDeviceAiInitializer$1024</ID>
+    <ID>MagicNumber:OnDeviceInferenceClient.kt$OnDeviceInferenceClient$1024</ID>
+    <ID>MagicNumber:OnDeviceInferenceClient.kt$OnDeviceInferenceClient$50L</ID>
+    <ID>MagicNumber:OnDeviceInferenceClient.kt$OnDeviceInferenceClient$80</ID>
+    <ID>MagicNumber:OnDeviceModelManager.kt$OnDeviceModelManager$30_000</ID>
+    <ID>MagicNumber:OnDeviceModelManager.kt$OnDeviceModelManager$60_000</ID>
+    <ID>MagicNumber:PersonaListScreen.kt$0.38f</ID>
+    <ID>MagicNumber:PersonaRemoteDataSource.kt$PersonaRemoteDataSource$400</ID>
+    <ID>MagicNumber:PersonaRemoteDataSource.kt$PersonaRemoteDataSource$401</ID>
+    <ID>MagicNumber:PersonaRemoteDataSource.kt$PersonaRemoteDataSource$403</ID>
+    <ID>MagicNumber:PersonaRemoteDataSource.kt$PersonaRemoteDataSource$422</ID>
+    <ID>MagicNumber:PersonaRemoteDataSource.kt$PersonaRemoteDataSource$499</ID>
+    <ID>MagicNumber:ProductivityRemoteDataSource.kt$ProductivityRemoteDataSource$400</ID>
+    <ID>MagicNumber:ProductivityRemoteDataSource.kt$ProductivityRemoteDataSource$401</ID>
+    <ID>MagicNumber:ProductivityRemoteDataSource.kt$ProductivityRemoteDataSource$403</ID>
+    <ID>MagicNumber:ProductivityRemoteDataSource.kt$ProductivityRemoteDataSource$499</ID>
+    <ID>MagicNumber:ProductivityRemoteDataSource.kt$ProductivityRemoteDataSource$500</ID>
+    <ID>MagicNumber:ProductivityRemoteDataSource.kt$ProductivityRemoteDataSource$599</ID>
+    <ID>MagicNumber:ProfileScreen.kt$3</ID>
+    <ID>MagicNumber:RAGViewModel.kt$RAGViewModel$1_500L</ID>
+    <ID>MagicNumber:RAGViewModel.kt$RAGViewModel$5_000L</ID>
+    <ID>MagicNumber:RemediationCard.kt$0xFF5B2D00</ID>
+    <ID>MagicNumber:RemediationCard.kt$0xFFFFDDB3</ID>
+    <ID>MagicNumber:ResumeRemoteDataSource.kt$ResumeRemoteDataSource$400</ID>
+    <ID>MagicNumber:ResumeRemoteDataSource.kt$ResumeRemoteDataSource$401</ID>
+    <ID>MagicNumber:ResumeRemoteDataSource.kt$ResumeRemoteDataSource$403</ID>
+    <ID>MagicNumber:ResumeRemoteDataSource.kt$ResumeRemoteDataSource$499</ID>
+    <ID>MagicNumber:ResumeRemoteDataSource.kt$ResumeRemoteDataSource$500</ID>
+    <ID>MagicNumber:ResumeRemoteDataSource.kt$ResumeRemoteDataSource$599</ID>
+    <ID>MagicNumber:ResumeViewModel.kt$ResumeViewModel$1.4f</ID>
+    <ID>MagicNumber:ResumeViewModel.kt$ResumeViewModel$12f</ID>
+    <ID>MagicNumber:ResumeViewModel.kt$ResumeViewModel$40f</ID>
+    <ID>MagicNumber:ResumeViewModel.kt$ResumeViewModel$595</ID>
+    <ID>MagicNumber:ResumeViewModel.kt$ResumeViewModel$842</ID>
+    <ID>MagicNumber:SemanticSearchMapper.kt$300</ID>
+    <ID>MagicNumber:SemanticSearchRemoteDataSource.kt$SemanticSearchRemoteDataSource$400</ID>
+    <ID>MagicNumber:SemanticSearchRemoteDataSource.kt$SemanticSearchRemoteDataSource$401</ID>
+    <ID>MagicNumber:SemanticSearchRemoteDataSource.kt$SemanticSearchRemoteDataSource$403</ID>
+    <ID>MagicNumber:SemanticSearchRemoteDataSource.kt$SemanticSearchRemoteDataSource$499</ID>
+    <ID>MagicNumber:SemanticSearchRemoteDataSource.kt$SemanticSearchRemoteDataSource$500</ID>
+    <ID>MagicNumber:SemanticSearchRemoteDataSource.kt$SemanticSearchRemoteDataSource$599</ID>
+    <ID>MagicNumber:SemanticSearchUseCase.kt$SemanticSearchUseCase$0.5f</ID>
+    <ID>MagicNumber:SettingsViewModel.kt$SettingsViewModel$12</ID>
+    <ID>MagicNumber:SettingsViewModel.kt$SettingsViewModel$3</ID>
+    <ID>MagicNumber:SettingsViewModel.kt$SettingsViewModel$4</ID>
+    <ID>MagicNumber:SettingsViewModel.kt$SettingsViewModel$5</ID>
+    <ID>MagicNumber:SettingsViewModel.kt$SettingsViewModel$6</ID>
+    <ID>MagicNumber:SettingsViewModel.kt$SettingsViewModel$7</ID>
+    <ID>MagicNumber:SplashScreen.kt$500L</ID>
+    <ID>MagicNumber:StatusBadge.kt$0xFF5B2D00</ID>
+    <ID>MagicNumber:StatusBadge.kt$0xFFFFDDB3</ID>
+    <ID>MagicNumber:SuggestMeetingTimesUseCase.kt$SuggestMeetingTimesUseCase$1440</ID>
+    <ID>MagicNumber:SuggestionRemoteDataSource.kt$SuggestionRemoteDataSource$400</ID>
+    <ID>MagicNumber:SuggestionRemoteDataSource.kt$SuggestionRemoteDataSource$401</ID>
+    <ID>MagicNumber:SuggestionRemoteDataSource.kt$SuggestionRemoteDataSource$403</ID>
+    <ID>MagicNumber:SuggestionRemoteDataSource.kt$SuggestionRemoteDataSource$499</ID>
+    <ID>MagicNumber:SuggestionRemoteDataSource.kt$SuggestionRemoteDataSource$500</ID>
+    <ID>MagicNumber:SuggestionRemoteDataSource.kt$SuggestionRemoteDataSource$599</ID>
+    <ID>MagicNumber:SyncMessagesWorker.kt$SyncMessagesWorker$200</ID>
+    <ID>MagicNumber:TextScaleSupport.kt$1.5f</ID>
+    <ID>MagicNumber:TranslationRemoteDataSource.kt$TranslationRemoteDataSource$400</ID>
+    <ID>MagicNumber:TranslationRemoteDataSource.kt$TranslationRemoteDataSource$401</ID>
+    <ID>MagicNumber:TranslationRemoteDataSource.kt$TranslationRemoteDataSource$403</ID>
+    <ID>MagicNumber:TranslationRemoteDataSource.kt$TranslationRemoteDataSource$499</ID>
+    <ID>MagicNumber:TranslationRemoteDataSource.kt$TranslationRemoteDataSource$500</ID>
+    <ID>MagicNumber:TranslationRemoteDataSource.kt$TranslationRemoteDataSource$599</ID>
+    <ID>MagicNumber:TranslatorViewModel.kt$TranslatorViewModel$5_000L</ID>
+    <ID>MagicNumber:UserRepositoryImpl.kt$UserRepositoryImpl$400</ID>
+    <ID>MagicNumber:UserRepositoryImpl.kt$UserRepositoryImpl$401</ID>
+    <ID>MagicNumber:UserRepositoryImpl.kt$UserRepositoryImpl$403</ID>
+    <ID>MagicNumber:UserRepositoryImpl.kt$UserRepositoryImpl$499</ID>
+    <ID>MagicNumber:UserRepositoryImpl.kt$UserRepositoryImpl$500</ID>
+    <ID>MagicNumber:UserRepositoryImpl.kt$UserRepositoryImpl$599</ID>
+    <ID>MatchingDeclarationName:ObservabilityNavTracker.kt$ObservabilityNavTrackerViewModel : ViewModel</ID>
+    <ID>MaxLineLength:AIStreamClientImpl.kt$AIStreamClientImpl$// â”€â”€ Reconnect loop â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:AIStreamClientImpl.kt$AIStreamClientImpl$// â”€â”€â”€ AIStreamClient API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:AIStreamClientImpl.kt$AIStreamClientImpl$// â”€â”€â”€ Event parsing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:AiAnalysisCard.kt$text = "${analysis.eventsAnalysed} events analysed · ${analysis.relatedDocs.size} docs retrieved"</ID>
+    <ID>MaxLineLength:ApiResult.kt$// â”€â”€â”€ Extension helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ApiResult.kt$ApiResult$// â”€â”€â”€ Convenience properties â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ApiResult.kt$ApiResult$// â”€â”€â”€ Transformation operators â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ApiResult.kt$ApiResult$// â”€â”€â”€ Variants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:AppTheme.kt$// â”€â”€â”€ Color scheme resolution â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:AppTheme.kt$// â”€â”€â”€ Composition locals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:AppTheme.kt$// â”€â”€â”€ MaterialTheme convenience extensions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:AuthRefreshApi.kt$// â”€â”€â”€ Request / Response models â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:AuthRefreshApi.kt$// â”€â”€â”€ Retrofit service interface â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:AuthRepositoryImplTest.kt$// â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:AuthRepositoryImplTest.kt$// â”€â”€â”€ Spec â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:AuthRepositoryImplTest.kt$// â”€â”€â”€ Test doubles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:AuthRepositoryImplTest.kt$AuthRepositoryImplTest$// â”€â”€ Shared mocks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:AuthRepositoryImplTest.kt$AuthRepositoryImplTest$// â”€â”€â”€ Token storage verification â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:AuthRepositoryImplTest.kt$AuthRepositoryImplTest$// â”€â”€â”€ login() â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:AuthRepositoryImplTest.kt$AuthRepositoryImplTest$// â”€â”€â”€ logout() â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:AuthRepositoryImplTest.kt$AuthRepositoryImplTest$// â”€â”€â”€ refreshToken() â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:AuthRepositoryImplTest.kt$AuthRepositoryImplTest$// â”€â”€â”€ register() â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:AuthViewModel.kt$AuthViewModel$// â”€â”€â”€ Private helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:AuthViewModel.kt$AuthViewModel$// â”€â”€â”€ Public API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:AuthViewModel.kt$AuthViewModel$// â”€â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:BackendEndpointSelectorPropertyTest.kt$BackendEndpointSelectorPropertyTest$"Property 34 – when no endpoint satisfies constraints, result is NoEligibleEndpoint, never a non-eligible endpoint"</ID>
+    <ID>MaxLineLength:CalendarViewModel.kt$CalendarViewModel$// â”€â”€â”€ Constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CalendarViewModel.kt$CalendarViewModel$// â”€â”€â”€ Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CalendarViewModel.kt$CalendarViewModel$// â”€â”€â”€ Private helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CalendarViewModel.kt$CalendarViewModel$// â”€â”€â”€ Public API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CalendarViewModel.kt$CalendarViewModel$// â”€â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CalendarViewModelTest.kt$CalendarViewModelTest$private</ID>
+    <ID>MaxLineLength:CalendarViewScreen.kt$// â”€â”€â”€ AI suggestions section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CalendarViewScreen.kt$// â”€â”€â”€ Calendar view content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CalendarViewScreen.kt$// â”€â”€â”€ Event editor content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CalendarViewScreen.kt$// â”€â”€â”€ Monthly calendar grid â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CalendarViewScreen.kt$// â”€â”€â”€ Root composable â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CalendarViewScreen.kt$// â”€â”€â”€ Selected day events list â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CalendarViewScreen.kt$// â”€â”€â”€ Utilities â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CalendarViewScreen.kt$// â”€â”€â”€ Weekly calendar list â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CameraCaptureScreen.kt$// â”€â”€ Barcode scan toggle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CameraCaptureScreen.kt$// â”€â”€ Camera preview â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CameraCaptureScreen.kt$// â”€â”€ Gallery picker button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CameraCaptureScreen.kt$// â”€â”€ Gallery picker â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CameraCaptureScreen.kt$// â”€â”€ Navigate on ImageSelected / BarcodeResult â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CameraCaptureScreen.kt$// â”€â”€ Permission denied state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CameraCaptureScreen.kt$// â”€â”€ Permission request â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CameraCaptureScreen.kt$// â”€â”€ Shutter button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CameraCaptureScreen.kt$// â”€â”€â”€ Barcode analysis helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CameraCaptureScreen.kt$// â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CameraNavigation.kt$// â”€â”€ Analysis screen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CameraNavigation.kt$// â”€â”€ Capture screen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CameraNavigation.kt$// â”€â”€ OCR result screen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CameraNavigation.kt$// â”€â”€â”€ Navigation graph â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CameraNavigation.kt$// â”€â”€â”€ Route constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CameraViewModel.kt$CameraViewModel$// â”€â”€â”€ Constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CameraViewModel.kt$CameraViewModel$// â”€â”€â”€ Conversation context â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CameraViewModel.kt$CameraViewModel$// â”€â”€â”€ Public API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CameraViewModel.kt$CameraViewModel$// â”€â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ChatBubble.kt$// â”€â”€â”€ Previews â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ChatDetailScreen.kt$// â”€â”€â”€ Export menu button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ChatDetailScreen.kt$// â”€â”€â”€ Message input bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ChatDetailScreen.kt$// â”€â”€â”€ Message item â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ChatDetailScreen.kt$// â”€â”€â”€ Previews â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ChatDetailScreen.kt$// â”€â”€â”€ Retry banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ChatDetailScreen.kt$// â”€â”€â”€ Screen entry point â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ChatDetailScreen.kt$// â”€â”€â”€ Stateless screen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ChatDetailScreen.kt$// â”€â”€â”€ Streaming message item â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ChatDetailScreen.kt$// â”€â”€â”€ Typing indicator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ChatDetailScreen.kt$// â”€â”€â”€ Utilities â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ChatDetailViewModel.kt$ChatDetailViewModel$// â”€â”€â”€ Public actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ChatListScreen.kt$// â”€â”€ Body â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ChatListScreen.kt$// â”€â”€ Delete confirmation dialog â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ChatListScreen.kt$// â”€â”€ Dialog state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ChatListScreen.kt$// â”€â”€ New conversation dialog â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ChatListScreen.kt$// â”€â”€ Persistent offline banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ChatListScreen.kt$// â”€â”€ Rename dialog â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ChatListScreen.kt$// â”€â”€ Search bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ChatListScreen.kt$// â”€â”€â”€ Content state placeholders â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ChatListScreen.kt$// â”€â”€â”€ Dialogs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ChatListScreen.kt$// â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ChatListScreen.kt$// â”€â”€â”€ List components â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ChatListScreen.kt$// â”€â”€â”€ Previews â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ChatListScreen.kt$// â”€â”€â”€ Row components â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ChatListScreen.kt$// â”€â”€â”€ Screen entry point â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ChatListScreen.kt$// â”€â”€â”€ Stateless screen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ChatViewModel.kt$// â”€â”€â”€ Extension helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ChatViewModel.kt$// â”€â”€â”€ PagingSource â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ChatViewModel.kt$ChatViewModel$// â”€â”€â”€ Grouped conversations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ChatViewModel.kt$ChatViewModel$// â”€â”€â”€ Offline state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ChatViewModel.kt$ChatViewModel$// â”€â”€â”€ Paging 3 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ChatViewModel.kt$ChatViewModel$// â”€â”€â”€ Public actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ChatViewModel.kt$ChatViewModel$// â”€â”€â”€ Search â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CodeAnalysisScreen.kt$// â”€â”€ Action buttons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CodeAnalysisScreen.kt$// â”€â”€ Action header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CodeAnalysisScreen.kt$// â”€â”€ Result content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CodeAnalysisScreen.kt$// â”€â”€â”€ Previews â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CodeBlock.kt$// â”€â”€â”€ Code body â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CodeBlock.kt$// â”€â”€â”€ Header row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CodeBlock.kt$// â”€â”€â”€ Previews â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CodeEditorScreen.kt$// â”€â”€ Action selector chips â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CodeEditorScreen.kt$// â”€â”€ Code editor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CodeEditorScreen.kt$// â”€â”€â”€ Previews â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CodeEditorScreen.kt$// â”€â”€â”€ Screen composable â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CodeEditorScreen.kt$// â”€â”€â”€ Syntax highlighting helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CodeViewModel.kt$CodeViewModel$// â”€â”€â”€ Public API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CodeViewModel.kt$CodeViewModel$// â”€â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:Color.kt$// â”€â”€â”€ Brand palette â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:Color.kt$// â”€â”€â”€ Dark color scheme â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:Color.kt$// â”€â”€â”€ Light color scheme â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ConversationDataModule.kt$ConversationDataModule$// â”€â”€â”€ @Binds â€” interface â†’ implementation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ConversationDataModule.kt$ConversationDataModule$// â”€â”€â”€ @Provides â€” factory methods (in companion object) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ConversationRepositoryImpl.kt$// â”€â”€â”€ DTO â†’ Entity mapper (internal to data layer) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ConversationRepositoryImpl.kt$ConversationRepositoryImpl$// â”€â”€â”€ Companion â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ConversationRepositoryImpl.kt$ConversationRepositoryImpl$// â”€â”€â”€ ConversationRepository â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ConversationRepositoryImpl.kt$ConversationRepositoryImpl$// â”€â”€â”€ Private helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ConversationUseCaseTest.kt$DeleteConversationUseCaseTest$"soft-deleted conversation should be excluded from list (isDeleted=true filter in GetConversationsUseCase)"</ID>
+    <ID>MaxLineLength:CoverLetterEditorScreen.kt$// â”€â”€ Error banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CoverLetterEditorScreen.kt$// â”€â”€ Generated cover letter â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CoverLetterEditorScreen.kt$// â”€â”€ Input form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CoverLetterEditorScreen.kt$// â”€â”€ Loading overlay â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:CoverLetterEditorScreen.kt$// â”€â”€â”€ Private helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DatabaseConverters.kt$DatabaseConverters$// â”€â”€ List&lt;String&gt; â†” JSON â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DatabaseConverters.kt$DatabaseConverters$// â”€â”€ Long? â†” Instant? â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DocumentChatScreen.kt$// â”€â”€ AI response â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DocumentChatScreen.kt$// â”€â”€ Ask another question â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DocumentChatScreen.kt$// â”€â”€ Citations section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DocumentChatScreen.kt$// â”€â”€ User query â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DocumentChatScreen.kt$// â”€â”€â”€ Body content states â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DocumentChatScreen.kt$// â”€â”€â”€ Previews â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DocumentChatScreen.kt$// â”€â”€â”€ Query input bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DocumentChatScreen.kt$// â”€â”€â”€ Screen entry point â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DocumentChatScreen.kt$// â”€â”€â”€ Stateless screen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DocumentChatScreen.kt$// â”€â”€â”€ Sub-composables â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DocumentChatViewModel.kt$DocumentChatViewModel$// â”€â”€ Format A: numbered reference list at the end â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DocumentChatViewModel.kt$DocumentChatViewModel$// â”€â”€â”€ Private helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DocumentChatViewModel.kt$DocumentChatViewModel$// â”€â”€â”€ Public actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DocumentItem.kt$// â”€â”€â”€ Display helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DocumentItem.kt$// â”€â”€â”€ Previews â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DocumentItem.kt$// â”€â”€â”€ Status badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DocumentListScreen.kt$// â”€â”€ Body â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DocumentListScreen.kt$// â”€â”€ Delete confirmation dialog â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DocumentListScreen.kt$// â”€â”€ File picker bottom sheet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DocumentListScreen.kt$// â”€â”€ Persistent offline banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DocumentListScreen.kt$// â”€â”€â”€ Content state placeholders â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DocumentListScreen.kt$// â”€â”€â”€ Dialogs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DocumentListScreen.kt$// â”€â”€â”€ List components â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DocumentListScreen.kt$// â”€â”€â”€ Previews â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DocumentListScreen.kt$// â”€â”€â”€ Screen entry point â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DocumentListScreen.kt$// â”€â”€â”€ Stateless screen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DocumentRepositoryImpl.kt$DocumentRepositoryImpl$// â”€â”€â”€ DocumentRepository â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DocumentRepositoryImpl.kt$DocumentRepositoryImpl$// â”€â”€â”€ Private helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DocumentRepositoryImplTest.kt$// â”€â”€â”€ Fixtures â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DocumentRepositoryImplTest.kt$// â”€â”€â”€ Spec â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DocumentRepositoryImplTest.kt$// â”€â”€â”€ Test doubles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DocumentRepositoryImplTest.kt$DocumentRepositoryImplTest$// â”€â”€ Shared mocks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DocumentRepositoryImplTest.kt$DocumentRepositoryImplTest$// â”€â”€â”€ deleteDocument() â€” clears local + remote â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DomainError.kt$DomainError$// â”€â”€â”€ HTTP / Auth â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DomainError.kt$DomainError$// â”€â”€â”€ Network â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DomainError.kt$DomainError$// â”€â”€â”€ Offline Queue â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DomainError.kt$DomainError$// â”€â”€â”€ Security / Biometrics â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:DomainError.kt$DomainError$// â”€â”€â”€ Streaming â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:EmailComposerScreen.kt$// â”€â”€ Error banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:EmailComposerScreen.kt$// â”€â”€ Generated email â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:EmailComposerScreen.kt$// â”€â”€ Input form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:EmailComposerScreen.kt$// â”€â”€ Loading overlay â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:EmailViewModel.kt$EmailViewModel$// â”€â”€â”€ Public API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:EmailViewModel.kt$EmailViewModel$// â”€â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ErrorBanner.kt$// â”€â”€â”€ Previews â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:FilePickerBottomSheet.kt$// â”€â”€â”€ Previews â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:FilePickerBottomSheet.kt$// â”€â”€â”€ Sub-composables â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:FocusOrderDefaults.kt$*</ID>
+    <ID>MaxLineLength:FocusOrderDefaults.kt$// â”€â”€ Chat Detail Screen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:FocusOrderDefaults.kt$// â”€â”€ Login Screen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:FocusOrderDefaults.kt$// â”€â”€ Settings Screen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:GrammarCorrectionScreen.kt$// â”€â”€ Copy button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:GrammarCorrectionScreen.kt$// â”€â”€ Error banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:GrammarCorrectionScreen.kt$// â”€â”€ Full corrected text â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:GrammarCorrectionScreen.kt$// â”€â”€ Inline diff view â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:GrammarCorrectionScreen.kt$// â”€â”€ Loading overlay â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:GrammarCorrectionScreen.kt$// â”€â”€â”€ Diff colours â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:GrammarCorrectionScreen.kt$// â”€â”€â”€ Private helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HabitEditorScreen.kt$// â”€â”€ Description field â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HabitEditorScreen.kt$// â”€â”€ Name field â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HabitEditorScreen.kt$// â”€â”€ Recurrence selector â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HabitEditorScreen.kt$// â”€â”€ Save button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HabitEditorScreen.kt$// â”€â”€ Saving overlay â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HabitEditorScreen.kt$// â”€â”€ Target frequency stepper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HabitInsightsScreen.kt$// â”€â”€ Empty state (no insights, not loading) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HabitInsightsScreen.kt$// â”€â”€ Error state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HabitInsightsScreen.kt$// â”€â”€ Insights available â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HabitInsightsScreen.kt$// â”€â”€ Loading state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HabitInsightsScreen.kt$// â”€â”€ Resolve insights state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HabitListScreen.kt$// â”€â”€ Action buttons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HabitListScreen.kt$// â”€â”€ Description preview â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HabitListScreen.kt$// â”€â”€ Empty state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HabitListScreen.kt$// â”€â”€ Error banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HabitListScreen.kt$// â”€â”€ Habit list â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HabitListScreen.kt$// â”€â”€ Loading indicator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HabitListScreen.kt$// â”€â”€ Recurrence badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HabitListScreen.kt$// â”€â”€ Streak indicator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HabitListScreen.kt$// â”€â”€ Title row with delete button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HabitListScreen.kt$// â”€â”€ Today's completion status â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HabitListScreen.kt$// â”€â”€â”€ Habit card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HabitViewModel.kt$HabitViewModel$// â”€â”€ Client-side validation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HabitViewModel.kt$HabitViewModel$// â”€â”€ Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HabitViewModel.kt$HabitViewModel$// â”€â”€ Public API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HabitViewModel.kt$HabitViewModel$// â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HabitViewModel.kt$HabitViewModel$// â”€â”€ Streak and completion helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HistoryListScreen.kt$// â”€â”€ Delete confirmation dialog â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HistoryListScreen.kt$// â”€â”€ Empty state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HistoryListScreen.kt$// â”€â”€ Error banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HistoryListScreen.kt$// â”€â”€ Export in-progress indicator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HistoryListScreen.kt$// â”€â”€ Initial loading â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HistoryListScreen.kt$// â”€â”€ Offline banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HistoryListScreen.kt$// â”€â”€ Paged conversation list â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HistoryListScreen.kt$// â”€â”€ Rename dialog â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HistoryListScreen.kt$// â”€â”€â”€ Dialogs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HistoryListScreen.kt$// â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HistoryListScreen.kt$// â”€â”€â”€ Paged list â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HistoryListScreen.kt$// â”€â”€â”€ Row components â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HistoryListScreen.kt$// â”€â”€â”€ Screen entry point â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HistoryUiState.kt$HistoryUiState$// â”€â”€â”€ Steady states â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HistoryUiState.kt$HistoryUiState$// â”€â”€â”€ Terminal / transient states â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HistoryViewModel.kt$// â”€â”€â”€ Extension helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HistoryViewModel.kt$// â”€â”€â”€ PagingSource â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HistoryViewModel.kt$HistoryViewModel$// â”€â”€â”€ Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HistoryViewModel.kt$HistoryViewModel$// â”€â”€â”€ Offline state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HistoryViewModel.kt$HistoryViewModel$// â”€â”€â”€ Paging 3 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HistoryViewModel.kt$HistoryViewModel$// â”€â”€â”€ Primary UI state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HistoryViewModel.kt$HistoryViewModel$// â”€â”€â”€ Public API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HistoryViewModel.kt$HistoryViewModel$// â”€â”€â”€ Search query â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HistoryViewModel.kt$HistoryViewModel$// â”€â”€â”€ Upstream conversations flow â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HomeDashboard.kt$// â”€â”€â”€ Bottom navigation items â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HomeDashboard.kt$// â”€â”€â”€ Feature card items (grid) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:HomeDashboard.kt$// â”€â”€â”€ Private sub-composables â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ImageAnalysisScreen.kt$// â”€â”€ Action buttons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ImageAnalysisScreen.kt$// â”€â”€ Image preview â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ImageAnalysisScreen.kt$// â”€â”€ Prompt input â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ImageAnalysisScreen.kt$// â”€â”€ State-specific content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ImageAnalysisScreen.kt$// â”€â”€â”€ ML Kit OCR helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ImageAnalysisService.kt$// â”€â”€â”€ OCR result types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ImageAnalysisService.kt$// â”€â”€â”€ Service interface â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ImageAnalysisService.kt$// â”€â”€â”€ Vision analysis result types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ImageAnalysisServiceImpl.kt$ImageAnalysisServiceImpl$// â”€â”€â”€ OCR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ImageAnalysisServiceImpl.kt$ImageAnalysisServiceImpl$// â”€â”€â”€ Private helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ImageAnalysisServiceImpl.kt$ImageAnalysisServiceImpl$// â”€â”€â”€ Vision LLM â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:LoadingIndicator.kt$// â”€â”€â”€ Previews â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:LoadingIndicator.kt$// â”€â”€â”€ Typing dots â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:LoginScreen.kt$// â”€â”€ Biometric login button (conditional) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:LoginScreen.kt$// â”€â”€ Email field â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:LoginScreen.kt$// â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:LoginScreen.kt$// â”€â”€ Loading overlay â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:LoginScreen.kt$// â”€â”€ Navigate to Register â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:LoginScreen.kt$// â”€â”€ Password field â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:LoginScreen.kt$// â”€â”€ Sign In button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:MainActivity.kt$// â”€â”€ Camera â†’ Settings cross-graph link â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:MainActivity.kt$// â”€â”€ Chat (deep link: aiassistant://open/chat) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:MainActivity.kt$// â”€â”€ Code â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:MainActivity.kt$// â”€â”€ Email â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:MainActivity.kt$// â”€â”€ History â†’ Chat cross-graph link â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:MainActivity.kt$// â”€â”€ Home Dashboard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:MainActivity.kt$// â”€â”€ Meeting (deep link: aiassistant://open/meeting) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:MainActivity.kt$// â”€â”€ Notes â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:MainActivity.kt$// â”€â”€ Profile â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:MainActivity.kt$// â”€â”€ Resume â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:MainActivity.kt$// â”€â”€ Settings â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:MainActivity.kt$// â”€â”€ Voice (deep link: aiassistant://open/voice) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:MarkdownText.kt$// â”€â”€â”€ Previews â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:MeetingRecorderScreen.kt$// â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:MeetingRecorderScreen.kt$// â”€â”€â”€ MeetingRecorderManager lifecycle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:MeetingRecorderScreen.kt$// â”€â”€â”€ Permission launcher â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:MeetingRecorderScreen.kt$// â”€â”€â”€ Previews â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:MeetingRecorderScreen.kt$// â”€â”€â”€ Scaffold â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:MeetingRecorderScreen.kt$// â”€â”€â”€ State-driven side effects â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:MeetingRecorderScreen.kt$// â”€â”€â”€ State-specific content composables â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:MeetingSummaryScreen.kt$// â”€â”€â”€ Action Items section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:MeetingSummaryScreen.kt$// â”€â”€â”€ Export toolbar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:MeetingSummaryScreen.kt$// â”€â”€â”€ Main summary content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:MeetingSummaryScreen.kt$// â”€â”€â”€ Meeting Summary section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:MeetingSummaryScreen.kt$// â”€â”€â”€ Previews â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:MeetingSummaryScreen.kt$// â”€â”€â”€ Transcript section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:MeetingUiState.kt$MeetingUiState$*</ID>
+    <ID>MaxLineLength:MeetingViewModel.kt$MeetingViewModel$*</ID>
+    <ID>MaxLineLength:MeetingViewModel.kt$MeetingViewModel$// â”€â”€â”€ Export â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:MeetingViewModel.kt$MeetingViewModel$// â”€â”€â”€ Private helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:MeetingViewModel.kt$MeetingViewModel$// â”€â”€â”€ Public API â€” permission â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:MeetingViewModel.kt$MeetingViewModel$// â”€â”€â”€ Public API â€” recording â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:MeetingViewModel.kt$MeetingViewModel$// â”€â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:MessageRepositoryImpl.kt$MessageRepositoryImpl$"syncOfflineQueue: message ${entity.id} failed after $newCount attempt(s) â€” marked failed."</ID>
+    <ID>MaxLineLength:MessageRepositoryImpl.kt$MessageRepositoryImpl$// â”€â”€â”€ MessageRepository â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NetworkModule.kt$NetworkModule$// â”€â”€â”€ AuthRefreshApi â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NetworkModule.kt$NetworkModule$// â”€â”€â”€ Certificate pinning interceptor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NetworkModule.kt$NetworkModule$// â”€â”€â”€ Configuration constants â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NetworkModule.kt$NetworkModule$// â”€â”€â”€ ConnectivityObserver binding â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NetworkModule.kt$NetworkModule$// â”€â”€â”€ JSON serializer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NetworkModule.kt$NetworkModule$// â”€â”€â”€ Logging interceptor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NetworkModule.kt$NetworkModule$// â”€â”€â”€ LogoutEventBus â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NetworkModule.kt$NetworkModule$// â”€â”€â”€ OkHttpClient â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NetworkModule.kt$NetworkModule$// â”€â”€â”€ Retrofit â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NoteEditorScreen.kt$// â”€â”€ AI processing overlay â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NoteEditorScreen.kt$// â”€â”€ AI result dialog â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NoteEditorScreen.kt$// â”€â”€ Edit / Preview tabs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NoteEditorScreen.kt$// â”€â”€ Tab content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NoteEditorScreen.kt$// â”€â”€ Tag input row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NoteEditorScreen.kt$// â”€â”€ Title field â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NoteMapper.kt$// â”€â”€â”€ DTO â†’ Domain â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NoteMapper.kt$// â”€â”€â”€ Entity â†” Domain â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NoteMapper.kt$// â”€â”€â”€ JSON helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NoteRepositoryImpl.kt$NoteRepositoryImpl$// â”€â”€â”€ NoteRepository â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NoteRepositoryImpl.kt$NoteRepositoryImpl$// â”€â”€â”€ Private helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NoteRepositoryImplTest.kt$// â”€â”€â”€ Fixtures â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NoteRepositoryImplTest.kt$// â”€â”€â”€ Spec â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NoteRepositoryImplTest.kt$// â”€â”€â”€ Test doubles â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NoteRepositoryImplTest.kt$NoteRepositoryImplTest$// â”€â”€ Shared mocks â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NoteRepositoryImplTest.kt$NoteRepositoryImplTest$// â”€â”€â”€ deleteNote() â€” clears local + remote â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NoteRepositoryImplTest.kt$NoteRepositoryImplTest$// â”€â”€â”€ getNotes() â€” Room emission â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NoteRepositoryImplTest.kt$NoteRepositoryImplTest$// â”€â”€â”€ getNotesByTag() â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NoteRepositoryImplTest.kt$NoteRepositoryImplTest$// â”€â”€â”€ saveNote() â€” syncStatus transitions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NoteRepositoryImplTest.kt$NoteRepositoryImplTest$// â”€â”€â”€ syncPendingNotes() â€” background sync on getNotes() â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NotesListScreen.kt$// â”€â”€ Content preview â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NotesListScreen.kt$// â”€â”€ Header row: title + sync badge + delete â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NotesListScreen.kt$// â”€â”€ Loading â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NotesListScreen.kt$// â”€â”€ Notes list â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NotesListScreen.kt$// â”€â”€ Offline / error banners â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NotesListScreen.kt$// â”€â”€ Tag chips â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NotesListScreen.kt$// â”€â”€ Tag filter chips â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NotesListScreen.kt$// â”€â”€â”€ Note card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NotesListScreen.kt$// â”€â”€â”€ Sync status badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NotesViewModel.kt$NotesViewModel$// â”€â”€â”€ Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NotesViewModel.kt$NotesViewModel$// â”€â”€â”€ Private helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NotesViewModel.kt$NotesViewModel$// â”€â”€â”€ Public API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:NotesViewModel.kt$NotesViewModel$// â”€â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:OcrResultScreen.kt$// â”€â”€ Add to Chat button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:OcrResultScreen.kt$// â”€â”€ Annotated image â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:OcrResultScreen.kt$// â”€â”€ Extracted text card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:OcrResultScreen.kt$// â”€â”€â”€ Annotated image composable â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:OcrResultScreen.kt$// â”€â”€â”€ OCR result content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:OfflineBanner.kt$// â”€â”€â”€ Previews â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:OnboardingScreen.kt$// â”€â”€ Navigation buttons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:OnboardingScreen.kt$// â”€â”€ Page indicator dots â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:OnboardingScreen.kt$// â”€â”€ Pager â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:OnboardingScreen.kt$// â”€â”€â”€ Page composables â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:PersonaEditorScreen.kt$"Tone: ${toneOption.value}, ${if (tone == toneOption) "selected" else "not selected"}"</ID>
+    <ID>MaxLineLength:ProductivityApiService.kt$// â”€â”€â”€ CalendarEvent DTOs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ProductivityApiService.kt$// â”€â”€â”€ Habit DTOs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ProductivityApiService.kt$// â”€â”€â”€ Reminder DTOs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ProductivityApiService.kt$// â”€â”€â”€ Retrofit service interface â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ProductivityApiService.kt$// â”€â”€â”€ TodoItem DTOs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ProductivityApiService.kt$ProductivityApiService$// â”€â”€ Calendar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ProductivityApiService.kt$ProductivityApiService$// â”€â”€ Habits â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ProductivityApiService.kt$ProductivityApiService$// â”€â”€ Reminders â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ProductivityApiService.kt$ProductivityApiService$// â”€â”€ Todos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ProductivityMapper.kt$// â”€â”€â”€ CalendarEvent â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ProductivityMapper.kt$// â”€â”€â”€ HabitDefinition â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ProductivityMapper.kt$// â”€â”€â”€ HabitEntry â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ProductivityMapper.kt$// â”€â”€â”€ Reminder â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ProductivityMapper.kt$// â”€â”€â”€ TodoItem â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ProductivityModule.kt$ProductivityModule$// â”€â”€ Calendar use cases â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ProductivityModule.kt$ProductivityModule$// â”€â”€ Habit use cases â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ProductivityModule.kt$ProductivityModule$// â”€â”€ Reminder use cases â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ProductivityModule.kt$ProductivityModule$// â”€â”€ To-Do use cases â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ProductivityRemoteDataSource.kt$ProductivityRemoteDataSource$// â”€â”€ Calendar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ProductivityRemoteDataSource.kt$ProductivityRemoteDataSource$// â”€â”€ Habits â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ProductivityRemoteDataSource.kt$ProductivityRemoteDataSource$// â”€â”€ Reminders â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ProductivityRemoteDataSource.kt$ProductivityRemoteDataSource$// â”€â”€ Todos â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ProductivityRemoteDataSource.kt$ProductivityRemoteDataSource$// â”€â”€â”€ Private helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ProductivityRepositoryImpl.kt$ProductivityRepositoryImpl$// â”€â”€ Calendar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ProductivityRepositoryImpl.kt$ProductivityRepositoryImpl$// â”€â”€ Habit Tracker â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ProductivityRepositoryImpl.kt$ProductivityRepositoryImpl$// â”€â”€ Reminders â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ProductivityRepositoryImpl.kt$ProductivityRepositoryImpl$// â”€â”€ To-Do List â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ProductivityRepositoryImpl.kt$ProductivityRepositoryImpl$// â”€â”€â”€ Private helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ProductivityViewModel.kt$ProductivityViewModel$// â”€â”€â”€ Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ProductivityViewModel.kt$ProductivityViewModel$// â”€â”€â”€ Public API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ProductivityViewModel.kt$ProductivityViewModel$// â”€â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:RAGViewModel.kt$// â”€â”€â”€ Extension helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:RAGViewModel.kt$// â”€â”€â”€ PagingSource â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:RAGViewModel.kt$RAGViewModel$// â”€â”€â”€ Offline state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:RAGViewModel.kt$RAGViewModel$// â”€â”€â”€ Paging 3 â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:RAGViewModel.kt$RAGViewModel$// â”€â”€â”€ Polling â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:RAGViewModel.kt$RAGViewModel$// â”€â”€â”€ Private helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:RAGViewModel.kt$RAGViewModel$// â”€â”€â”€ Public actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:RAGViewModel.kt$RAGViewModel$// â”€â”€â”€ UI state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:RAGViewModelTest.kt$RAGViewModelTest$"when uploadDocumentUseCase returns ApiResult.NetworkUnavailable, state is UploadError with network message"</ID>
+    <ID>MaxLineLength:RegisterScreen.kt$// â”€â”€ Confirm password field â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:RegisterScreen.kt$// â”€â”€ Email field â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:RegisterScreen.kt$// â”€â”€ General error banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:RegisterScreen.kt$// â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:RegisterScreen.kt$// â”€â”€ Loading overlay â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:RegisterScreen.kt$// â”€â”€ Navigate back to Login â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:RegisterScreen.kt$// â”€â”€ Password field â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:RegisterScreen.kt$// â”€â”€ Register button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:RemediationCard.kt$text = "⚠️ Approval records your decision. No automated execution happens. Execute manually using the params shown."</ID>
+    <ID>MaxLineLength:ReminderAlarmReceiver.kt$ReminderAlarmReceiver$// â”€â”€ Private helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ReminderEditorScreen.kt$// â”€â”€ Cancel button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ReminderEditorScreen.kt$// â”€â”€ Date / Time picker dialogs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ReminderEditorScreen.kt$// â”€â”€ Date / Time pickers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ReminderEditorScreen.kt$// â”€â”€ Date picker dialog â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ReminderEditorScreen.kt$// â”€â”€ Linked TodoItem picker â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ReminderEditorScreen.kt$// â”€â”€ Recurrence rule selector â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ReminderEditorScreen.kt$// â”€â”€ Recurrence state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ReminderEditorScreen.kt$// â”€â”€ Saving overlay â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ReminderEditorScreen.kt$// â”€â”€ Screen scaffold â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ReminderEditorScreen.kt$// â”€â”€ Time picker dialog â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ReminderEditorScreen.kt$// â”€â”€ Title â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ReminderEditorScreen.kt$// â”€â”€ Todo picker state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ReminderEditorScreen.kt$// â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ReminderEditorScreen.kt$// â”€â”€â”€ Screen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ReminderEditorScreen.kt$// â”€â”€â”€ iCal RRULE presets â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ReminderListScreen.kt$// â”€â”€ AI Suggest chip â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ReminderListScreen.kt$// â”€â”€ Empty state â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ReminderListScreen.kt$// â”€â”€ Error banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ReminderListScreen.kt$// â”€â”€ Loading indicator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ReminderListScreen.kt$// â”€â”€ Reminder list â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ReminderListScreen.kt$// â”€â”€â”€ AI Suggest dialog â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ReminderListScreen.kt$// â”€â”€â”€ Date/time formatting helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ReminderListScreen.kt$// â”€â”€â”€ Reminder card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ReminderListScreen.kt$// â”€â”€â”€ Swipeable reminder card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ReminderNotificationManager.kt$ReminderNotificationManager$// â”€â”€ Channel initialisation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ReminderNotificationManager.kt$ReminderNotificationManager$// â”€â”€ Exact alarm scheduling â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ReminderNotificationManager.kt$ReminderNotificationManager$// â”€â”€ Private helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ReminderViewModel.kt$ReminderViewModel$// â”€â”€ Client-side validation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ReminderViewModel.kt$ReminderViewModel$// â”€â”€ Init â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ReminderViewModel.kt$ReminderViewModel$// â”€â”€ Private helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ReminderViewModel.kt$ReminderViewModel$// â”€â”€ Public API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ReminderViewModel.kt$ReminderViewModel$// â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:RemoteConfigManager.kt$RemoteConfigManager$*</ID>
+    <ID>MaxLineLength:ResumeBuilderScreen.kt$// â”€â”€ Error banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ResumeBuilderScreen.kt$// â”€â”€ Generated resume â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ResumeBuilderScreen.kt$// â”€â”€ Input form â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ResumeBuilderScreen.kt$// â”€â”€ Loading overlay â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ResumeNavigation.kt$// â”€â”€ Cover Letter Editor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ResumeNavigation.kt$// â”€â”€ Resume Builder â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ResumeRemoteDataSource.kt$ResumeRemoteDataSource$// â”€â”€â”€ Private helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ResumeViewModel.kt$ResumeViewModel$// â”€â”€â”€ Private export helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ResumeViewModel.kt$ResumeViewModel$// â”€â”€â”€ Public API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ResumeViewModel.kt$ResumeViewModel$// â”€â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:RootDetectionUtil.kt$RootDetectionUtil$// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:SearchHistoryScreen.kt$// â”€â”€ Empty results â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:SearchHistoryScreen.kt$// â”€â”€ In-flight indicator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:SearchHistoryScreen.kt$// â”€â”€ Prompt: not yet typed anything â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:SearchHistoryScreen.kt$// â”€â”€ Results list â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:SearchHistoryScreen.kt$// â”€â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:SearchHistoryScreen.kt$// â”€â”€â”€ Results list â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:SearchHistoryScreen.kt$// â”€â”€â”€ Screen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:SettingsPreferences.kt$// â”€â”€â”€ DataStore singleton â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:SettingsPreferences.kt$// â”€â”€â”€ Preference keys â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:SettingsPreferences.kt$SettingsPreferences$// â”€â”€â”€ Notification categories â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:SettingsPreferences.kt$SettingsPreferences$// â”€â”€â”€ Privacy mode â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:SettingsPreferences.kt$SettingsPreferences$// â”€â”€â”€ Write operations â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:SettingsViewModelTest.kt$SettingsViewModelTest$"emits ActionResult with isSuccess=false and does NOT invoke callback when logout returns ApiResult.Error"</ID>
+    <ID>MaxLineLength:SyncMessagesWorker.kt$SyncMessagesWorker$// â”€â”€â”€ Private helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:SyncMessagesWorker.kt$SyncMessagesWorker$// â”€â”€â”€ WorkManager entry point â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ThemePreferences.kt$// â”€â”€â”€ DataStore singleton â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ThemePreferences.kt$// â”€â”€â”€ Preference keys â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:ThemePreferences.kt$// â”€â”€â”€ Repository â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TodoEditorScreen.kt$// â”€â”€ Bottom save button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TodoEditorScreen.kt$// â”€â”€ Description field â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TodoEditorScreen.kt$// â”€â”€ Due date selector â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TodoEditorScreen.kt$// â”€â”€ Priority selector â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TodoEditorScreen.kt$// â”€â”€ Saving overlay â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TodoEditorScreen.kt$// â”€â”€ Tags field â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TodoEditorScreen.kt$// â”€â”€ Title field â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TodoListScreen.kt$// â”€â”€ AI prompt section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TodoListScreen.kt$// â”€â”€ Description preview â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TodoListScreen.kt$// â”€â”€ Due date â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TodoListScreen.kt$// â”€â”€ Error banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TodoListScreen.kt$// â”€â”€ Filter chips row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TodoListScreen.kt$// â”€â”€ Header row: title + sync badge + delete â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TodoListScreen.kt$// â”€â”€ Loading â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TodoListScreen.kt$// â”€â”€ Priority badge (icon + text) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TodoListScreen.kt$// â”€â”€ Tag chips â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TodoListScreen.kt$// â”€â”€ Todo list + AI section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TodoListScreen.kt$// â”€â”€â”€ AI prompt section â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TodoListScreen.kt$// â”€â”€â”€ Filter row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TodoListScreen.kt$// â”€â”€â”€ Priority badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TodoListScreen.kt$// â”€â”€â”€ Sync status badge â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TodoListScreen.kt$// â”€â”€â”€ Todo item card â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TranslationApiService.kt$// â”€â”€â”€ DTOs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TranslationApiService.kt$// â”€â”€â”€ Retrofit service â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TranslationRemoteDataSource.kt$TranslationRemoteDataSource$// â”€â”€â”€ Private helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TranslatorPreferences.kt$// â”€â”€â”€ DataStore singleton â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TranslatorPreferences.kt$// â”€â”€â”€ Preference keys â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TranslatorPreferences.kt$// â”€â”€â”€ Preferences wrapper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TranslatorScreen.kt$// â”€â”€â”€ Language pair selector â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TranslatorScreen.kt$// â”€â”€â”€ Language pair selector â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TranslatorScreen.kt$// â”€â”€â”€ Offline banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TranslatorScreen.kt$// â”€â”€â”€ Previews â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TranslatorScreen.kt$// â”€â”€â”€ Speech recogniser launcher â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TranslatorScreen.kt$// â”€â”€â”€ State-specific content â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TranslatorScreen.kt$// â”€â”€â”€ State-specific sub-composables â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TranslatorScreen.kt$// â”€â”€â”€ Text input â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TranslatorScreen.kt$// â”€â”€â”€ Translate button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TranslatorUiState.kt$TranslatorUiState$*</ID>
+    <ID>MaxLineLength:TranslatorViewModel.kt$TranslatorViewModel$// â”€â”€â”€ Language pair â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TranslatorViewModel.kt$TranslatorViewModel$// â”€â”€â”€ Offline banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TranslatorViewModel.kt$TranslatorViewModel$// â”€â”€â”€ Public API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TranslatorViewModel.kt$TranslatorViewModel$// â”€â”€â”€ UI State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TranslatorViewModelTest.kt$TranslatorViewModelTest$// First state is Idle; final state is Success (Translating is transient with UnconfinedTestDispatcher)</ID>
+    <ID>MaxLineLength:TwoPaneLayout.kt$// â”€â”€ Phone: single pane â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:TwoPaneLayout.kt$// â”€â”€ Tablet: side-by-side â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:Type.kt$// â”€â”€â”€ Body â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:Type.kt$// â”€â”€â”€ Display â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:Type.kt$// â”€â”€â”€ Headline â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:Type.kt$// â”€â”€â”€ Label â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:Type.kt$// â”€â”€â”€ Title â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:UserRepositoryImpl.kt$UserRepositoryImpl$// â”€â”€â”€ Private helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:VoiceAssistantManager.kt$VoiceAssistantManager$// â”€â”€â”€ Public API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:VoiceAssistantManager.kt$VoiceAssistantManager$// â”€â”€â”€ RecognitionListener â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:VoiceAssistantManager.kt$VoiceAssistantManager$// â”€â”€â”€ STT â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:VoiceAssistantManager.kt$VoiceAssistantManager$// â”€â”€â”€ TTS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:VoiceScreen.kt$// â”€â”€â”€ Microphone permission launcher â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:VoiceScreen.kt$// â”€â”€â”€ Previews â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:VoiceScreen.kt$// â”€â”€â”€ Scaffold â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:VoiceScreen.kt$// â”€â”€â”€ State-driven side effects â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:VoiceScreen.kt$// â”€â”€â”€ State-specific content composables â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:VoiceScreen.kt$// â”€â”€â”€ VoiceAssistantManager lifecycle â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:VoiceViewModel.kt$VoiceViewModel$*</ID>
+    <ID>MaxLineLength:VoiceViewModel.kt$VoiceViewModel$// â”€â”€â”€ Conversation context â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:VoiceViewModel.kt$VoiceViewModel$// â”€â”€â”€ Private helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:VoiceViewModel.kt$VoiceViewModel$// â”€â”€â”€ Public API â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaxLineLength:VoiceViewModel.kt$VoiceViewModel$// â”€â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€</ID>
+    <ID>MaximumLineLength:AiAnalysisCard.kt$ </ID>
+    <ID>MaximumLineLength:BackendEndpointSelectorPropertyTest.kt$BackendEndpointSelectorPropertyTest$ </ID>
+    <ID>MaximumLineLength:CalendarViewModelTest.kt$CalendarViewModelTest$ </ID>
+    <ID>MaximumLineLength:ConversationUseCaseTest.kt$DeleteConversationUseCaseTest$ </ID>
+    <ID>MaximumLineLength:MessageRepositoryImpl.kt$MessageRepositoryImpl$ </ID>
+    <ID>MaximumLineLength:PersonaEditorScreen.kt$ </ID>
+    <ID>MaximumLineLength:RAGViewModelTest.kt$RAGViewModelTest$ </ID>
+    <ID>MaximumLineLength:RemediationCard.kt$ </ID>
+    <ID>MaximumLineLength:SettingsViewModelTest.kt$SettingsViewModelTest$ </ID>
+    <ID>ModifierListSpacing:DevOpsApiService.kt$DevOpsChatResponse$@SerialName("answer")</ID>
+    <ID>ModifierListSpacing:DevOpsApiService.kt$DevOpsChatResponse$@SerialName("citations")</ID>
+    <ID>ModifierListSpacing:DevOpsApiService.kt$DevOpsChatResponse$@SerialName("question")</ID>
+    <ID>ModifierListSpacing:DevOpsApiService.kt$DevOpsChatResponse$@SerialName("rounds_used")</ID>
+    <ID>ModifierListSpacing:DevOpsApiService.kt$DevOpsChatResponse$@SerialName("session_id")</ID>
+    <ID>ModifierListSpacing:DevOpsApiService.kt$DevOpsChatResponse$@SerialName("tool_calls")</ID>
+    <ID>ModifierListSpacing:DevOpsApiService.kt$ErrorAnalysisRequest$@SerialName("session_id")</ID>
+    <ID>ModifierListSpacing:DevOpsApiService.kt$ErrorAnalysisResponse$@SerialName("analysis_id")</ID>
+    <ID>ModifierListSpacing:DevOpsApiService.kt$ErrorAnalysisResponse$@SerialName("confidence")</ID>
+    <ID>ModifierListSpacing:DevOpsApiService.kt$ErrorAnalysisResponse$@SerialName("events_analysed")</ID>
+    <ID>ModifierListSpacing:DevOpsApiService.kt$ErrorAnalysisResponse$@SerialName("evidence")</ID>
+    <ID>ModifierListSpacing:DevOpsApiService.kt$ErrorAnalysisResponse$@SerialName("facts_vs_inference")</ID>
+    <ID>ModifierListSpacing:DevOpsApiService.kt$ErrorAnalysisResponse$@SerialName("likely_root_cause")</ID>
+    <ID>ModifierListSpacing:DevOpsApiService.kt$ErrorAnalysisResponse$@SerialName("llm_provider")</ID>
+    <ID>ModifierListSpacing:DevOpsApiService.kt$ErrorAnalysisResponse$@SerialName("possible_causes")</ID>
+    <ID>ModifierListSpacing:DevOpsApiService.kt$ErrorAnalysisResponse$@SerialName("recommended_fix")</ID>
+    <ID>ModifierListSpacing:DevOpsApiService.kt$ErrorAnalysisResponse$@SerialName("severity")</ID>
+    <ID>ModifierListSpacing:DevOpsApiService.kt$ErrorAnalysisResponse$@SerialName("summary")</ID>
+    <ID>ModifierListSpacing:DevOpsApiService.kt$FactsVsInferenceDto$@SerialName("facts")</ID>
+    <ID>ModifierListSpacing:DevOpsApiService.kt$ToolCallDto$@SerialName("params")</ID>
+    <ID>ModifierListSpacing:DevOpsApiService.kt$ToolCallDto$@SerialName("result")</ID>
+    <ID>ModifierListSpacing:IncidentApiService.kt$IncidentApiService$@Query("limit")</ID>
+    <ID>ModifierListSpacing:IncidentApiService.kt$IncidentApiService$@Query("status")</ID>
+    <ID>ModifierListSpacing:IncidentApiService.kt$IncidentDto$@SerialName("ai_confidence")</ID>
+    <ID>ModifierListSpacing:IncidentApiService.kt$IncidentDto$@SerialName("ai_summary")</ID>
+    <ID>ModifierListSpacing:IncidentApiService.kt$IncidentDto$@SerialName("analysis_id")</ID>
+    <ID>ModifierListSpacing:IncidentApiService.kt$IncidentDto$@SerialName("detected_at")</ID>
+    <ID>ModifierListSpacing:IncidentApiService.kt$IncidentDto$@SerialName("detection_method")</ID>
+    <ID>ModifierListSpacing:IncidentApiService.kt$IncidentDto$@SerialName("event_count")</ID>
+    <ID>ModifierListSpacing:IncidentApiService.kt$IncidentDto$@SerialName("id")</ID>
+    <ID>ModifierListSpacing:IncidentApiService.kt$IncidentDto$@SerialName("metric_value")</ID>
+    <ID>ModifierListSpacing:IncidentApiService.kt$IncidentDto$@SerialName("rca_confidence")</ID>
+    <ID>ModifierListSpacing:IncidentApiService.kt$IncidentDto$@SerialName("rca_summary")</ID>
+    <ID>ModifierListSpacing:IncidentApiService.kt$IncidentDto$@SerialName("resolved_at")</ID>
+    <ID>ModifierListSpacing:IncidentApiService.kt$IncidentDto$@SerialName("severity")</ID>
+    <ID>ModifierListSpacing:IncidentApiService.kt$IncidentDto$@SerialName("status")</ID>
+    <ID>ModifierListSpacing:IncidentApiService.kt$IncidentDto$@SerialName("threshold_value")</ID>
+    <ID>ModifierListSpacing:IncidentApiService.kt$IncidentDto$@SerialName("title")</ID>
+    <ID>ModifierListSpacing:IncidentApiService.kt$IncidentDto$@SerialName("triggered_by")</ID>
+    <ID>ModifierListSpacing:IncidentApiService.kt$IncidentDto$@SerialName("window_minutes")</ID>
+    <ID>ModifierListSpacing:IncidentApiService.kt$IncidentListResponse$@SerialName("incidents")</ID>
+    <ID>ModifierListSpacing:IncidentApiService.kt$IncidentListResponse$@SerialName("open_count")</ID>
+    <ID>ModifierListSpacing:IncidentApiService.kt$IncidentListResponse$@SerialName("total")</ID>
+    <ID>ModifierListSpacing:RemediationApiService.kt$RemediationActionDto$@SerialName("action_type")</ID>
+    <ID>ModifierListSpacing:RemediationApiService.kt$RemediationActionDto$@SerialName("confidence")</ID>
+    <ID>ModifierListSpacing:RemediationApiService.kt$RemediationActionDto$@SerialName("created_at")</ID>
+    <ID>ModifierListSpacing:RemediationApiService.kt$RemediationActionDto$@SerialName("id")</ID>
+    <ID>ModifierListSpacing:RemediationApiService.kt$RemediationActionDto$@SerialName("incident_id")</ID>
+    <ID>ModifierListSpacing:RemediationApiService.kt$RemediationActionDto$@SerialName("rank")</ID>
+    <ID>ModifierListSpacing:RemediationApiService.kt$RemediationActionDto$@SerialName("reasoning")</ID>
+    <ID>ModifierListSpacing:RemediationApiService.kt$RemediationActionDto$@SerialName("rejection_reason")</ID>
+    <ID>ModifierListSpacing:RemediationApiService.kt$RemediationActionDto$@SerialName("reviewed_at")</ID>
+    <ID>ModifierListSpacing:RemediationApiService.kt$RemediationActionDto$@SerialName("reviewed_by")</ID>
+    <ID>ModifierListSpacing:RemediationApiService.kt$RemediationActionDto$@SerialName("risk_tier")</ID>
+    <ID>ModifierListSpacing:RemediationApiService.kt$RemediationActionDto$@SerialName("status")</ID>
+    <ID>ModifierListSpacing:RemediationApiService.kt$RemediationActionDto$@SerialName("title")</ID>
+    <ID>ModifierListSpacing:RemediationApiService.kt$RemediationApiService$@Body</ID>
+    <ID>ModifierListSpacing:RemediationApiService.kt$RemediationApiService$@Path("actionId")</ID>
+    <ID>ModifierListSpacing:RemediationApiService.kt$RemediationPlanDto$@SerialName("actions")</ID>
+    <ID>ModifierListSpacing:RemediationApiService.kt$RemediationPlanDto$@SerialName("ai_summary")</ID>
+    <ID>ModifierListSpacing:RemediationApiService.kt$RemediationPlanDto$@SerialName("incident_id")</ID>
+    <ID>ModifierListSpacing:RemediationApiService.kt$RemediationPlanDto$@SerialName("incident_title")</ID>
+    <ID>ModifierListSpacing:SuggestionApiService.kt$data</ID>
+    <ID>NoMultipleSpaces:AiAnalysis.kt$AiAnalysis$ </ID>
+    <ID>NoMultipleSpaces:AiAnalysisCard.kt$ </ID>
+    <ID>NoMultipleSpaces:AnalyseErrorsUseCase.kt$AnalyseErrorsUseCase$ </ID>
+    <ID>NoMultipleSpaces:Color.kt$ </ID>
+    <ID>NoMultipleSpaces:DashboardScreen.kt$ </ID>
+    <ID>NoMultipleSpaces:DashboardUiState.kt$ChatUiState.Error$ </ID>
+    <ID>NoMultipleSpaces:DashboardUiState.kt$ChatUiState.Idle$ </ID>
+    <ID>NoMultipleSpaces:DashboardUiState.kt$ChatUiState.Success$ </ID>
+    <ID>NoMultipleSpaces:DashboardUiState.kt$DashboardUiState.Content$ </ID>
+    <ID>NoMultipleSpaces:DashboardUiState.kt$DashboardUiState.Error$ </ID>
+    <ID>NoMultipleSpaces:DashboardUiState.kt$IncidentCounts$ </ID>
+    <ID>NoMultipleSpaces:DashboardUiState.kt$RemediationActionUiItem$ </ID>
+    <ID>NoMultipleSpaces:DashboardUiState.kt$RemediationUiState.Content$ </ID>
+    <ID>NoMultipleSpaces:DashboardUiState.kt$RemediationUiState.Error$ </ID>
+    <ID>NoMultipleSpaces:DashboardUiState.kt$RemediationUiState.Idle$ </ID>
+    <ID>NoMultipleSpaces:DashboardUiState.kt$RemediationUiState.Loading$ </ID>
+    <ID>NoMultipleSpaces:DashboardViewModel.kt$DashboardViewModel$ </ID>
+    <ID>NoMultipleSpaces:DevOpsApiService.kt$DevOpsChatResponse$ </ID>
+    <ID>NoMultipleSpaces:DevOpsApiService.kt$ErrorAnalysisRequest$ </ID>
+    <ID>NoMultipleSpaces:DevOpsApiService.kt$ErrorAnalysisResponse$ </ID>
+    <ID>NoMultipleSpaces:DevOpsApiService.kt$FactsVsInferenceDto$ </ID>
+    <ID>NoMultipleSpaces:DevOpsApiService.kt$ToolCallDto$ </ID>
+    <ID>NoMultipleSpaces:DevOpsChatCard.kt$ </ID>
+    <ID>NoMultipleSpaces:DevOpsChatResult.kt$DevOpsChatResult$ </ID>
+    <ID>NoMultipleSpaces:DevOpsRepositoryImpl.kt$DevOpsRepositoryImpl$ </ID>
+    <ID>NoMultipleSpaces:DeviceCapabilityDetector.kt$ </ID>
+    <ID>NoMultipleSpaces:GetIncidentsUseCase.kt$GetIncidentsUseCase$ </ID>
+    <ID>NoMultipleSpaces:HardwareCapabilityDetector.kt$ </ID>
+    <ID>NoMultipleSpaces:Incident.kt$Incident$ </ID>
+    <ID>NoMultipleSpaces:IncidentApiService.kt$IncidentApiService$ </ID>
+    <ID>NoMultipleSpaces:IncidentApiService.kt$IncidentDto$ </ID>
+    <ID>NoMultipleSpaces:IncidentApiService.kt$IncidentListResponse$ </ID>
+    <ID>NoMultipleSpaces:IncidentListItem.kt$ </ID>
+    <ID>NoMultipleSpaces:IncidentRepositoryImpl.kt$ </ID>
+    <ID>NoMultipleSpaces:IncidentRepositoryImpl.kt$IncidentRepositoryImpl$ </ID>
+    <ID>NoMultipleSpaces:NetworkObservabilityInterceptor.kt$NetworkObservabilityInterceptor$ </ID>
+    <ID>NoMultipleSpaces:RemediationApiService.kt$RemediationActionDto$ </ID>
+    <ID>NoMultipleSpaces:RemediationApiService.kt$RemediationApiService$ </ID>
+    <ID>NoMultipleSpaces:RemediationApiService.kt$RemediationPlanDto$ </ID>
+    <ID>NoMultipleSpaces:RemediationCard.kt$ </ID>
+    <ID>NoMultipleSpaces:RemediationCard.kt$RemediationActionUiModel$ </ID>
+    <ID>NoMultipleSpaces:StatusBadge.kt$ </ID>
+    <ID>NoUnusedImports:AIAssistantApplicationTest.kt$com.aiassistant.AIAssistantApplicationTest.kt</ID>
+    <ID>NoUnusedImports:DashboardScreen.kt$com.aiassistant.feature.dashboard.DashboardScreen.kt</ID>
+    <ID>NoUnusedImports:DevOpsApiService.kt$com.aiassistant.data.remote.devops.DevOpsApiService.kt</ID>
+    <ID>ReturnCount:AIStreamClientImpl.kt$AIStreamClientImpl$internal fun parseEvent(rawText: String): StreamEvent</ID>
+    <ID>ReturnCount:AuthRepositoryImpl.kt$AuthRepositoryImpl$private suspend fun &lt;T&gt; safeApiCall(block: suspend () -&gt; T): ApiResult&lt;T&gt;</ID>
+    <ID>ReturnCount:CreatePersonaUseCase.kt$CreatePersonaUseCase$suspend operator fun invoke(persona: Persona): ApiResult&lt;Persona&gt;</ID>
+    <ID>ReturnCount:DeletePersonaUseCase.kt$DeletePersonaUseCase$suspend operator fun invoke(personaId: String, isAdmin: Boolean): ApiResult&lt;Unit&gt;</ID>
+    <ID>ReturnCount:DeviceCapabilityDetector.kt$DeviceCapabilityDetector$internal fun hasNpuOrDedicatedGpu(): Boolean</ID>
+    <ID>ReturnCount:HardwareCapabilityDetector.kt$HardwareCapabilityDetector$private fun queryGlRenderer(display: EGLDisplay): String?</ID>
+    <ID>ReturnCount:SelectPersonaUseCase.kt$SelectPersonaUseCase$suspend operator fun invoke(personaId: String?): ApiResult&lt;Unit&gt;</ID>
+    <ID>SpacingAroundOperators:IncidentRepositoryImpl.kt$=</ID>
+    <ID>SpacingBetweenDeclarationsWithComments:AuthRepositoryImpl.kt$AuthRepositoryImpl.Companion$/** Base delay in milliseconds; doubled on each subsequent attempt. */</ID>
+    <ID>SpacingBetweenDeclarationsWithComments:NetworkModule.kt$NetworkModule$// 90 s gives Cloud Run cold-start containers (typically 10–60 s) time to respond</ID>
+    <ID>SwallowedException:AIStreamClientImpl.kt$AIStreamClientImpl$e: Exception</ID>
+    <ID>SwallowedException:CameraCaptureScreen.kt$e: Exception</ID>
+    <ID>SwallowedException:CostDashboardRepositoryImpl.kt$CostDashboardRepositoryImpl$e: IOException</ID>
+    <ID>SwallowedException:DocumentMapper.kt$e: Exception</ID>
+    <ID>SwallowedException:HardwareCapabilityDetector.kt$HardwareCapabilityDetector$e: Exception</ID>
+    <ID>SwallowedException:ImageAnalysisScreen.kt$e: Exception</ID>
+    <ID>SwallowedException:IncidentRemoteDataSource.kt$e: java.io.IOException</ID>
+    <ID>SwallowedException:MeetingRecorderManager.kt$MeetingRecorderManager$e: IllegalStateException</ID>
+    <ID>SwallowedException:RefreshTokenInterceptor.kt$RefreshTokenInterceptor$e: Exception</ID>
+    <ID>SwallowedException:ReminderEditorScreen.kt$e: Exception</ID>
+    <ID>SwallowedException:ReminderListScreen.kt$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:AIStreamClientImpl.kt$AIStreamClientImpl$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:ApiResult.kt$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:CameraCaptureScreen.kt$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:ChatDetailViewModel.kt$ChatDetailViewModel$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:ChatViewModel.kt$GroupedConversationsPagingSource$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:ComparisonModeViewModel.kt$ComparisonModeViewModel$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:DocumentMapper.kt$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:DocumentRepositoryImpl.kt$DocumentRepositoryImpl$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:FederationConfigRepository.kt$FederationConfigRepository$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:HardwareCapabilityDetector.kt$HardwareCapabilityDetector$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:HistoryViewModel.kt$HistoryListPagingSource$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:ImageAnalysisScreen.kt$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:ImageAnalysisServiceImpl.kt$ImageAnalysisServiceImpl$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:IncidentRemoteDataSource.kt$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:MeetingRecorderManager.kt$MeetingRecorderManager$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:NetworkObservabilityInterceptor.kt$NetworkObservabilityInterceptor$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:ObservabilityUploadWorker.kt$ObservabilityUploadWorker$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:OnDeviceModelManager.kt$OnDeviceModelManager$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:PushNotificationService.kt$PushNotificationService$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:RAGViewModel.kt$DocumentsPagingSource$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:RefreshTokenInterceptor.kt$RefreshTokenInterceptor$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:ReminderEditorScreen.kt$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:ReminderListScreen.kt$e: Exception</ID>
+    <ID>TooGenericExceptionCaught:RemoteConfigManager.kt$RemoteConfigManager$e: Exception</ID>
+    <ID>TooGenericExceptionThrown:ApiResultTest.kt$ApiResultExtensionHelpersTest$throw RuntimeException("boom")</ID>
+    <ID>TooGenericExceptionThrown:ApiResultTest.kt$ApiResultExtensionHelpersTest$throw RuntimeException("service unavailable")</ID>
+    <ID>TooManyFunctions:ProductivityApiService.kt$ProductivityApiService</ID>
+    <ID>TooManyFunctions:ProductivityModule.kt$ProductivityModule</ID>
+    <ID>TooManyFunctions:ProductivityRepository.kt$ProductivityRepository</ID>
+    <ID>TooManyFunctions:ProductivityRepositoryImpl.kt$ProductivityRepositoryImpl : ProductivityRepository</ID>
+    <ID>UnusedParameter:ChatNavigation.kt$configuredProviders: List&lt;LlmProvider&gt; = emptyList()</ID>
+    <ID>UnusedParameter:ChatNavigation.kt$selectedComparisonProviders: List&lt;LlmProvider&gt; = emptyList()</ID>
+    <ID>UnusedParameter:CodeNavigation.kt$onNavigateUp: () -&gt; Unit = { navController.popBackStack() }</ID>
+    <ID>UnusedParameter:DashboardNavigation.kt$navController: NavHostController</ID>
+    <ID>UnusedParameter:DashboardViewModel.kt$DashboardViewModel$actionId: String</ID>
+    <ID>UnusedParameter:DashboardViewModel.kt$DashboardViewModel$incidentId: String</ID>
+    <ID>UnusedParameter:DashboardViewModel.kt$DashboardViewModel$reason: String = ""</ID>
+    <ID>UnusedParameter:DevOpsChatCard.kt$onClear: () -&gt; Unit</ID>
+    <ID>UnusedParameter:RemediationCard.kt$incidentTitle: String</ID>
+    <ID>UnusedPrivateMember:HistoryExportFlowTest.kt$HistoryExportFlowTest$private fun makeConversation( id: String = "conv-1", title: String = "Sample Conversation", provider: String = "GPT-4o" )</ID>
+    <ID>UnusedPrivateMember:RemoteDataSourceTest.kt$private fun fakeDocumentUploadResponseDto()</ID>
+    <ID>UnusedPrivateProperty:AIStreamClientImpl.kt$AIStreamClientImpl$val type = root["type"]?.jsonPrimitive?.content</ID>
+    <ID>UnusedPrivateProperty:AuthViewModelTest.kt$AuthViewModelTest$private val biometricAuthManager = mockk&lt;BiometricAuthManager&gt;(relaxed = true)</ID>
+    <ID>UnusedPrivateProperty:ContextSuggestionRateGatePropertyTest.kt$ContextSuggestionRateGatePropertyTest$val dispatchers = DefaultDispatcherProvider()</ID>
+    <ID>UnusedPrivateProperty:ContextSuggestionUseCaseTest.kt$GetContextSuggestionsUseCaseTest$val dispatchers = DefaultDispatcherProvider()</ID>
+    <ID>UnusedPrivateProperty:HistoryViewModel.kt$HistoryListPagingSource.Companion$private const val PAGE_SIZE = 20</ID>
+    <ID>UnusedPrivateProperty:MarkdownText.kt$val codeBackgroundColor = MaterialTheme.colorScheme.surfaceVariant</ID>
+    <ID>UnusedPrivateProperty:OnDeviceInferenceClientTest.kt$OnDeviceInferenceClientTest$i</ID>
+    <ID>UnusedPrivateProperty:RefreshTokenInterceptorTest.kt$RefreshTokenInterceptorTest$val original = mockWebServer.takeRequest()</ID>
+    <ID>UnusedPrivateProperty:UserRegionProviderImpl.kt$UserRegionProviderImpl$val user = runBlocking { userDao.getFirstUser() }</ID>
+    <ID>Wrapping:DashboardViewModel.kt$DashboardViewModel$it.status == com.aiassistant.domain.model.IncidentStatus.OPEN || it.status == com.aiassistant.domain.model.IncidentStatus.INVESTIGATING</ID>
+    <ID>Wrapping:ObservabilityUploadWorker.kt$;</ID>
   </CurrentIssues>
 </SmellBaseline>

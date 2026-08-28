@@ -32,7 +32,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -126,19 +128,35 @@ class CalendarViewModelTest {
 
         val states = mutableListOf<CalendarUiState>()
 
-        // Instantiate to trigger init block call
+        // Use StandardTestDispatcher so the init-block coroutine is paused until
+        // advanceUntilIdle(). This lets us start collecting before any state transitions
+        // have occurred, reliably capturing the Loading → CalendarView sequence.
+        val standardDispatcher = StandardTestDispatcher(testScheduler)
+        val pausedDispatchers = object : DispatcherProvider {
+            override val main: CoroutineDispatcher = standardDispatcher
+            override val io: CoroutineDispatcher = standardDispatcher
+            override val default: CoroutineDispatcher = standardDispatcher
+            override val mainImmediate: CoroutineDispatcher = standardDispatcher
+            override val unconfined: CoroutineDispatcher = standardDispatcher
+        }
+
         viewModel = CalendarViewModel(
             getCalendarEventsUseCase,
             createCalendarEventUseCase,
             deleteCalendarEventUseCase,
             suggestMeetingTimesUseCase,
-            testDispatchers,
+            pausedDispatchers,
             getContextSuggestionsUseCase
         )
 
-        val job = launch {
+        // Subscribe BEFORE advancing — ViewModel is constructed but init coroutine hasn't
+        // run yet because StandardTestDispatcher pauses until advanceUntilIdle().
+        val job = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect { states.add(it) }
         }
+
+        // Now drain everything: init → loadEventsForCurrentMonth → flow emissions
+        advanceUntilIdle()
 
         // Verify sequence: Loading state is present followed by the populated CalendarView state
         assertTrue("Sequence should contain Loading state", states.any { it is CalendarUiState.Loading })

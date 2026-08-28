@@ -138,6 +138,14 @@ transformers==5.5.0
 # sentence-transformers 3.x pre-dates transformers 5.x; 5.x line adds explicit
 # transformers v5 compatibility and ships its own security fixes.
 sentence-transformers[cpu]==5.6.1
+# protobuf is a transitive dep of google-generativeai, firebase-admin (via
+# google-cloud-firestore), and the OpenTelemetry OTLP gRPC exporter.
+# PYSEC-2026-1805 / GHSA-8qvm-5x2c-j2w7 / CVE-2025-4565
+#   DoS via recursive group/message parsing in the pure-Python backend.
+#   Fixed in 5.29.6 and 6.33.5.
+# Floor pin forces pip to resolve a patched version; upper cap kept open so
+# future google-* upgrades can resolve a newer compatible release.
+protobuf>=5.29.6
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Google OAuth2

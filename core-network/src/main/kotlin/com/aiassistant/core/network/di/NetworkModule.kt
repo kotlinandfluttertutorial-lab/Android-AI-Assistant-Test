@@ -85,6 +85,7 @@ import com.aiassistant.core.network.LogoutEventBus
 import com.aiassistant.core.network.NetworkConnectivityObserver
 import com.aiassistant.core.network.RefreshTokenInterceptor
 import com.aiassistant.core.network.observability.NetworkObservabilityInterceptor
+import com.aiassistant.core.network.observability.ObservabilityBaseUrl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -122,6 +123,11 @@ object NetworkModule {
     // before the client gives up. The previous value of 60 s was too tight.
     private const val READ_TIMEOUT_SECONDS = 90L
     private const val WRITE_TIMEOUT_SECONDS = 60L
+
+    @Provides
+    @Singleton
+    @ObservabilityBaseUrl
+    fun provideObservabilityBaseUrl(): String = BASE_URL
 
     // â”€â”€â”€ JSON serializer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 

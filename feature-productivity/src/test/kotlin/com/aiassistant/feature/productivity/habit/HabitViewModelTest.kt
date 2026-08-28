@@ -31,7 +31,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
@@ -130,12 +132,34 @@ class HabitViewModelTest {
 
         val states = mutableListOf<HabitUiState>()
 
-        // Instantiate to trigger init block call
-        initViewModel()
+        // Use StandardTestDispatcher so the init-block coroutine pauses until
+        // advanceUntilIdle(). This lets the collector subscribe before any emissions,
+        // reliably capturing the Loading → HabitList sequence.
+        val standardDispatcher = kotlinx.coroutines.test.StandardTestDispatcher(testScheduler)
+        val pausedDispatchers = object : DispatcherProvider {
+            override val main: CoroutineDispatcher = standardDispatcher
+            override val io: CoroutineDispatcher = standardDispatcher
+            override val default: CoroutineDispatcher = standardDispatcher
+            override val mainImmediate: CoroutineDispatcher = standardDispatcher
+            override val unconfined: CoroutineDispatcher = standardDispatcher
+        }
 
-        val job = launch {
+        viewModel = HabitViewModel(
+            createHabitUseCase = createHabitUseCase,
+            deleteHabitUseCase = deleteHabitUseCase,
+            logHabitEntryUseCase = logHabitEntryUseCase,
+            getHabitInsightsUseCase = getHabitInsightsUseCase,
+            productivityRepository = productivityRepository,
+            dispatchers = pausedDispatchers
+        )
+
+        // Subscribe BEFORE advancing — init coroutine hasn't run yet.
+        val job = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect { states.add(it) }
         }
+
+        // Drain everything: init → loadHabits → emissions
+        advanceUntilIdle()
 
         assertTrue("Sequence should contain Loading state", states.any { it is HabitUiState.Loading })
         assertTrue("Final state should be HabitList", states.last() is HabitUiState.HabitList)

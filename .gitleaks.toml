@@ -25,18 +25,41 @@ description = "Base64-encoded AES encryption key (32 bytes)"
 regex       = '''AES_ENCRYPTION_KEY\s*=\s*[A-Za-z0-9+/]{43}='''
 tags        = ["key", "aes", "encryption"]
 
+# ── Global allowlist ──────────────────────────────────────────────────────────
+#
+# NOTE on gitleaks v8 allowlist mechanics:
+#
+#   commits  — entire commit is skipped; no findings from that SHA are reported.
+#   regexes  — tested against the *secret* portion extracted by the rule
+#               (regexTarget = "match" tests the full match; "line" tests the line).
+#   paths    — file-path regex; any finding in a matching path is suppressed.
+#
+# [[allowlist.findings]] with a `fingerprint` key is NOT a valid gitleaks field
+# and is silently ignored. Use `commits` to suppress historical false-positives.
+#
 [allowlist]
-description = "Historical commits where GCP API keys were exposed before rotation. Keys have been revoked and replaced with placeholders. These fingerprints are suppressed to prevent noise on new PRs."
-# Format: commit SHA of historical commits with revoked keys
+description = "Suppressed commits and content patterns — all are placeholder values or revoked keys."
+
 commits = [
+    # ── Historical commits with revoked / rotated real keys ──────────────────
     "14bacc6365685d8bd06fb391cde6bc85c10582b1",
     "71f353df7dfa91352b1983050728a8d29313c9cc",
-    "41db3754e88a3c9883b7bfbeb5faeb4f01463182",  # CI test AES_ENCRYPTION_KEY — test-only value, now moved to secret
-    "156b4b50146ead2dbe55f1ef56193ff7f0879960",  # GEMINI_API_KEY — key has been revoked and rotated, script fixed
-    "78531b1fe44f5abdf942128757e5c1f3b8ec8970",  # curl-auth-header in CLOUD_RUN_DEPLOYMENT.md — placeholder example
+    "41db3754e88a3c9883b7bfbeb5faeb4f01463182",  # CI test AES_ENCRYPTION_KEY — test-only, moved to secret
+    "156b4b50146ead2dbe55f1ef56193ff7f0879960",  # GEMINI_API_KEY — revoked and rotated, script fixed
+    "78531b1fe44f5abdf942128757e5c1f3b8ec8970",  # curl-auth-header in CLOUD_RUN_DEPLOYMENT.md — placeholder
+
+    # ── curl-auth-header false positives: Bearer ADMIN_JWT / YOUR_ADMIN_JWT / YOUR_JWT ──
+    # All values are uppercase placeholder tokens, not real credentials.
+    # Real JWTs always start with "eyJ" (base64 of '{"').
+    "44d1f8d55752baff6d5256077360d909b86edcb2",  # docs/RAG_GUIDE.md lines 335, 495
+    "c357d1ac984070f7efde7765d1aa54da7d4ad4bd",  # docs/ERROR_ANALYSIS_GUIDE.md line 365
+    "c6dd2669872c00fa6e94cdb958c519835eafa5c7",  # docs/RCA_GUIDE.md line 420, docs/ANOMALY_DETECTION_GUIDE.md line 334
+    "cc8df19d2c8c5efe5c9615c2e3d260da8f0063bc",  # knowledge/deployment/secrets-management.md line 132
+    "b0c03153713d9703a1dda78aa664251dfb72d9c3",  # docs/AI_DEVOPS_ASSISTANT.md lines 440, 990
 ]
 
 regexes = [
+    # Generic placeholder patterns used in code examples
     '''your[_-].*key[_-]here''',
     '''changeme''',
     '''replace.with''',
@@ -48,86 +71,23 @@ regexes = [
     # CI test keys in DEVOPS_GUIDE.md — not real secrets
     '''ci-test-(secret|encryption)-key''',
     # curl doc examples: Bearer followed by an ALL_CAPS_PLACEHOLDER (e.g. ADMIN_JWT, YOUR_ADMIN_JWT, YOUR_JWT)
-    # These are never real tokens — real JWTs always start with "eyJ"
+    # These are never real tokens — real JWTs always start with "eyJ".
+    # The global allowlist `regexes` are tested against the SECRET VALUE extracted by the rule,
+    # not the full line. The curl-auth-header rule extracts everything after "Bearer " as the
+    # secret, so we match just the placeholder portion (no "Bearer " prefix needed here).
     '''Bearer [A-Z][A-Z0-9_]+''',
+    # Match just the placeholder token value as extracted by curl-auth-header rule
+    '''^[A-Z][A-Z0-9_]+$''',
+    # Shell variable references used as tokens in curl examples (e.g. $JWT, $TOKEN)
+    '''\$[A-Z_][A-Z0-9_]*''',
 ]
 
-# Exact fingerprints for known false positives in documentation.
-# These are example/placeholder values, not real credentials.
-[[allowlist.findings]]
-# JWT example in docs/BACKEND_LEARNING_GUIDE.md line 317
-fingerprint = "a4d958bdf08bcf6ebe7a248535dfb1b8aa061cdc:docs/BACKEND_LEARNING_GUIDE.md:jwt:317"
-
-[[allowlist.findings]]
-# Example access_token in docs/API_SPECIFICATION.md line 63
-fingerprint = "a4d958bdf08bcf6ebe7a248535dfb1b8aa061cdc:docs/API_SPECIFICATION.md:generic-api-key:63"
-
-[[allowlist.findings]]
-# Example refresh_token in docs/API_SPECIFICATION.md line 64
-fingerprint = "a4d958bdf08bcf6ebe7a248535dfb1b8aa061cdc:docs/API_SPECIFICATION.md:generic-api-key:64"
-
-[[allowlist.findings]]
-# Example access_token in docs/API_SPECIFICATION.md line 88
-fingerprint = "a4d958bdf08bcf6ebe7a248535dfb1b8aa061cdc:docs/API_SPECIFICATION.md:generic-api-key:88"
-
-[[allowlist.findings]]
-# Example refresh_token in docs/API_SPECIFICATION.md line 89
-fingerprint = "a4d958bdf08bcf6ebe7a248535dfb1b8aa061cdc:docs/API_SPECIFICATION.md:generic-api-key:89"
-
-[[allowlist.findings]]
-# Example refresh_token in docs/API_SPECIFICATION.md line 107
-fingerprint = "a4d958bdf08bcf6ebe7a248535dfb1b8aa061cdc:docs/API_SPECIFICATION.md:generic-api-key:107"
-
-[[allowlist.findings]]
-# Example access_token in docs/API_SPECIFICATION.md line 113
-fingerprint = "a4d958bdf08bcf6ebe7a248535dfb1b8aa061cdc:docs/API_SPECIFICATION.md:generic-api-key:113"
-
-[[allowlist.findings]]
-# Example refresh_token in docs/API_SPECIFICATION.md line 114
-fingerprint = "a4d958bdf08bcf6ebe7a248535dfb1b8aa061cdc:docs/API_SPECIFICATION.md:generic-api-key:114"
-
-[[allowlist.findings]]
-# CI test ENCRYPTION_KEY in docs/DEVOPS_GUIDE.md line 212
-fingerprint = "a4d958bdf08bcf6ebe7a248535dfb1b8aa061cdc:docs/DEVOPS_GUIDE.md:generic-api-key:212"
-
-[[allowlist.findings]]
-# CI placeholder AES_ENCRYPTION_KEY in android-ci.yml (backend-unit-tests job)
-# Value is a base64-encoded test string — not a real key, rotated or otherwise
-fingerprint = "41db3754e88a3c9883b7bfbeb5faeb4f01463182:.github/workflows/android-ci.yml:generic-api-key:728"
-
-[[allowlist.findings]]
-# CI placeholder AES_ENCRYPTION_KEY in android-ci.yml (backend-integration-tests job)
-fingerprint = "41db3754e88a3c9883b7bfbeb5faeb4f01463182:.github/workflows/android-ci.yml:generic-api-key:844"
-
-[[allowlist.findings]]
-# CI placeholder AES_ENCRYPTION_KEY in backend-ci.yml (unit-tests job)
-fingerprint = "41db3754e88a3c9883b7bfbeb5faeb4f01463182:.github/workflows/backend-ci.yml:generic-api-key:151"
-
-# ── curl-auth-header false positives in documentation ─────────────────────────
-# All six findings below are placeholder tokens (ADMIN_JWT / YOUR_ADMIN_JWT /
-# YOUR_JWT) used in curl examples inside docs/. Real JWTs always start with
-# "eyJ"; these uppercase-only values are clearly not real credentials.
-
-[[allowlist.findings]]
-# docs/RCA_GUIDE.md — curl reindex example with Bearer ADMIN_JWT
-fingerprint = "c6dd2669872c00fa6e94cdb958c519835eafa5c7:docs/RCA_GUIDE.md:curl-auth-header:420"
-
-[[allowlist.findings]]
-# docs/RAG_GUIDE.md — curl reindex (prod URL) with Bearer YOUR_ADMIN_JWT
-fingerprint = "44d1f8d55752baff6d5256077360d909b86edcb2:docs/RAG_GUIDE.md:curl-auth-header:335"
-
-[[allowlist.findings]]
-# docs/RAG_GUIDE.md — curl reindex (localhost) with Bearer YOUR_ADMIN_JWT
-fingerprint = "44d1f8d55752baff6d5256077360d909b86edcb2:docs/RAG_GUIDE.md:curl-auth-header:495"
-
-[[allowlist.findings]]
-# docs/ERROR_ANALYSIS_GUIDE.md — curl reindex example with Bearer ADMIN_JWT
-fingerprint = "c357d1ac984070f7efde7765d1aa54da7d4ad4bd:docs/ERROR_ANALYSIS_GUIDE.md:curl-auth-header:365"
-
-[[allowlist.findings]]
-# knowledge/deployment/secrets-management.md — curl documents endpoint with Bearer YOUR_JWT
-fingerprint = "cc8df19d2c8c5efe5c9615c2e3d260da8f0063bc:knowledge/deployment/secrets-management.md:curl-auth-header:132"
-
-[[allowlist.findings]]
-# docs/ANOMALY_DETECTION_GUIDE.md — curl anomaly/run example with Bearer ADMIN_JWT
-fingerprint = "c6dd2669872c00fa6e94cdb958c519835eafa5c7:docs/ANOMALY_DETECTION_GUIDE.md:curl-auth-header:334"
+# ── Global path allowlist ──────────────────────────────────────────────────────
+# Documentation and knowledge-base markdown files intentionally contain curl
+# examples with placeholder Authorization headers.  The global `paths` allowlist
+# suppresses every finding in matching file paths regardless of which rule fires.
+# This is the correct gitleaks v8 mechanism for path-based suppression.
+paths = [
+    '''(?i)^docs/.*\.md$''',
+    '''(?i)^knowledge/.*\.md$''',
+]

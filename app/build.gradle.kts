@@ -168,6 +168,7 @@ dependencies {
 
     // Lifecycle
     implementation(libs.bundles.lifecycle)
+    implementation("androidx.lifecycle:lifecycle-process:${libs.versions.androidxLifecycle.get()}")
 
     // Hilt
     implementation(libs.hilt.android)
