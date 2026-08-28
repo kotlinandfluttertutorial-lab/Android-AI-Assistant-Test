@@ -29,15 +29,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navDeepLink
 import com.aiassistant.core.ui.AppTheme
-import com.aiassistant.feature.dashboard.DashboardRoute
-import com.aiassistant.feature.dashboard.dashboardNavGraph
-import com.aiassistant.observability.observabilityNavTracker
 import com.aiassistant.feature.auth.AuthRoute
 import com.aiassistant.feature.auth.authNavGraph
 import com.aiassistant.feature.camera.cameraNavGraph
 import com.aiassistant.feature.chat.ChatRoute
 import com.aiassistant.feature.chat.chatNavGraph
 import com.aiassistant.feature.code.codeNavGraph
+import com.aiassistant.feature.dashboard.dashboardNavGraph
 import com.aiassistant.feature.email.emailNavGraph
 import com.aiassistant.feature.history.historyNavGraph
 import com.aiassistant.feature.meeting.meetingNavGraph
@@ -55,6 +53,7 @@ import com.aiassistant.feature.translator.TRANSLATOR_ROUTE
 import com.aiassistant.feature.translator.translatorNavGraph
 import com.aiassistant.feature.voice.VoiceRoute
 import com.aiassistant.feature.voice.voiceNavGraph
+import com.aiassistant.observability.observabilityNavTracker
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.logEvent
 import dagger.hilt.android.AndroidEntryPoint

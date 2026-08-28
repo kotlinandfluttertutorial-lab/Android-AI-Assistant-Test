@@ -52,9 +52,9 @@ class DevOpsRemoteDataSource @Inject constructor(
 private inline fun <T> safeCall(block: () -> T): ApiResult<T> = try {
     ApiResult.Success(block())
 } catch (e: retrofit2.HttpException) {
-    ApiResult.Error(DomainError.ApiError(code = e.code(), message = e.message()))
+    ApiResult.Error(DomainError.ServerError(httpStatusCode = e.code(), message = e.message() ?: "HTTP ${e.code()}"))
 } catch (e: java.io.IOException) {
     ApiResult.NetworkUnavailable
 } catch (e: Exception) {
-    ApiResult.Error(DomainError.Unknown(message = e.message ?: "Unknown error"))
+    ApiResult.Error(DomainError.NetworkError(message = e.message ?: "Unknown error", cause = e))
 }

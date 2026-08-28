@@ -118,17 +118,14 @@ class DashboardViewModel @Inject constructor(
     fun recommendRemediation(incidentId: String) {
         viewModelScope.launch {
             _remediationState.value = RemediationUiState.Loading
-            val result = withContext(dispatchers.io) {
-                // Uses DevOpsRepository which can be extended with a RemediationApiService
-                // For now delegates to the existing DevOps infrastructure
-                runCatching {
-                    // Stub: real implementation calls
-                    // POST /incidents/{incidentId}/remediation/recommend
-                    // via a RemediationRepository (extend data module following IncidentRepositoryImpl pattern)
-                    null // returns null until RemediationRepository is wired
-                }.getOrNull()
+            // Stub: real implementation will call
+            //   POST /incidents/{incidentId}/remediation/recommend
+            // via a RemediationRepository (extend data module following IncidentRepositoryImpl pattern).
+            // Suppressed unused-parameter warning: incidentId is intentionally kept for the
+            // real implementation that will replace this placeholder.
+            withContext(dispatchers.io) {
+                // placeholder — no network call yet
             }
-            // Graceful placeholder — real implementation returns RemediationPlanDto
             _remediationState.value = RemediationUiState.Idle
         }
     }

@@ -36,6 +36,17 @@ android {
         compose = true
     }
 
+    lint {
+        // Baseline captures pre-existing issues so lint only blocks on NEW violations.
+        baseline      = file("lint-baseline.xml")
+        abortOnError  = true
+        warningsAsErrors = false
+        // Produce both text and XML for CI artifact upload
+        htmlReport    = true
+        xmlReport     = true
+        checkDependencies = false
+    }
+
     testOptions {
         unitTests {
             isReturnDefaultValues = true

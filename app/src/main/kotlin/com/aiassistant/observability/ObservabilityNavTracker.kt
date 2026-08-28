@@ -42,7 +42,7 @@ import javax.inject.Inject
 @HiltViewModel
 class ObservabilityNavTrackerViewModel @Inject constructor(
     val bus: ObservabilityEventBus,
-    val sessionManager: SessionManager,
+    val sessionManager: SessionManager
 ) : ViewModel()
 
 // ─── Composable ──────────────────────────────────────────────────────────────
@@ -62,7 +62,7 @@ class ObservabilityNavTrackerViewModel @Inject constructor(
 @Composable
 fun observabilityNavTracker(
     navController: NavHostController,
-    viewModel: ObservabilityNavTrackerViewModel = hiltViewModel(),
+    viewModel: ObservabilityNavTrackerViewModel = hiltViewModel()
 ) {
     DisposableEffect(navController) {
         val listener = NavController.OnDestinationChangedListener { _, destination, _ ->
@@ -79,15 +79,15 @@ fun observabilityNavTracker(
 
             viewModel.bus.emit(
                 ObservabilityEvent(
-                    timestamp  = System.currentTimeMillis(),
-                    level      = EventLevel.INFO,
-                    eventType  = EventType.SCREEN_VIEW,
-                    message    = "Screen: $screenName",
-                    screen     = screenName,
-                    traceId    = viewModel.sessionManager.currentTraceId,
-                    sessionId  = viewModel.sessionManager.sessionId,
-                    metadata   = mapOf("route" to route),
-                ),
+                    timestamp = System.currentTimeMillis(),
+                    level = EventLevel.INFO,
+                    eventType = EventType.SCREEN_VIEW,
+                    message = "Screen: $screenName",
+                    screen = screenName,
+                    traceId = viewModel.sessionManager.currentTraceId,
+                    sessionId = viewModel.sessionManager.sessionId,
+                    metadata = mapOf("route" to route)
+                )
             )
         }
 

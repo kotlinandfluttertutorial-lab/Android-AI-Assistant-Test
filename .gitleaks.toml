@@ -47,6 +47,9 @@ regexes = [
     '''eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]*\.\.\.$''',
     # CI test keys in DEVOPS_GUIDE.md — not real secrets
     '''ci-test-(secret|encryption)-key''',
+    # curl doc examples: Bearer followed by an ALL_CAPS_PLACEHOLDER (e.g. ADMIN_JWT, YOUR_ADMIN_JWT, YOUR_JWT)
+    # These are never real tokens — real JWTs always start with "eyJ"
+    '''Bearer [A-Z][A-Z0-9_]+''',
 ]
 
 # Exact fingerprints for known false positives in documentation.
@@ -99,3 +102,32 @@ fingerprint = "41db3754e88a3c9883b7bfbeb5faeb4f01463182:.github/workflows/androi
 [[allowlist.findings]]
 # CI placeholder AES_ENCRYPTION_KEY in backend-ci.yml (unit-tests job)
 fingerprint = "41db3754e88a3c9883b7bfbeb5faeb4f01463182:.github/workflows/backend-ci.yml:generic-api-key:151"
+
+# ── curl-auth-header false positives in documentation ─────────────────────────
+# All six findings below are placeholder tokens (ADMIN_JWT / YOUR_ADMIN_JWT /
+# YOUR_JWT) used in curl examples inside docs/. Real JWTs always start with
+# "eyJ"; these uppercase-only values are clearly not real credentials.
+
+[[allowlist.findings]]
+# docs/RCA_GUIDE.md — curl reindex example with Bearer ADMIN_JWT
+fingerprint = "c6dd2669872c00fa6e94cdb958c519835eafa5c7:docs/RCA_GUIDE.md:curl-auth-header:420"
+
+[[allowlist.findings]]
+# docs/RAG_GUIDE.md — curl reindex (prod URL) with Bearer YOUR_ADMIN_JWT
+fingerprint = "44d1f8d55752baff6d5256077360d909b86edcb2:docs/RAG_GUIDE.md:curl-auth-header:335"
+
+[[allowlist.findings]]
+# docs/RAG_GUIDE.md — curl reindex (localhost) with Bearer YOUR_ADMIN_JWT
+fingerprint = "44d1f8d55752baff6d5256077360d909b86edcb2:docs/RAG_GUIDE.md:curl-auth-header:495"
+
+[[allowlist.findings]]
+# docs/ERROR_ANALYSIS_GUIDE.md — curl reindex example with Bearer ADMIN_JWT
+fingerprint = "c357d1ac984070f7efde7765d1aa54da7d4ad4bd:docs/ERROR_ANALYSIS_GUIDE.md:curl-auth-header:365"
+
+[[allowlist.findings]]
+# knowledge/deployment/secrets-management.md — curl documents endpoint with Bearer YOUR_JWT
+fingerprint = "cc8df19d2c8c5efe5c9615c2e3d260da8f0063bc:knowledge/deployment/secrets-management.md:curl-auth-header:132"
+
+[[allowlist.findings]]
+# docs/ANOMALY_DETECTION_GUIDE.md — curl anomaly/run example with Bearer ADMIN_JWT
+fingerprint = "c6dd2669872c00fa6e94cdb958c519835eafa5c7:docs/ANOMALY_DETECTION_GUIDE.md:curl-auth-header:334"

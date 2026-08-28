@@ -24,6 +24,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
 from app.models.incident import Incident
 from app.repositories.incident_repository import IncidentRepository
+from app.schemas.rca import RcaAnalysisResponse, RcaRequest
 from app.security.dependencies import get_current_user
 from app.security.jwt_handler import TokenPayload
 
@@ -263,20 +264,18 @@ async def create_incident(
 )
 async def run_rca(
     incident_id: uuid.UUID,
-    body: "RcaRequest | None" = None,
+    body: RcaRequest | None = None,
     current_user: TokenPayload = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> "RcaAnalysisResponse":
+) -> RcaAnalysisResponse:
     """Trigger RCA for a specific incident.
 
     Phase 12 — Root Cause Analysis
     """
-    from app.schemas.rca import RcaAnalysisResponse, RcaRequest
     from app.services.rca_service import RcaService
 
     if body is None:
-        from app.schemas.rca import RcaRequest as _RcaRequest
-        body = _RcaRequest()
+        body = RcaRequest()
 
     logger.info(
         "incidents/%s/rca: triggered by user=%s window=%dm force=%s",
@@ -310,12 +309,11 @@ async def get_rca(
     incident_id: uuid.UUID,
     current_user: TokenPayload = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> "RcaAnalysisResponse":
+) -> RcaAnalysisResponse:
     """Return the cached RCA result for an incident.
 
     Phase 12 — Root Cause Analysis
     """
-    from app.schemas.rca import RcaAnalysisResponse
     from app.services.rca_service import RcaService
 
     service = RcaService(db)

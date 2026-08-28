@@ -41,6 +41,7 @@ package com.aiassistant
 
 import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
+import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.Configuration
 import com.aiassistant.analytics.RemoteConfigManager
 import com.aiassistant.core.common.observability.ObservabilityEventBus
@@ -57,7 +58,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import timber.log.Timber
-import androidx.lifecycle.ProcessLifecycleOwner
 
 @HiltAndroidApp
 class AIAssistantApplication :

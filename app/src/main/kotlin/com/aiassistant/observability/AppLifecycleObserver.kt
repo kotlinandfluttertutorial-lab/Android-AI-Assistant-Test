@@ -36,10 +36,8 @@ import timber.log.Timber
  * @param bus            Target event bus — events are emitted via [ObservabilityEventBus.emit].
  * @param sessionManager Source of sessionId and currentTraceId.
  */
-class AppLifecycleObserver(
-    private val bus: ObservabilityEventBus,
-    private val sessionManager: SessionManager,
-) : DefaultLifecycleObserver {
+class AppLifecycleObserver(private val bus: ObservabilityEventBus, private val sessionManager: SessionManager) :
+    DefaultLifecycleObserver {
 
     /** Called when the app comes to the foreground (any Activity becomes visible). */
     override fun onStart(owner: LifecycleOwner) {
@@ -47,12 +45,12 @@ class AppLifecycleObserver(
         bus.emit(
             ObservabilityEvent(
                 timestamp = System.currentTimeMillis(),
-                level     = EventLevel.INFO,
+                level = EventLevel.INFO,
                 eventType = EventType.APP_FOREGROUND,
-                message   = "App entered foreground",
-                traceId   = sessionManager.currentTraceId,
-                sessionId = sessionManager.sessionId,
-            ),
+                message = "App entered foreground",
+                traceId = sessionManager.currentTraceId,
+                sessionId = sessionManager.sessionId
+            )
         )
     }
 
@@ -62,12 +60,12 @@ class AppLifecycleObserver(
         bus.emit(
             ObservabilityEvent(
                 timestamp = System.currentTimeMillis(),
-                level     = EventLevel.INFO,
+                level = EventLevel.INFO,
                 eventType = EventType.APP_BACKGROUND,
-                message   = "App entered background",
-                traceId   = sessionManager.currentTraceId,
-                sessionId = sessionManager.sessionId,
-            ),
+                message = "App entered background",
+                traceId = sessionManager.currentTraceId,
+                sessionId = sessionManager.sessionId
+            )
         )
     }
 }

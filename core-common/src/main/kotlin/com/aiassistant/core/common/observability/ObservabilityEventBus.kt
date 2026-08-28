@@ -49,7 +49,7 @@ class ObservabilityEventBus {
     private val _events = MutableSharedFlow<ObservabilityEvent>(
         replay = 0,
         extraBufferCapacity = 64,
-        onBufferOverflow = kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST,
+        onBufferOverflow = kotlinx.coroutines.channels.BufferOverflow.DROP_OLDEST
     )
 
     /**

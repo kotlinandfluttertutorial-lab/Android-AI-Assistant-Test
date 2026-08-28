@@ -54,7 +54,7 @@ object PiiFilter {
      * Example matches: user@example.com, first.last+tag@sub.domain.org
      */
     private val EMAIL_REGEX = Regex(
-        """[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}""",
+        """[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}"""
     )
 
     /**
@@ -64,7 +64,7 @@ object PiiFilter {
      * is safer than a false positive that corrupts a non-PII value).
      */
     private val PHONE_REGEX = Regex(
-        """(\+?[\d\s\-().]{7,15}\d)""",
+        """(\+?[\d\s\-().]{7,15}\d)"""
     )
 
     /**
@@ -74,7 +74,7 @@ object PiiFilter {
      * Base64 string. Both are caught by this pattern.
      */
     private val TOKEN_REGEX = Regex(
-        """(?i)(bearer\s+)[A-Za-z0-9\-_=+/.]{20,}""",
+        """(?i)(bearer\s+)[A-Za-z0-9\-_=+/.]{20,}"""
     )
 
     /**
@@ -83,7 +83,7 @@ object PiiFilter {
      * specific rule; this catches "Basic <base64>" and similar schemes.
      */
     private val AUTH_HEADER_REGEX = Regex(
-        """(?i)(authorization\s*[:=]\s*)[^\s,;]{8,}""",
+        """(?i)(authorization\s*[:=]\s*)[^\s,;]{8,}"""
     )
 
     /**
@@ -93,7 +93,7 @@ object PiiFilter {
      * payment processor.
      */
     private val CARD_REGEX = Regex(
-        """\b(?:\d[ \-]?){13,19}\b""",
+        """\b(?:\d[ \-]?){13,19}\b"""
     )
 
     /**
@@ -103,7 +103,7 @@ object PiiFilter {
      * excessive false positives.
      */
     private val IPV4_REGEX = Regex(
-        """\b(?:\d{1,3}\.){3}\d{1,3}\b""",
+        """\b(?:\d{1,3}\.){3}\d{1,3}\b"""
     )
 
     /**
@@ -117,7 +117,7 @@ object PiiFilter {
         EMAIL_REGEX to "[email]",
         CARD_REGEX to "[card]",
         IPV4_REGEX to "[ip]",
-        PHONE_REGEX to "[phone]",
+        PHONE_REGEX to "[phone]"
     )
 
     // ─── Public API ───────────────────────────────────────────────────────────
@@ -150,8 +150,7 @@ object PiiFilter {
      * @param map Metadata map whose values may contain PII.
      * @return New map with all values passed through [filter].
      */
-    fun filterMap(map: Map<String, String>): Map<String, String> =
-        map.mapValues { (_, value) -> filter(value) }
+    fun filterMap(map: Map<String, String>): Map<String, String> = map.mapValues { (_, value) -> filter(value) }
 
     /**
      * Returns `true` if [input] appears to contain PII.
@@ -161,6 +160,5 @@ object PiiFilter {
      *
      * @param input String to inspect.
      */
-    fun containsPii(input: String): Boolean =
-        RULES.any { (pattern, _) -> pattern.containsMatchIn(input) }
+    fun containsPii(input: String): Boolean = RULES.any { (pattern, _) -> pattern.containsMatchIn(input) }
 }

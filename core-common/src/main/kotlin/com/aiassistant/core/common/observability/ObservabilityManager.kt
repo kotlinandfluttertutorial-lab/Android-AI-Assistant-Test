@@ -71,10 +71,7 @@ private const val MAX_BUFFER_SIZE = 500
  * @param bus               Source of [ObservabilityEvent] instances.
  * @param dispatcherProvider Dispatcher abstraction for testability.
  */
-class ObservabilityManager(
-    private val bus: ObservabilityEventBus,
-    private val dispatcherProvider: DispatcherProvider,
-) {
+class ObservabilityManager(private val bus: ObservabilityEventBus, private val dispatcherProvider: DispatcherProvider) {
 
     /** Guards all access to [_buffer]. */
     private val _mutex = Mutex()
@@ -119,7 +116,7 @@ class ObservabilityManager(
                         Timber.w(
                             "ObservabilityManager: buffer full — dropped oldest event " +
                                 "(eventType=%s)",
-                            _buffer.firstOrNull()?.eventType ?: "unknown",
+                            _buffer.firstOrNull()?.eventType ?: "unknown"
                         )
                     }
                     _buffer.addLast(event)

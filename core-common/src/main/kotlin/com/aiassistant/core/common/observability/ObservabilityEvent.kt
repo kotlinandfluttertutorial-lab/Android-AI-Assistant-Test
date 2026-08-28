@@ -50,7 +50,7 @@ enum class EventLevel {
     ERROR,
 
     /** A crash or data-loss event that requires immediate attention. */
-    CRITICAL,
+    CRITICAL
 }
 
 // ─── Event type constants ─────────────────────────────────────────────────────
@@ -66,7 +66,7 @@ object EventType {
     const val NETWORK_ERROR = "network_error"
     const val NETWORK_TIMEOUT = "network_timeout"
     const val API_LATENCY = "api_latency"
-    const val HTTP_ERROR = "http_error"          // 4xx / 5xx responses
+    const val HTTP_ERROR = "http_error" // 4xx / 5xx responses
     const val HTTP_SUCCESS = "http_success"
 
     // Crashes & exceptions
@@ -183,5 +183,5 @@ data class ObservabilityEvent(
      * - `"error_type"`    — DomainError subtype name, e.g. `"NetworkError"`
      * - `"retry_count"`   — Number of retries attempted, e.g. `"2"`
      */
-    val metadata: Map<String, String> = emptyMap(),
+    val metadata: Map<String, String> = emptyMap()
 )

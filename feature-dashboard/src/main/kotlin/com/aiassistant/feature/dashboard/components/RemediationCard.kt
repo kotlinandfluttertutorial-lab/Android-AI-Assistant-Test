@@ -15,6 +15,7 @@
 package com.aiassistant.feature.dashboard.components
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -253,11 +254,9 @@ private fun RemediationActionRow(
                 style   = MaterialTheme.typography.labelSmall,
                 color   = MaterialTheme.colorScheme.primary,
                 modifier = Modifier
+                    .clickable { showReasoning = !showReasoning }
                     .semantics { contentDescription = "Toggle reasoning for ${action.title}" }
-                    .padding(vertical = 2.dp)
-                    .let { mod ->
-                        mod // clickable handled by AnimatedVisibility toggle below
-                    },
+                    .padding(vertical = 2.dp),
             )
             AnimatedVisibility(visible = showReasoning) {
                 Text(
