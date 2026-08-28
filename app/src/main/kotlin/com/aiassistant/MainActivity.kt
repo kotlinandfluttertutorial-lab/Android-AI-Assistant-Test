@@ -35,6 +35,7 @@ import com.aiassistant.feature.camera.cameraNavGraph
 import com.aiassistant.feature.chat.ChatRoute
 import com.aiassistant.feature.chat.chatNavGraph
 import com.aiassistant.feature.code.codeNavGraph
+import com.aiassistant.feature.dashboard.dashboardNavGraph
 import com.aiassistant.feature.email.emailNavGraph
 import com.aiassistant.feature.history.historyNavGraph
 import com.aiassistant.feature.meeting.meetingNavGraph
@@ -52,6 +53,7 @@ import com.aiassistant.feature.translator.TRANSLATOR_ROUTE
 import com.aiassistant.feature.translator.translatorNavGraph
 import com.aiassistant.feature.voice.VoiceRoute
 import com.aiassistant.feature.voice.voiceNavGraph
+import com.aiassistant.observability.observabilityNavTracker
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.analytics.logEvent
 import dagger.hilt.android.AndroidEntryPoint
@@ -72,6 +74,10 @@ class MainActivity : ComponentActivity() {
 
                 // Track screen_view events automatically on every destination change.
                 screenViewTracker(navController = navController)
+
+                // Also emit SCREEN_VIEW events to our own observability pipeline
+                // so the AI analysis layer can correlate errors with screen context.
+                observabilityNavTracker(navController = navController)
 
                 rootNavHost(navController = navController)
             }
@@ -306,5 +312,8 @@ private fun rootNavHost(navController: NavHostController) {
             navController = navController,
             onNavigateUp = { navController.popBackStack() }
         )
+
+        // ── AI DevOps Dashboard (Phase 14) ────────────────────────────────────────
+        dashboardNavGraph(navController = navController)
     }
 }

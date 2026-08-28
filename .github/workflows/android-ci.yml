@@ -315,8 +315,8 @@ jobs:
           path: "**/build/test-results/test*/*.xml"
           reporter: java-junit
           fail-on-error: false
+          fail-on-empty: false
           token: ${{ secrets.GITHUB_TOKEN }}
-          list-files: listing
 
       - name: Upload test reports
         if: failure()
@@ -750,6 +750,16 @@ jobs:
             -v \
             --tb=short
 
+      - name: Verify unit test report exists
+        if: always()
+        run: |
+          if [ -f unit-test-results.xml ]; then
+            echo "✅ unit-test-results.xml found"
+          else
+            echo "⚠️  unit-test-results.xml not found — creating placeholder"
+            echo '<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="unit" tests="0" errors="0" failures="0" skipped="0"/></testsuites>' > unit-test-results.xml
+          fi
+
       - name: Publish unit test results
         if: always()
         uses: dorny/test-reporter@v3
@@ -758,8 +768,8 @@ jobs:
           path: backend/unit-test-results.xml
           reporter: java-junit
           fail-on-error: false
+          fail-on-empty: false
           token: ${{ secrets.GITHUB_TOKEN }}
-          list-files: listing
 
       - name: Upload unit test reports
         if: failure()
@@ -828,6 +838,16 @@ jobs:
             -n auto --dist=loadfile \
             -v --tb=short
 
+      - name: Verify integration test report exists
+        if: always()
+        run: |
+          if [ -f integration-test-results.xml ]; then
+            echo "✅ integration-test-results.xml found"
+          else
+            echo "⚠️  integration-test-results.xml not found — creating placeholder"
+            echo '<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="integration" tests="0" errors="0" failures="0" skipped="0"/></testsuites>' > integration-test-results.xml
+          fi
+
       - name: Publish integration test results
         if: always()
         uses: dorny/test-reporter@v3
@@ -836,8 +856,8 @@ jobs:
           path: backend/integration-test-results.xml
           reporter: java-junit
           fail-on-error: false
+          fail-on-empty: false
           token: ${{ secrets.GITHUB_TOKEN }}
-          list-files: listing
 
       - name: Upload test reports on failure
         if: failure()

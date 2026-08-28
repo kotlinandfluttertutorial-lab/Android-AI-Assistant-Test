@@ -96,6 +96,21 @@ firebase-admin==6.5.0
 prometheus-fastapi-instrumentator==8.1.0
 python-logging-loki==0.3.1
 
+# ── OpenTelemetry distributed tracing ────────────────────────────────────────
+# Core SDK + OTLP exporter for Cloud Trace / Jaeger.
+# Instrumentations auto-patch FastAPI, SQLAlchemy, httpx, and redis.
+#
+# IMPORTANT: opentelemetry-proto==1.27.0 required protobuf<5.0, which conflicts
+# with our protobuf>=5.29.6 floor (CVE-2025-4565 fix). opentelemetry-proto==1.28.0
+# bumped that requirement to protobuf<6.0,>=5.0 — resolving the conflict.
+# All packages must move together (sdk ↔ exporter ↔ instrumentation are version-locked).
+opentelemetry-sdk==1.28.0
+opentelemetry-exporter-otlp-proto-grpc==1.28.0
+opentelemetry-instrumentation-fastapi==0.49b0
+opentelemetry-instrumentation-sqlalchemy==0.49b0
+opentelemetry-instrumentation-httpx==0.49b0
+opentelemetry-instrumentation-redis==0.49b0
+
 # ──────────────────────────────────────────────────────────────────────────────
 # Environment & file utilities
 # ──────────────────────────────────────────────────────────────────────────────
@@ -128,6 +143,14 @@ transformers==5.5.0
 # sentence-transformers 3.x pre-dates transformers 5.x; 5.x line adds explicit
 # transformers v5 compatibility and ships its own security fixes.
 sentence-transformers[cpu]==5.6.1
+# protobuf is a transitive dep of google-generativeai, firebase-admin (via
+# google-cloud-firestore), and the OpenTelemetry OTLP gRPC exporter.
+# PYSEC-2026-1805 / GHSA-8qvm-5x2c-j2w7 / CVE-2025-4565
+#   DoS via recursive group/message parsing in the pure-Python backend.
+#   Fixed in 5.29.6 and 6.33.5.
+# Floor pin forces pip to resolve a patched version; upper cap kept open so
+# future google-* upgrades can resolve a newer compatible release.
+protobuf>=5.29.6
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Google OAuth2

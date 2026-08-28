@@ -41,9 +41,14 @@ package com.aiassistant
 
 import android.app.Application
 import androidx.hilt.work.HiltWorkerFactory
+import androidx.lifecycle.ProcessLifecycleOwner
 import androidx.work.Configuration
 import com.aiassistant.analytics.RemoteConfigManager
+import com.aiassistant.core.common.observability.ObservabilityEventBus
+import com.aiassistant.core.common.observability.SessionManager
+import com.aiassistant.core.network.observability.scheduleObservabilityUpload
 import com.aiassistant.notification.NotificationChannelManager
+import com.aiassistant.observability.AppLifecycleObserver
 import com.google.firebase.FirebaseApp
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import dagger.hilt.android.HiltAndroidApp
@@ -61,6 +66,14 @@ class AIAssistantApplication :
 
     @Inject
     lateinit var workerFactory: HiltWorkerFactory
+
+    /** Observability event bus — injected so AppLifecycleObserver can emit events. */
+    @Inject
+    lateinit var observabilityEventBus: ObservabilityEventBus
+
+    /** Session manager — provides sessionId/traceId for observability events. */
+    @Inject
+    lateinit var sessionManager: SessionManager
 
     /**
      * Creates notification channels required by FCM and the offline queue worker.
@@ -110,6 +123,19 @@ class AIAssistantApplication :
         // Create FCM notification channels once per install (idempotent on repeat calls).
         // Must be called before any notification can be posted. (Requirements 16.1, 16.2)
         notificationChannelManager.ensureChannelsCreated()
+
+        // Schedule the periodic observability event upload to the backend.
+        // Uses WorkManager so it survives process death and respects network availability.
+        // ExistingPeriodicWorkPolicy.KEEP makes this idempotent on re-launch.
+        scheduleObservabilityUpload(this)
+
+        // Register the process-level lifecycle observer to emit APP_FOREGROUND /
+        // APP_BACKGROUND events to the observability pipeline.
+        // ProcessLifecycleOwner tracks the app process, not individual Activities,
+        // so it does NOT fire on screen rotations.
+        ProcessLifecycleOwner.get().lifecycle.addObserver(
+            AppLifecycleObserver(observabilityEventBus, sessionManager)
+        )
 
         // Fetch and activate Remote Config values in the background.
         // The result is applied on this launch; no app restart required. (Requirement 15.8)

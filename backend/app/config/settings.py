@@ -609,6 +609,24 @@ class Settings(BaseSettings):
         "Example: http://loki:3100/loki/api/v1/push. Leave blank to disable.",
     )
 
+    OTEL_ENABLED: bool = Field(
+        default=True,
+        description="Enable OpenTelemetry distributed tracing. "
+        "Set to false in unit test environments to avoid OTLP connection attempts.",
+    )
+
+    OTEL_SERVICE_NAME: str = Field(
+        default="ai-assistant-backend",
+        description="Service name attached to every span in Cloud Trace / Jaeger.",
+    )
+
+    OTEL_EXPORTER_OTLP_ENDPOINT: str = Field(
+        default="",
+        description="gRPC OTLP endpoint for span export. "
+        "Example (local Jaeger): http://jaeger:4317. "
+        "Leave blank to export to Cloud Trace via Application Default Credentials.",
+    )
+
     # -------------------------------------------------------------------------
     # Differential Privacy
     # -------------------------------------------------------------------------

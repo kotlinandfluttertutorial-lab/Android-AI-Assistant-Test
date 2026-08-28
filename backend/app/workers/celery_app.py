@@ -64,6 +64,7 @@ def _create_celery_app() -> Celery:
             "app.workers.rag_worker",
             "app.workers.notification_worker",
             "app.workers.gdpr_worker",
+            "app.workers.anomaly_worker",   # Phase 11 — anomaly detection beat task
         ],
         # Route tasks to dedicated queues for better isolation and scaling.
         # Workers can subscribe to specific queues:

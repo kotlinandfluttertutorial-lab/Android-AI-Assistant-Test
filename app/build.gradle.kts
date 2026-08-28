@@ -151,6 +151,7 @@ dependencies {
     implementation(project(":feature-on-device-ai"))
     implementation(project(":feature-search"))
     implementation(project(":feature-persona"))
+    implementation(project(":feature-dashboard"))
 
     // AndroidX Core
     implementation(libs.androidx.core.ktx)
@@ -167,6 +168,7 @@ dependencies {
 
     // Lifecycle
     implementation(libs.bundles.lifecycle)
+    implementation("androidx.lifecycle:lifecycle-process:${libs.versions.androidxLifecycle.get()}")
 
     // Hilt
     implementation(libs.hilt.android)

@@ -1,0 +1,19 @@
+# Local state — never commit. State lives in GCS (backend.tf).
+*.tfstate
+*.tfstate.*
+.terraform/
+.terraform.lock.hcl
+
+# Local variable overrides — developer-specific, never commit
+*.tfvars.local
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Crash log
+crash.log
+crash.*.log
+
+# Sensitive values sometimes written by Terraform CLI during plan
+*.tfplan

@@ -84,6 +84,8 @@ import com.aiassistant.core.network.ConnectivityObserver
 import com.aiassistant.core.network.LogoutEventBus
 import com.aiassistant.core.network.NetworkConnectivityObserver
 import com.aiassistant.core.network.RefreshTokenInterceptor
+import com.aiassistant.core.network.observability.NetworkObservabilityInterceptor
+import com.aiassistant.core.network.observability.ObservabilityBaseUrl
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -121,6 +123,11 @@ object NetworkModule {
     // before the client gives up. The previous value of 60 s was too tight.
     private const val READ_TIMEOUT_SECONDS = 90L
     private const val WRITE_TIMEOUT_SECONDS = 60L
+
+    @Provides
+    @Singleton
+    @ObservabilityBaseUrl
+    fun provideObservabilityBaseUrl(): String = BASE_URL
 
     // â”€â”€â”€ JSON serializer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -182,13 +189,18 @@ object NetworkModule {
         authInterceptor: AuthInterceptor,
         certificatePinningInterceptor: CertificatePinningInterceptor,
         refreshTokenInterceptor: RefreshTokenInterceptor,
-        loggingInterceptor: HttpLoggingInterceptor
+        observabilityInterceptor: NetworkObservabilityInterceptor,
+        loggingInterceptor: HttpLoggingInterceptor,
     ): OkHttpClient = OkHttpClient.Builder()
         // Application-level interceptors run for every request (including retries).
         .addInterceptor(authInterceptor)
         .addInterceptor(certificatePinningInterceptor)
         // Authenticator is called only when the server returns HTTP 401.
         .authenticator(refreshTokenInterceptor)
+        // Observability: captures latency, status codes, and errors as structured events.
+        // Positioned after auth/pinning so the final request state is measured,
+        // and before logging so all events are emitted even if the logger is NONE.
+        .addInterceptor(observabilityInterceptor)
         // For binary request/response bodies (multipart uploads, PDF downloads etc.)
         // temporarily drop the logging level to HEADERS to prevent raw bytes flooding
         // logcat. Level is restored after the call completes.

@@ -1183,6 +1183,109 @@ class RAGService:
         await asyncio.to_thread(_send)
 
 
+    # ------------------------------------------------------------------
+    # DevOps knowledge base retrieval (Phase 10)
+    # ------------------------------------------------------------------
+
+    async def query_knowledge_base(
+        self,
+        query: str,
+        top_k: int = 5,
+        categories: list[str] | None = None,
+    ) -> list[dict]:
+        """Search the shared ``devops_knowledge`` ChromaDB collection.
+
+        This is the retrieval method for the AI Error Analysis pipeline.
+        It searches runbooks, incident reports, and architecture docs that
+        were seeded by ``backend/scripts/seed_knowledge.py``.
+
+        Unlike ``query_documents`` (which scopes to a single user), this
+        method queries the shared knowledge base collection accessible to
+        the error analysis pipeline regardless of user identity.
+
+        Args:
+            query:      Natural-language query (e.g. "connection pool exhaustion").
+            top_k:      Maximum chunks to return (default 5).
+            categories: Optional list of category filters:
+                        "runbooks" | "incidents" | "architecture" | "deployment".
+                        None = search all categories.
+
+        Returns:
+            List of dicts, each with keys:
+                ``content``       — raw chunk text
+                ``source``        — relative path e.g. "incidents/INC-001.md"
+                ``document_name`` — filename e.g. "INC-001-db-connection-pool.md"
+                ``category``      — folder name e.g. "incidents"
+                ``chunk_index``   — position within the source document
+        """
+        from scripts.seed_knowledge import COLLECTION_NAME as _KB_COLLECTION
+
+        def _encode_query() -> list[float]:
+            model = self._get_embedding_model()
+            return model.encode([query], show_progress_bar=False)[0].tolist()
+
+        query_embedding = await asyncio.to_thread(_encode_query)
+
+        def _query_chroma() -> list[dict]:
+            try:
+                import chromadb
+
+                client = chromadb.HttpClient(
+                    host=self._settings.CHROMA_HOST,
+                    port=self._settings.CHROMA_PORT,
+                )
+                try:
+                    collection = client.get_collection(_KB_COLLECTION)
+                except Exception:
+                    logger.warning(
+                        "query_knowledge_base: collection '%s' not found — "
+                        "has seed_knowledge.py been run?",
+                        _KB_COLLECTION,
+                    )
+                    return []
+
+                # Build category filter if requested
+                where: dict | None = None
+                if categories:
+                    if len(categories) == 1:
+                        where = {"category": {"$eq": categories[0]}}
+                    else:
+                        where = {"category": {"$in": categories}}
+
+                query_kwargs: dict = {
+                    "query_embeddings": [query_embedding],
+                    "n_results": top_k,
+                    "include": ["documents", "metadatas", "distances"],
+                }
+                if where is not None:
+                    query_kwargs["where"] = where
+
+                results = collection.query(**query_kwargs)
+
+                ids_list       = results.get("ids", [[]])[0]
+                documents_list = results.get("documents", [[]])[0] or []
+                metadatas_list = results.get("metadatas", [[]])[0] or []
+
+                chunks = []
+                for i in range(len(ids_list)):
+                    meta = metadatas_list[i] if i < len(metadatas_list) else {}
+                    chunks.append(
+                        {
+                            "content":       documents_list[i] if i < len(documents_list) else "",
+                            "source":        meta.get("source", ""),
+                            "document_name": meta.get("document_name", ""),
+                            "category":      meta.get("category", ""),
+                            "chunk_index":   meta.get("chunk_index", i),
+                        }
+                    )
+                return chunks
+
+            except Exception as exc:
+                logger.warning("query_knowledge_base: ChromaDB error — %s", exc)
+                return []
+
+        return await asyncio.to_thread(_query_chroma)
+
 # ---------------------------------------------------------------------------
 # Module-level singleton
 # ---------------------------------------------------------------------------

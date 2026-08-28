@@ -64,6 +64,7 @@ import com.aiassistant.core.network.federation.FailoverEventBus
 import com.aiassistant.core.network.federation.FailoverInterceptor
 import com.aiassistant.core.network.federation.FederationConfigRepository
 import com.aiassistant.core.network.federation.FederationHealthCheckWorker
+import com.aiassistant.core.network.observability.NetworkObservabilityInterceptor
 import com.google.firebase.remoteconfig.FirebaseRemoteConfig
 import dagger.Module
 import dagger.Provides
@@ -171,14 +172,17 @@ object FederationModule {
         authInterceptor: AuthInterceptor,
         certificatePinningInterceptor: CertificatePinningInterceptor,
         refreshTokenInterceptor: RefreshTokenInterceptor,
+        observabilityInterceptor: NetworkObservabilityInterceptor,
         loggingInterceptor: HttpLoggingInterceptor,
-        failoverInterceptor: FailoverInterceptor
+        failoverInterceptor: FailoverInterceptor,
     ): OkHttpClient = OkHttpClient.Builder()
         // FailoverInterceptor MUST come first to rewrite the base URL before auth/pinning.
         .addInterceptor(failoverInterceptor)
         .addInterceptor(authInterceptor)
         .addInterceptor(certificatePinningInterceptor)
         .authenticator(refreshTokenInterceptor)
+        // Observability after auth/pinning, before logging — same rationale as NetworkModule.
+        .addInterceptor(observabilityInterceptor)
         .addInterceptor(loggingInterceptor)
         .connectTimeout(30L, TimeUnit.SECONDS)
         .readTimeout(60L, TimeUnit.SECONDS)

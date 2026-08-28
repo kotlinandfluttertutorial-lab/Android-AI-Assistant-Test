@@ -44,6 +44,15 @@ android {
             "-opt-in=kotlinx.coroutines.ExperimentalCoroutinesApi"
         )
     }
+
+    lint {
+        baseline         = file("lint-baseline.xml")
+        abortOnError     = true
+        warningsAsErrors = false
+        htmlReport       = true
+        xmlReport        = true
+        checkDependencies = false
+    }
 }
 
 // ─── Dependency rule enforcement ─────────────────────────────────────────────

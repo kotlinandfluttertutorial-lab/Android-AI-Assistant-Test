@@ -28,6 +28,17 @@ from pathlib import Path
 from fastapi import FastAPI
 
 # ---------------------------------------------------------------------------
+# Structured JSON logging — must be configured before ANY other import that
+# might call logging.basicConfig() (e.g. uvicorn, sqlalchemy).
+# configure_logging() reads LOG_LEVEL from the environment; the .env file
+# is loaded on the next block so the env var must come from the shell / Cloud
+# Run env vars (which is correct — LOG_LEVEL is a non-secret plain var).
+# ---------------------------------------------------------------------------
+from app.observability.logging_setup import configure_logging  # noqa: E402
+
+configure_logging()
+
+# ---------------------------------------------------------------------------
 # Load .env early — before any os.environ reads or pydantic-settings init.
 # Using an absolute path anchored to this file means uvicorn can be launched
 # from any working directory and still pick up backend/.env correctly.
@@ -77,6 +88,10 @@ from app.api.translation.router import router as translation_router  # noqa: E40
 from app.api.usage.router import router as usage_router  # noqa: E402
 from app.api.users.router import router as users_router  # noqa: E402
 from app.api.websocket.router import router as websocket_router  # noqa: E402
+from app.api.observability.router import router as observability_router  # noqa: E402
+from app.api.analysis.router import router as analysis_router  # noqa: E402
+from app.api.incidents.router import router as incidents_router  # noqa: E402
+from app.api.devops.router import router as devops_router  # noqa: E402
 from app.config.settings import get_settings  # noqa: E402
 from app.middleware.data_residency import DataResidencyMiddleware  # noqa: E402
 from app.middleware.logging_middleware import RequestLoggingMiddleware  # noqa: E402
@@ -181,6 +196,43 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     from app.workers.metrics import setup_celery_metrics
 
     setup_celery_metrics(celery_app)
+
+    # Initialise OpenTelemetry distributed tracing.
+    # This patches FastAPI, SQLAlchemy, httpx, and Redis automatically.
+    # Controlled by OTEL_ENABLED env var (default: true).
+    from app.observability.tracing import setup_tracing
+
+    setup_tracing()
+
+    # Seed the DevOps knowledge base into ChromaDB on every startup.
+    # ChromaDB uses ephemeral storage on Cloud Run — the index is wiped on each
+    # new revision. This call is non-blocking (runs in a thread) and non-fatal
+    # (a ChromaDB failure at startup is already logged as a warning above).
+    # The seed is idempotent — re-running it rewrites existing chunks in place.
+    try:
+        import asyncio as _asyncio
+        from pathlib import Path as _Path
+
+        _knowledge_dir = _Path(__file__).resolve().parents[2] / "knowledge"
+        if _knowledge_dir.exists():
+            from scripts.seed_knowledge import seed_async as _seed_async
+
+            _seed_result = await _asyncio.wait_for(
+                _seed_async(knowledge_dir=_knowledge_dir),
+                timeout=120.0,  # 2 minute cap — large knowledge base on slow CPU
+            )
+            logger.info(
+                "STARTUP: knowledge base seeded — files=%d chunks=%d status=%s",
+                _seed_result.get("files", 0),
+                _seed_result.get("chunks", 0),
+                _seed_result.get("status", "unknown"),
+            )
+        else:
+            logger.info("STARTUP: knowledge/ directory not found — skipping knowledge base seed")
+    except Exception as _exc:
+        # Non-fatal: RAG queries will return empty results until ChromaDB is reachable
+        # and the admin triggers POST /admin/rag/reindex
+        logger.warning("STARTUP: knowledge base seeding failed (non-fatal): %s", _exc)
 
     # Warm up the SentenceTransformer embedding model so the first real
     # request doesn't pay the 30-40 s cold-start cost of loading the model
@@ -315,6 +367,16 @@ app.include_router(search_router)
 app.include_router(usage_router)
 app.include_router(personas_router)
 app.include_router(suggestions_router)
+
+# Phase 10 — AI Error Analysis
+app.include_router(observability_router)
+app.include_router(analysis_router)
+
+# Phase 11 — Anomaly Detection
+app.include_router(incidents_router)
+
+# Phase 13 — AI DevOps Assistant
+app.include_router(devops_router)
 
 # ---------------------------------------------------------------------------
 # Prometheus instrumentation (Requirements: 27.1–27.4)
