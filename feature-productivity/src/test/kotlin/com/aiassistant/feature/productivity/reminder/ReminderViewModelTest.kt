@@ -33,6 +33,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.UnconfinedTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
@@ -85,6 +86,9 @@ class ReminderViewModelTest {
         every { getRemindersUseCase() } returns flowOf(ApiResult.Success(emptyList()))
         every { notificationManager.ensureNotificationChannel() } returns Unit
         every { notificationManager.canScheduleExactAlarms() } returns true
+        // openEditor() launches getTodosUseCase() inside viewModelScope — must be stubbed
+        // so tests that call openNewReminder() / openEditReminder() don't throw MockKException
+        every { getTodosUseCase() } returns flowOf(ApiResult.Success(emptyList()))
     }
 
     @After
@@ -134,6 +138,23 @@ class ReminderViewModelTest {
 
         val states = mutableListOf<ReminderUiState>()
 
+        // Switch Dispatchers.Main to StandardTestDispatcher so that viewModelScope.launch
+        // inside loadReminders() is paused until advanceUntilIdle(). This lets the collector
+        // subscribe before any coroutine has run, reliably capturing the full Loading →
+        // ReminderList sequence. Without this, UnconfinedTestDispatcher would drain the
+        // entire coroutine eagerly during ReminderViewModel construction, and the Loading
+        // state would already be overwritten before collection starts.
+        val standardDispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(standardDispatcher)
+
+        val pausedDispatchers = object : DispatcherProvider {
+            override val main: CoroutineDispatcher = standardDispatcher
+            override val io: CoroutineDispatcher = standardDispatcher
+            override val default: CoroutineDispatcher = standardDispatcher
+            override val mainImmediate: CoroutineDispatcher = standardDispatcher
+            override val unconfined: CoroutineDispatcher = standardDispatcher
+        }
+
         // Instantiate to trigger init block call
         viewModel = ReminderViewModel(
             getRemindersUseCase,
@@ -143,14 +164,19 @@ class ReminderViewModelTest {
             suggestReminderUseCase,
             getTodosUseCase,
             notificationManager,
-            testDispatchers
+            pausedDispatchers
         )
 
+        // Subscribe BEFORE advancing — init coroutine is paused on StandardTestDispatcher
         val job = backgroundScope.launch(UnconfinedTestDispatcher(testScheduler)) {
             viewModel.uiState.collect { states.add(it) }
         }
 
+        // Drain everything: init → loadReminders → flow emissions
         advanceUntilIdle()
+
+        // Restore the class-level dispatcher for subsequent tests
+        Dispatchers.setMain(testDispatcher)
 
         assertTrue("Sequence should contain Loading state", states.any { it is ReminderUiState.Loading })
         assertTrue("Final state should be ReminderList", states.last() is ReminderUiState.ReminderList)
@@ -200,7 +226,8 @@ class ReminderViewModelTest {
         initViewModel()
         val reminder = makeReminder(title = "New Task")
         coEvery { createReminderUseCase(any()) } returns ApiResult.Success(reminder)
-        coEvery { getRemindersUseCase() } returns flowOf(ApiResult.Success(listOf(reminder)))
+        // getRemindersUseCase returns a Flow (not a suspend function) — use every, not coEvery
+        every { getRemindersUseCase() } returns flowOf(ApiResult.Success(listOf(reminder)))
 
         viewModel.openNewReminder()
         viewModel.updateDraft(

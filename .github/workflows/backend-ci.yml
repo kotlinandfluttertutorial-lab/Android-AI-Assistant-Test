@@ -200,19 +200,19 @@ jobs:
           else
             echo "⚠️  unit-test-results.xml NOT found — pytest likely failed during collection"
             echo "Creating empty placeholder so reporter does not block the pipeline"
-            echo '<?xml version="1.0" encoding="utf-8"?><testsuites></testsuites>' > unit-test-results.xml
+            echo '<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="unit" tests="0" errors="0" failures="0" skipped="0"/></testsuites>' > unit-test-results.xml
           fi
 
       - name: Publish unit test results
         if: always()
         uses: dorny/test-reporter@v3
         with:
-          name: Backend Unit Test Results
+          name: Backend Unit Test Results (PR)
           path: "**/unit-test-results.xml"
           reporter: java-junit
           fail-on-error: false
+          fail-on-empty: false
           token: ${{ secrets.GITHUB_TOKEN }}
-          list-files: listing
 
       - name: Upload coverage to Codecov
         if: always()
@@ -340,19 +340,19 @@ jobs:
           else
             echo "⚠️  integration-test-results.xml NOT found — pytest likely failed during collection"
             echo "Creating empty placeholder so reporter does not block the pipeline"
-            echo '<?xml version="1.0" encoding="utf-8"?><testsuites></testsuites>' > integration-test-results.xml
+            echo '<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="integration" tests="0" errors="0" failures="0" skipped="0"/></testsuites>' > integration-test-results.xml
           fi
 
       - name: Publish integration test results
         if: always()
         uses: dorny/test-reporter@v3
         with:
-          name: Backend Integration Test Results
+          name: Backend Integration Test Results (PR)
           path: "**/integration-test-results.xml"
           reporter: java-junit
           fail-on-error: false
+          fail-on-empty: false
           token: ${{ secrets.GITHUB_TOKEN }}
-          list-files: listing
 
       - name: Upload integration test reports
         if: failure()

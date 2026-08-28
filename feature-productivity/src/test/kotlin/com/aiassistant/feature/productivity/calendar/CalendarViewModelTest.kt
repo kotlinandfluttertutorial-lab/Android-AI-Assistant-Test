@@ -128,10 +128,16 @@ class CalendarViewModelTest {
 
         val states = mutableListOf<CalendarUiState>()
 
-        // Use StandardTestDispatcher so the init-block coroutine is paused until
-        // advanceUntilIdle(). This lets us start collecting before any state transitions
-        // have occurred, reliably capturing the Loading → CalendarView sequence.
+        // Switch Dispatchers.Main to StandardTestDispatcher so that viewModelScope.launch
+        // inside loadEvents() is paused until advanceUntilIdle(). This lets the collector
+        // subscribe before any state transitions have occurred, reliably capturing the
+        // Loading → CalendarView sequence.
+        // Without this, the class-level UnconfinedTestDispatcher would drain the entire
+        // coroutine during CalendarViewModel construction, overwriting Loading before
+        // the collector is ever registered.
         val standardDispatcher = StandardTestDispatcher(testScheduler)
+        Dispatchers.setMain(standardDispatcher)
+
         val pausedDispatchers = object : DispatcherProvider {
             override val main: CoroutineDispatcher = standardDispatcher
             override val io: CoroutineDispatcher = standardDispatcher
@@ -157,6 +163,9 @@ class CalendarViewModelTest {
 
         // Now drain everything: init → loadEventsForCurrentMonth → flow emissions
         advanceUntilIdle()
+
+        // Restore the class-level dispatcher for subsequent tests in this class
+        Dispatchers.setMain(testDispatcher)
 
         // Verify sequence: Loading state is present followed by the populated CalendarView state
         assertTrue("Sequence should contain Loading state", states.any { it is CalendarUiState.Loading })
