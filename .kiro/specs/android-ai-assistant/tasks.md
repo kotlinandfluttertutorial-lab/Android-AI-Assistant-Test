@@ -962,15 +962,15 @@ Implementation follows Clean Architecture from the ground up: core modules first
     - `DeleteOnDeviceDocumentUseCase`: verify all chunks removed from `LocalVectorIndex` and `OnDeviceChunkDao` within 10 seconds (use `advanceTimeBy` in test coroutine scope)
     - _Requirements: 21.1, 31.2, 33.8, 35.5, 35.6, 35.7_
 
-- [ ] 47. Implement `feature-on-device-rag` module
-  - [ ] 47.1 Create `feature-on-device-rag` Gradle module with correct dependencies
+- [x] 47. Implement `feature-on-device-rag` module
+  - [x] 47.1 Create `feature-on-device-rag` Gradle module with correct dependencies
     - Module dependencies: `feature-on-device-rag` ? `domain`, `core-ui`, `core-ai`, `core-database`
     - Explicitly exclude dependencies on other `feature-*` modules, the `data` module direct DAOs, or Backend network layer
     - Register module in `settings.gradle.kts`; wire Hilt entry point via `app` module `@HiltAndroidApp`
     - Add `feature-on-device-rag` ? `data` dependency only through `domain` repository interfaces (Hilt binding resolves at app module level)
     - _Requirements: 19.1, 19.2, 30.2_
 
-  - [ ] 47.2 Build `OnDeviceDocumentsScreen` and `OnDeviceDocumentViewModel`
+  - [x] 47.2 Build `OnDeviceDocumentsScreen` and `OnDeviceDocumentViewModel`
     - `OnDeviceDocumentViewModel` with `StateFlow<OnDeviceDocumentUiState>`; annotated `@HiltViewModel` with `@Inject` constructor
     - File picker accepting PDF, TXT, Markdown from device file picker or share intent; reject files > 50 MB with inline structured error before calling any use case
     - Document list with ingestion status badge (pending / processing / ready / failed) and chunk count for `ready` docs; use `IngestionProgress` events for live updates
@@ -980,7 +980,7 @@ Implementation follows Clean Architecture from the ground up: core modules first
     - Delete document action: calls `DeleteOnDeviceDocumentUseCase`; removes entry from list
     - _Requirements: 33.1, 33.2, 33.3, 33.6, 33.7, 33.9, 33.10_
 
-  - [ ] 47.3 Build `OnDeviceRagChatScreen` and `OnDeviceRagViewModel`
+  - [x] 47.3 Build `OnDeviceRagChatScreen` and `OnDeviceRagViewModel`
     - `OnDeviceRagViewModel` with `StateFlow<OnDeviceRagChatUiState>`; annotated `@HiltViewModel` with `@Inject` constructor
     - On query submit: call `RouteQueryUseCase` first; display active path indicator in chat toolbar ("Running on device" / "Using cloud AI")
     - On-device path: call `OnDeviceQueryUseCase`, stream tokens to chat view incrementally; display citations via "Show sources" expandable control showing chunk text + doc name + chunk index + cosine similarity score
@@ -990,7 +990,7 @@ Implementation follows Clean Architecture from the ground up: core modules first
     - Display structured error state and "Retry via cloud" action button on `Error` event from query pipeline
     - _Requirements: 35.1, 35.4, 35.5, 35.8, 35.9, 36.5, 36.6, 36.7, 36.8_
 
-  - [ ] 47.4 Build `BenchmarkScreen` and `ManageModelsScreen`
+  - [x] 47.4 Build `BenchmarkScreen` and `ManageModelsScreen`
     - `BenchmarkScreen`: accessible from Settings; trigger `BenchmarkOnDeviceUseCase`; display results table with columns: Accelerator, TTFT p50 ms, TTFT p95 ms, Tokens/sec p50, RAM Peak MB
     - `ManageModelsScreen`: list downloaded models with name, version, disk size, last-used date; delete button per model; trigger download for missing/corrupt model with progress bar (percentage + ETA)
     - Model download: WorkManager job with `NetworkType.UNMETERED`; resume from last byte on interruption; show mobile data warning dialog if on metered network
@@ -999,7 +999,7 @@ Implementation follows Clean Architecture from the ground up: core modules first
     - Update model prompt: in-app notification (not push) when new model version available via `ManageOnDeviceModelsUseCase`; continue using existing model until user approves update
     - _Requirements: 32.3, 32.4, 32.5, 37.3, 37.4, 37.5, 37.8, 37.10_
 
-  - [ ]* 47.5 Write unit tests for `OnDeviceRagViewModel` and `OnDeviceDocumentViewModel`
+  - [x] 47.5 Write unit tests for `OnDeviceRagViewModel` and `OnDeviceDocumentViewModel`
     - `OnDeviceRagViewModel`: verify "Running on device" indicator in `UiState` on `ON_DEVICE` routing decision; verify `ChunkCitation` list populated in `UiState` on `Done` event; verify error state and retry option on `Error` event; verify `NoRelevantContent` state; verify primary success and error `StateFlow` emissions using Turbine
     - `OnDeviceDocumentViewModel`: verify `UiState` status transitions (pending ? processing ? ready / failed); verify files > 50 MB trigger rejection error state; verify low-storage warning state; verify delete action removes document from list in `UiState`
     - _Requirements: 21.1, 31.4_
