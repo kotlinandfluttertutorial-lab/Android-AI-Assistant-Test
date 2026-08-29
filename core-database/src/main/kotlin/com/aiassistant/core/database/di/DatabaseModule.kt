@@ -4,37 +4,20 @@
  * ============================================================
  * Module     : core-database
  * File       : DatabaseModule.kt
- * Purpose    : Hilt module providing Database dependencies to the DI graph
+ * Purpose    : Hilt module that provides AppDatabase and every DAO as
+ *              singleton / scoped bindings into the DI graph.
  *
- * Architecture Layer : Core-Database
- * Pattern Used       : Hilt DI Module
+ * Architecture Layer : Core-Database — Hilt wiring layer.
+ *                      Feature and data modules never construct DAOs
+ *                      directly; they receive them via @Inject.
  *
- * Key Concepts:
- *   - Clean Architecture with strict layer separation
- *   - Hilt dependency injection
+ * Dependencies       : Hilt, Room, AppDatabase, DatabaseMigrations
  *
- * Dependencies:
- *   - See import statements below
- * ============================================================
- */
-
-/*
- * ============================================================
- * Android AI Assistant (Enterprise Edition)
- * ============================================================
- * Module     : core-database
- * File       : DatabaseModule.kt
- * Purpose    : Hilt module providing Database dependencies to the DI graph
- *
- * Architecture Layer : Core-Database
- * Pattern Used       : Hilt DI Module
- *
- * Key Concepts:
- *   - Clean Architecture with strict layer separation
- *   - Hilt dependency injection
- *
- * Dependencies:
- *   - See import statements below
+ * Design Decision    : Individual DAO @Provides methods are intentionally
+ *                      not @Singleton — Room DAOs are lightweight objects
+ *                      backed by the single @Singleton AppDatabase.
+ *                      Creating a new wrapper per injection site is cheap
+ *                      and avoids holding extra references in the component.
  * ============================================================
  */
 package com.aiassistant.core.database.di
@@ -50,6 +33,9 @@ import com.aiassistant.core.database.dao.HabitEntryDao
 import com.aiassistant.core.database.dao.MemoryDao
 import com.aiassistant.core.database.dao.MessageDao
 import com.aiassistant.core.database.dao.NoteDao
+import com.aiassistant.core.database.dao.OnDeviceChunkDao
+import com.aiassistant.core.database.dao.OnDeviceDocumentDao
+import com.aiassistant.core.database.dao.QueryRoutingLogDao
 import com.aiassistant.core.database.dao.ReminderDao
 import com.aiassistant.core.database.dao.TodoItemDao
 import com.aiassistant.core.database.dao.UserDao
@@ -67,13 +53,19 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase = Room.databaseBuilder(
-        context,
-        AppDatabase::class.java,
-        "ai_assistant_database"
-    )
-        .addMigrations(DatabaseMigrations.MIGRATION_1_2)
-        .build()
+    fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase =
+        Room.databaseBuilder(
+            context,
+            AppDatabase::class.java,
+            "ai_assistant_database"
+        )
+            .addMigrations(
+                DatabaseMigrations.MIGRATION_1_2,
+                DatabaseMigrations.MIGRATION_2_3,
+            )
+            .build()
+
+    // ── Core DAOs ────────────────────────────────────────────────────────────
 
     @Provides
     fun provideUserDao(db: AppDatabase): UserDao = db.userDao()
@@ -89,6 +81,8 @@ object DatabaseModule {
 
     @Provides
     fun provideMemoryDao(db: AppDatabase): MemoryDao = db.memoryDao()
+
+    // ── Productivity DAOs ────────────────────────────────────────────────────
 
     @Provides
     fun provideNoteDao(db: AppDatabase): NoteDao = db.noteDao()
@@ -107,4 +101,18 @@ object DatabaseModule {
 
     @Provides
     fun provideHabitEntryDao(db: AppDatabase): HabitEntryDao = db.habitEntryDao()
+
+    // ── On-Device RAG DAOs (added v3) ────────────────────────────────────────
+
+    @Provides
+    fun provideOnDeviceDocumentDao(db: AppDatabase): OnDeviceDocumentDao =
+        db.onDeviceDocumentDao()
+
+    @Provides
+    fun provideOnDeviceChunkDao(db: AppDatabase): OnDeviceChunkDao =
+        db.onDeviceChunkDao()
+
+    @Provides
+    fun provideQueryRoutingLogDao(db: AppDatabase): QueryRoutingLogDao =
+        db.queryRoutingLogDao()
 }

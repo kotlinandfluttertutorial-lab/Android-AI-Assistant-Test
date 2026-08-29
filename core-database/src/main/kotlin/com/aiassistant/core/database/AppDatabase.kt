@@ -4,37 +4,25 @@
  * ============================================================
  * Module     : core-database
  * File       : AppDatabase.kt
- * Purpose    : AppDatabase — core-database module component
+ * Purpose    : Single Room database instance for the entire application.
+ *              Registers all entities, exposes all DAOs, and applies the
+ *              TypeConverters needed to persist complex column types.
  *
- * Architecture Layer : Core-Database
- * Pattern Used       : Kotlin Class
+ * Architecture Layer : Core-Database — the persistence root.
+ *                      Provided as a @Singleton via DatabaseModule; every
+ *                      DAO is obtained from this one instance.
  *
- * Key Concepts:
- *   - Clean Architecture with strict layer separation
- *   - Hilt dependency injection
+ * Dependencies       : Room, all Entity classes, all DAO interfaces,
+ *                      DatabaseConverters
  *
- * Dependencies:
- *   - See import statements below
- * ============================================================
- */
-
-/*
- * ============================================================
- * Android AI Assistant (Enterprise Edition)
- * ============================================================
- * Module     : core-database
- * File       : AppDatabase.kt
- * Purpose    : AppDatabase — core-database module component
- *
- * Architecture Layer : Core-Database
- * Pattern Used       : Kotlin Class
- *
- * Key Concepts:
- *   - Clean Architecture with strict layer separation
- *   - Hilt dependency injection
- *
- * Dependencies:
- *   - See import statements below
+ * Design Decision    : version is bumped to 3 to accommodate the three new
+ *                      On-Device RAG tables added in Task 44
+ *                      (on_device_documents, on_device_chunks,
+ *                      query_routing_log).  MIGRATION_2_3 creates these
+ *                      tables from scratch — no existing data is affected.
+ *                      exportSchema = true keeps a JSON snapshot of each
+ *                      schema version in the repo so migrations can be
+ *                      validated offline.
  * ============================================================
  */
 package com.aiassistant.core.database
@@ -51,6 +39,9 @@ import com.aiassistant.core.database.dao.HabitEntryDao
 import com.aiassistant.core.database.dao.MemoryDao
 import com.aiassistant.core.database.dao.MessageDao
 import com.aiassistant.core.database.dao.NoteDao
+import com.aiassistant.core.database.dao.OnDeviceChunkDao
+import com.aiassistant.core.database.dao.OnDeviceDocumentDao
+import com.aiassistant.core.database.dao.QueryRoutingLogDao
 import com.aiassistant.core.database.dao.ReminderDao
 import com.aiassistant.core.database.dao.TodoItemDao
 import com.aiassistant.core.database.dao.UserDao
@@ -64,44 +55,59 @@ import com.aiassistant.core.database.entity.MemoryEntity
 import com.aiassistant.core.database.entity.MessageEntity
 import com.aiassistant.core.database.entity.MessageFtsEntity
 import com.aiassistant.core.database.entity.NoteEntity
+import com.aiassistant.core.database.entity.OnDeviceChunkEntity
+import com.aiassistant.core.database.entity.OnDeviceDocumentEntity
+import com.aiassistant.core.database.entity.QueryRoutingLogEntity
 import com.aiassistant.core.database.entity.ReminderEntity
 import com.aiassistant.core.database.entity.TodoItemEntity
 import com.aiassistant.core.database.entity.UserEntity
 
 @Database(
     entities = [
-        // Core entities
+        // ── Core conversation entities ───────────────────────────────────────
         UserEntity::class,
         ConversationEntity::class,
         MessageEntity::class,
         DocumentEntity::class,
         MemoryEntity::class,
-        // Productivity entities
+        // ── Productivity entities ────────────────────────────────────────────
         NoteEntity::class,
         TodoItemEntity::class,
         CalendarEventEntity::class,
         ReminderEntity::class,
         HabitDefinitionEntity::class,
         HabitEntryEntity::class,
-        // FTS4 virtual tables
+        // ── FTS4 virtual tables ──────────────────────────────────────────────
         ConversationFtsEntity::class,
-        MessageFtsEntity::class
+        MessageFtsEntity::class,
+        // ── On-Device RAG entities (added v3) ───────────────────────────────
+        OnDeviceDocumentEntity::class,
+        OnDeviceChunkEntity::class,
+        QueryRoutingLogEntity::class,
     ],
-    version = 2,
+    version = 3,
     exportSchema = true
 )
 @TypeConverters(DatabaseConverters::class)
 abstract class AppDatabase : RoomDatabase() {
 
+    // ── Core DAOs ────────────────────────────────────────────────────────────
     abstract fun userDao(): UserDao
     abstract fun conversationDao(): ConversationDao
     abstract fun messageDao(): MessageDao
     abstract fun documentDao(): DocumentDao
     abstract fun memoryDao(): MemoryDao
+
+    // ── Productivity DAOs ────────────────────────────────────────────────────
     abstract fun noteDao(): NoteDao
     abstract fun todoItemDao(): TodoItemDao
     abstract fun calendarEventDao(): CalendarEventDao
     abstract fun reminderDao(): ReminderDao
     abstract fun habitDefinitionDao(): HabitDefinitionDao
     abstract fun habitEntryDao(): HabitEntryDao
+
+    // ── On-Device RAG DAOs (added v3) ────────────────────────────────────────
+    abstract fun onDeviceDocumentDao(): OnDeviceDocumentDao
+    abstract fun onDeviceChunkDao(): OnDeviceChunkDao
+    abstract fun queryRoutingLogDao(): QueryRoutingLogDao
 }

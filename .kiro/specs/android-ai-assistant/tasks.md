@@ -869,7 +869,7 @@ Implementation follows Clean Architecture from the ground up: core modules first
   ]
 }
 ```
-- [ ] 44. Extend `core-database` module with On-Device RAG entities
+- [x] 44. Extend `core-database` module with On-Device RAG entities
   - Add `OnDeviceChunkEntity` (tableName: "on_device_chunks"): `id`, `userId`, `documentId`, `documentName`, `chunkIndex`, `pageNumber?`, `startCharOffset`, `endCharOffset`, `content`, `embeddingBlob` (ByteArray — serialized FloatArray little-endian IEEE 754 float32), `createdAt`
   - Add `OnDeviceDocumentEntity` (tableName: "on_device_documents"): `id`, `userId`, `fileName`, `mimeType`, `sizeBytes`, `totalChunks`, `ingestionStatus` ("pending"|"processing"|"ready"|"failed"), `failureStage?`, `createdAt`
   - Add `QueryRoutingLogEntity` (tableName: "query_routing_log"): `id`, `userId`, `timestamp`, `selectedPath`, `capabilityBitmask` (Int), `userOverride?`, `fallbackOccurred`, `reason`
