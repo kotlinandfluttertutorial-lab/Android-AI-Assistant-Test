@@ -49,6 +49,7 @@ import com.aiassistant.core.common.observability.SessionManager
 import com.aiassistant.core.network.observability.scheduleObservabilityUpload
 import com.aiassistant.notification.NotificationChannelManager
 import com.aiassistant.observability.AppLifecycleObserver
+import com.aiassistant.observability.CrashObservabilityHandler
 import com.google.firebase.FirebaseApp
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import dagger.hilt.android.HiltAndroidApp
@@ -84,6 +85,19 @@ class AIAssistantApplication :
     lateinit var notificationChannelManager: NotificationChannelManager
 
     /**
+     * Intercepts unhandled exceptions before Crashlytics sees them, emits a
+     * [EventType.CRASH_UNHANDLED] event to the observability pipeline, and
+     * attempts a best-effort flush of buffered events so the AI analysis layer
+     * has session context (network calls, screen views, traceId) available for
+     * root cause analysis on the next backend ingest.
+     *
+     * Must be registered AFTER Firebase is initialised so Crashlytics is already
+     * installed as the default handler before we wrap it. (Phase 2)
+     */
+    @Inject
+    lateinit var crashObservabilityHandler: CrashObservabilityHandler
+
+    /**
      * Fetches Firebase Remote Config values on every app launch so that
      * Admin_Dashboard-published parameters are applied without an app update.
      * (Requirement 15.8)
@@ -115,6 +129,13 @@ class AIAssistantApplication :
         // Uncaught exceptions are reported automatically via the Crashlytics Gradle plugin.
         // (Requirement 18.7)
         FirebaseCrashlytics.getInstance().setCrashlyticsCollectionEnabled(!BuildConfig.DEBUG)
+
+        // Register our observability crash handler AFTER Crashlytics is configured.
+        // Crashlytics installs its own UncaughtExceptionHandler in initializeApp()
+        // above; CrashObservabilityHandler wraps it so the chain is:
+        //   CrashObservabilityHandler → Crashlytics handler → system handler
+        // This means Crashlytics still gets every crash — we are prepending, not replacing.
+        crashObservabilityHandler.register()
 
         if (BuildConfig.DEBUG) {
             Timber.plant(Timber.DebugTree())
