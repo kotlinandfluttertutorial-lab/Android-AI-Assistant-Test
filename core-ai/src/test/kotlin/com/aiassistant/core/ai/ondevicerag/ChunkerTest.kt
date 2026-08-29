@@ -19,7 +19,8 @@ import io.kotest.matchers.ints.shouldBeLessThanOrEqual
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldNotBeBlank
 
-class ChunkerTest : DescribeSpec({
+class ChunkerTest : DescribeSpec(
+    {
 
     describe("Chunker construction") {
 

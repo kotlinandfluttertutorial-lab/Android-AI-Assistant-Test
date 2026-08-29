@@ -10,6 +10,7 @@
 package com.aiassistant.core.ai.ondevicerag
 
 import com.aiassistant.core.common.TextChunk
+import com.aiassistant.core.database.entity.OnDeviceChunkEntity
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
@@ -25,7 +26,7 @@ class LocalVectorIndexIsolationPropertyTest : DescribeSpec({
         it("user A search never returns chunks belonging to user B") {
             checkAll(
                 iterations = 50,
-                Arb.list(Arb.string(minSize = 1, maxSize = 80), range = 1..10),
+                Arb.list(Arb.string(minSize = 1, maxSize = 80), range = 1..10)
             ) { chunkTexts ->
                 val userA = "user_A_${UUID.randomUUID()}"
                 val userB = "user_B_${UUID.randomUUID()}"
@@ -58,28 +59,28 @@ class LocalVectorIndexIsolationPropertyTest : DescribeSpec({
 })
 
 private class InMemoryOnDeviceChunkDaoV2 : com.aiassistant.core.database.dao.OnDeviceChunkDao {
-    private val store = mutableListOf<com.aiassistant.core.database.entity.OnDeviceChunkEntity>()
+    private val store = mutableListOf<OnDeviceChunkEntity>()
 
-    override suspend fun insert(chunk: com.aiassistant.core.database.entity.OnDeviceChunkEntity) {
+    override suspend fun insert(chunk: OnDeviceChunkEntity) {
         store.removeAll { it.id == chunk.id }
         store.add(chunk)
     }
 
-    override suspend fun insertAll(chunks: List<com.aiassistant.core.database.entity.OnDeviceChunkEntity>) {
+    override suspend fun insertAll(chunks: List<OnDeviceChunkEntity>) {
         chunks.forEach { insert(it) }
     }
 
     override suspend fun getChunksForDocument(userId: String, documentId: String) =
         store.filter { it.userId == userId && it.documentId == documentId }
 
-    override suspend fun getAllChunks(userId: String) =
+    override suspend fun getAllChunks(userId: String): List<OnDeviceChunkEntity> =
         store.filter { it.userId == userId }
 
     override suspend fun deleteByDocument(userId: String, documentId: String) {
         store.removeAll { it.userId == userId && it.documentId == documentId }
     }
 
-    override suspend fun countChunks(userId: String) =
+    override suspend fun countChunks(userId: String): Int =
         store.count { it.userId == userId }
 
     override suspend fun totalEmbeddingBytes(userId: String, embeddingDimension: Int): Long = 0L

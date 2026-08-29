@@ -15,13 +15,11 @@ import com.aiassistant.core.common.TextChunk
 import com.aiassistant.core.database.dao.OnDeviceChunkDao
 import com.aiassistant.core.database.entity.OnDeviceChunkEntity
 import javax.inject.Inject
-import javax.inject.Singleton
 
 private const val MIN_NORM_THRESHOLD = 1e-9f
 
-@Singleton
 class LocalVectorIndexImpl @Inject constructor(
-    private val dao: OnDeviceChunkDao,
+    private val dao: OnDeviceChunkDao
 ) : LocalVectorIndex {
 
     override suspend fun addChunk(userId: String, chunk: TextChunk, embedding: FloatArray) {

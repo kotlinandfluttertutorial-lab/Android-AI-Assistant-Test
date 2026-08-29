@@ -9,14 +9,14 @@
  */
 package com.aiassistant.core.ai.ondevicerag
 
-import com.aiassistant.core.common.Chunker
 import com.aiassistant.core.common.ModelLoadEvent
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import java.io.File
 
-class OnDeviceEmbeddingModelTest : DescribeSpec({
+class OnDeviceEmbeddingModelTest : DescribeSpec(
+    {
 
     describe("MiniLmEmbeddingModel — initialize()") {
         it("returns Failed when model file does not exist") {

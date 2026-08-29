@@ -25,10 +25,9 @@ import com.aiassistant.core.common.PathPreference
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
+import io.kotest.property.arbitrary.element
 import io.kotest.property.arbitrary.int
 import io.kotest.property.arbitrary.of
-import io.kotest.property.arbitrary.element
-import io.kotest.property.arbitrary.orNull
 import io.kotest.property.checkAll
 
 class QueryRouterPathSelectionPropertyTest : DescribeSpec({
@@ -57,11 +56,13 @@ class QueryRouterPathSelectionPropertyTest : DescribeSpec({
                     (bitmask and CapabilityBit.ALL_ON_DEVICE_CAPABLE) == CapabilityBit.ALL_ON_DEVICE_CAPABLE &&
                         (bitmask and CapabilityBit.NETWORK_REACHABLE) == 0
 
+                val fullyCapableAndCloudPref = bitmask == CapabilityBit.FULLY_CAPABLE &&
+                    preference == PathPreference.PREFER_CLOUD
                 val expectedPath = when {
                     // Offline rule: bits 0-2 set, bit 3 unset → always ON_DEVICE
                     offlineCapable -> InferencePath.ON_DEVICE
                     // Fully capable + cloud preference → CLOUD
-                    bitmask == CapabilityBit.FULLY_CAPABLE && preference == PathPreference.PREFER_CLOUD -> InferencePath.CLOUD
+                    fullyCapableAndCloudPref -> InferencePath.CLOUD
                     // Fully capable, auto or on-device preference → ON_DEVICE
                     bitmask == CapabilityBit.FULLY_CAPABLE -> InferencePath.ON_DEVICE
                     // Any missing signal → CLOUD
@@ -76,7 +77,7 @@ class QueryRouterPathSelectionPropertyTest : DescribeSpec({
             checkAll(
                 iterations = 48,
                 Arb.int(0, 15),
-                Arb.element(listOf(null, PathPreference.PREFER_ON_DEVICE, PathPreference.PREFER_CLOUD)),
+                Arb.element(listOf(null, PathPreference.PREFER_ON_DEVICE, PathPreference.PREFER_CLOUD))
             ) { bitmask, preference ->
                 val decision = router.evaluate(bitmask, preference)
                 // Result is always one of the two valid paths — never null/error
@@ -122,7 +123,7 @@ class QueryRouterPathSelectionPropertyTest : DescribeSpec({
             checkAll(
                 iterations = 48,
                 Arb.int(0, 15),
-                Arb.element(listOf(null, PathPreference.PREFER_ON_DEVICE, PathPreference.PREFER_CLOUD)),
+                Arb.element(listOf(null, PathPreference.PREFER_ON_DEVICE, PathPreference.PREFER_CLOUD))
             ) { bitmask, preference ->
                 val d1 = router.evaluate(bitmask, preference)
                 val d2 = router.evaluate(bitmask, preference)

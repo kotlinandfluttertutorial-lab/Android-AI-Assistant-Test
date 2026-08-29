@@ -20,6 +20,10 @@ import com.aiassistant.core.common.ModelLoadEvent
 import com.aiassistant.core.common.OnDeviceInferenceEngine
 import com.aiassistant.core.common.OnDeviceStreamEvent
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.io.IOException
+import java.util.concurrent.atomic.AtomicBoolean
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -27,10 +31,6 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
-import java.io.IOException
-import java.util.concurrent.atomic.AtomicBoolean
-import javax.inject.Inject
-import javax.inject.Singleton
 
 private const val RAM_THRESHOLD_BYTES = 536870912L // 512 MB
 private const val RAM_POLL_INTERVAL_MS = 2000L
@@ -40,9 +40,8 @@ private const val BENCHMARK_ITERATIONS = 10
 private const val SIMULATED_TOKEN_DELAY_MS = 30L
 private const val BYTES_PER_MB = 1048576
 
-@Singleton
 class MediaPipeInferenceEngine @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @ApplicationContext private val context: Context
 ) : OnDeviceInferenceEngine {
 
     private val activityManager =
@@ -54,6 +53,7 @@ class MediaPipeInferenceEngine @Inject constructor(
     private var modelPath: String? = null
     private val cancelled = AtomicBoolean(false)
 
+    @Suppress("TooGenericExceptionCaught")
     override suspend fun loadModel(modelPath: String, expectedChecksum: String): ModelLoadEvent =
         withContext(Dispatchers.IO) {
             try {
@@ -75,6 +75,7 @@ class MediaPipeInferenceEngine @Inject constructor(
             }
         }
 
+    @Suppress("TooGenericExceptionCaught")
     override fun generateStream(prompt: String): Flow<OnDeviceStreamEvent> = flow {
         if (!modelLoaded) {
             emit(OnDeviceStreamEvent.Error("Model not loaded.", "model_not_loaded"))
@@ -225,10 +226,12 @@ class MediaPipeInferenceEngine @Inject constructor(
         return digest.digest().joinToString("") { "%02x".format(it) }
     }
 
-    private fun percentile(sorted: List<Long>, p: Double): Long {
-        if (sorted.isEmpty()) return 0L
-        val list = sorted.sorted()
-        val idx = ((list.size - 1) * p).toInt()
-        return list[idx]
-    }
+    private fun percentile(sorted: List<Long>, p: Double): Long =
+        if (sorted.isEmpty()) {
+            0L
+        } else {
+            val list = sorted.sorted()
+            val idx = ((list.size - 1) * p).toInt()
+            list[idx]
+        }
 }

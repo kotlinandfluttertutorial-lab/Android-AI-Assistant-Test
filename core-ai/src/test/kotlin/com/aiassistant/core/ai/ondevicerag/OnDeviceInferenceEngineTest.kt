@@ -24,12 +24,13 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.toList
 import kotlinx.coroutines.withTimeout
 
-class OnDeviceInferenceEngineTest : DescribeSpec({
+class OnDeviceInferenceEngineTest : DescribeSpec(
+    {
 
     fun buildEngine(
         availableRamBytes: Long = 2L * 1024 * 1024 * 1024,
         isPowerSave: Boolean = false,
-        thermalStatus: Int = 0,
+        thermalStatus: Int = 0
     ): MediaPipeInferenceEngine {
         val activityManager = mockk<ActivityManager> {
             every { getMemoryInfo(any()) } answers {

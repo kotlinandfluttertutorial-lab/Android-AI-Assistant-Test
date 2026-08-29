@@ -283,54 +283,63 @@ private fun ResponseArea(
     isStreaming: Boolean,
     modifier: Modifier = Modifier,
 ) {
-    var showCitations by remember { mutableStateOf(false) }
-
     Column(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState()),
     ) {
-        Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .semantics { contentDescription = if (isStreaming) "Streaming response" else "Response" },
-        ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                Text(
-                    text = text,
-                    style = MaterialTheme.typography.bodyMedium,
+        ResponseCard(text, isStreaming)
+        if (citations.isNotEmpty()) {
+            CitationsSection(citations)
+        }
+    }
+}
+
+@Composable
+private fun ResponseCard(text: String, isStreaming: Boolean) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics { contentDescription = if (isStreaming) "Streaming response" else "Response" },
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            Text(
+                text = text,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            if (isStreaming) {
+                Spacer(Modifier.height(8.dp))
+                CircularProgressIndicator(
+                    modifier = Modifier
+                        .align(Alignment.End)
+                        .semantics { contentDescription = "Generating response" },
+                    strokeWidth = 2.dp,
                 )
-                if (isStreaming) {
-                    Spacer(Modifier.height(8.dp))
-                    CircularProgressIndicator(
-                        modifier = Modifier
-                            .align(Alignment.End)
-                            .semantics { contentDescription = "Generating response" },
-                        strokeWidth = 2.dp,
-                    )
-                }
             }
         }
+    }
+}
 
-        if (citations.isNotEmpty()) {
-            Spacer(Modifier.height(8.dp))
-            OutlinedButton(
-                onClick = { showCitations = !showCitations },
-                modifier = Modifier.semantics {
-                    contentDescription = if (showCitations) "Hide sources" else "Show sources"
-                },
-            ) {
-                Icon(Icons.Default.Info, contentDescription = null)
-                Spacer(Modifier.padding(horizontal = 4.dp))
-                Text(if (showCitations) "Hide sources" else "Show sources (${citations.size})")
-            }
+@Composable
+private fun CitationsSection(citations: List<ChunkCitation>) {
+    var showCitations by remember { mutableStateOf(false) }
 
-            AnimatedVisibility(visible = showCitations) {
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                    citations.forEach { citation ->
-                        CitationCard(citation = citation)
-                    }
-                }
+    Spacer(Modifier.height(8.dp))
+    OutlinedButton(
+        onClick = { showCitations = !showCitations },
+        modifier = Modifier.semantics {
+            contentDescription = if (showCitations) "Hide sources" else "Show sources"
+        },
+    ) {
+        Icon(Icons.Default.Info, contentDescription = null)
+        Spacer(Modifier.padding(horizontal = 4.dp))
+        Text(if (showCitations) "Hide sources" else "Show sources (${citations.size})")
+    }
+
+    AnimatedVisibility(visible = showCitations) {
+        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+            citations.forEach { citation ->
+                CitationCard(citation = citation)
             }
         }
     }

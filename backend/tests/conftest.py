@@ -16,6 +16,9 @@ os.environ.setdefault("OLLAMA_BASE_URL", "http://localhost:11434")
 os.environ.setdefault("LOKI_URL", "")
 os.environ.setdefault("ENVIRONMENT", "development")
 os.environ.setdefault("LOG_LEVEL", "INFO")
+os.environ.setdefault("GOOGLE_CLIENT_ID", "test-google-client-id")
+os.environ.setdefault("GOOGLE_ANDROID_CLIENT_ID", "test-google-client-id")
+os.environ.setdefault("ALLOWED_GOOGLE_CLIENT_IDS", "test-google-client-id")
 
 import pytest
 from unittest.mock import AsyncMock, MagicMock

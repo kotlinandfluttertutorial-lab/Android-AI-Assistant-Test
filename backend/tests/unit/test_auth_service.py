@@ -1085,6 +1085,7 @@ class TestGoogleOAuth2Unit:
         return {
             "sub": self._GOOGLE_SUB,
             "email": self._GOOGLE_EMAIL,
+            "aud": "test-google-client-id",
             "name": "OAuth Unit User",
             "picture": "https://lh3.googleusercontent.com/unit-test",
             "email_verified": True,

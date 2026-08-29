@@ -17,13 +17,12 @@ import com.aiassistant.core.common.RoutingDecision
 import javax.inject.Inject
 import javax.inject.Singleton
 
-
 @Singleton
 class QueryRouterImpl @Inject constructor() : QueryRouter {
 
     override fun evaluate(
         capabilityBitmask: Int,
-        userPreference: PathPreference?,
+        userPreference: PathPreference?
     ): RoutingDecision {
         val offlineOnDeviceCapable =
             (capabilityBitmask and CapabilityBit.ALL_ON_DEVICE_CAPABLE) == CapabilityBit.ALL_ON_DEVICE_CAPABLE &&
@@ -33,7 +32,7 @@ class QueryRouterImpl @Inject constructor() : QueryRouter {
             return RoutingDecision(
                 path = InferencePath.ON_DEVICE,
                 capabilityBitmask = capabilityBitmask,
-                reason = "Offline + capable.",
+                reason = "Offline + capable."
             )
         }
 
@@ -43,17 +42,17 @@ class QueryRouterImpl @Inject constructor() : QueryRouter {
             fullyCapable && userPreference == PathPreference.PREFER_CLOUD -> RoutingDecision(
                 path = InferencePath.CLOUD,
                 capabilityBitmask = capabilityBitmask,
-                reason = "User prefers cloud.",
+                reason = "User prefers cloud."
             )
             fullyCapable -> RoutingDecision(
                 path = InferencePath.ON_DEVICE,
                 capabilityBitmask = capabilityBitmask,
-                reason = "Fully capable.",
+                reason = "Fully capable."
             )
             else -> RoutingDecision(
                 path = InferencePath.CLOUD,
                 capabilityBitmask = capabilityBitmask,
-                reason = "Missing signals.",
+                reason = "Missing signals."
             )
         }
     }

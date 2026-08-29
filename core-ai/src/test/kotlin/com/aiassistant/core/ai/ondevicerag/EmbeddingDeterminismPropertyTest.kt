@@ -24,7 +24,8 @@ import io.kotest.property.Arb
 import io.kotest.property.arbitrary.string
 import io.kotest.property.checkAll
 
-class EmbeddingDeterminismPropertyTest : DescribeSpec({
+class EmbeddingDeterminismPropertyTest : DescribeSpec(
+    {
 
     /**
      * Property 38: For any text of 1–512 chars, calling generateEmbedding
@@ -41,7 +42,7 @@ class EmbeddingDeterminismPropertyTest : DescribeSpec({
         it("generateEmbedding returns identical FloatArray on repeated calls for any input") {
             checkAll(
                 iterations = 200,
-                Arb.string(minSize = 1, maxSize = 512),
+                Arb.string(minSize = 1, maxSize = 512)
             ) { text ->
                 val result1 = model.generateEmbedding(text)
                 val result2 = model.generateEmbedding(text)
@@ -64,7 +65,7 @@ class EmbeddingDeterminismPropertyTest : DescribeSpec({
             checkAll(
                 iterations = 50,
                 Arb.string(minSize = 5, maxSize = 100),
-                Arb.string(minSize = 5, maxSize = 100),
+                Arb.string(minSize = 5, maxSize = 100)
             ) { a, b ->
                 if (a != b) {
                     val ea = model.generateEmbedding(a)
@@ -81,6 +82,4 @@ class EmbeddingDeterminismPropertyTest : DescribeSpec({
 // ── Helper ────────────────────────────────────────────────────────────────────
 
 /** Returns a MiniLmEmbeddingModel (determinism test uses real implementation). */
-private fun readyModel(): MiniLmEmbeddingModel {
-    return MiniLmEmbeddingModel()
-}
+private fun readyModel(): MiniLmEmbeddingModel = MiniLmEmbeddingModel()

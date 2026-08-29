@@ -169,7 +169,7 @@ async def test_4a_estimated_tokens_below_provider_max_after_build_prompt(
 
     # Mock OpenAIClient to avoid real network calls and timeouts
     mock_openai_client = MagicMock()
-    mock_openai_client.max_context_tokens = 4096
+    mock_openai_client.max_context_tokens = 8192
 
     with (
         patch(

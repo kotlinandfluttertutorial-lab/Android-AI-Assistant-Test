@@ -63,6 +63,7 @@ class OnDeviceQueryUseCase @Inject constructor(
         }
     }
 
+    @Suppress("TooGenericExceptionCaught")
     private suspend fun kotlinx.coroutines.flow.FlowCollector<OnDeviceQueryEvent>.performEmbedding(
         query: String
     ): FloatArray? = try {
@@ -72,6 +73,7 @@ class OnDeviceQueryUseCase @Inject constructor(
         null
     }
 
+    @Suppress("TooGenericExceptionCaught")
     private suspend fun kotlinx.coroutines.flow.FlowCollector<OnDeviceQueryEvent>.performSearch(
         userId: String,
         embedding: FloatArray,
