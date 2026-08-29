@@ -1025,8 +1025,8 @@ Implementation follows Clean Architecture from the ground up: core modules first
     - **Property 41: Gemma Generation-Only Isolation** — **Validates: Requirements 35.7**
     - Use Kotest PropTest; generate random query strings and document content; use spy `OnDeviceInferenceEngine` that records all method invocations; run full `OnDeviceQueryUseCase` pipeline; assert no "generateEmbedding", "search", or "parse" method calls appear in spy recording; assert only "generateStream", "cancelGeneration", "releaseMemory" (or empty) calls are present on the engine spy
 
-- [ ] 49. On-Device RAG portfolio documentation
-  - [ ] 49.1 Create `docs/on-device-rag.md` portfolio documentation
+- [x] 49. On-Device RAG portfolio documentation
+  - [x] 49.1 Create `docs/on-device-rag.md` portfolio documentation
     - Six implementation phases (purpose, component list, design decision + rationale per phase)
     - Mermaid architecture diagram: 6-layer stack + two query paths (on-device: Query_Router ? Embedding ? LocalVectorIndex ? Gemma; cloud: Query_Router ? Backend ? LLM_Provider)
     - Benchmark results table: columns Device Model, Chipset, Accelerator (CPU/GPU/NPU), Gemma Model Variant, TTFT p50 ms, Tokens/sec p50, RAM Peak MB; minimum 2 placeholder rows
@@ -1035,12 +1035,12 @@ Implementation follows Clean Architecture from the ground up: core modules first
     - Reference to `benchmarks/on_device_rag_benchmark.sh` script
     - _Requirements: 38.1, 38.2, 38.5, 38.6_
 
-  - [ ] 49.2 Add `benchmarks/` directory with reproducible benchmark script
+  - [x] 49.2 Add `benchmarks/` directory with reproducible benchmark script
     - `benchmarks/on_device_rag_benchmark.sh`: installs app on connected device via ADB, triggers `BenchmarkOnDeviceUseCase` via ADB shell intent, captures logcat output, saves structured results to `benchmarks/results/benchmark_<timestamp>.json`
     - Document script prerequisites and usage in `docs/on-device-rag.md`
     - _Requirements: 38.8_
 
-  - [ ] 49.3 Update README with "On-Device RAG" section
+  - [x] 49.3 Update README with "On-Device RAG" section
     - Reference `docs/on-device-rag.md`
     - List on-device models used with version numbers (Gemma 2B/7B INT4/INT8, MiniLM-L6-v2)
     - Minimum hardware requirements (NPU/GPU =4 GB dedicated memory; CPU fallback supported)
@@ -1048,7 +1048,7 @@ Implementation follows Clean Architecture from the ground up: core modules first
     - One-paragraph plain-language explanation: Gemma is the generation component only; a separate embedding model handles retrieval; the two never share inference calls
     - _Requirements: 38.3_
 
-  - [ ] 49.4 Add `Educational_Header` blocks to all new On-Device RAG source files
+  - [x] 49.4 Add `Educational_Header` blocks to all new On-Device RAG source files
     - Every source file in `core-ai` (`OnDeviceInferenceEngine`, `OnDeviceEmbeddingModel`, `LocalVectorIndex`, `Chunker`, `QueryRouter` and their implementations), `feature-on-device-rag` (all ViewModels, Screen composables, DI modules), and `domain` (new use cases and entities) must include the 4-field educational header: purpose, architectural placement (referencing the specific layer in the 6-layer on-device stack), dependencies, design decision/pattern
     - _Requirements: 38.7, 22.4_
 

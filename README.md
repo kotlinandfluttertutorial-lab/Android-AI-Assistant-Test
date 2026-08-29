@@ -251,6 +251,46 @@ FastAPI Backend (Python 3.11, async)
        â””â”€â”€ Observability: Prometheus + Grafana + Loki
 ```
 
+
+---
+
+## On-Device RAG
+
+The app includes a fully on-device Retrieval-Augmented Generation pipeline that runs
+inference without any network connection. See [`docs/on-device-rag.md`](docs/on-device-rag.md)
+for the complete portfolio documentation.
+
+### On-Device Models
+
+| Model | Role | Variant | Size |
+|---|---|---|---|
+| Gemma 2B | Text generation (generation-only) | INT4 GGUF | ~1.5 GB |
+| Gemma 7B | Text generation (high-quality option) | INT4 GGUF | ~4 GB |
+| MiniLM-L6-v2 | Embedding / retrieval | TFLite float16 | ~90 MB |
+
+**Key constraint:** Gemma handles generation only. MiniLM-L6-v2 handles retrieval. The two never share inference calls — this is enforced structurally by the `OnDeviceInferenceEngine` interface which exposes no embedding or search methods (verified by Property 41).
+
+### Minimum Hardware Requirements
+
+| Requirement | Value |
+|---|---|
+| NPU or dedicated GPU memory | >= 4 GB |
+| CPU fallback | Supported (Battery Saver mode activates automatically) |
+| Available storage | >= 2 GB (Gemma 2B INT4) / >= 5 GB (Gemma 7B INT4) |
+| RAM during inference | >= 512 MB available (enforced — inference cancels below threshold) |
+
+### Supported Document Formats
+
+PDF (`.pdf`), Plain text (`.txt`), Markdown (`.md`). Maximum file size: **50 MB**.
+
+### Running the Benchmark
+
+```bash
+./gradlew assembleDebug
+./benchmarks/on_device_rag_benchmark.sh
+```
+
+Results are saved to `benchmarks/results/benchmark_<timestamp>.json`.
 ---
 
 ## Contributing
