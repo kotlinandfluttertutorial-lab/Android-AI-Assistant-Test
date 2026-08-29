@@ -623,10 +623,14 @@ class TestGoogleOAuthFlow:
             "email": _GOOGLE_EMAIL,
             "name": _GOOGLE_DISPLAY_NAME,
             "picture": _GOOGLE_AVATAR,
+            "aud": "mock-web-client-id",
         }
 
         mock_db = _make_mock_db_session()
         mock_redis = _make_mock_redis()
+        mock_settings = MagicMock()
+        mock_settings.GOOGLE_CLIENT_ID = "mock-web-client-id"
+        mock_settings.GOOGLE_ANDROID_CLIENT_ID = ""
 
         with (
             patch("app.api.auth.router.UserRepository") as MockRepo,
@@ -637,6 +641,7 @@ class TestGoogleOAuthFlow:
             ),
             patch("google.oauth2.id_token.verify_oauth2_token", return_value=id_info),
             patch("google.auth.transport.requests.Request", return_value=MagicMock()),
+            patch("app.config.settings.get_settings", return_value=mock_settings),
         ):
             repo = MockRepo.return_value
             repo.get_by_google_id = AsyncMock(
@@ -686,10 +691,14 @@ class TestGoogleOAuthFlow:
             "email": _GOOGLE_EMAIL,
             "name": _GOOGLE_DISPLAY_NAME,
             "picture": _GOOGLE_AVATAR,
+            "aud": "mock-web-client-id",
         }
 
         mock_db = _make_mock_db_session()
         mock_redis = _make_mock_redis()
+        mock_settings = MagicMock()
+        mock_settings.GOOGLE_CLIENT_ID = "mock-web-client-id"
+        mock_settings.GOOGLE_ANDROID_CLIENT_ID = ""
 
         with (
             patch("app.api.auth.router.UserRepository") as MockRepo,
@@ -700,6 +709,7 @@ class TestGoogleOAuthFlow:
             ),
             patch("google.oauth2.id_token.verify_oauth2_token", return_value=id_info),
             patch("google.auth.transport.requests.Request", return_value=MagicMock()),
+            patch("app.config.settings.get_settings", return_value=mock_settings),
         ):
             # get_by_google_id returns the existing user — no create needed
             repo = MockRepo.return_value
@@ -748,10 +758,14 @@ class TestGoogleOAuthFlow:
             "email": _GOOGLE_EMAIL,
             "name": _GOOGLE_DISPLAY_NAME,
             "picture": None,
+            "aud": "mock-web-client-id",
         }
 
         mock_db = _make_mock_db_session()
         mock_redis = _make_mock_redis()
+        mock_settings = MagicMock()
+        mock_settings.GOOGLE_CLIENT_ID = "mock-web-client-id"
+        mock_settings.GOOGLE_ANDROID_CLIENT_ID = ""
 
         with (
             patch("app.api.auth.router.UserRepository") as MockRepo,
@@ -762,6 +776,7 @@ class TestGoogleOAuthFlow:
             ),
             patch("google.oauth2.id_token.verify_oauth2_token", return_value=id_info),
             patch("google.auth.transport.requests.Request", return_value=MagicMock()),
+            patch("app.config.settings.get_settings", return_value=mock_settings),
         ):
             repo = MockRepo.return_value
             repo.get_by_google_id = AsyncMock(

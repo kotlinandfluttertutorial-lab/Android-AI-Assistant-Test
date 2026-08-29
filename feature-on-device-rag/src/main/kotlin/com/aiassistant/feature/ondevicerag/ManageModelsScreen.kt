@@ -19,6 +19,7 @@ package com.aiassistant.feature.ondevicerag
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -149,7 +150,7 @@ fun ManageModelsContent(
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
-                        contentPadding = androidx.compose.foundation.layout.PaddingValues(16.dp),
+                        contentPadding = PaddingValues(16.dp),
                     ) {
                         items(uiState.models, key = { it.name }) { model ->
                             val downloadState = uiState.downloadProgress[model.name]
@@ -183,80 +184,93 @@ private fun ModelListItem(
             .semantics { contentDescription = "Model: ${model.name}" },
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top,
-            ) {
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = model.name,
-                        style = MaterialTheme.typography.bodyMedium,
-                    )
-                    Text(
-                        text = "v${model.version} · ${formatBytes(model.sizeBytes)}",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                    model.lastUsed?.let { lastUsed ->
-                        Text(
-                            text = "Last used: ${formatDate(lastUsed)}",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
-                    }
-                }
-
-                Row {
-                    IconButton(
-                        onClick = onDownload,
-                        modifier = Modifier.semantics {
-                            contentDescription = "Download ${model.name}"
-                        },
-                    ) {
-                        Icon(Icons.Default.Download, contentDescription = "Download model")
-                    }
-                    IconButton(
-                        onClick = onDelete,
-                        modifier = Modifier.semantics {
-                            contentDescription = "Delete ${model.name}"
-                        },
-                    ) {
-                        Icon(
-                            Icons.Default.Delete,
-                            contentDescription = "Delete model",
-                            tint = MaterialTheme.colorScheme.error,
-                        )
-                    }
-                }
-            }
-
+            ModelInfoRow(model, onDownload, onDelete)
             if (downloadProgress != null) {
-                Spacer(Modifier.height(8.dp))
-                val label = when (downloadProgress) {
-                    is DownloadState.Downloading ->
-                        "${downloadProgress.percent}% · ${formatBytes(downloadProgress.bytesDownloaded)} / ${formatBytes(downloadProgress.totalBytes)}"
-                    is DownloadState.Verifying -> "Verifying checksum…"
-                    is DownloadState.Error -> "Download failed: ${downloadProgress.message}"
-                }
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.labelSmall,
-                    color = if (downloadProgress is DownloadState.Error)
-                        MaterialTheme.colorScheme.error
-                    else
-                        MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.semantics { contentDescription = label },
-                )
-                if (downloadProgress is DownloadState.Downloading) {
-                    Spacer(Modifier.height(4.dp))
-                    LinearProgressIndicator(
-                        progress = { downloadProgress.percent / 100f },
-                        modifier = Modifier.fillMaxWidth(),
-                    )
-                }
+                ModelDownloadProgress(downloadProgress)
             }
         }
+    }
+}
+
+@Composable
+private fun ModelInfoRow(
+    model: OnDeviceModelInfo,
+    onDownload: () -> Unit,
+    onDelete: () -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.Top,
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = model.name,
+                style = MaterialTheme.typography.bodyMedium,
+            )
+            Text(
+                text = "v${model.version} · ${formatBytes(model.sizeBytes)}",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+            model.lastUsed?.let { lastUsed ->
+                Text(
+                    text = "Last used: ${formatDate(lastUsed)}",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
+
+        Row {
+            IconButton(
+                onClick = onDownload,
+                modifier = Modifier.semantics {
+                    contentDescription = "Download ${model.name}"
+                },
+            ) {
+                Icon(Icons.Default.Download, contentDescription = "Download model")
+            }
+            IconButton(
+                onClick = onDelete,
+                modifier = Modifier.semantics {
+                    contentDescription = "Delete ${model.name}"
+                },
+            ) {
+                Icon(
+                    Icons.Default.Delete,
+                    contentDescription = "Delete model",
+                    tint = MaterialTheme.colorScheme.error,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ModelDownloadProgress(state: DownloadState) {
+    Spacer(Modifier.height(8.dp))
+    val label = when (state) {
+        is DownloadState.Downloading ->
+            "${state.percent}% · ${formatBytes(state.bytesDownloaded)} / ${formatBytes(state.totalBytes)}"
+        is DownloadState.Verifying -> "Verifying checksum…"
+        is DownloadState.Error -> "Download failed: ${state.message}"
+    }
+    Text(
+        text = label,
+        style = MaterialTheme.typography.labelSmall,
+        color = if (state is DownloadState.Error)
+            MaterialTheme.colorScheme.error
+        else
+            MaterialTheme.colorScheme.primary,
+        modifier = Modifier.semantics { contentDescription = label },
+    )
+    if (state is DownloadState.Downloading) {
+        Spacer(Modifier.height(4.dp))
+        LinearProgressIndicator(
+            progress = { state.percent / 100f },
+            modifier = Modifier.fillMaxWidth(),
+        )
     }
 }
 

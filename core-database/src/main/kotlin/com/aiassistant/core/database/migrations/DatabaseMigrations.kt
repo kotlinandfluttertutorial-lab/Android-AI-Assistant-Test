@@ -48,75 +48,80 @@ object DatabaseMigrations {
      */
     val MIGRATION_2_3 = object : Migration(2, 3) {
         override fun migrate(database: SupportSQLiteDatabase) {
-
-            // ── on_device_documents ──────────────────────────────────────────
-            database.execSQL(
-                """
-                CREATE TABLE IF NOT EXISTS on_device_documents (
-                    id               TEXT    NOT NULL PRIMARY KEY,
-                    userId           TEXT    NOT NULL,
-                    fileName         TEXT    NOT NULL,
-                    mimeType         TEXT    NOT NULL,
-                    sizeBytes        INTEGER NOT NULL,
-                    totalChunks      INTEGER NOT NULL DEFAULT 0,
-                    ingestionStatus  TEXT    NOT NULL,
-                    failureStage     TEXT,
-                    createdAt        INTEGER NOT NULL
-                )
-                """.trimIndent()
-            )
-            database.execSQL(
-                "CREATE INDEX IF NOT EXISTS index_on_device_documents_userId ON on_device_documents(userId)"
-            )
-
-            // ── on_device_chunks ─────────────────────────────────────────────
-            // embeddingBlob is stored as a BLOB (ByteArray via DatabaseConverters).
-            database.execSQL(
-                """
-                CREATE TABLE IF NOT EXISTS on_device_chunks (
-                    id               TEXT    NOT NULL PRIMARY KEY,
-                    userId           TEXT    NOT NULL,
-                    documentId       TEXT    NOT NULL,
-                    documentName     TEXT    NOT NULL,
-                    chunkIndex       INTEGER NOT NULL,
-                    pageNumber       INTEGER,
-                    startCharOffset  INTEGER NOT NULL,
-                    endCharOffset    INTEGER NOT NULL,
-                    content          TEXT    NOT NULL,
-                    embeddingBlob    BLOB    NOT NULL,
-                    createdAt        INTEGER NOT NULL,
-                    FOREIGN KEY (documentId) REFERENCES on_device_documents(id) ON DELETE CASCADE
-                )
-                """.trimIndent()
-            )
-            database.execSQL(
-                "CREATE INDEX IF NOT EXISTS index_on_device_chunks_userId ON on_device_chunks(userId)"
-            )
-            database.execSQL(
-                "CREATE INDEX IF NOT EXISTS index_on_device_chunks_documentId ON on_device_chunks(documentId)"
-            )
-
-            // ── query_routing_log ────────────────────────────────────────────
-            database.execSQL(
-                """
-                CREATE TABLE IF NOT EXISTS query_routing_log (
-                    id                 TEXT    NOT NULL PRIMARY KEY,
-                    userId             TEXT    NOT NULL,
-                    timestamp          INTEGER NOT NULL,
-                    selectedPath       TEXT    NOT NULL,
-                    capabilityBitmask  INTEGER NOT NULL,
-                    userOverride       TEXT,
-                    fallbackOccurred   INTEGER NOT NULL DEFAULT 0,
-                    reason             TEXT    NOT NULL
-                )
-                """.trimIndent()
-            )
-            database.execSQL(
-                "CREATE INDEX IF NOT EXISTS index_query_routing_log_userId ON query_routing_log(userId)"
-            )
-            database.execSQL(
-                "CREATE INDEX IF NOT EXISTS index_query_routing_log_timestamp ON query_routing_log(timestamp)"
-            )
+            createOnDeviceDocumentsTable(database)
+            createOnDeviceChunksTable(database)
+            createQueryRoutingLogTable(database)
         }
+    }
+
+    private fun createOnDeviceDocumentsTable(database: SupportSQLiteDatabase) {
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS on_device_documents (
+                id               TEXT    NOT NULL PRIMARY KEY,
+                userId           TEXT    NOT NULL,
+                fileName         TEXT    NOT NULL,
+                mimeType         TEXT    NOT NULL,
+                sizeBytes        INTEGER NOT NULL,
+                totalChunks      INTEGER NOT NULL DEFAULT 0,
+                ingestionStatus  TEXT    NOT NULL,
+                failureStage     TEXT,
+                createdAt        INTEGER NOT NULL
+            )
+            """.trimIndent()
+        )
+        database.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_on_device_documents_userId ON on_device_documents(userId)"
+        )
+    }
+
+    private fun createOnDeviceChunksTable(database: SupportSQLiteDatabase) {
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS on_device_chunks (
+                id               TEXT    NOT NULL PRIMARY KEY,
+                userId           TEXT    NOT NULL,
+                documentId       TEXT    NOT NULL,
+                documentName     TEXT    NOT NULL,
+                chunkIndex       INTEGER NOT NULL,
+                pageNumber       INTEGER,
+                startCharOffset  INTEGER NOT NULL,
+                endCharOffset    INTEGER NOT NULL,
+                content          TEXT    NOT NULL,
+                embeddingBlob    BLOB    NOT NULL,
+                createdAt        INTEGER NOT NULL,
+                FOREIGN KEY (documentId) REFERENCES on_device_documents(id) ON DELETE CASCADE
+            )
+            """.trimIndent()
+        )
+        database.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_on_device_chunks_userId ON on_device_chunks(userId)"
+        )
+        database.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_on_device_chunks_documentId ON on_device_chunks(documentId)"
+        )
+    }
+
+    private fun createQueryRoutingLogTable(database: SupportSQLiteDatabase) {
+        database.execSQL(
+            """
+            CREATE TABLE IF NOT EXISTS query_routing_log (
+                id                 TEXT    NOT NULL PRIMARY KEY,
+                userId             TEXT    NOT NULL,
+                timestamp          INTEGER NOT NULL,
+                selectedPath       TEXT    NOT NULL,
+                capabilityBitmask  INTEGER NOT NULL,
+                userOverride       TEXT,
+                fallbackOccurred   INTEGER NOT NULL DEFAULT 0,
+                reason             TEXT    NOT NULL
+            )
+            """.trimIndent()
+        )
+        database.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_query_routing_log_userId ON query_routing_log(userId)"
+        )
+        database.execSQL(
+            "CREATE INDEX IF NOT EXISTS index_query_routing_log_timestamp ON query_routing_log(timestamp)"
+        )
     }
 }

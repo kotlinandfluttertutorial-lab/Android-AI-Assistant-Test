@@ -100,52 +100,12 @@ fun OnDeviceRagChatContent(
     onNavigateUp: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    // Derive active path label for the toolbar badge
-    val activePathLabel = when (uiState) {
-        is OnDeviceRagChatUiState.Searching -> uiState.activePath.toLabel()
-        is OnDeviceRagChatUiState.Streaming -> uiState.activePath.toLabel()
-        is OnDeviceRagChatUiState.Done -> uiState.activePath.toLabel()
-        else -> null
-    }
-
     Scaffold(
         modifier = modifier,
         topBar = {
-            TopAppBar(
-                title = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
-                        Text("On-Device RAG Chat")
-                        activePathLabel?.let { label ->
-                            Surface(
-                                shape = MaterialTheme.shapes.small,
-                                color = if (label == "Running on device")
-                                    MaterialTheme.colorScheme.primaryContainer
-                                else
-                                    MaterialTheme.colorScheme.secondaryContainer,
-                                modifier = Modifier.semantics {
-                                    contentDescription = "Inference path: $label"
-                                },
-                            ) {
-                                Text(
-                                    text = label,
-                                    style = MaterialTheme.typography.labelSmall,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                )
-                            }
-                        }
-                    }
-                },
-                navigationIcon = {
-                    IconButton(
-                        onClick = onNavigateUp,
-                        modifier = Modifier.semantics { contentDescription = "Navigate up" },
-                    ) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                }
+            OnDeviceRagTopAppBar(
+                uiState = uiState,
+                onNavigateUp = onNavigateUp
             )
         },
     ) { innerPadding ->
@@ -156,97 +116,160 @@ fun OnDeviceRagChatContent(
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            // ── Fallback notification banner ──────────────────────────────
-            val showFallback = when (uiState) {
-                is OnDeviceRagChatUiState.Searching -> uiState.fallbackBanner
-                is OnDeviceRagChatUiState.Streaming -> uiState.fallbackBanner
-                is OnDeviceRagChatUiState.Done -> uiState.fallbackBanner
-                else -> false
-            }
-            AnimatedVisibility(visible = showFallback) {
-                FallbackNotificationBanner()
-            }
+            ChatFallbackBanner(uiState)
 
-            // ── Main content area ─────────────────────────────────────────
             Box(
                 modifier = Modifier
                     .weight(1f)
                     .fillMaxWidth(),
             ) {
-                when (uiState) {
-                    is OnDeviceRagChatUiState.Idle -> {
-                        IdlePrompt()
-                    }
+                ChatMainArea(
+                    uiState = uiState,
+                    onRetryViaCloud = onRetryViaCloud,
+                    onReset = onReset
+                )
+            }
 
-                    is OnDeviceRagChatUiState.Routing -> {
-                        CenteredIndicator("Checking capabilities…")
-                    }
+            QueryInputArea(
+                uiState = uiState,
+                query = query,
+                onQueryChange = onQueryChange,
+                onSubmitQuery = onSubmitQuery
+            )
+        }
+    }
+}
 
-                    is OnDeviceRagChatUiState.Searching -> {
-                        CenteredIndicator("Searching local documents…")
-                    }
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun OnDeviceRagTopAppBar(
+    uiState: OnDeviceRagChatUiState,
+    onNavigateUp: () -> Unit
+) {
+    val activePathLabel = when (uiState) {
+        is OnDeviceRagChatUiState.Searching -> uiState.activePath.toLabel()
+        is OnDeviceRagChatUiState.Streaming -> uiState.activePath.toLabel()
+        is OnDeviceRagChatUiState.Done -> uiState.activePath.toLabel()
+        else -> null
+    }
 
-                    is OnDeviceRagChatUiState.Streaming -> {
-                        ResponseArea(
-                            text = uiState.accumulatedText,
-                            citations = emptyList(),
-                            isStreaming = true,
-                        )
-                    }
-
-                    is OnDeviceRagChatUiState.Done -> {
-                        ResponseArea(
-                            text = uiState.responseText,
-                            citations = uiState.citations,
-                            isStreaming = false,
-                        )
-                    }
-
-                    is OnDeviceRagChatUiState.NoRelevantContent -> {
-                        NoRelevantContentState()
-                    }
-
-                    is OnDeviceRagChatUiState.Error -> {
-                        ErrorState(
-                            message = uiState.message,
-                            canRetry = uiState.canRetry,
-                            onRetryViaCloud = onRetryViaCloud,
-                            onReset = onReset,
-                        )
-                    }
-
-                    is OnDeviceRagChatUiState.FileSizeRejection -> Unit // not used in chat
-                    is OnDeviceRagChatUiState.DocumentList -> Unit
-                    is OnDeviceRagChatUiState.Loading -> Unit
-                    is OnDeviceRagChatUiState.IngestionRunning -> Unit
+    TopAppBar(
+        title = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                Text("On-Device RAG Chat")
+                activePathLabel?.let { label ->
+                    InferencePathBadge(label)
                 }
             }
-
-            // ── Query input ───────────────────────────────────────────────
-            val isProcessing = uiState is OnDeviceRagChatUiState.Routing ||
-                uiState is OnDeviceRagChatUiState.Searching ||
-                uiState is OnDeviceRagChatUiState.Streaming
-
-            OutlinedTextField(
-                value = query,
-                onValueChange = onQueryChange,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .semantics { contentDescription = "Query input field" },
-                placeholder = { Text("Ask a question about your documents…") },
-                enabled = !isProcessing,
-                maxLines = 4,
-            )
-
-            Button(
-                onClick = onSubmitQuery,
-                enabled = query.isNotBlank() && !isProcessing,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .semantics { contentDescription = "Submit query" },
+        },
+        navigationIcon = {
+            IconButton(
+                onClick = onNavigateUp,
+                modifier = Modifier.semantics { contentDescription = "Navigate up" },
             ) {
-                Text("Ask")
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
             }
+        }
+    )
+}
+
+@Composable
+private fun InferencePathBadge(label: String) {
+    Surface(
+        shape = MaterialTheme.shapes.small,
+        color = if (label == "Running on device")
+            MaterialTheme.colorScheme.primaryContainer
+        else
+            MaterialTheme.colorScheme.secondaryContainer,
+        modifier = Modifier.semantics {
+            contentDescription = "Inference path: $label"
+        },
+    ) {
+        Text(
+            text = label,
+            style = MaterialTheme.typography.labelSmall,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+        )
+    }
+}
+
+@Composable
+private fun ChatFallbackBanner(uiState: OnDeviceRagChatUiState) {
+    val showFallback = when (uiState) {
+        is OnDeviceRagChatUiState.Searching -> uiState.fallbackBanner
+        is OnDeviceRagChatUiState.Streaming -> uiState.fallbackBanner
+        is OnDeviceRagChatUiState.Done -> uiState.fallbackBanner
+        else -> false
+    }
+    AnimatedVisibility(visible = showFallback) {
+        FallbackNotificationBanner()
+    }
+}
+
+@Composable
+private fun ChatMainArea(
+    uiState: OnDeviceRagChatUiState,
+    onRetryViaCloud: () -> Unit,
+    onReset: () -> Unit
+) {
+    when (uiState) {
+        is OnDeviceRagChatUiState.Idle -> IdlePrompt()
+        is OnDeviceRagChatUiState.Routing -> CenteredIndicator("Checking capabilities…")
+        is OnDeviceRagChatUiState.Searching -> CenteredIndicator("Searching local documents…")
+        is OnDeviceRagChatUiState.Streaming -> ResponseArea(
+            text = uiState.accumulatedText,
+            citations = emptyList(),
+            isStreaming = true,
+        )
+        is OnDeviceRagChatUiState.Done -> ResponseArea(
+            text = uiState.responseText,
+            citations = uiState.citations,
+            isStreaming = false,
+        )
+        is OnDeviceRagChatUiState.NoRelevantContent -> NoRelevantContentState()
+        is OnDeviceRagChatUiState.Error -> ErrorState(
+            message = uiState.message,
+            canRetry = uiState.canRetry,
+            onRetryViaCloud = onRetryViaCloud,
+            onReset = onReset,
+        )
+    }
+}
+
+@Composable
+private fun QueryInputArea(
+    uiState: OnDeviceRagChatUiState,
+    query: String,
+    onQueryChange: (String) -> Unit,
+    onSubmitQuery: () -> Unit
+) {
+    val isProcessing = uiState is OnDeviceRagChatUiState.Routing ||
+        uiState is OnDeviceRagChatUiState.Searching ||
+        uiState is OnDeviceRagChatUiState.Streaming
+
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        OutlinedTextField(
+            value = query,
+            onValueChange = onQueryChange,
+            modifier = Modifier
+                .fillMaxWidth()
+                .semantics { contentDescription = "Query input field" },
+            placeholder = { Text("Ask a question about your documents…") },
+            enabled = !isProcessing,
+            maxLines = 4,
+        )
+
+        Button(
+            onClick = onSubmitQuery,
+            enabled = query.isNotBlank() && !isProcessing,
+            modifier = Modifier
+                .fillMaxWidth()
+                .semantics { contentDescription = "Submit query" },
+        ) {
+            Text("Ask")
         }
     }
 }

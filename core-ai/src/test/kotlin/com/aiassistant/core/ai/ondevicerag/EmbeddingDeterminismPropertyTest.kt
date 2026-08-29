@@ -80,11 +80,7 @@ class EmbeddingDeterminismPropertyTest : DescribeSpec({
 
 // ── Helper ────────────────────────────────────────────────────────────────────
 
-/** Returns a MiniLmEmbeddingModel with _isReady = true (bypasses file I/O). */
+/** Returns a MiniLmEmbeddingModel (determinism test uses real implementation). */
 private fun readyModel(): MiniLmEmbeddingModel {
-    val model = MiniLmEmbeddingModel()
-    val field = model::class.java.getDeclaredField("_isReady")
-    field.isAccessible = true
-    field.setBoolean(model, true)
-    return model
+    return MiniLmEmbeddingModel()
 }

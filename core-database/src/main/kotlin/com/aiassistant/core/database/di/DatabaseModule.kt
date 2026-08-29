@@ -64,6 +64,11 @@ object DatabaseModule {
                 DatabaseMigrations.MIGRATION_2_3,
             )
             .build()
+}
+
+@Module
+@InstallIn(SingletonComponent::class)
+object DaoModule {
 
     // ── Core DAOs ────────────────────────────────────────────────────────────
 

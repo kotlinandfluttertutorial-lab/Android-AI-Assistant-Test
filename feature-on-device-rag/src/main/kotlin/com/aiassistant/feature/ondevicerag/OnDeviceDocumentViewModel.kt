@@ -44,11 +44,9 @@ import javax.inject.Inject
 /** Maximum on-device document size: 50 MB. */
 private const val MAX_FILE_SIZE_BYTES = 50L * 1024 * 1024
 
-/** Low-storage threshold: warn when available bytes < 100 MB. */
-private const val LOW_STORAGE_THRESHOLD_BYTES = 100L * 1024 * 1024
 
 @HiltViewModel
-class OnDeviceDocumentViewModel @Inject constructor(
+open class OnDeviceDocumentViewModel @Inject constructor(
     private val getDocumentsUseCase: GetOnDeviceDocumentsUseCase,
     private val ingestDocumentUseCase: OnDeviceIngestDocumentUseCase,
     private val deleteDocumentUseCase: DeleteOnDeviceDocumentUseCase,

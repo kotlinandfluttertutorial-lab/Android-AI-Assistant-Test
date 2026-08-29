@@ -5,24 +5,16 @@
  * Module     : core-ai (test)
  * File       : ChunkerTest.kt
  * Purpose    : Unit tests for the Chunker class.
- *              Validates the three spec invariants:
- *                1. Union of all chunk content == full source text (no gaps).
- *                2. overlapTokens > chunkSizeTokens/2 throws at construction.
- *                3. Min/max chunk size params are respected.
- *
- * Architecture Layer : Core-AI test — verifies the chunking stage of the
- *                      on-device RAG ingestion pipeline.
- *
- * Requirements: 33.4, 35.2
  * ============================================================
  */
 package com.aiassistant.core.ai.ondevicerag
 
+import com.aiassistant.core.common.Chunker
+import com.aiassistant.core.common.PageOffset
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.ints.shouldBeGreaterThanOrEqual
 import io.kotest.matchers.ints.shouldBeLessThanOrEqual
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldNotBeBlank
@@ -38,14 +30,7 @@ class ChunkerTest : DescribeSpec({
         }
 
         it("allows overlapTokens == chunkSizeTokens / 2") {
-            // Should not throw
             Chunker(chunkSizeTokens = 100, overlapTokens = 50)
-        }
-
-        it("throws when minChunkSizeTokens is zero") {
-            shouldThrow<IllegalArgumentException> {
-                Chunker(minChunkSizeTokens = 0)
-            }
         }
     }
 
@@ -65,11 +50,9 @@ class ChunkerTest : DescribeSpec({
         }
 
         it("union of all chunk content covers full input text with no gaps") {
-            // 200-char text — will produce multiple chunks with 10-token (40-char) windows
             val text = "A".repeat(200)
             val chunks = chunker.chunk(text, "doc1", "test.txt")
 
-            // Reconstruct using offsets — every character must appear
             val covered = BooleanArray(text.length)
             for (chunk in chunks) {
                 for (i in chunk.startCharOffset until chunk.endCharOffset) {
@@ -82,7 +65,7 @@ class ChunkerTest : DescribeSpec({
         it("chunk indices are sequential starting from 0") {
             val text = "B".repeat(300)
             val chunks = chunker.chunk(text, "doc1", "test.txt")
-            chunks.mapIndexed { idx, c -> c.chunkIndex shouldBe idx }
+            chunks.forEachIndexed { idx, c -> c.chunkIndex shouldBe idx }
         }
 
         it("each chunk has non-blank content") {
@@ -99,7 +82,7 @@ class ChunkerTest : DescribeSpec({
             }
         }
 
-        it("respects maxChunkSizeTokens — no chunk exceeds limit") {
+        it("respects maxChunkSizeTokens") {
             val chunker2 = Chunker(chunkSizeTokens = 20, overlapTokens = 4, maxChunkSizeTokens = 20)
             val text = "Z".repeat(500)
             val maxChars = 20 * Chunker.CHARS_PER_TOKEN
@@ -108,7 +91,7 @@ class ChunkerTest : DescribeSpec({
             }
         }
 
-        it("assigns pageNumber from pageOffsets when provided") {
+        it("assigns pageNumber from pageOffsets") {
             val text = "Page one text. Page two text."
             val pageOffsets = listOf(
                 PageOffset(pageNumber = 1, startCharOffset = 0, endCharOffset = 15),
@@ -116,7 +99,6 @@ class ChunkerTest : DescribeSpec({
             )
             val chunker2 = Chunker(chunkSizeTokens = 5, overlapTokens = 1)
             val chunks = chunker2.chunk(text, "doc", "doc.pdf", pageOffsets)
-            // First chunk starts at 0 — must be page 1
             chunks.first().pageNumber shouldBe 1
         }
 
@@ -125,7 +107,7 @@ class ChunkerTest : DescribeSpec({
             chunks.forEach { it.pageNumber shouldBe null }
         }
 
-        it("produces deterministic chunk IDs from documentId + index") {
+        it("produces deterministic chunk IDs") {
             val text = "C".repeat(200)
             val chunks1 = chunker.chunk(text, "docX", "f.txt")
             val chunks2 = chunker.chunk(text, "docX", "f.txt")

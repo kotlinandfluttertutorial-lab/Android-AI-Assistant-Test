@@ -61,7 +61,7 @@ class OnDeviceDocumentRepositoryImpl @Inject constructor(
             } catch (e: Exception) {
                 ApiResult.Error(
                     com.aiassistant.core.common.DomainError.ServerError(
-                        message = "Failed to save document: ${e.message}", code = 500
+                        message = "Failed to save document: ${e.message}", httpStatusCode = 500
                     )
                 )
             }
@@ -79,7 +79,7 @@ class OnDeviceDocumentRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             ApiResult.Error(
                 com.aiassistant.core.common.DomainError.ServerError(
-                    message = "Failed to update document status: ${e.message}", code = 500
+                    message = "Failed to update document status: ${e.message}", httpStatusCode = 500
                 )
             )
         }
@@ -93,7 +93,7 @@ class OnDeviceDocumentRepositoryImpl @Inject constructor(
             } catch (e: Exception) {
                 ApiResult.Error(
                     com.aiassistant.core.common.DomainError.ServerError(
-                        message = "Failed to delete document: ${e.message}", code = 500
+                        message = "Failed to delete document: ${e.message}", httpStatusCode = 500
                     )
                 )
             }

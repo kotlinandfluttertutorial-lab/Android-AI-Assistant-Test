@@ -20,7 +20,7 @@
 package com.aiassistant.feature.ondevicerag
 
 import app.cash.turbine.test
-import com.aiassistant.core.ai.ondevicerag.CapabilityBit
+import com.aiassistant.core.common.CapabilityBit
 import com.aiassistant.core.common.ApiResult
 import com.aiassistant.core.common.DefaultDispatcherProvider
 import com.aiassistant.domain.model.ChunkCitation
@@ -82,7 +82,13 @@ class OnDeviceRagViewModelTest : DescribeSpec({
         routeUseCase: RouteQueryUseCase,
         queryUseCase: OnDeviceQueryUseCase,
     ): OnDeviceRagViewModel {
-        val dispatchers = DefaultDispatcherProvider()
+        val dispatchers = object : com.aiassistant.core.common.DispatcherProvider {
+            override val main = testDispatcher
+            override val mainImmediate = testDispatcher
+            override val io = testDispatcher
+            override val default = testDispatcher
+            override val unconfined = testDispatcher
+        }
         return object : OnDeviceRagViewModel(routeUseCase, queryUseCase, dispatchers) {
             override fun buildCapabilityBitmask() = CapabilityBit.FULLY_CAPABLE
         }

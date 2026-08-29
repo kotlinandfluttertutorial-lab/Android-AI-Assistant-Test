@@ -402,7 +402,7 @@ private fun Text(
     color: androidx.compose.ui.graphics.Color = androidx.compose.ui.graphics.Color.Unspecified,
     semantics: (androidx.compose.ui.semantics.SemanticsPropertyReceiver.() -> Unit)? = null,
 ) {
-    val finalModifier = if (semantics != null) modifier.semantics(block = semantics) else modifier
+    val finalModifier = if (semantics != null) modifier.semantics(properties = semantics) else modifier
     androidx.compose.material3.Text(
         text = text,
         modifier = finalModifier,

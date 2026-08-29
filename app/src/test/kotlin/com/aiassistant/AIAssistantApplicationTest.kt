@@ -4,7 +4,6 @@ import androidx.hilt.work.HiltWorkerFactory
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ProcessLifecycleOwner
-import com.aiassistant.BuildConfig
 import com.aiassistant.analytics.RemoteConfigManager
 import com.aiassistant.core.common.observability.ObservabilityEventBus
 import com.aiassistant.core.common.observability.SessionManager
@@ -25,7 +24,6 @@ import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.robolectric.RobolectricTestRunner
-import org.robolectric.RuntimeEnvironment
 import org.robolectric.annotation.Config
 import timber.log.Timber
 
@@ -103,12 +101,6 @@ class AIAssistantApplicationTest {
 
     @Test
     fun `onCreate should plant Timber DebugTree in debug build`() {
-        // Since BuildConfig.DEBUG is a compile-time constant,
-        // we might need to be careful. In unit tests it might depend on the variant.
-        // AIAssistantApplication checks BuildConfig.DEBUG.
-
-        // If we want to test both branches, we might need to use reflection or a wrapper.
-        // But let's verify it calls Timber.plant if BuildConfig.DEBUG is true.
         if (BuildConfig.DEBUG) {
             app.onCreate()
             verify { Timber.plant(any<Timber.DebugTree>()) }

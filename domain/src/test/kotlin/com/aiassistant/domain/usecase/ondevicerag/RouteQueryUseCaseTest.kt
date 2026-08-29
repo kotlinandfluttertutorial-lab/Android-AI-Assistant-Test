@@ -15,9 +15,11 @@
  */
 package com.aiassistant.domain.usecase.ondevicerag
 
-import com.aiassistant.core.ai.ondevicerag.CapabilityBit
-import com.aiassistant.core.ai.ondevicerag.QueryRouter
+import com.aiassistant.core.common.CapabilityBit
+import com.aiassistant.core.common.QueryRouter
 import com.aiassistant.core.common.ApiResult
+import com.aiassistant.core.common.RoutingDecision
+import com.aiassistant.core.common.InferencePath
 import com.aiassistant.domain.model.OnDeviceInferencePath
 import com.aiassistant.domain.repository.QueryRoutingLogRepository
 import io.kotest.core.spec.style.DescribeSpec
@@ -29,7 +31,7 @@ import io.mockk.mockk
 
 class RouteQueryUseCaseTest : DescribeSpec({
 
-    val router = QueryRouter()   // real implementation — pure function, no mocks needed
+    val router = mockk<QueryRouter>()
 
     describe("RouteQueryUseCase — routing decisions") {
 
@@ -37,6 +39,11 @@ class RouteQueryUseCaseTest : DescribeSpec({
             val logRepo = mockk<QueryRoutingLogRepository>(relaxed = true)
             val useCase = RouteQueryUseCase(router, logRepo)
 
+            coEvery { router.evaluate(any(), any()) } returns RoutingDecision(
+                path = InferencePath.ON_DEVICE,
+                capabilityBitmask = CapabilityBit.FULLY_CAPABLE,
+                reason = "test"
+            )
             val result = useCase("user1", CapabilityBit.FULLY_CAPABLE, null)
 
             result.shouldBeInstanceOf<ApiResult.Success<*>>()
@@ -47,6 +54,11 @@ class RouteQueryUseCaseTest : DescribeSpec({
             val logRepo = mockk<QueryRoutingLogRepository>(relaxed = true)
             val useCase = RouteQueryUseCase(router, logRepo)
 
+            coEvery { router.evaluate(any(), any()) } returns RoutingDecision(
+                path = InferencePath.CLOUD,
+                capabilityBitmask = 0,
+                reason = "test"
+            )
             val result = useCase("user1", 0, null)
 
             (result as ApiResult.Success).data.path shouldBe OnDeviceInferencePath.CLOUD
@@ -57,6 +69,11 @@ class RouteQueryUseCaseTest : DescribeSpec({
             coEvery { logRepo.logDecision(any(), any()) } returns ApiResult.Success(Unit)
             val useCase = RouteQueryUseCase(router, logRepo)
 
+            coEvery { router.evaluate(any(), any()) } returns RoutingDecision(
+                path = InferencePath.CLOUD,
+                capabilityBitmask = 0,
+                reason = "test"
+            )
             useCase("user1", 0, null)
             useCase("user1", 15, null)
             useCase("user1", 7, null)
@@ -68,6 +85,11 @@ class RouteQueryUseCaseTest : DescribeSpec({
             val logRepo = mockk<QueryRoutingLogRepository>(relaxed = true)
             val useCase = RouteQueryUseCase(router, logRepo)
 
+            coEvery { router.evaluate(any(), any()) } returns RoutingDecision(
+                path = InferencePath.ON_DEVICE,
+                capabilityBitmask = 7,
+                reason = "test"
+            )
             // bitmask 7 = bits 0-2 set, bit 3 unset → offline
             val result = useCase("user1", 7, com.aiassistant.domain.model.OnDevicePathPreference.PREFER_CLOUD)
 
@@ -79,6 +101,11 @@ class RouteQueryUseCaseTest : DescribeSpec({
             coEvery { logRepo.logDecision(any(), any()) } throws RuntimeException("DB error")
             val useCase = RouteQueryUseCase(router, logRepo)
 
+            coEvery { router.evaluate(any(), any()) } returns RoutingDecision(
+                path = InferencePath.ON_DEVICE,
+                capabilityBitmask = 15,
+                reason = "test"
+            )
             // Should not throw — log failures are swallowed
             val result = useCase("user1", 15, null)
             result.shouldBeInstanceOf<ApiResult.Success<*>>()
@@ -91,6 +118,12 @@ class RouteQueryUseCaseTest : DescribeSpec({
             val logRepo = mockk<QueryRoutingLogRepository>(relaxed = true)
             val useCase = RouteQueryUseCase(router, logRepo)
 
+            coEvery { router.evaluate(any(), any()) } returns RoutingDecision(
+                path = InferencePath.ON_DEVICE,
+                capabilityBitmask = 15,
+                reason = "test",
+                fallbackOccurred = false
+            )
             val result = useCase("user1", 15, null)
             (result as ApiResult.Success).data.fallbackOccurred shouldBe false
         }

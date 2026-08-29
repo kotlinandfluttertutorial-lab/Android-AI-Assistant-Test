@@ -16,8 +16,8 @@
  */
 package com.aiassistant.domain.usecase.ondevicerag
 
-import com.aiassistant.core.ai.ondevicerag.LocalVectorIndex
 import com.aiassistant.core.common.ApiResult
+import com.aiassistant.core.common.LocalVectorIndex
 import com.aiassistant.domain.repository.OnDeviceDocumentRepository
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
@@ -57,7 +57,7 @@ class DeleteOnDeviceDocumentUseCaseTest : DescribeSpec({
             val result = DeleteOnDeviceDocumentUseCase(vectorIndex, repo)
                 .invoke("doc1", "user1")
 
-            result.shouldBeInstanceOf<ApiResult.Error<Unit>>()
+            result.shouldBeInstanceOf<ApiResult.Error>()
         }
 
         it("still attempts repo.deleteDocument even if vectorIndex.deleteByDocument throws") {
@@ -72,7 +72,7 @@ class DeleteOnDeviceDocumentUseCaseTest : DescribeSpec({
             val result = DeleteOnDeviceDocumentUseCase(vectorIndex, repo)
                 .invoke("doc1", "user1")
 
-            result.shouldBeInstanceOf<ApiResult.Error<Unit>>()
+            result.shouldBeInstanceOf<ApiResult.Error>()
         }
     }
 })

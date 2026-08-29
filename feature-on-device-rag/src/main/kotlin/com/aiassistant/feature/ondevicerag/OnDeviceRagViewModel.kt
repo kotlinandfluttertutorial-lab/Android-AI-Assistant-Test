@@ -23,7 +23,7 @@ package com.aiassistant.feature.ondevicerag
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.aiassistant.core.ai.ondevicerag.CapabilityBit
+import com.aiassistant.core.common.CapabilityBit
 import com.aiassistant.core.common.ApiResult
 import com.aiassistant.core.common.DispatcherProvider
 import com.aiassistant.domain.model.OnDeviceInferencePath
@@ -39,8 +39,11 @@ import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+/** Max characters of the query to show in cloud placeholder logs. */
+private const val MAX_QUERY_LOG_LENGTH = 60
+
 @HiltViewModel
-class OnDeviceRagViewModel @Inject constructor(
+open class OnDeviceRagViewModel @Inject constructor(
     private val routeQueryUseCase: RouteQueryUseCase,
     private val onDeviceQueryUseCase: OnDeviceQueryUseCase,
     private val dispatchers: DispatcherProvider,
@@ -173,7 +176,7 @@ class OnDeviceRagViewModel @Inject constructor(
         // For now emit a placeholder Done state so the screen is functional.
         _uiState.value = OnDeviceRagChatUiState.Done(
             activePath = OnDeviceInferencePath.CLOUD,
-            responseText = "[Cloud response for: \"${query.take(60)}\"]",
+            responseText = "[Cloud response for: \"${query.take(MAX_QUERY_LOG_LENGTH)}\"]",
             citations = emptyList(),
             fallbackBanner = false,
         )

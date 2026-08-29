@@ -19,6 +19,9 @@
  */
 package com.aiassistant.core.ai.ondevicerag
 
+import com.aiassistant.core.common.CapabilityBit
+import com.aiassistant.core.common.InferencePath
+import com.aiassistant.core.common.PathPreference
 import io.kotest.core.spec.style.DescribeSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.property.Arb
@@ -30,7 +33,7 @@ import io.kotest.property.checkAll
 
 class QueryRouterPathSelectionPropertyTest : DescribeSpec({
 
-    val router = QueryRouter()
+    val router = QueryRouterImpl()
 
     /**
      * Property 40: Exhaustive check of all 48 (16 × 3) bitmask × preference

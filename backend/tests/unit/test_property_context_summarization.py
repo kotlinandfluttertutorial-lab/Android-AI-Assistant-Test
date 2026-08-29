@@ -167,6 +167,10 @@ async def test_4a_estimated_tokens_below_provider_max_after_build_prompt(
     )
     orch.complete = AsyncMock(return_value=short_summary)
 
+    # Mock OpenAIClient to avoid real network calls and timeouts
+    mock_openai_client = MagicMock()
+    mock_openai_client.max_context_tokens = 4096
+
     with (
         patch(
             "app.services.ai_orchestrator.build_base_system_prompt", return_value="sys"
@@ -175,6 +179,7 @@ async def test_4a_estimated_tokens_below_provider_max_after_build_prompt(
             "app.services.ai_orchestrator.build_summarization_prompt",
             return_value="sum",
         ),
+        patch("app.services.llm_clients.OpenAIClient", return_value=mock_openai_client),
     ):
         context: PromptContext = await orch._build_prompt(
             conversation_id=str(uuid.uuid4()),
@@ -182,7 +187,7 @@ async def test_4a_estimated_tokens_below_provider_max_after_build_prompt(
             message="Hello",
         )
 
-    provider_client = OpenAIClient()
+    provider_client = mock_openai_client
     assert context.estimated_tokens < provider_client.max_context_tokens, (
         f"estimated_tokens={context.estimated_tokens} must be < "
         f"max_context_tokens={provider_client.max_context_tokens}"
