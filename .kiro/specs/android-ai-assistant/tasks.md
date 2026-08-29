@@ -936,8 +936,8 @@ Implementation follows Clean Architecture from the ground up: core modules first
     - `QueryRouter`: verify all 16 bitmask combinations × 3 preference options produce correct `InferencePath`
     - _Requirements: 34.5, 34.6, 34.8, 34.9, 35.2, 36.1, 36.2_
 
-- [ ] 46. Implement On-Device RAG domain and data layers
-  - [ ] 46.1 Add On-Device RAG domain entities, repository interfaces, and use cases to `domain` module
+- [x] 46. Implement On-Device RAG domain and data layers
+  - [x] 46.1 Add On-Device RAG domain entities, repository interfaces, and use cases to `domain` module
     - Domain entities: `OnDeviceDocument(id, userId, fileName, mimeType, sizeBytes, totalChunks, ingestionStatus, failureStage?)`, `OnDeviceModelInfo(name, version, sizeBytes, lastUsed, checksum)`, `BenchmarkResult(accelerator, ttftMeanMs, ttftP95Ms, tokensPerSecMean, tokensPerSecP95, peakRamMb)`, `RoutingDecision`, `PathPreference`, `OnDeviceQueryEvent` (sealed), `IngestionProgress` (sealed)
     - Repository interfaces: `OnDeviceDocumentRepository`, `ModelFileRepository`, `QueryRoutingLogRepository`, `QueryMetricsRepository`
     - `OnDeviceIngestDocumentUseCase` — `invoke(uri, userId): Flow<IngestionProgress>`: Parse ? Chunk ? Embed ? Index ? persist to Room; record `failureStage` on error at any stage
@@ -949,13 +949,13 @@ Implementation follows Clean Architecture from the ground up: core modules first
     - All use cases annotated with `@Inject` constructor; add `javax.inject:javax.inject:1` to `domain/build.gradle.kts` if not already present
     - _Requirements: 32.6, 33.1, 33.7, 34.1, 35.1, 36.1_
 
-  - [ ] 46.2 Implement `OnDeviceDocumentRepositoryImpl` and `ModelFileRepositoryImpl` in `data` module
+  - [x] 46.2 Implement `OnDeviceDocumentRepositoryImpl` and `ModelFileRepositoryImpl` in `data` module
     - `OnDeviceDocumentRepositoryImpl`: wraps `OnDeviceDocumentDao` + `OnDeviceChunkDao`; no remote sync (on-device only, offline-first); exposes `Flow<List<OnDeviceDocument>>` from Room as single source of truth
     - `ModelFileRepositoryImpl`: manages Gemma and embedding model files in `getFilesDir()`; SHA-256 checksum verification on read; WorkManager download job with `NetworkType.UNMETERED` constraint; resume-from-byte on interruption
     - Wire Hilt bindings in `data/di/OnDeviceRagModule.kt`: bind repository interfaces to implementations with `@Binds` in `@InstallIn(SingletonComponent::class)` module
     - _Requirements: 33.5, 33.6, 33.7, 33.10, 37.3, 37.4, 37.5, 37.9, 37.10_
 
-  - [ ]* 46.3 Write unit tests for On-Device RAG use cases
+  - [x] 46.3 Write unit tests for On-Device RAG use cases
     - `OnDeviceIngestDocumentUseCase`: verify `IngestionProgress` event sequence (Parsing ? Chunking ? Embedding(n/N) ? Complete); verify failure at extraction, chunking, and embedding stages each record the correct `failureStage`; verify round-trip: TXT doc ingested and queryable by verbatim phrase
     - `OnDeviceQueryUseCase`: verify `NoRelevantContent` event when all similarity scores < 0.40; verify `ChunkCitation` list populated in `Done` event; verify Gemma engine never receives embedding/search method calls
     - `RouteQueryUseCase`: verify log entry created for every invocation; verify `ON_DEVICE` path when `bitmask == 0b1111`; verify `CLOUD` fallback recorded when any signal unset
