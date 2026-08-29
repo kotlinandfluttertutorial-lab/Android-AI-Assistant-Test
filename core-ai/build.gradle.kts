@@ -56,6 +56,9 @@ configurations.all {
 dependencies {
     api(project(":core-common"))
 
+    // On-Device RAG: LocalVectorIndex reads/writes OnDeviceChunkDao from core-database
+    implementation(project(":core-database"))
+
     // OkHttp WebSocket client
     implementation(libs.okhttp.core)
     implementation(libs.okhttp.logging)
