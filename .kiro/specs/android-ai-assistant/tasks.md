@@ -1004,24 +1004,24 @@ Implementation follows Clean Architecture from the ground up: core modules first
     - `OnDeviceDocumentViewModel`: verify `UiState` status transitions (pending ? processing ? ready / failed); verify files > 50 MB trigger rejection error state; verify low-storage warning state; verify delete action removes document from list in `UiState`
     - _Requirements: 21.1, 31.4_
 
-- [ ] 48. Property-based tests for On-Device RAG correctness properties
-  - [ ]* 48.1 Write property test for On-Device RAG Round-Trip (Property 37)
+- [x] 48. Property-based tests for On-Device RAG correctness properties
+  - [x] 48.1 Write property test for On-Device RAG Round-Trip (Property 37)
     - **Property 37: On-Device RAG Round-Trip** — **Validates: Requirements 35.10, 33.8**
     - Use Kotest PropTest; generate random TXT documents (100–2000 chars); ingest via `OnDeviceIngestDocumentUseCase`; pick verbatim 5-word phrase from document; query via `OnDeviceQueryUseCase` using mocked `OnDeviceInferenceEngine` that echoes retrieved context; assert response includes citation referencing source document name when cosine similarity threshold is met
 
-  - [ ]* 48.2 Write property test for Embedding Determinism (Property 38)
+  - [x] 48.2 Write property test for Embedding Determinism (Property 38)
     - **Property 38: Embedding Determinism** — **Validates: Requirements 34.5**
     - Use Kotest PropTest; generate random strings (1–512 chars); call `embeddingModel.generateEmbedding(text)` twice on same instance; assert `assertContentEquals(result1, result2)` for all inputs
 
-  - [ ]* 48.3 Write property test for Local Vector Index User Isolation (Property 39)
+  - [x] 48.3 Write property test for Local Vector Index User Isolation (Property 39)
     - **Property 39: Local Vector Index User Isolation** — **Validates: Requirements 34.8**
     - Use Kotest PropTest; generate two distinct user IDs (A and B); generate random chunks for user B; insert all under B's scope in an in-memory Room test database; search under user A with random query embedding (minSimilarity = 0f); assert zero results contain chunk IDs belonging to user B
 
-  - [ ]* 48.4 Write property test for Query Router Path Selection Correctness (Property 40)
+  - [x] 48.4 Write property test for Query Router Path Selection Correctness (Property 40)
     - **Property 40: Query Router Path Selection Correctness** — **Validates: Requirements 36.1, 36.2**
     - Use Kotest PropTest; generate all 16 bitmask values (0–15) × 3 preference options (null, PREFER_ON_DEVICE, PREFER_CLOUD); assert `decision.path == ON_DEVICE` iff `bitmask == 15 AND preference != PREFER_CLOUD`; assert `CLOUD` in all other cases; assert no other factor influences the decision
 
-  - [ ]* 48.5 Write property test for Gemma Generation-Only Isolation (Property 41)
+  - [x] 48.5 Write property test for Gemma Generation-Only Isolation (Property 41)
     - **Property 41: Gemma Generation-Only Isolation** — **Validates: Requirements 35.7**
     - Use Kotest PropTest; generate random query strings and document content; use spy `OnDeviceInferenceEngine` that records all method invocations; run full `OnDeviceQueryUseCase` pipeline; assert no "generateEmbedding", "search", or "parse" method calls appear in spy recording; assert only "generateStream", "cancelGeneration", "releaseMemory" (or empty) calls are present on the engine spy
 
