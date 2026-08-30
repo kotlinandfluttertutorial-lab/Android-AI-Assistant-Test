@@ -2029,7 +2029,7 @@ When `LocalReducedMotionEnabled.current == true`:
   - Apply navigation transitions via `AppTransition` in root `NavHost`
   - _Requirements: 19.1, 24.1, 24.2_
 
-- [ ] 50.4 Redesign Chat Screens
+- [x] 50.4 Redesign Chat Screens
   - Replace `OutlinedTextField` search with M3 `SearchBar` in `ChatListScreen`
   - Add `SwipeRevealLayout` composable (new, in `core-ui/components/`) for swipe-to-action on list rows
   - Extend `ChatBubble` in `core-ui` with asymmetric corner radii, provider avatar, long-press action callback
