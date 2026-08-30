@@ -67,21 +67,28 @@ from app.security.differential_privacy import (
 
 
 def _make_redis_mock(epsilon_value: str | None = None):
-    """Return a fake Redis client that doesn't confuse FastAPI inspection.
+    """Return a fake Redis client suitable for FastAPI dependency injection.
 
-    Uses MagicMock (not AsyncMock) as the container so FastAPI does not
-    treat the object itself as an awaitable/callable sub-dependency.
-    Each Redis method is individually wrapped in AsyncMock.
+    Builds a minimal stub object (not AsyncMock/MagicMock) so FastAPI's
+    dependency resolver does not mistake it for a coroutine or callable
+    sub-dependency.  Each method is an AsyncMock so ``await redis.method()``
+    works normally inside route handlers.
     """
-    redis_mock = MagicMock()
-    redis_mock.get = AsyncMock(return_value=epsilon_value)
-    redis_mock.set = AsyncMock()
-    redis_mock.incrbyfloat = AsyncMock()
-    redis_mock.keys = AsyncMock(return_value=[])
+    set_mock = AsyncMock()
+    get_mock = AsyncMock(return_value=epsilon_value)
+    incrbyfloat_mock = AsyncMock()
+    keys_mock = AsyncMock(return_value=[])
 
-    # .mock is a self-reference so callers can write mock_redis.mock.set.assert_*
-    redis_mock.mock = redis_mock
-    return redis_mock
+    class _FakeRedis:
+        set = set_mock
+        get = get_mock
+        incrbyfloat = incrbyfloat_mock
+        keys = keys_mock
+        mock = None  # filled in below
+
+    stub = _FakeRedis()
+    stub.mock = stub
+    return stub
 
 
 def _run(coro):
