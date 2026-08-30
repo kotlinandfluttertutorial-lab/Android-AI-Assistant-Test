@@ -323,14 +323,20 @@ class TestAdminEpsilonEndpoint:
 
         Requirements: 37.2, 37.6
         """
-        client, mock_redis = self._make_app_with_mocked_deps()
-        response = client.put("/admin/privacy/epsilon", json={"epsilon": 2.0})
+        with patch(
+            "app.security.differential_privacy.update_epsilon_in_redis",
+            new_callable=AsyncMock,
+        ) as mock_update:
+            client, _ = self._make_app_with_mocked_deps()
+            response = client.put("/admin/privacy/epsilon", json={"epsilon": 2.0})
         assert response.status_code == 200, f"Expected 200 but got {response.status_code}: {response.text}"
         data = response.json()
         assert data["epsilon"] == pytest.approx(2.0)
         assert data["mechanism"] == "Laplace"
-        # Verify Redis.set was called with the correct key and value
-        mock_redis.set.assert_called_once_with("dp:epsilon", "2.0")
+        # Verify update_epsilon_in_redis was called with the correct epsilon value
+        assert mock_update.call_count == 1
+        _, call_epsilon = mock_update.call_args[0]
+        assert call_epsilon == pytest.approx(2.0)
 
     def test_put_epsilon_boundary_minimum_returns_200(self) -> None:
         """PUT /admin/privacy/epsilon with epsilon=0.1 (boundary) must return HTTP 200.
