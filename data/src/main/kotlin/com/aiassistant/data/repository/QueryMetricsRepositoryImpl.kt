@@ -42,10 +42,7 @@ class QueryMetricsRepositoryImpl @Inject constructor() : QueryMetricsRepository 
         return ApiResult.Success(Unit)
     }
 
-    override suspend fun getRecentSamples(
-        userId: String,
-        limit: Int,
-    ): ApiResult<List<QueryMetricsSample>> {
+    override suspend fun getRecentSamples(userId: String, limit: Int): ApiResult<List<QueryMetricsSample>> {
         val result = samples
             .filter { it.userId == userId }
             .takeLast(limit)

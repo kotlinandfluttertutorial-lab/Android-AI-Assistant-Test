@@ -16,15 +16,15 @@ import com.aiassistant.domain.model.IngestionProgress
 import com.aiassistant.domain.model.OnDeviceDocument
 import com.aiassistant.domain.model.OnDeviceIngestionStatus
 import com.aiassistant.domain.repository.OnDeviceDocumentRepository
+import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import javax.inject.Inject
 
 class OnDeviceIngestDocumentUseCase @Inject constructor(
     private val documentRepository: OnDeviceDocumentRepository,
     private val chunker: Chunker,
     private val embeddingModel: OnDeviceEmbeddingModel,
-    private val vectorIndex: LocalVectorIndex,
+    private val vectorIndex: LocalVectorIndex
 ) {
 
     @Suppress("TooGenericExceptionCaught")
@@ -63,7 +63,10 @@ class OnDeviceIngestDocumentUseCase @Inject constructor(
     }
 
     private suspend fun kotlinx.coroutines.flow.FlowCollector<IngestionProgress>.handleError(
-        docId: String, stage: String, msg: String, chunksSoFar: Int = 0
+        docId: String,
+        stage: String,
+        msg: String,
+        chunksSoFar: Int = 0
     ) {
         documentRepository.updateStatus(docId, OnDeviceIngestionStatus.FAILED, stage, chunksSoFar)
         emit(IngestionProgress.Error(stage, msg))

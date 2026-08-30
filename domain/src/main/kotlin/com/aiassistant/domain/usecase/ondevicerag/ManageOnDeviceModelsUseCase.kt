@@ -19,25 +19,22 @@ import com.aiassistant.core.common.ApiResult
 import com.aiassistant.domain.model.OnDeviceModelInfo
 import com.aiassistant.domain.repository.DownloadProgress
 import com.aiassistant.domain.repository.ModelFileRepository
-import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
+import kotlinx.coroutines.flow.Flow
 
 /**
  * Manages the lifecycle of on-device AI model files (Gemma + embedding model).
  *
  * @param modelFileRepository Wraps WorkManager download jobs and file-system operations.
  */
-class ManageOnDeviceModelsUseCase @Inject constructor(
-    private val modelFileRepository: ModelFileRepository,
-) {
+class ManageOnDeviceModelsUseCase @Inject constructor(private val modelFileRepository: ModelFileRepository) {
 
     /**
      * Returns the list of models currently stored on the device.
      *
      * @return [ApiResult.Success] with a list of [OnDeviceModelInfo]; may be empty.
      */
-    suspend fun listModels(): ApiResult<List<OnDeviceModelInfo>> =
-        modelFileRepository.listModels()
+    suspend fun listModels(): ApiResult<List<OnDeviceModelInfo>> = modelFileRepository.listModels()
 
     /**
      * Starts a WorkManager job to download [model] and returns a live download
@@ -56,10 +53,7 @@ class ManageOnDeviceModelsUseCase @Inject constructor(
      *         - [ApiResult.Success] when download + checksum verification complete.
      *         - [ApiResult.Error] on failure.
      */
-    fun downloadModel(
-        model: OnDeviceModelInfo,
-        allowMetered: Boolean = false,
-    ): Flow<ApiResult<DownloadProgress>> =
+    fun downloadModel(model: OnDeviceModelInfo, allowMetered: Boolean = false): Flow<ApiResult<DownloadProgress>> =
         modelFileRepository.downloadModel(model, allowMetered)
 
     /**
@@ -69,14 +63,12 @@ class ManageOnDeviceModelsUseCase @Inject constructor(
      * the file is missing or corrupted.  Used by [OnDeviceEmbeddingModel] and
      * [OnDeviceInferenceEngine] to gate model loading.
      */
-    suspend fun verifyModel(model: OnDeviceModelInfo): ApiResult<Boolean> =
-        modelFileRepository.verifyModel(model)
+    suspend fun verifyModel(model: OnDeviceModelInfo): ApiResult<Boolean> = modelFileRepository.verifyModel(model)
 
     /**
      * Deletes the model file from internal storage.
      *
      * @return [ApiResult.Success] with [Unit] on success.
      */
-    suspend fun deleteModel(model: OnDeviceModelInfo): ApiResult<Unit> =
-        modelFileRepository.deleteModel(model)
+    suspend fun deleteModel(model: OnDeviceModelInfo): ApiResult<Unit> = modelFileRepository.deleteModel(model)
 }

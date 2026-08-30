@@ -22,32 +22,29 @@ import kotlinx.coroutines.withContext
 
 @Singleton
 class IncidentRepositoryImpl @Inject constructor(
-    private val remote:                IncidentRemoteDataSource,
-    private val connectivityObserver:  ConnectivityObserver,
-    private val dispatchers:           DispatcherProvider,
+    private val remote: IncidentRemoteDataSource,
+    private val connectivityObserver: ConnectivityObserver,
+    private val dispatchers: DispatcherProvider
 ) : IncidentRepository {
 
-    override suspend fun getIncidents(
-        status:   String?,
-        severity: String?,
-        limit:    Int,
-    ): ApiResult<List<Incident>> = withContext(dispatchers.io) {
-        if (!connectivityObserver.isConnected()) return@withContext ApiResult.NetworkUnavailable
+    override suspend fun getIncidents(status: String?, severity: String?, limit: Int): ApiResult<List<Incident>> =
+        withContext(dispatchers.io) {
+            if (!connectivityObserver.isConnected()) return@withContext ApiResult.NetworkUnavailable
 
-        when (val result = remote.listIncidents(status = status, severity = severity, limit = limit)) {
-            is ApiResult.Success -> ApiResult.Success(result.data.incidents.map { it.toDomain() })
-            is ApiResult.Error   -> result
-            is ApiResult.NetworkUnavailable -> ApiResult.NetworkUnavailable
-            is ApiResult.Loading -> ApiResult.Loading
+            when (val result = remote.listIncidents(status = status, severity = severity, limit = limit)) {
+                is ApiResult.Success -> ApiResult.Success(result.data.incidents.map { it.toDomain() })
+                is ApiResult.Error -> result
+                is ApiResult.NetworkUnavailable -> ApiResult.NetworkUnavailable
+                is ApiResult.Loading -> ApiResult.Loading
+            }
         }
-    }
 
     override suspend fun getOpenCount(): ApiResult<Int> = withContext(dispatchers.io) {
         if (!connectivityObserver.isConnected()) return@withContext ApiResult.NetworkUnavailable
 
         when (val result = remote.listIncidents(status = "OPEN", limit = 1)) {
             is ApiResult.Success -> ApiResult.Success(result.data.openCount)
-            is ApiResult.Error   -> result
+            is ApiResult.Error -> result
             is ApiResult.NetworkUnavailable -> ApiResult.NetworkUnavailable
             is ApiResult.Loading -> ApiResult.Loading
         }
@@ -57,20 +54,20 @@ class IncidentRepositoryImpl @Inject constructor(
 // ─── Mapper ───────────────────────────────────────────────────────────────────
 
 private fun com.aiassistant.data.remote.devops.IncidentDto.toDomain() = Incident(
-    id              = id,
-    title           = title,
-    severity        = IncidentSeverity.fromString(severity),
-    status          = IncidentStatus.fromString(status),
+    id = id,
+    title = title,
+    severity = IncidentSeverity.fromString(severity),
+    status = IncidentStatus.fromString(status),
     detectionMethod = detectionMethod,
-    triggeredBy     = triggeredBy,
-    metricValue     = metricValue,
-    thresholdValue  = thresholdValue,
-    aiSummary       = aiSummary,
-    aiConfidence    = aiConfidence,
-    aiRecommendedFix= aiRecommendedFix,
-    rcaSummary      = rcaSummary,
-    rcaConfidence   = rcaConfidence,
-    eventCount      = eventCount,
-    detectedAt      = detectedAt,
-    resolvedAt      = resolvedAt,
+    triggeredBy = triggeredBy,
+    metricValue = metricValue,
+    thresholdValue = thresholdValue,
+    aiSummary = aiSummary,
+    aiConfidence = aiConfidence,
+    aiRecommendedFix = aiRecommendedFix,
+    rcaSummary = rcaSummary,
+    rcaConfidence = rcaConfidence,
+    eventCount = eventCount,
+    detectedAt = detectedAt,
+    resolvedAt = resolvedAt
 )

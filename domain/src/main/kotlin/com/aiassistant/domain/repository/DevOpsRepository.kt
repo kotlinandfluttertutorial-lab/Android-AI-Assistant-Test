@@ -13,13 +13,7 @@ import com.aiassistant.domain.model.DevOpsChatResult
 
 interface DevOpsRepository {
 
-    suspend fun chat(
-        question: String,
-        provider: String? = null,
-    ): ApiResult<DevOpsChatResult>
+    suspend fun chat(question: String, provider: String? = null): ApiResult<DevOpsChatResult>
 
-    suspend fun analyseErrors(
-        lookbackMinutes: Int = 30,
-        sessionId: String? = null,
-    ): ApiResult<AiAnalysis>
+    suspend fun analyseErrors(lookbackMinutes: Int = 30, sessionId: String? = null): ApiResult<AiAnalysis>
 }

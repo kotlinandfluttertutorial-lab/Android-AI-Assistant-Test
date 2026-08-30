@@ -14,13 +14,11 @@ import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
-class IncidentRemoteDataSource @Inject constructor(
-    private val api: IncidentApiService,
-) {
+class IncidentRemoteDataSource @Inject constructor(private val api: IncidentApiService) {
     suspend fun listIncidents(
         status: String? = null,
         severity: String? = null,
-        limit: Int = 20,
+        limit: Int = 20
     ): ApiResult<IncidentListResponse> = safeCall {
         api.listIncidents(status = status, severity = severity, limit = limit)
     }
@@ -33,18 +31,14 @@ class IncidentRemoteDataSource @Inject constructor(
 // ─── DevOps remote data source ────────────────────────────────────────────────
 
 @Singleton
-class DevOpsRemoteDataSource @Inject constructor(
-    private val api: DevOpsApiService,
-) {
+class DevOpsRemoteDataSource @Inject constructor(private val api: DevOpsApiService) {
     suspend fun chat(question: String, provider: String? = null): ApiResult<DevOpsChatResponse> =
         safeCall { api.chat(DevOpsChatRequest(question = question, provider = provider)) }
 
-    suspend fun analyseErrors(
-        lookbackMinutes: Int = 30,
-        sessionId: String? = null,
-    ): ApiResult<ErrorAnalysisResponse> = safeCall {
-        api.analyseErrors(ErrorAnalysisRequest(lookbackMinutes = lookbackMinutes, sessionId = sessionId))
-    }
+    suspend fun analyseErrors(lookbackMinutes: Int = 30, sessionId: String? = null): ApiResult<ErrorAnalysisResponse> =
+        safeCall {
+            api.analyseErrors(ErrorAnalysisRequest(lookbackMinutes = lookbackMinutes, sessionId = sessionId))
+        }
 }
 
 // ─── Shared helper ────────────────────────────────────────────────────────────

@@ -15,11 +15,11 @@
  */
 package com.aiassistant.domain.usecase.ondevicerag
 
-import com.aiassistant.core.common.CapabilityBit
-import com.aiassistant.core.common.QueryRouter
 import com.aiassistant.core.common.ApiResult
-import com.aiassistant.core.common.RoutingDecision
+import com.aiassistant.core.common.CapabilityBit
 import com.aiassistant.core.common.InferencePath
+import com.aiassistant.core.common.QueryRouter
+import com.aiassistant.core.common.RoutingDecision
 import com.aiassistant.domain.model.OnDeviceInferencePath
 import com.aiassistant.domain.repository.QueryRoutingLogRepository
 import io.kotest.core.spec.style.DescribeSpec
@@ -29,103 +29,104 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 
-class RouteQueryUseCaseTest : DescribeSpec({
+class RouteQueryUseCaseTest :
+    DescribeSpec({
 
-    val router = mockk<QueryRouter>()
+        val router = mockk<QueryRouter>()
 
-    describe("RouteQueryUseCase — routing decisions") {
+        describe("RouteQueryUseCase — routing decisions") {
 
-        it("returns ON_DEVICE when bitmask == 15 and no preference") {
-            val logRepo = mockk<QueryRoutingLogRepository>(relaxed = true)
-            val useCase = RouteQueryUseCase(router, logRepo)
+            it("returns ON_DEVICE when bitmask == 15 and no preference") {
+                val logRepo = mockk<QueryRoutingLogRepository>(relaxed = true)
+                val useCase = RouteQueryUseCase(router, logRepo)
 
-            coEvery { router.evaluate(any(), any()) } returns RoutingDecision(
-                path = InferencePath.ON_DEVICE,
-                capabilityBitmask = CapabilityBit.FULLY_CAPABLE,
-                reason = "test"
-            )
-            val result = useCase("user1", CapabilityBit.FULLY_CAPABLE, null)
+                coEvery { router.evaluate(any(), any()) } returns RoutingDecision(
+                    path = InferencePath.ON_DEVICE,
+                    capabilityBitmask = CapabilityBit.FULLY_CAPABLE,
+                    reason = "test"
+                )
+                val result = useCase("user1", CapabilityBit.FULLY_CAPABLE, null)
 
-            result.shouldBeInstanceOf<ApiResult.Success<*>>()
-            (result as ApiResult.Success).data.path shouldBe OnDeviceInferencePath.ON_DEVICE
+                result.shouldBeInstanceOf<ApiResult.Success<*>>()
+                (result as ApiResult.Success).data.path shouldBe OnDeviceInferencePath.ON_DEVICE
+            }
+
+            it("returns CLOUD when bitmask is 0 (no signals present)") {
+                val logRepo = mockk<QueryRoutingLogRepository>(relaxed = true)
+                val useCase = RouteQueryUseCase(router, logRepo)
+
+                coEvery { router.evaluate(any(), any()) } returns RoutingDecision(
+                    path = InferencePath.CLOUD,
+                    capabilityBitmask = 0,
+                    reason = "test"
+                )
+                val result = useCase("user1", 0, null)
+
+                (result as ApiResult.Success).data.path shouldBe OnDeviceInferencePath.CLOUD
+            }
+
+            it("creates a log entry for every invocation — even on CLOUD path") {
+                val logRepo = mockk<QueryRoutingLogRepository>(relaxed = true)
+                coEvery { logRepo.logDecision(any(), any()) } returns ApiResult.Success(Unit)
+                val useCase = RouteQueryUseCase(router, logRepo)
+
+                coEvery { router.evaluate(any(), any()) } returns RoutingDecision(
+                    path = InferencePath.CLOUD,
+                    capabilityBitmask = 0,
+                    reason = "test"
+                )
+                useCase("user1", 0, null)
+                useCase("user1", 15, null)
+                useCase("user1", 7, null)
+
+                coVerify(exactly = 3) { logRepo.logDecision(eq("user1"), any()) }
+            }
+
+            it("returns ON_DEVICE for offline on-device-capable bitmask (7) regardless of PREFER_CLOUD") {
+                val logRepo = mockk<QueryRoutingLogRepository>(relaxed = true)
+                val useCase = RouteQueryUseCase(router, logRepo)
+
+                coEvery { router.evaluate(any(), any()) } returns RoutingDecision(
+                    path = InferencePath.ON_DEVICE,
+                    capabilityBitmask = 7,
+                    reason = "test"
+                )
+                // bitmask 7 = bits 0-2 set, bit 3 unset → offline
+                val result = useCase("user1", 7, com.aiassistant.domain.model.OnDevicePathPreference.PREFER_CLOUD)
+
+                (result as ApiResult.Success).data.path shouldBe OnDeviceInferencePath.ON_DEVICE
+            }
+
+            it("log failure does not propagate as an error — result is still Success") {
+                val logRepo = mockk<QueryRoutingLogRepository>()
+                coEvery { logRepo.logDecision(any(), any()) } throws RuntimeException("DB error")
+                val useCase = RouteQueryUseCase(router, logRepo)
+
+                coEvery { router.evaluate(any(), any()) } returns RoutingDecision(
+                    path = InferencePath.ON_DEVICE,
+                    capabilityBitmask = 15,
+                    reason = "test"
+                )
+                // Should not throw — log failures are swallowed
+                val result = useCase("user1", 15, null)
+                result.shouldBeInstanceOf<ApiResult.Success<*>>()
+            }
         }
 
-        it("returns CLOUD when bitmask is 0 (no signals present)") {
-            val logRepo = mockk<QueryRoutingLogRepository>(relaxed = true)
-            val useCase = RouteQueryUseCase(router, logRepo)
+        describe("RouteQueryUseCase — fallbackOccurred field") {
 
-            coEvery { router.evaluate(any(), any()) } returns RoutingDecision(
-                path = InferencePath.CLOUD,
-                capabilityBitmask = 0,
-                reason = "test"
-            )
-            val result = useCase("user1", 0, null)
+            it("defaults to false on initial evaluate() call") {
+                val logRepo = mockk<QueryRoutingLogRepository>(relaxed = true)
+                val useCase = RouteQueryUseCase(router, logRepo)
 
-            (result as ApiResult.Success).data.path shouldBe OnDeviceInferencePath.CLOUD
+                coEvery { router.evaluate(any(), any()) } returns RoutingDecision(
+                    path = InferencePath.ON_DEVICE,
+                    capabilityBitmask = 15,
+                    reason = "test",
+                    fallbackOccurred = false
+                )
+                val result = useCase("user1", 15, null)
+                (result as ApiResult.Success).data.fallbackOccurred shouldBe false
+            }
         }
-
-        it("creates a log entry for every invocation — even on CLOUD path") {
-            val logRepo = mockk<QueryRoutingLogRepository>(relaxed = true)
-            coEvery { logRepo.logDecision(any(), any()) } returns ApiResult.Success(Unit)
-            val useCase = RouteQueryUseCase(router, logRepo)
-
-            coEvery { router.evaluate(any(), any()) } returns RoutingDecision(
-                path = InferencePath.CLOUD,
-                capabilityBitmask = 0,
-                reason = "test"
-            )
-            useCase("user1", 0, null)
-            useCase("user1", 15, null)
-            useCase("user1", 7, null)
-
-            coVerify(exactly = 3) { logRepo.logDecision(eq("user1"), any()) }
-        }
-
-        it("returns ON_DEVICE for offline on-device-capable bitmask (7) regardless of PREFER_CLOUD") {
-            val logRepo = mockk<QueryRoutingLogRepository>(relaxed = true)
-            val useCase = RouteQueryUseCase(router, logRepo)
-
-            coEvery { router.evaluate(any(), any()) } returns RoutingDecision(
-                path = InferencePath.ON_DEVICE,
-                capabilityBitmask = 7,
-                reason = "test"
-            )
-            // bitmask 7 = bits 0-2 set, bit 3 unset → offline
-            val result = useCase("user1", 7, com.aiassistant.domain.model.OnDevicePathPreference.PREFER_CLOUD)
-
-            (result as ApiResult.Success).data.path shouldBe OnDeviceInferencePath.ON_DEVICE
-        }
-
-        it("log failure does not propagate as an error — result is still Success") {
-            val logRepo = mockk<QueryRoutingLogRepository>()
-            coEvery { logRepo.logDecision(any(), any()) } throws RuntimeException("DB error")
-            val useCase = RouteQueryUseCase(router, logRepo)
-
-            coEvery { router.evaluate(any(), any()) } returns RoutingDecision(
-                path = InferencePath.ON_DEVICE,
-                capabilityBitmask = 15,
-                reason = "test"
-            )
-            // Should not throw — log failures are swallowed
-            val result = useCase("user1", 15, null)
-            result.shouldBeInstanceOf<ApiResult.Success<*>>()
-        }
-    }
-
-    describe("RouteQueryUseCase — fallbackOccurred field") {
-
-        it("defaults to false on initial evaluate() call") {
-            val logRepo = mockk<QueryRoutingLogRepository>(relaxed = true)
-            val useCase = RouteQueryUseCase(router, logRepo)
-
-            coEvery { router.evaluate(any(), any()) } returns RoutingDecision(
-                path = InferencePath.ON_DEVICE,
-                capabilityBitmask = 15,
-                reason = "test",
-                fallbackOccurred = false
-            )
-            val result = useCase("user1", 15, null)
-            (result as ApiResult.Success).data.fallbackOccurred shouldBe false
-        }
-    }
-})
+    })

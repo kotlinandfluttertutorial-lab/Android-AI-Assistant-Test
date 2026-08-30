@@ -21,13 +21,13 @@ import javax.inject.Inject
 
 class RouteQueryUseCase @Inject constructor(
     private val queryRouter: QueryRouter,
-    private val routingLogRepository: QueryRoutingLogRepository,
+    private val routingLogRepository: QueryRoutingLogRepository
 ) {
 
     suspend operator fun invoke(
         userId: String,
         capabilityBitmask: Int,
-        userPreference: OnDevicePathPreference?,
+        userPreference: OnDevicePathPreference?
     ): ApiResult<OnDeviceRoutingDecision> {
         val corePreference = userPreference?.toCoreAi()
         val coreDecision = queryRouter.evaluate(capabilityBitmask, corePreference)
@@ -36,7 +36,7 @@ class RouteQueryUseCase @Inject constructor(
             path = coreDecision.path.toDomain(),
             capabilityBitmask = coreDecision.capabilityBitmask,
             reason = coreDecision.reason,
-            fallbackOccurred = coreDecision.fallbackOccurred,
+            fallbackOccurred = coreDecision.fallbackOccurred
         )
 
         runCatching {

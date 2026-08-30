@@ -40,90 +40,90 @@ import androidx.compose.ui.unit.dp
 import com.aiassistant.domain.model.AiAnalysis
 
 @Composable
-fun AiAnalysisCard(
-    analysis: AiAnalysis,
-    modifier: Modifier = Modifier,
-) {
+fun AiAnalysisCard(analysis: AiAnalysis, modifier: Modifier = Modifier) {
     var expanded by rememberSaveable { mutableStateOf(true) }
     val confidencePct = (analysis.confidence * 100).toInt()
     val isLowConfidence = analysis.confidence < 0.6
 
     Card(
         modifier = modifier.fillMaxWidth(),
-        colors   = CardDefaults.cardColors(
-            containerColor = if (isLowConfidence)
+        colors = CardDefaults.cardColors(
+            containerColor = if (isLowConfidence) {
                 MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
-            else
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f),
+            } else {
+                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+            }
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             // Header row
             Row(
-                modifier          = Modifier
+                modifier = Modifier
                     .fillMaxWidth()
                     .clickable { expanded = !expanded }
                     .semantics { contentDescription = "AI Analysis, tap to ${if (expanded) "collapse" else "expand"}" },
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Row(
-                    verticalAlignment     = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Icon(
-                        imageVector        = Icons.Outlined.Psychology,
+                        imageVector = Icons.Outlined.Psychology,
                         contentDescription = null,
-                        tint               = MaterialTheme.colorScheme.primary,
+                        tint = MaterialTheme.colorScheme.primary
                     )
                     Text(
-                        text  = "AI Error Analysis",
-                        style = MaterialTheme.typography.titleSmall,
+                        text = "AI Error Analysis",
+                        style = MaterialTheme.typography.titleSmall
                     )
                 }
                 Icon(
-                    imageVector        = if (expanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
-                    contentDescription = null,
+                    imageVector = if (expanded) Icons.Outlined.ExpandLess else Icons.Outlined.ExpandMore,
+                    contentDescription = null
                 )
             }
 
             // Summary always visible
             Spacer(Modifier.height(8.dp))
             Text(
-                text  = analysis.summary,
-                style = MaterialTheme.typography.bodyMedium,
+                text = analysis.summary,
+                style = MaterialTheme.typography.bodyMedium
             )
 
             // Confidence bar
             Spacer(Modifier.height(8.dp))
             Text(
-                text  = "Confidence: $confidencePct%",
+                text = "Confidence: $confidencePct%",
                 style = MaterialTheme.typography.labelMedium,
-                color = if (isLowConfidence)
+                color = if (isLowConfidence) {
                     MaterialTheme.colorScheme.error
-                else
-                    MaterialTheme.colorScheme.primary,
+                } else {
+                    MaterialTheme.colorScheme.primary
+                }
             )
             Spacer(Modifier.height(4.dp))
             LinearProgressIndicator(
-                progress  = { analysis.confidence.toFloat().coerceIn(0f, 1f) },
-                modifier  = Modifier
+                progress = { analysis.confidence.toFloat().coerceIn(0f, 1f) },
+                modifier = Modifier
                     .fillMaxWidth()
                     .semantics { contentDescription = "Confidence $confidencePct percent" },
-                color     = if (isLowConfidence)
+                color = if (isLowConfidence) {
                     MaterialTheme.colorScheme.error
-                else
-                    MaterialTheme.colorScheme.primary,
+                } else {
+                    MaterialTheme.colorScheme.primary
+                }
             )
 
             // Low confidence warning
             analysis.lowConfidenceWarning?.let { warning ->
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text  = warning,
+                    text = warning,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error,
+                    color = MaterialTheme.colorScheme.error
                 )
             }
 
@@ -134,28 +134,28 @@ fun AiAnalysisCard(
 
                     // Likely root cause
                     Text(
-                        text  = "Likely Root Cause",
+                        text = "Likely Root Cause",
                         style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(Modifier.height(2.dp))
                     Text(
-                        text  = analysis.likelyRootCause,
-                        style = MaterialTheme.typography.bodySmall,
+                        text = analysis.likelyRootCause,
+                        style = MaterialTheme.typography.bodySmall
                     )
 
                     // Recommended fix
                     if (analysis.recommendedFix.isNotBlank()) {
                         Spacer(Modifier.height(10.dp))
                         Text(
-                            text  = "Recommended Fix",
+                            text = "Recommended Fix",
                             style = MaterialTheme.typography.labelMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Spacer(Modifier.height(2.dp))
                         Text(
-                            text  = analysis.recommendedFix,
-                            style = MaterialTheme.typography.bodySmall,
+                            text = analysis.recommendedFix,
+                            style = MaterialTheme.typography.bodySmall
                         )
                     }
 
@@ -163,9 +163,9 @@ fun AiAnalysisCard(
                     if (analysis.eventsAnalysed > 0) {
                         Spacer(Modifier.height(8.dp))
                         Text(
-                            text  = "${analysis.eventsAnalysed} events analysed · ${analysis.relatedDocs.size} docs retrieved",
+                            text = "${analysis.eventsAnalysed} events analysed · ${analysis.relatedDocs.size} docs retrieved",
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }

@@ -18,22 +18,20 @@ import javax.inject.Inject
 
 class DeleteOnDeviceDocumentUseCase @Inject constructor(
     private val vectorIndex: LocalVectorIndex,
-    private val documentRepository: OnDeviceDocumentRepository,
+    private val documentRepository: OnDeviceDocumentRepository
 ) {
 
     @Suppress("TooGenericExceptionCaught")
-    suspend operator fun invoke(documentId: String, userId: String): ApiResult<Unit> {
-        return try {
-            vectorIndex.deleteByDocument(userId, documentId)
-            documentRepository.deleteDocument(documentId, userId)
-            ApiResult.Success(Unit)
-        } catch (e: Exception) {
-            ApiResult.Error(
-                DomainError.ServerError(
-                    message = "Failed to delete on-device document $documentId: ${e.message}",
-                    httpStatusCode = 500,
-                )
+    suspend operator fun invoke(documentId: String, userId: String): ApiResult<Unit> = try {
+        vectorIndex.deleteByDocument(userId, documentId)
+        documentRepository.deleteDocument(documentId, userId)
+        ApiResult.Success(Unit)
+    } catch (e: Exception) {
+        ApiResult.Error(
+            DomainError.ServerError(
+                message = "Failed to delete on-device document $documentId: ${e.message}",
+                httpStatusCode = 500
             )
-        }
+        )
     }
 }

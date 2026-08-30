@@ -88,10 +88,10 @@ object ObservabilityModule {
     @Singleton
     fun provideObservabilityManager(
         bus: ObservabilityEventBus,
-        dispatcherProvider: DispatcherProvider,
+        dispatcherProvider: DispatcherProvider
     ): ObservabilityManager = ObservabilityManager(
         bus = bus,
-        dispatcherProvider = dispatcherProvider,
+        dispatcherProvider = dispatcherProvider
     ).also { manager ->
         manager.startCollecting()
     }

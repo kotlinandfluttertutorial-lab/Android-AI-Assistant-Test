@@ -12,16 +12,14 @@ import com.aiassistant.domain.model.Incident
 import com.aiassistant.domain.repository.IncidentRepository
 import javax.inject.Inject
 
-class GetIncidentsUseCase @Inject constructor(
-    private val repository: IncidentRepository,
-) {
+class GetIncidentsUseCase @Inject constructor(private val repository: IncidentRepository) {
     suspend operator fun invoke(
-        status:   String? = null,
+        status: String? = null,
         severity: String? = null,
-        limit:    Int     = 20,
+        limit: Int = 20
     ): ApiResult<List<Incident>> = repository.getIncidents(
-        status   = status,
+        status = status,
         severity = severity,
-        limit    = limit,
+        limit = limit
     )
 }

@@ -34,16 +34,16 @@ import com.aiassistant.core.database.entity.OnDeviceDocumentEntity
 import com.aiassistant.domain.model.OnDeviceDocument
 import com.aiassistant.domain.model.OnDeviceIngestionStatus
 import com.aiassistant.domain.repository.OnDeviceDocumentRepository
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.withContext
-import javax.inject.Inject
-import javax.inject.Singleton
 
 @Singleton
 class OnDeviceDocumentRepositoryImpl @Inject constructor(
     private val documentDao: OnDeviceDocumentDao,
-    private val dispatchers: DispatcherProvider,
+    private val dispatchers: DispatcherProvider
 ) : OnDeviceDocumentRepository {
 
     // ── OnDeviceDocumentRepository ────────────────────────────────────────
@@ -62,7 +62,8 @@ class OnDeviceDocumentRepositoryImpl @Inject constructor(
             } catch (e: Exception) {
                 ApiResult.Error(
                     com.aiassistant.core.common.DomainError.ServerError(
-                        message = "Failed to save document: ${e.message}", httpStatusCode = 500
+                        message = "Failed to save document: ${e.message}",
+                        httpStatusCode = 500
                     )
                 )
             }
@@ -73,7 +74,7 @@ class OnDeviceDocumentRepositoryImpl @Inject constructor(
         id: String,
         status: OnDeviceIngestionStatus,
         failureStage: String?,
-        totalChunks: Int,
+        totalChunks: Int
     ): ApiResult<Unit> = withContext(dispatchers.io) {
         try {
             documentDao.updateStatus(id, status.value, failureStage, totalChunks)
@@ -81,26 +82,27 @@ class OnDeviceDocumentRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             ApiResult.Error(
                 com.aiassistant.core.common.DomainError.ServerError(
-                    message = "Failed to update document status: ${e.message}", httpStatusCode = 500
+                    message = "Failed to update document status: ${e.message}",
+                    httpStatusCode = 500
                 )
             )
         }
     }
 
     @Suppress("TooGenericExceptionCaught")
-    override suspend fun deleteDocument(id: String, userId: String): ApiResult<Unit> =
-        withContext(dispatchers.io) {
-            try {
-                documentDao.delete(id, userId)
-                ApiResult.Success(Unit)
-            } catch (e: Exception) {
-                ApiResult.Error(
-                    com.aiassistant.core.common.DomainError.ServerError(
-                        message = "Failed to delete document: ${e.message}", httpStatusCode = 500
-                    )
+    override suspend fun deleteDocument(id: String, userId: String): ApiResult<Unit> = withContext(dispatchers.io) {
+        try {
+            documentDao.delete(id, userId)
+            ApiResult.Success(Unit)
+        } catch (e: Exception) {
+            ApiResult.Error(
+                com.aiassistant.core.common.DomainError.ServerError(
+                    message = "Failed to delete document: ${e.message}",
+                    httpStatusCode = 500
                 )
-            }
+            )
         }
+    }
 
     // ── Entity ↔ Domain mappers ───────────────────────────────────────────
 
@@ -113,7 +115,7 @@ class OnDeviceDocumentRepositoryImpl @Inject constructor(
         totalChunks = totalChunks,
         ingestionStatus = OnDeviceIngestionStatus.fromValue(ingestionStatus),
         failureStage = failureStage,
-        createdAt = createdAt,
+        createdAt = createdAt
     )
 
     private fun OnDeviceDocument.toEntity() = OnDeviceDocumentEntity(
@@ -125,6 +127,6 @@ class OnDeviceDocumentRepositoryImpl @Inject constructor(
         totalChunks = totalChunks,
         ingestionStatus = ingestionStatus.value,
         failureStage = failureStage,
-        createdAt = createdAt,
+        createdAt = createdAt
     )
 }

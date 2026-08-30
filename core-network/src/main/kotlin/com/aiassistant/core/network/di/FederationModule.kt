@@ -116,13 +116,12 @@ object FederationModule {
     fun provideFederationConfigRepository(
         remoteConfig: FirebaseRemoteConfig,
         json: Json,
-        @Named("isDebugBuild") isDebug: Boolean,
-    ): FederationConfigRepository =
-        FederationConfigRepository(
-            remoteConfig = remoteConfig,
-            json = json,
-            isDebugBuild = isDebug
-        )
+        @Named("isDebugBuild") isDebug: Boolean
+    ): FederationConfigRepository = FederationConfigRepository(
+        remoteConfig = remoteConfig,
+        json = json,
+        isDebugBuild = isDebug
+    )
 
     @Provides
     @Singleton
@@ -174,7 +173,7 @@ object FederationModule {
         refreshTokenInterceptor: RefreshTokenInterceptor,
         observabilityInterceptor: NetworkObservabilityInterceptor,
         loggingInterceptor: HttpLoggingInterceptor,
-        failoverInterceptor: FailoverInterceptor,
+        failoverInterceptor: FailoverInterceptor
     ): OkHttpClient = OkHttpClient.Builder()
         // FailoverInterceptor MUST come first to rewrite the base URL before auth/pinning.
         .addInterceptor(failoverInterceptor)

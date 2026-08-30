@@ -18,9 +18,7 @@ import com.aiassistant.domain.model.OnDeviceAccelerator
 import com.aiassistant.domain.model.OnDeviceBenchmarkResult
 import javax.inject.Inject
 
-class BenchmarkOnDeviceUseCase @Inject constructor(
-    private val inferenceEngine: OnDeviceInferenceEngine,
-) {
+class BenchmarkOnDeviceUseCase @Inject constructor(private val inferenceEngine: OnDeviceInferenceEngine) {
 
     @Suppress("TooGenericExceptionCaught")
     suspend operator fun invoke(): ApiResult<OnDeviceBenchmarkResult> = try {
@@ -31,14 +29,14 @@ class BenchmarkOnDeviceUseCase @Inject constructor(
             ttftP95Ms = coreResult.ttftP95Ms,
             tokensPerSecMean = coreResult.tokensPerSecMean,
             tokensPerSecP95 = coreResult.tokensPerSecP95,
-            peakRamMb = coreResult.peakRamMb,
+            peakRamMb = coreResult.peakRamMb
         )
         ApiResult.Success(domainResult)
     } catch (e: Exception) {
         ApiResult.Error(
             DomainError.ServerError(
                 message = "Benchmark failed: ${e.message}",
-                httpStatusCode = 500,
+                httpStatusCode = 500
             )
         )
     }

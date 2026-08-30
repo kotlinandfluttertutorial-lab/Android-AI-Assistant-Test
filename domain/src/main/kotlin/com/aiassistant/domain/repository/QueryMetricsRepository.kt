@@ -37,7 +37,7 @@ data class QueryMetricsSample(
     val tokensGenerated: Int,
     val generationTimeMs: Long,
     val peakRamMb: Int,
-    val accelerator: String,
+    val accelerator: String
 )
 
 /**

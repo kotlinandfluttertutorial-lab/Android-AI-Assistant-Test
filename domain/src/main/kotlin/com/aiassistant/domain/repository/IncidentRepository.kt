@@ -15,7 +15,7 @@ interface IncidentRepository {
     suspend fun getIncidents(
         status: String? = null,
         severity: String? = null,
-        limit: Int = 20,
+        limit: Int = 20
     ): ApiResult<List<Incident>>
 
     suspend fun getOpenCount(): ApiResult<Int>

@@ -83,7 +83,7 @@ import com.aiassistant.core.database.entity.UserEntity
         // ── On-Device RAG entities (added v3) ───────────────────────────────
         OnDeviceDocumentEntity::class,
         OnDeviceChunkEntity::class,
-        QueryRoutingLogEntity::class,
+        QueryRoutingLogEntity::class
     ],
     version = 3,
     exportSchema = true

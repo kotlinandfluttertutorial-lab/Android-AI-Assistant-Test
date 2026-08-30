@@ -66,18 +66,14 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.aiassistant.core.ui.components.ErrorBanner
 import com.aiassistant.core.ui.components.OfflineBanner
-import com.aiassistant.domain.model.Incident
 import com.aiassistant.feature.dashboard.components.AiAnalysisCard
 import com.aiassistant.feature.dashboard.components.DevOpsChatCard
 import com.aiassistant.feature.dashboard.components.IncidentListItem
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun DashboardScreen(
-    onIncidentClick: (String) -> Unit = {},
-    viewModel: DashboardViewModel = hiltViewModel(),
-) {
-    val uiState   by viewModel.uiState.collectAsState()
+fun DashboardScreen(onIncidentClick: (String) -> Unit = {}, viewModel: DashboardViewModel = hiltViewModel()) {
+    val uiState by viewModel.uiState.collectAsState()
     val chatState by viewModel.chatState.collectAsState()
     val isOffline by viewModel.isOffline.collectAsState()
 
@@ -88,18 +84,18 @@ fun DashboardScreen(
                 actions = {
                     IconButton(
                         onClick = viewModel::refresh,
-                        modifier = Modifier.semantics { contentDescription = "Refresh dashboard" },
+                        modifier = Modifier.semantics { contentDescription = "Refresh dashboard" }
                     ) {
                         Icon(Icons.Outlined.Refresh, contentDescription = null)
                     }
-                },
+                }
             )
         }
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(innerPadding)
         ) {
             // Offline banner (persistent at top)
             if (isOffline) {
@@ -109,8 +105,8 @@ fun DashboardScreen(
             when (val state = uiState) {
                 is DashboardUiState.Loading -> {
                     Box(
-                        modifier          = Modifier.fillMaxSize(),
-                        contentAlignment  = Alignment.Center,
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
                     ) {
                         CircularProgressIndicator(
                             modifier = Modifier.semantics {
@@ -122,27 +118,27 @@ fun DashboardScreen(
 
                 is DashboardUiState.Error -> {
                     ErrorBanner(
-                        message   = state.message,
-                        onRetry   = viewModel::refresh,
-                        modifier  = Modifier
+                        message = state.message,
+                        onRetry = viewModel::refresh,
+                        modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp),
+                            .padding(16.dp)
                     )
                 }
 
                 is DashboardUiState.Content -> {
                     PullToRefreshBox(
                         isRefreshing = state.isRefreshing,
-                        onRefresh    = viewModel::refresh,
-                        modifier     = Modifier.fillMaxSize(),
+                        onRefresh = viewModel::refresh,
+                        modifier = Modifier.fillMaxSize()
                     ) {
                         LazyColumn(
-                            modifier              = Modifier.fillMaxSize(),
-                            verticalArrangement   = Arrangement.spacedBy(12.dp),
-                            contentPadding        = androidx.compose.foundation.layout.PaddingValues(
+                            modifier = Modifier.fillMaxSize(),
+                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            contentPadding = androidx.compose.foundation.layout.PaddingValues(
                                 horizontal = 16.dp,
-                                vertical   = 12.dp,
-                            ),
+                                vertical = 12.dp
+                            )
                         ) {
                             // ── Incident count chips ──────────────────────────
                             item(key = "counts") {
@@ -159,31 +155,31 @@ fun DashboardScreen(
                             // ── Recent Incidents header ───────────────────────
                             item(key = "incidents_header") {
                                 Text(
-                                    text  = "Recent Incidents (${state.incidents.size})",
+                                    text = "Recent Incidents (${state.incidents.size})",
                                     style = MaterialTheme.typography.titleSmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                             }
 
                             if (state.incidents.isEmpty()) {
                                 item(key = "incidents_empty") {
                                     Text(
-                                        text  = "No incidents in the last 20 records.",
+                                        text = "No incidents in the last 20 records.",
                                         style = MaterialTheme.typography.bodySmall,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                         modifier = Modifier.semantics {
                                             contentDescription = "No incidents found"
-                                        },
+                                        }
                                     )
                                 }
                             } else {
                                 items(
                                     items = state.incidents,
-                                    key   = { it.id },
+                                    key = { it.id }
                                 ) { incident ->
                                     IncidentListItem(
                                         incident = incident,
-                                        onClick  = { onIncidentClick(incident.id) },
+                                        onClick = { onIncidentClick(incident.id) }
                                     )
                                 }
                             }
@@ -192,8 +188,8 @@ fun DashboardScreen(
                             item(key = "chat") {
                                 DevOpsChatCard(
                                     chatState = chatState,
-                                    onSubmit  = viewModel::askQuestion,
-                                    onClear   = viewModel::clearChat,
+                                    onSubmit = viewModel::askQuestion,
+                                    onClear = viewModel::clearChat
                                 )
                             }
 
@@ -211,70 +207,70 @@ fun DashboardScreen(
 @Composable
 private fun IncidentCountsRow(counts: IncidentCounts, modifier: Modifier = Modifier) {
     Row(
-        modifier              = modifier.fillMaxWidth(),
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         CountChip(
-            label  = "Critical",
-            count  = counts.critical,
-            color  = MaterialTheme.colorScheme.error,
+            label = "Critical",
+            count = counts.critical,
+            color = MaterialTheme.colorScheme.error,
             onColor = MaterialTheme.colorScheme.onError,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f)
         )
         CountChip(
-            label  = "High",
-            count  = counts.high,
-            color  = MaterialTheme.colorScheme.errorContainer,
+            label = "High",
+            count = counts.high,
+            color = MaterialTheme.colorScheme.errorContainer,
             onColor = MaterialTheme.colorScheme.onErrorContainer,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f)
         )
         CountChip(
-            label  = "Medium",
-            count  = counts.medium,
-            color  = androidx.compose.ui.graphics.Color(0xFFFFDDB3),
+            label = "Medium",
+            count = counts.medium,
+            color = androidx.compose.ui.graphics.Color(0xFFFFDDB3),
             onColor = androidx.compose.ui.graphics.Color(0xFF5B2D00),
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f)
         )
         CountChip(
-            label  = "Open",
-            count  = counts.open,
-            color  = MaterialTheme.colorScheme.primaryContainer,
+            label = "Open",
+            count = counts.open,
+            color = MaterialTheme.colorScheme.primaryContainer,
             onColor = MaterialTheme.colorScheme.onPrimaryContainer,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f)
         )
     }
 }
 
 @Composable
 private fun CountChip(
-    label:    String,
-    count:    Int,
-    color:    androidx.compose.ui.graphics.Color,
-    onColor:  androidx.compose.ui.graphics.Color,
-    modifier: Modifier = Modifier,
+    label: String,
+    count: Int,
+    color: androidx.compose.ui.graphics.Color,
+    onColor: androidx.compose.ui.graphics.Color,
+    modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier.semantics {
             contentDescription = "$count $label incidents"
         },
-        colors   = CardDefaults.cardColors(containerColor = color),
+        colors = CardDefaults.cardColors(containerColor = color)
     ) {
         Column(
-            modifier              = Modifier
+            modifier = Modifier
                 .fillMaxWidth()
                 .padding(vertical = 10.dp),
-            horizontalAlignment   = Alignment.CenterHorizontally,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                text       = count.toString(),
-                style      = MaterialTheme.typography.titleLarge,
+                text = count.toString(),
+                style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color      = onColor,
+                color = onColor
             )
             Text(
-                text  = label,
+                text = label,
                 style = MaterialTheme.typography.labelSmall,
-                color = onColor,
+                color = onColor
             )
         }
     }

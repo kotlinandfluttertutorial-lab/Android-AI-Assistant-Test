@@ -46,28 +46,20 @@ abstract class OnDeviceRagModule {
     /** Binds offline-first document persistence to the domain interface. */
     @Binds
     @Singleton
-    abstract fun bindOnDeviceDocumentRepository(
-        impl: OnDeviceDocumentRepositoryImpl,
-    ): OnDeviceDocumentRepository
+    abstract fun bindOnDeviceDocumentRepository(impl: OnDeviceDocumentRepositoryImpl): OnDeviceDocumentRepository
 
     /** Binds WorkManager-backed model file management to the domain interface. */
     @Binds
     @Singleton
-    abstract fun bindModelFileRepository(
-        impl: ModelFileRepositoryImpl,
-    ): ModelFileRepository
+    abstract fun bindModelFileRepository(impl: ModelFileRepositoryImpl): ModelFileRepository
 
     /** Binds Room-backed routing audit log to the domain interface. */
     @Binds
     @Singleton
-    abstract fun bindQueryRoutingLogRepository(
-        impl: QueryRoutingLogRepositoryImpl,
-    ): QueryRoutingLogRepository
+    abstract fun bindQueryRoutingLogRepository(impl: QueryRoutingLogRepositoryImpl): QueryRoutingLogRepository
 
     /** Binds in-memory metrics store to the domain interface. */
     @Binds
     @Singleton
-    abstract fun bindQueryMetricsRepository(
-        impl: QueryMetricsRepositoryImpl,
-    ): QueryMetricsRepository
+    abstract fun bindQueryMetricsRepository(impl: QueryMetricsRepositoryImpl): QueryMetricsRepository
 }

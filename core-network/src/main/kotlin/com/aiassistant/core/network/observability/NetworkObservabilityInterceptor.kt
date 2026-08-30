@@ -81,7 +81,7 @@ private const val CLIENT_ERROR_THRESHOLD = 400
 @Singleton
 class NetworkObservabilityInterceptor @Inject constructor(
     private val bus: ObservabilityEventBus,
-    private val sessionManager: SessionManager,
+    private val sessionManager: SessionManager
 ) : Interceptor {
 
     override fun intercept(chain: Interceptor.Chain): Response {
@@ -89,7 +89,7 @@ class NetworkObservabilityInterceptor @Inject constructor(
 
         // ── Generate correlation identifiers ──────────────────────────────────
         val requestId = sessionManager.newRequestId()
-        val traceId = sessionManager.currentTraceId   // null if no trace is active
+        val traceId = sessionManager.currentTraceId // null if no trace is active
         val sessionId = sessionManager.sessionId
 
         // ── Attach correlation headers to the outgoing request ────────────────
@@ -118,7 +118,7 @@ class NetworkObservabilityInterceptor @Inject constructor(
             }
 
             val message = PiiFilter.filter(
-                "$method $endpoint → HTTP $statusCode (${latencyMs}ms)",
+                "$method $endpoint → HTTP $statusCode (${latencyMs}ms)"
             )
 
             val metadata = PiiFilter.filterMap(
@@ -129,7 +129,7 @@ class NetworkObservabilityInterceptor @Inject constructor(
                     put("latency_ms", latencyMs.toString())
                     put("request_id", requestId)
                     if (traceId != null) put("trace_id", traceId)
-                },
+                }
             )
 
             bus.emit(
@@ -141,8 +141,8 @@ class NetworkObservabilityInterceptor @Inject constructor(
                     requestId = requestId,
                     traceId = traceId,
                     sessionId = sessionId,
-                    metadata = metadata,
-                ),
+                    metadata = metadata
+                )
             )
 
             // Separately emit an API_LATENCY event for slow calls (>1 s) so the
@@ -164,10 +164,10 @@ class NetworkObservabilityInterceptor @Inject constructor(
                                 "endpoint" to endpoint,
                                 "method" to method,
                                 "latency_ms" to latencyMs.toString(),
-                                "request_id" to requestId,
-                            ),
-                        ),
-                    ),
+                                "request_id" to requestId
+                            )
+                        )
+                    )
                 )
             }
 
@@ -193,15 +193,15 @@ class NetworkObservabilityInterceptor @Inject constructor(
                             put("request_id", requestId)
                             put("error_type", "SocketTimeoutException")
                             if (traceId != null) put("trace_id", traceId)
-                        },
-                    ),
-                ),
+                        }
+                    )
+                )
             )
             throw e
         } catch (e: Exception) {
             val latencyMs = System.currentTimeMillis() - startMs
             val message = PiiFilter.filter(
-                "Network error: $method $endpoint — ${e.javaClass.simpleName}",
+                "Network error: $method $endpoint — ${e.javaClass.simpleName}"
             )
 
             bus.emit(
@@ -221,9 +221,9 @@ class NetworkObservabilityInterceptor @Inject constructor(
                             put("request_id", requestId)
                             put("error_type", e.javaClass.simpleName)
                             if (traceId != null) put("trace_id", traceId)
-                        },
-                    ),
-                ),
+                        }
+                    )
+                )
             )
             throw e
         }

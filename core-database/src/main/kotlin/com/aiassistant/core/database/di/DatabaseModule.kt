@@ -53,17 +53,16 @@ object DatabaseModule {
 
     @Provides
     @Singleton
-    fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase =
-        Room.databaseBuilder(
-            context,
-            AppDatabase::class.java,
-            "ai_assistant_database"
+    fun provideAppDatabase(@ApplicationContext context: Context): AppDatabase = Room.databaseBuilder(
+        context,
+        AppDatabase::class.java,
+        "ai_assistant_database"
+    )
+        .addMigrations(
+            DatabaseMigrations.MIGRATION_1_2,
+            DatabaseMigrations.MIGRATION_2_3
         )
-            .addMigrations(
-                DatabaseMigrations.MIGRATION_1_2,
-                DatabaseMigrations.MIGRATION_2_3,
-            )
-            .build()
+        .build()
 }
 
 @Module
@@ -110,14 +109,11 @@ object DaoModule {
     // ── On-Device RAG DAOs (added v3) ────────────────────────────────────────
 
     @Provides
-    fun provideOnDeviceDocumentDao(db: AppDatabase): OnDeviceDocumentDao =
-        db.onDeviceDocumentDao()
+    fun provideOnDeviceDocumentDao(db: AppDatabase): OnDeviceDocumentDao = db.onDeviceDocumentDao()
 
     @Provides
-    fun provideOnDeviceChunkDao(db: AppDatabase): OnDeviceChunkDao =
-        db.onDeviceChunkDao()
+    fun provideOnDeviceChunkDao(db: AppDatabase): OnDeviceChunkDao = db.onDeviceChunkDao()
 
     @Provides
-    fun provideQueryRoutingLogDao(db: AppDatabase): QueryRoutingLogDao =
-        db.queryRoutingLogDao()
+    fun provideQueryRoutingLogDao(db: AppDatabase): QueryRoutingLogDao = db.queryRoutingLogDao()
 }

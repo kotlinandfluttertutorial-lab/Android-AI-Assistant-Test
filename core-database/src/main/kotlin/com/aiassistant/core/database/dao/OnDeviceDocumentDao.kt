@@ -68,12 +68,7 @@ interface OnDeviceDocumentDao {
         WHERE id = :id
         """
     )
-    suspend fun updateStatus(
-        id: String,
-        status: String,
-        failureStage: String?,
-        totalChunks: Int
-    )
+    suspend fun updateStatus(id: String, status: String, failureStage: String?, totalChunks: Int)
 
     /**
      * Hard-deletes a document row.  The CASCADE foreign key on

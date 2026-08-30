@@ -50,40 +50,40 @@ private val QUICK_QUESTIONS = listOf(
     "Why did the API fail?",
     "Show open incidents",
     "How do I restart the service?",
-    "Summarize today's errors",
+    "Summarize today's errors"
 )
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun DevOpsChatCard(
     chatState: ChatUiState,
-    onSubmit:  (String) -> Unit,
-    onClear:   () -> Unit,
-    modifier:  Modifier = Modifier,
+    onSubmit: (String) -> Unit,
+    onClear: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     var query by rememberSaveable { mutableStateOf("") }
 
     Card(
-        modifier  = modifier.fillMaxWidth(),
-        colors    = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f),
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             // Header
             Row(
-                verticalAlignment     = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Icon(
-                    imageVector        = Icons.Outlined.SmartToy,
+                    imageVector = Icons.Outlined.SmartToy,
                     contentDescription = null,
-                    tint               = MaterialTheme.colorScheme.primary,
+                    tint = MaterialTheme.colorScheme.primary
                 )
                 Text(
-                    text  = "DevOps Assistant",
-                    style = MaterialTheme.typography.titleSmall,
+                    text = "DevOps Assistant",
+                    style = MaterialTheme.typography.titleSmall
                 )
             }
 
@@ -93,7 +93,7 @@ fun DevOpsChatCard(
             if (chatState is ChatUiState.Idle) {
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(6.dp),
-                    verticalArrangement   = Arrangement.spacedBy(4.dp),
+                    verticalArrangement = Arrangement.spacedBy(4.dp)
                 ) {
                     QUICK_QUESTIONS.forEach { q ->
                         AssistChip(
@@ -101,7 +101,7 @@ fun DevOpsChatCard(
                                 query = q
                                 onSubmit(q)
                             },
-                            label = { Text(text = q, style = MaterialTheme.typography.labelSmall) },
+                            label = { Text(text = q, style = MaterialTheme.typography.labelSmall) }
                         )
                     }
                 }
@@ -110,31 +110,31 @@ fun DevOpsChatCard(
 
             // Input field
             OutlinedTextField(
-                value         = query,
+                value = query,
                 onValueChange = { query = it },
-                modifier      = Modifier
+                modifier = Modifier
                     .fillMaxWidth()
                     .semantics { contentDescription = "Ask a DevOps question" },
-                placeholder   = { Text("Ask anything about your production system...") },
-                trailingIcon  = {
+                placeholder = { Text("Ask anything about your production system...") },
+                trailingIcon = {
                     if (chatState is ChatUiState.Loading) {
                         CircularProgressIndicator(
-                            modifier  = Modifier.size(24.dp),
-                            strokeWidth = 2.dp,
+                            modifier = Modifier.size(24.dp),
+                            strokeWidth = 2.dp
                         )
                     } else {
                         IconButton(
-                            onClick  = {
+                            onClick = {
                                 if (query.isNotBlank()) {
                                     onSubmit(query)
                                     query = ""
                                 }
                             },
-                            enabled  = query.isNotBlank(),
+                            enabled = query.isNotBlank()
                         ) {
                             Icon(
-                                imageVector        = Icons.AutoMirrored.Outlined.Send,
-                                contentDescription = "Submit question",
+                                imageVector = Icons.AutoMirrored.Outlined.Send,
+                                contentDescription = "Submit question"
                             )
                         }
                     }
@@ -148,7 +148,7 @@ fun DevOpsChatCard(
                         }
                     }
                 ),
-                singleLine = true,
+                singleLine = true
             )
 
             // Answer
@@ -157,26 +157,26 @@ fun DevOpsChatCard(
                     Spacer(Modifier.height(12.dp))
 
                     Text(
-                        text  = chatState.result.answer,
-                        style = MaterialTheme.typography.bodySmall,
+                        text = chatState.result.answer,
+                        style = MaterialTheme.typography.bodySmall
                     )
 
                     // Citations
                     if (chatState.result.citations.isNotEmpty()) {
                         Spacer(Modifier.height(6.dp))
                         Text(
-                            text  = "Sources: ${chatState.result.citations.joinToString(", ")}",
+                            text = "Sources: ${chatState.result.citations.joinToString(", ")}",
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
 
                     // Tools used
                     if (chatState.result.toolsUsed.isNotEmpty()) {
                         Text(
-                            text  = "Tools: ${chatState.result.toolsUsed.joinToString(", ")}",
+                            text = "Tools: ${chatState.result.toolsUsed.joinToString(", ")}",
                             style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 }
@@ -184,9 +184,9 @@ fun DevOpsChatCard(
                 is ChatUiState.Error -> {
                     Spacer(Modifier.height(8.dp))
                     Text(
-                        text  = chatState.message,
+                        text = chatState.message,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error,
+                        color = MaterialTheme.colorScheme.error
                     )
                 }
 

@@ -34,11 +34,7 @@ import kotlinx.coroutines.flow.Flow
  * @param totalBytes       Total file size in bytes; -1 if unknown.
  * @param percentComplete  0–100 integer percentage; -1 if indeterminate.
  */
-data class DownloadProgress(
-    val bytesDownloaded: Long,
-    val totalBytes: Long,
-    val percentComplete: Int,
-)
+data class DownloadProgress(val bytesDownloaded: Long, val totalBytes: Long, val percentComplete: Int)
 
 /**
  * Persistence and download contract for on-device AI model files.
@@ -70,10 +66,7 @@ interface ModelFileRepository {
      *         - [ApiResult.Success] with the completed [OnDeviceModelInfo] on finish.
      *         - [ApiResult.Error] if the download or checksum verification fails.
      */
-    fun downloadModel(
-        model: OnDeviceModelInfo,
-        allowMetered: Boolean = false,
-    ): Flow<ApiResult<DownloadProgress>>
+    fun downloadModel(model: OnDeviceModelInfo, allowMetered: Boolean = false): Flow<ApiResult<DownloadProgress>>
 
     /**
      * Verifies the SHA-256 checksum of a previously downloaded model file.

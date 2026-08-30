@@ -11,7 +11,6 @@
 package com.aiassistant.domain.usecase.ondevicerag
 
 import com.aiassistant.core.common.LocalVectorIndex
-import com.aiassistant.core.common.ModelLoadEvent
 import com.aiassistant.core.common.OnDeviceEmbeddingModel
 import com.aiassistant.core.common.OnDeviceInferenceEngine
 import com.aiassistant.core.common.OnDeviceStreamEvent
@@ -19,9 +18,9 @@ import com.aiassistant.domain.model.ChunkCitation
 import com.aiassistant.domain.model.OnDeviceQueryEvent
 import com.aiassistant.domain.repository.QueryMetricsRepository
 import com.aiassistant.domain.repository.QueryMetricsSample
+import javax.inject.Inject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
-import javax.inject.Inject
 
 private const val MIN_SIMILARITY = 0.40f
 private const val TOP_K = 5
@@ -31,14 +30,10 @@ class OnDeviceQueryUseCase @Inject constructor(
     private val embeddingModel: OnDeviceEmbeddingModel,
     private val vectorIndex: LocalVectorIndex,
     private val inferenceEngine: OnDeviceInferenceEngine,
-    private val metricsRepository: QueryMetricsRepository,
+    private val metricsRepository: QueryMetricsRepository
 ) {
 
-    operator fun invoke(
-        query: String,
-        userId: String,
-        topK: Int = TOP_K,
-    ): Flow<OnDeviceQueryEvent> = flow {
+    operator fun invoke(query: String, userId: String, topK: Int = TOP_K): Flow<OnDeviceQueryEvent> = flow {
         val startMs = System.currentTimeMillis()
         emit(OnDeviceQueryEvent.Searching)
 
@@ -117,7 +112,7 @@ class OnDeviceQueryUseCase @Inject constructor(
                 chunkIndex = 0,
                 pageNumber = null,
                 excerpt = r.content.take(MAX_EXCERPT_CHARS),
-                cosineSimilarity = r.cosineSimilarity,
+                cosineSimilarity = r.cosineSimilarity
             )
         }
         emit(OnDeviceQueryEvent.Done(event.tokensGenerated, event.generationTimeMs, citations))
@@ -134,7 +129,7 @@ class OnDeviceQueryUseCase @Inject constructor(
                     tokensGenerated = event.tokensGenerated,
                     generationTimeMs = event.generationTimeMs,
                     peakRamMb = 0,
-                    accelerator = inferenceEngine.activeAccelerator().name,
+                    accelerator = inferenceEngine.activeAccelerator().name
                 )
             )
         }

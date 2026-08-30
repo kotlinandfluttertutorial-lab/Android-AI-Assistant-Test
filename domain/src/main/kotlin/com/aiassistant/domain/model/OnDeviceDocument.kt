@@ -37,8 +37,7 @@ enum class OnDeviceIngestionStatus(val value: String) {
     FAILED("failed");
 
     companion object {
-        fun fromValue(v: String): OnDeviceIngestionStatus =
-            entries.firstOrNull { it.value == v } ?: PENDING
+        fun fromValue(v: String): OnDeviceIngestionStatus = entries.firstOrNull { it.value == v } ?: PENDING
     }
 }
 
@@ -65,7 +64,7 @@ data class OnDeviceDocument(
     val totalChunks: Int = 0,
     val ingestionStatus: OnDeviceIngestionStatus = OnDeviceIngestionStatus.PENDING,
     val failureStage: String? = null,
-    val createdAt: Long,
+    val createdAt: Long
 )
 
 // ── OnDeviceModelInfo ─────────────────────────────────────────────────────────
@@ -84,7 +83,7 @@ data class OnDeviceModelInfo(
     val version: String,
     val sizeBytes: Long,
     val lastUsed: Long?,
-    val checksum: String,
+    val checksum: String
 )
 
 // ── BenchmarkResult (domain mirror of core-ai BenchmarkResult) ───────────────
@@ -112,7 +111,7 @@ data class OnDeviceBenchmarkResult(
     val ttftP95Ms: Long,
     val tokensPerSecMean: Float,
     val tokensPerSecP95: Float,
-    val peakRamMb: Int,
+    val peakRamMb: Int
 )
 
 // ── RoutingDecision & PathPreference (domain mirror) ─────────────────────────
@@ -141,7 +140,7 @@ data class OnDeviceRoutingDecision(
     val path: OnDeviceInferencePath,
     val capabilityBitmask: Int,
     val reason: String,
-    val fallbackOccurred: Boolean = false,
+    val fallbackOccurred: Boolean = false
 )
 
 // ── IngestionProgress (sealed event hierarchy) ────────────────────────────────
@@ -213,11 +212,8 @@ sealed class OnDeviceQueryEvent {
      * @param generationTimeMs Wall-clock generation time.
      * @param citations        List of source chunk references.
      */
-    data class Done(
-        val tokensGenerated: Int,
-        val generationTimeMs: Long,
-        val citations: List<ChunkCitation>,
-    ) : OnDeviceQueryEvent()
+    data class Done(val tokensGenerated: Int, val generationTimeMs: Long, val citations: List<ChunkCitation>) :
+        OnDeviceQueryEvent()
 
     /**
      * No chunks in the local index met the minimum similarity threshold (0.40).
@@ -250,5 +246,5 @@ data class ChunkCitation(
     val chunkIndex: Int,
     val pageNumber: Int?,
     val excerpt: String,
-    val cosineSimilarity: Float,
+    val cosineSimilarity: Float
 )

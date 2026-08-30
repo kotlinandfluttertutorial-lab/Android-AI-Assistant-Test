@@ -16,8 +16,8 @@ package com.aiassistant.domain.usecase.ondevicerag
 
 import com.aiassistant.domain.model.OnDeviceDocument
 import com.aiassistant.domain.repository.OnDeviceDocumentRepository
-import kotlinx.coroutines.flow.Flow
 import javax.inject.Inject
+import kotlinx.coroutines.flow.Flow
 
 /**
  * Provides a reactive stream of [OnDeviceDocument] objects for [userId].
@@ -27,14 +27,11 @@ import javax.inject.Inject
  *
  * @param documentRepository Local-only document persistence.
  */
-class GetOnDeviceDocumentsUseCase @Inject constructor(
-    private val documentRepository: OnDeviceDocumentRepository,
-) {
+class GetOnDeviceDocumentsUseCase @Inject constructor(private val documentRepository: OnDeviceDocumentRepository) {
 
     /**
      * @param userId Owner whose documents to observe.
      * @return Cold [Flow] emitting the current list on each Room change.
      */
-    operator fun invoke(userId: String): Flow<List<OnDeviceDocument>> =
-        documentRepository.getDocuments(userId)
+    operator fun invoke(userId: String): Flow<List<OnDeviceDocument>> = documentRepository.getDocuments(userId)
 }

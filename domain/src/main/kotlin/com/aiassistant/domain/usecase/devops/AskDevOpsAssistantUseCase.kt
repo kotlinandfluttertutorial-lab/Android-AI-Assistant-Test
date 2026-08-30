@@ -13,14 +13,10 @@ import com.aiassistant.domain.model.DevOpsChatResult
 import com.aiassistant.domain.repository.DevOpsRepository
 import javax.inject.Inject
 
-class AskDevOpsAssistantUseCase @Inject constructor(
-    private val repository: DevOpsRepository,
-) {
-    suspend operator fun invoke(
-        question: String,
-        provider: String? = null,
-    ): ApiResult<DevOpsChatResult> = repository.chat(
-        question = question,
-        provider = provider,
-    )
+class AskDevOpsAssistantUseCase @Inject constructor(private val repository: DevOpsRepository) {
+    suspend operator fun invoke(question: String, provider: String? = null): ApiResult<DevOpsChatResult> =
+        repository.chat(
+            question = question,
+            provider = provider
+        )
 }

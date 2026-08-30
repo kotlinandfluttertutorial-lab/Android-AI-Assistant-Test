@@ -61,7 +61,7 @@ interface OnDeviceDocumentRepository {
         id: String,
         status: OnDeviceIngestionStatus,
         failureStage: String?,
-        totalChunks: Int,
+        totalChunks: Int
     ): ApiResult<Unit>
 
     /**
