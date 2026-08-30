@@ -14,9 +14,11 @@ import com.aiassistant.core.common.OnDeviceEmbeddingModel
 import javax.inject.Inject
 import javax.inject.Singleton
 
+private const val MINI_LM_DIMENSION = 384
+
 @Singleton
 class MiniLmEmbeddingModel @Inject constructor() : OnDeviceEmbeddingModel {
-    override val embeddingDimension: Int = 384
+    override val embeddingDimension: Int = MINI_LM_DIMENSION
 
     override suspend fun initialize(modelPath: String, expectedChecksum: String): ModelLoadEvent {
         val file = java.io.File(modelPath)

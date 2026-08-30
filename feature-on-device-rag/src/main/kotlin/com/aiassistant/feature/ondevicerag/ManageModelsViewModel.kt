@@ -17,7 +17,6 @@ package com.aiassistant.feature.ondevicerag
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.aiassistant.core.common.ApiResult
 import com.aiassistant.core.common.DispatcherProvider
 import com.aiassistant.domain.model.OnDeviceModelInfo
 import com.aiassistant.domain.repository.DownloadProgress

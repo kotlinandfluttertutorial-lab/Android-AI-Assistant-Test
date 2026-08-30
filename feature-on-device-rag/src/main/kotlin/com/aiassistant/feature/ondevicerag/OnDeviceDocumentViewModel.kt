@@ -44,7 +44,6 @@ import javax.inject.Inject
 /** Maximum on-device document size: 50 MB. */
 private const val MAX_FILE_SIZE_BYTES = 50L * 1024 * 1024
 
-
 @HiltViewModel
 open class OnDeviceDocumentViewModel @Inject constructor(
     private val getDocumentsUseCase: GetOnDeviceDocumentsUseCase,

@@ -41,24 +41,26 @@ import com.aiassistant.domain.model.OnDeviceModelInfo
 import com.aiassistant.domain.repository.DownloadProgress
 import com.aiassistant.domain.repository.ModelFileRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
+import java.io.File
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
-import java.io.File
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /** Subdirectory inside getFilesDir() where model files are stored. */
 private const val MODELS_DIR = "models"
 private const val HTTP_NOT_FOUND = 404
 private const val HTTP_INTERNAL_ERROR = 500
 private const val SHA256_BUFFER_SIZE = 8192
+private const val PERCENT_MAX = 100
+private const val PERCENT_STEP = 20
 
 @Singleton
 class ModelFileRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
-    private val dispatchers: DispatcherProvider,
+    private val dispatchers: DispatcherProvider
 ) : ModelFileRepository {
 
     private val modelsDir: File
@@ -67,28 +69,27 @@ class ModelFileRepositoryImpl @Inject constructor(
     // ── ModelFileRepository ───────────────────────────────────────────────
 
     @Suppress("TooGenericExceptionCaught")
-    override suspend fun listModels(): ApiResult<List<OnDeviceModelInfo>> =
-        withContext(dispatchers.io) {
-            try {
-                val files = modelsDir.listFiles() ?: emptyArray()
-                val models = files
-                    .filter {
-                        it.isFile && (it.extension == "bin" || it.extension == "tflite" || it.extension == "gguf")
-                    }
-                    .map { file ->
-                        OnDeviceModelInfo(
-                            name = file.nameWithoutExtension,
-                            version = "unknown",
-                            sizeBytes = file.length(),
-                            lastUsed = file.lastModified(),
-                            checksum = computeSha256(file),
-                        )
-                    }
-                ApiResult.Success(models)
-            } catch (e: Exception) {
-                ApiResult.Error(DomainError.ServerError("Failed to list models: ${e.message}", HTTP_INTERNAL_ERROR))
-            }
+    override suspend fun listModels(): ApiResult<List<OnDeviceModelInfo>> = withContext(dispatchers.io) {
+        try {
+            val files = modelsDir.listFiles() ?: emptyArray()
+            val models = files
+                .filter {
+                    it.isFile && (it.extension == "bin" || it.extension == "tflite" || it.extension == "gguf")
+                }
+                .map { file ->
+                    OnDeviceModelInfo(
+                        name = file.nameWithoutExtension,
+                        version = "unknown",
+                        sizeBytes = file.length(),
+                        lastUsed = file.lastModified(),
+                        checksum = computeSha256(file)
+                    )
+                }
+            ApiResult.Success(models)
+        } catch (e: Exception) {
+            ApiResult.Error(DomainError.ServerError("Failed to list models: ${e.message}", HTTP_INTERNAL_ERROR))
         }
+    }
 
     /**
      * Starts a download for [model] and emits [DownloadProgress] updates.
@@ -100,82 +101,76 @@ class ModelFileRepositoryImpl @Inject constructor(
      *
      * Current stub: simulates progress for testing the UI flow.
      */
-    override fun downloadModel(
-        model: OnDeviceModelInfo,
-        allowMetered: Boolean,
-    ): Flow<ApiResult<DownloadProgress>> = flow {
-        // TODO: Replace with WorkManager DownloadModelWorker.
-        // The worker should:
-        //   1. Check existing file size for resume-from-byte Range header.
-        //   2. Open HTTPS connection to model.checksum download URL.
-        //   3. Write to modelsDir/model.name.bin updating progress.
-        //   4. Verify SHA-256 on completion.
-        //   5. Emit ApiResult.Success on success, ApiResult.Error on failure.
+    override fun downloadModel(model: OnDeviceModelInfo, allowMetered: Boolean): Flow<ApiResult<DownloadProgress>> =
+        flow {
+            // TODO: Replace with WorkManager DownloadModelWorker.
+            // The worker should:
+            //   1. Check existing file size for resume-from-byte Range header.
+            //   2. Open HTTPS connection to model.checksum download URL.
+            //   3. Write to modelsDir/model.name.bin updating progress.
+            //   4. Verify SHA-256 on completion.
+            //   5. Emit ApiResult.Success on success, ApiResult.Error on failure.
 
-        // Stub: simulate 5 progress steps
-        val totalBytes = model.sizeBytes
-        val stubSteps = 5
-        val percentPerStep = 20
-        for (step in 1..stubSteps) {
-            val downloaded = (totalBytes * step / stubSteps)
-            emit(ApiResult.Loading)
-            kotlinx.coroutines.delay(100)
-            emit(
-                ApiResult.Success(
-                    DownloadProgress(
-                        bytesDownloaded = downloaded,
-                        totalBytes = totalBytes,
-                        percentComplete = (step * percentPerStep),
+            // Stub: simulate 5 progress steps
+            val totalBytes = model.sizeBytes
+            val stubSteps = PERCENT_MAX / PERCENT_STEP
+            for (step in 1..stubSteps) {
+                val downloaded = (totalBytes * step / stubSteps)
+                emit(ApiResult.Loading)
+                kotlinx.coroutines.delay(100)
+                emit(
+                    ApiResult.Success(
+                        DownloadProgress(
+                            bytesDownloaded = downloaded,
+                            totalBytes = totalBytes,
+                            percentComplete = (step * PERCENT_STEP)
+                        )
                     )
                 )
-            )
-        }
-    }.flowOn(dispatchers.io)
+            }
+        }.flowOn(dispatchers.io)
 
     @Suppress("TooGenericExceptionCaught")
-    override suspend fun verifyModel(model: OnDeviceModelInfo): ApiResult<Boolean> =
-        withContext(dispatchers.io) {
-            try {
-                val file = File(modelsDir, "${model.name}.bin")
+    override suspend fun verifyModel(model: OnDeviceModelInfo): ApiResult<Boolean> = withContext(dispatchers.io) {
+        try {
+            val file = File(modelsDir, "${model.name}.bin")
+                .takeIf { it.exists() }
+                ?: File(modelsDir, "${model.name}.gguf")
                     .takeIf { it.exists() }
-                    ?: File(modelsDir, "${model.name}.gguf")
-                        .takeIf { it.exists() }
-                    ?: File(modelsDir, "${model.name}.tflite")
-                        .takeIf { it.exists() }
+                ?: File(modelsDir, "${model.name}.tflite")
+                    .takeIf { it.exists() }
 
-                if (file == null) {
-                    return@withContext ApiResult.Error(
-                        DomainError.ServerError("Model file not found for: ${model.name}", HTTP_NOT_FOUND)
-                    )
-                }
-
-                val actual = computeSha256(file)
-                ApiResult.Success(actual.equals(model.checksum, ignoreCase = true))
-            } catch (e: Exception) {
-                ApiResult.Error(DomainError.ServerError("Verification failed: ${e.message}", HTTP_INTERNAL_ERROR))
+            if (file == null) {
+                return@withContext ApiResult.Error(
+                    DomainError.ServerError("Model file not found for: ${model.name}", HTTP_NOT_FOUND)
+                )
             }
+
+            val actual = computeSha256(file)
+            ApiResult.Success(actual.equals(model.checksum, ignoreCase = true))
+        } catch (e: Exception) {
+            ApiResult.Error(DomainError.ServerError("Verification failed: ${e.message}", HTTP_INTERNAL_ERROR))
         }
+    }
 
     @Suppress("TooGenericExceptionCaught")
-    override suspend fun deleteModel(model: OnDeviceModelInfo): ApiResult<Unit> =
-        withContext(dispatchers.io) {
-            try {
-                listOf("bin", "gguf", "tflite").forEach { ext ->
-                    File(modelsDir, "${model.name}.$ext").takeIf { it.exists() }?.delete()
-                }
-                ApiResult.Success(Unit)
-            } catch (e: Exception) {
-                ApiResult.Error(DomainError.ServerError("Failed to delete model: ${e.message}", HTTP_INTERNAL_ERROR))
+    override suspend fun deleteModel(model: OnDeviceModelInfo): ApiResult<Unit> = withContext(dispatchers.io) {
+        try {
+            listOf("bin", "gguf", "tflite").forEach { ext ->
+                File(modelsDir, "${model.name}.$ext").takeIf { it.exists() }?.delete()
             }
+            ApiResult.Success(Unit)
+        } catch (e: Exception) {
+            ApiResult.Error(DomainError.ServerError("Failed to delete model: ${e.message}", HTTP_INTERNAL_ERROR))
         }
+    }
 
-    override suspend fun getModelPath(model: OnDeviceModelInfo): String? =
-        withContext(dispatchers.io) {
-            listOf("bin", "gguf", "tflite")
-                .map { ext -> File(modelsDir, "${model.name}.$ext") }
-                .firstOrNull { it.exists() }
-                ?.absolutePath
-        }
+    override suspend fun getModelPath(model: OnDeviceModelInfo): String? = withContext(dispatchers.io) {
+        listOf("bin", "gguf", "tflite")
+            .map { ext -> File(modelsDir, "${model.name}.$ext") }
+            .firstOrNull { it.exists() }
+            ?.absolutePath
+    }
 
     // ── Private helpers ───────────────────────────────────────────────────
 

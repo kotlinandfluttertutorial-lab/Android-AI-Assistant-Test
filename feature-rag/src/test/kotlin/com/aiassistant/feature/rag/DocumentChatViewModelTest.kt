@@ -158,7 +158,9 @@ class DocumentChatViewModelTest {
         val query = "Failure query"
         initViewModel()
 
-        coEvery { queryDocumentUseCase(documentId, query) } returns ApiResult.Error(DomainError.NetworkError("Network error"))
+        coEvery { queryDocumentUseCase(documentId, query) } returns ApiResult.Error(
+            DomainError.NetworkError("Network error")
+        )
 
         viewModel.submitQuery(query)
 

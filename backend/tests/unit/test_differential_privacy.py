@@ -275,13 +275,7 @@ class TestAdminEpsilonEndpoint:
         # Mock Redis
         mock_redis = _make_redis_mock()
 
-        # Re-import to ensure we use the same function object
-        from app.database.redis import get_redis
-
-        async def _fake_redis_gen():
-            yield mock_redis
-
-        test_app.dependency_overrides[get_redis] = _fake_redis_gen
+        test_app.dependency_overrides[get_redis] = lambda: mock_redis
         test_app.include_router(admin_router)
         return TestClient(test_app), mock_redis
 
@@ -310,7 +304,7 @@ class TestAdminEpsilonEndpoint:
         """
         client, mock_redis = self._make_app_with_mocked_deps()
         response = client.put("/admin/privacy/epsilon", json={"epsilon": 2.0})
-        assert response.status_code == 200
+        assert response.status_code == 200, f"Expected 200 but got {response.status_code}: {response.text}"
         data = response.json()
         assert data["epsilon"] == pytest.approx(2.0)
         assert data["mechanism"] == "Laplace"

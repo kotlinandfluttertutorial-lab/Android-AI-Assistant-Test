@@ -115,7 +115,9 @@ class SemanticSearchViewModelTest {
         // Arrange
         val query = "error query"
         val errorMessage = "Search failed"
-        coEvery { semanticSearchUseCase(query) } returns ApiResult.Error(DomainError.ServerError(message = errorMessage))
+        coEvery { semanticSearchUseCase(query) } returns ApiResult.Error(
+            DomainError.ServerError(message = errorMessage)
+        )
 
         // Act
         viewModel.search(query)

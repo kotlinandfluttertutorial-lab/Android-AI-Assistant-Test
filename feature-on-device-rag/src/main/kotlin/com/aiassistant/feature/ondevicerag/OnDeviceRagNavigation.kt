@@ -64,8 +64,13 @@ object OnDeviceRagRoute {
  * @param navController The shared root [NavHostController].
  */
 fun NavGraphBuilder.onDeviceRagNavGraph(navController: NavHostController) {
+    onDeviceDocumentsScreen(navController)
+    onDeviceRagChatScreen(navController)
+    onDeviceBenchmarkScreen(navController)
+    onDeviceManageModelsScreen(navController)
+}
 
-    // ── Document list ────────────────────────────────────────────────────
+private fun NavGraphBuilder.onDeviceDocumentsScreen(navController: NavHostController) {
     composable(
         route = OnDeviceRagRoute.DOCUMENTS,
         deepLinks = listOf(
@@ -82,8 +87,9 @@ fun NavGraphBuilder.onDeviceRagNavGraph(navController: NavHostController) {
             viewModel = viewModel,
         )
     }
+}
 
-    // ── RAG chat ─────────────────────────────────────────────────────────
+private fun NavGraphBuilder.onDeviceRagChatScreen(navController: NavHostController) {
     composable(
         route = OnDeviceRagRoute.RAG_CHAT,
         arguments = listOf(
@@ -101,8 +107,9 @@ fun NavGraphBuilder.onDeviceRagNavGraph(navController: NavHostController) {
             viewModel = viewModel,
         )
     }
+}
 
-    // ── Benchmark ─────────────────────────────────────────────────────────
+private fun NavGraphBuilder.onDeviceBenchmarkScreen(navController: NavHostController) {
     composable(
         route = OnDeviceRagRoute.BENCHMARK,
         deepLinks = listOf(
@@ -117,8 +124,9 @@ fun NavGraphBuilder.onDeviceRagNavGraph(navController: NavHostController) {
             viewModel = viewModel,
         )
     }
+}
 
-    // ── Manage models ─────────────────────────────────────────────────────
+private fun NavGraphBuilder.onDeviceManageModelsScreen(navController: NavHostController) {
     composable(
         route = OnDeviceRagRoute.MANAGE_MODELS,
         deepLinks = listOf(

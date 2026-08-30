@@ -47,10 +47,7 @@ sealed class OnDeviceStreamEvent {
      * @param tokensGenerated   Number of tokens produced.
      * @param generationTimeMs  Wall-clock time from first token to Done.
      */
-    data class Done(
-        val tokensGenerated: Int,
-        val generationTimeMs: Long,
-    ) : OnDeviceStreamEvent()
+    data class Done(val tokensGenerated: Int, val generationTimeMs: Long) : OnDeviceStreamEvent()
 
     /**
      * Generation failed or was interrupted.
@@ -58,10 +55,7 @@ sealed class OnDeviceStreamEvent {
      * @param message Human-readable description.
      * @param stage   Which lifecycle stage failed.
      */
-    data class Error(
-        val message: String,
-        val stage: String,
-    ) : OnDeviceStreamEvent()
+    data class Error(val message: String, val stage: String) : OnDeviceStreamEvent()
 
     /** Generation was cancelled. */
     data object Cancelled : OnDeviceStreamEvent()
@@ -76,17 +70,13 @@ data class BenchmarkResult(
     val ttftP95Ms: Long,
     val tokensPerSecMean: Float,
     val tokensPerSecP95: Float,
-    val peakRamMb: Int,
+    val peakRamMb: Int
 )
 
 // ── Chunker Types ────────────────────────────────────────────────────────────
 
 /** Represents one page boundary within a document. */
-data class PageOffset(
-    val pageNumber: Int,
-    val startCharOffset: Int,
-    val endCharOffset: Int,
-)
+data class PageOffset(val pageNumber: Int, val startCharOffset: Int, val endCharOffset: Int)
 
 /** One chunk of text produced by [Chunker], ready for embedding. */
 data class TextChunk(
@@ -97,7 +87,7 @@ data class TextChunk(
     val pageNumber: Int?,
     val startCharOffset: Int,
     val endCharOffset: Int,
-    val content: String,
+    val content: String
 )
 
 /** Splits document text into overlapping [TextChunk] objects. */
@@ -105,7 +95,7 @@ class Chunker(
     val chunkSizeTokens: Int = 512,
     val overlapTokens: Int = 64,
     val minChunkSizeTokens: Int = 64,
-    val maxChunkSizeTokens: Int = 2048,
+    val maxChunkSizeTokens: Int = 2048
 ) {
     init {
         require(overlapTokens <= chunkSizeTokens / 2) {
@@ -117,7 +107,7 @@ class Chunker(
         text: String,
         documentId: String,
         documentName: String,
-        pageOffsets: List<PageOffset> = emptyList(),
+        pageOffsets: List<PageOffset> = emptyList()
     ): List<TextChunk> {
         if (text.isBlank()) return emptyList()
 
@@ -147,7 +137,7 @@ class Chunker(
                 pageNumber = pageNumber,
                 startCharOffset = start,
                 endCharOffset = end,
-                content = content,
+                content = content
             )
 
             chunkIndex++
@@ -183,12 +173,7 @@ interface OnDeviceInferenceEngine {
 }
 
 /** Vector index search result. */
-data class ChunkSearchResult(
-    val id: String,
-    val documentId: String,
-    val content: String,
-    val cosineSimilarity: Float,
-)
+data class ChunkSearchResult(val id: String, val documentId: String, val content: String, val cosineSimilarity: Float)
 
 /** Contract for the local vector index. */
 interface LocalVectorIndex {
@@ -197,7 +182,7 @@ interface LocalVectorIndex {
         userId: String,
         queryEmbedding: FloatArray,
         k: Int,
-        minSimilarity: Float = 0.40f,
+        minSimilarity: Float = 0.40f
     ): List<ChunkSearchResult>
     suspend fun deleteByDocument(userId: String, documentId: String)
 }
@@ -225,7 +210,7 @@ data class RoutingDecision(
     val path: InferencePath,
     val capabilityBitmask: Int,
     val reason: String,
-    val fallbackOccurred: Boolean = false,
+    val fallbackOccurred: Boolean = false
 )
 
 /** Contract for the query router. */
