@@ -324,7 +324,7 @@ class TestAdminEpsilonEndpoint:
         Requirements: 37.2, 37.6
         """
         with patch(
-            "app.security.differential_privacy.update_epsilon_in_redis",
+            "app.api.admin.router.update_epsilon_in_redis",
             new_callable=AsyncMock,
         ) as mock_update:
             client, _ = self._make_app_with_mocked_deps()
