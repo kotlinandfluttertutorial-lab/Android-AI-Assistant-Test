@@ -330,7 +330,7 @@ class TestAdminEpsilonEndpoint:
         assert data["epsilon"] == pytest.approx(2.0)
         assert data["mechanism"] == "Laplace"
         # Verify Redis.set was called with the correct key and value
-        mock_redis.mock.set.assert_called_once_with("dp:epsilon", "2.0")
+        mock_redis.set.assert_called_once_with("dp:epsilon", "2.0")
 
     def test_put_epsilon_boundary_minimum_returns_200(self) -> None:
         """PUT /admin/privacy/epsilon with epsilon=0.1 (boundary) must return HTTP 200.
