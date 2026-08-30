@@ -15,7 +15,6 @@ import com.aiassistant.core.common.ApiResult
 import com.aiassistant.core.common.DispatcherProvider
 import com.aiassistant.domain.model.Reminder
 import com.aiassistant.domain.model.SyncStatus
-import com.aiassistant.domain.model.TodoItem
 import com.aiassistant.domain.usecase.productivity.CreateReminderUseCase
 import com.aiassistant.domain.usecase.productivity.DeleteReminderUseCase
 import com.aiassistant.domain.usecase.productivity.GetRemindersUseCase
@@ -28,6 +27,8 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.unmockkAll
 import io.mockk.verify
+import java.time.Instant
+import java.util.UUID
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -41,12 +42,9 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import org.junit.After
 import org.junit.Assert.assertEquals
-import org.junit.Assert.assertNotNull
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import java.time.Instant
-import java.util.UUID
 
 /**
  * Unit tests for [ReminderViewModel] state logic and use case orchestration.

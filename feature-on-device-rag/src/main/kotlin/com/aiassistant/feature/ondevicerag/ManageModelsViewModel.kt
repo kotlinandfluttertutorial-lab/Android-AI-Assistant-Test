@@ -19,24 +19,19 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aiassistant.core.common.DispatcherProvider
 import com.aiassistant.domain.model.OnDeviceModelInfo
-import com.aiassistant.domain.repository.DownloadProgress
 import com.aiassistant.domain.usecase.ondevicerag.ManageOnDeviceModelsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 /** Download progress state per model. */
 sealed class DownloadState {
-    data class Downloading(
-        val bytesDownloaded: Long,
-        val totalBytes: Long,
-        val percent: Int,
-    ) : DownloadState()
+    data class Downloading(val bytesDownloaded: Long, val totalBytes: Long, val percent: Int) : DownloadState()
     data object Verifying : DownloadState()
     data class Error(val message: String) : DownloadState()
 }
@@ -47,13 +42,13 @@ data class ManageModelsUiState(
     val models: List<OnDeviceModelInfo> = emptyList(),
     val downloadProgress: Map<String, DownloadState> = emptyMap(),
     val batterySaverActive: Boolean = false,
-    val updateAvailableModelName: String? = null,
+    val updateAvailableModelName: String? = null
 )
 
 @HiltViewModel
 class ManageModelsViewModel @Inject constructor(
     private val manageModelsUseCase: ManageOnDeviceModelsUseCase,
-    private val dispatchers: DispatcherProvider,
+    private val dispatchers: DispatcherProvider
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(ManageModelsUiState())
@@ -99,7 +94,7 @@ class ManageModelsViewModel @Inject constructor(
                                 DownloadState.Downloading(
                                     bytesDownloaded = progress.bytesDownloaded,
                                     totalBytes = progress.totalBytes,
-                                    percent = progress.percentComplete,
+                                    percent = progress.percentComplete
                                 )
                             }
                             _uiState.update { s ->

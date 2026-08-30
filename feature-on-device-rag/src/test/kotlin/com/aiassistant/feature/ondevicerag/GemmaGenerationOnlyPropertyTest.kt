@@ -30,67 +30,75 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.spyk
 import io.mockk.verify
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 
-class GemmaGenerationOnlyPropertyTest : DescribeSpec({
+class GemmaGenerationOnlyPropertyTest :
+    DescribeSpec({
 
-    describe("Property 41 — Gemma Generation-Only Isolation") {
+        describe("Property 41 — Gemma Generation-Only Isolation") {
 
-        it("OnDeviceInferenceEngine receives only generateStream") {
-            checkAll(
-                iterations = 30,
-                Arb.string(minSize = 10, maxSize = 200),
-                Arb.string(minSize = 5, maxSize = 100),
-            ) { docContent, query ->
+            it("OnDeviceInferenceEngine receives only generateStream") {
+                checkAll(
+                    iterations = 30,
+                    Arb.string(minSize = 10, maxSize = 200),
+                    Arb.string(minSize = 5, maxSize = 100)
+                ) { docContent, query ->
 
-                val chunker = Chunker(chunkSizeTokens = 50, overlapTokens = 10)
-                val embeddingModel = mockk<OnDeviceEmbeddingModel>()
-                coEvery { embeddingModel.generateEmbedding(any()) } returns FloatArray(384) { 0.1f }
+                    val chunker = Chunker(chunkSizeTokens = 50, overlapTokens = 10)
+                    val embeddingModel = mockk<OnDeviceEmbeddingModel>()
+                    coEvery { embeddingModel.generateEmbedding(any()) } returns FloatArray(384) { 0.1f }
 
-                val dao = InMemoryDaoP41()
-                val vectorIndex = LocalVectorIndexImpl(dao)
+                    val dao = InMemoryDaoP41()
+                    val vectorIndex = LocalVectorIndexImpl(dao)
 
-                val docRepo = mockk<OnDeviceDocumentRepository>(relaxed = true)
-                coEvery { docRepo.saveDocument(any()) } returns ApiResult.Success(
-                    OnDeviceDocument(
-                        id = "p41doc", userId = "u", fileName = "p41.txt",
-                        mimeType = "text/plain", sizeBytes = docContent.length.toLong(),
-                        ingestionStatus = OnDeviceIngestionStatus.PENDING, createdAt = 0
+                    val docRepo = mockk<OnDeviceDocumentRepository>(relaxed = true)
+                    coEvery { docRepo.saveDocument(any()) } returns ApiResult.Success(
+                        OnDeviceDocument(
+                            id = "p41doc",
+                            userId = "u",
+                            fileName = "p41.txt",
+                            mimeType = "text/plain",
+                            sizeBytes = docContent.length.toLong(),
+                            ingestionStatus = OnDeviceIngestionStatus.PENDING,
+                            createdAt = 0
+                        )
                     )
-                )
 
-                val ingestUseCase = OnDeviceIngestDocumentUseCase(docRepo, chunker, embeddingModel, vectorIndex)
-                ingestUseCase(
-                    OnDeviceDocument(
-                        id = "p41doc", userId = "u", fileName = "p41.txt",
-                        mimeType = "text/plain", sizeBytes = docContent.length.toLong(),
-                        ingestionStatus = OnDeviceIngestionStatus.PENDING, createdAt = 0,
-                    ),
-                    docContent
-                ).toList()
+                    val ingestUseCase = OnDeviceIngestDocumentUseCase(docRepo, chunker, embeddingModel, vectorIndex)
+                    ingestUseCase(
+                        OnDeviceDocument(
+                            id = "p41doc",
+                            userId = "u",
+                            fileName = "p41.txt",
+                            mimeType = "text/plain",
+                            sizeBytes = docContent.length.toLong(),
+                            ingestionStatus = OnDeviceIngestionStatus.PENDING,
+                            createdAt = 0
+                        ),
+                        docContent
+                    ).toList()
 
-                val realEngine = mockk<OnDeviceInferenceEngine>()
-                every { realEngine.generateStream(any()) } returns flowOf(
-                    OnDeviceStreamEvent.Token("answer "),
-                    OnDeviceStreamEvent.Done(tokensGenerated = 1, generationTimeMs = 10),
-                )
-                every { realEngine.activeAccelerator() } returns HardwareAccelerator.CPU
+                    val realEngine = mockk<OnDeviceInferenceEngine>()
+                    every { realEngine.generateStream(any()) } returns flowOf(
+                        OnDeviceStreamEvent.Token("answer "),
+                        OnDeviceStreamEvent.Done(tokensGenerated = 1, generationTimeMs = 10)
+                    )
+                    every { realEngine.activeAccelerator() } returns HardwareAccelerator.CPU
 
-                val metricsRepo = mockk<QueryMetricsRepository>(relaxed = true)
-                val queryUseCase = OnDeviceQueryUseCase(embeddingModel, vectorIndex, realEngine, metricsRepo)
+                    val metricsRepo = mockk<QueryMetricsRepository>(relaxed = true)
+                    val queryUseCase = OnDeviceQueryUseCase(embeddingModel, vectorIndex, realEngine, metricsRepo)
 
-                queryUseCase(query, "u").toList()
+                    queryUseCase(query, "u").toList()
 
-                coVerify(exactly = 0) { realEngine.loadModel(any(), any()) }
-                coVerify(exactly = 0) { realEngine.benchmarkMode() }
-                verify(exactly = 0) { realEngine.releaseMemory() }
+                    coVerify(exactly = 0) { realEngine.loadModel(any(), any()) }
+                    coVerify(exactly = 0) { realEngine.benchmarkMode() }
+                    verify(exactly = 0) { realEngine.releaseMemory() }
+                }
             }
         }
-    }
-})
+    })
 
 private class InMemoryDaoP41 : com.aiassistant.core.database.dao.OnDeviceChunkDao {
     private val store = mutableListOf<com.aiassistant.core.database.entity.OnDeviceChunkEntity>()
@@ -107,15 +115,13 @@ private class InMemoryDaoP41 : com.aiassistant.core.database.dao.OnDeviceChunkDa
     override suspend fun getChunksForDocument(userId: String, documentId: String) =
         store.filter { it.userId == userId && it.documentId == documentId }
 
-    override suspend fun getAllChunks(userId: String) =
-        store.filter { it.userId == userId }
+    override suspend fun getAllChunks(userId: String) = store.filter { it.userId == userId }
 
     override suspend fun deleteByDocument(userId: String, documentId: String) {
         store.removeAll { it.userId == userId && it.documentId == documentId }
     }
 
-    override suspend fun countChunks(userId: String) =
-        store.count { it.userId == userId }
+    override suspend fun countChunks(userId: String) = store.count { it.userId == userId }
 
     override suspend fun totalEmbeddingBytes(userId: String, embeddingDimension: Int): Long = 0L
 }

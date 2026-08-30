@@ -77,14 +77,14 @@ private fun NavGraphBuilder.onDeviceDocumentsScreen(navController: NavHostContro
             navDeepLink {
                 uriPattern = "aiassistant://open/ondevicerag/documents"
             }
-        ),
+        )
     ) {
         val viewModel: OnDeviceDocumentViewModel = hiltViewModel()
         OnDeviceDocumentsScreen(
             onNavigateToChat = { documentId ->
                 navController.navigate(OnDeviceRagRoute.ragChat(documentId))
             },
-            viewModel = viewModel,
+            viewModel = viewModel
         )
     }
 }
@@ -99,12 +99,12 @@ private fun NavGraphBuilder.onDeviceRagChatScreen(navController: NavHostControll
             navDeepLink {
                 uriPattern = "aiassistant://open/ondevicerag/documents/{documentId}/chat"
             }
-        ),
+        )
     ) {
         val viewModel: OnDeviceRagViewModel = hiltViewModel()
         OnDeviceRagChatScreen(
             onNavigateUp = { navController.popBackStack() },
-            viewModel = viewModel,
+            viewModel = viewModel
         )
     }
 }
@@ -116,12 +116,12 @@ private fun NavGraphBuilder.onDeviceBenchmarkScreen(navController: NavHostContro
             navDeepLink {
                 uriPattern = "aiassistant://open/ondevicerag/benchmark"
             }
-        ),
+        )
     ) {
         val viewModel: BenchmarkViewModel = hiltViewModel()
         BenchmarkScreen(
             onNavigateUp = { navController.popBackStack() },
-            viewModel = viewModel,
+            viewModel = viewModel
         )
     }
 }
@@ -133,12 +133,12 @@ private fun NavGraphBuilder.onDeviceManageModelsScreen(navController: NavHostCon
             navDeepLink {
                 uriPattern = "aiassistant://open/ondevicerag/models"
             }
-        ),
+        )
     ) {
         val viewModel: ManageModelsViewModel = hiltViewModel()
         ManageModelsScreen(
             onNavigateUp = { navController.popBackStack() },
-            viewModel = viewModel,
+            viewModel = viewModel
         )
     }
 }

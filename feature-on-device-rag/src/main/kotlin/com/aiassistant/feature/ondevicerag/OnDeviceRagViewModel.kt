@@ -23,8 +23,8 @@ package com.aiassistant.feature.ondevicerag
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.aiassistant.core.common.CapabilityBit
 import com.aiassistant.core.common.ApiResult
+import com.aiassistant.core.common.CapabilityBit
 import com.aiassistant.core.common.DispatcherProvider
 import com.aiassistant.domain.model.OnDeviceInferencePath
 import com.aiassistant.domain.model.OnDevicePathPreference
@@ -32,12 +32,12 @@ import com.aiassistant.domain.model.OnDeviceQueryEvent
 import com.aiassistant.domain.usecase.ondevicerag.OnDeviceQueryUseCase
 import com.aiassistant.domain.usecase.ondevicerag.RouteQueryUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 /** Max characters of the query to show in cloud placeholder logs. */
 private const val MAX_QUERY_LOG_LENGTH = 60
@@ -46,7 +46,7 @@ private const val MAX_QUERY_LOG_LENGTH = 60
 open class OnDeviceRagViewModel @Inject constructor(
     private val routeQueryUseCase: RouteQueryUseCase,
     private val onDeviceQueryUseCase: OnDeviceQueryUseCase,
-    private val dispatchers: DispatcherProvider,
+    private val dispatchers: DispatcherProvider
 ) : ViewModel() {
 
     // Authenticated user id — set by the screen from SavedStateHandle / auth layer
@@ -82,7 +82,7 @@ open class OnDeviceRagViewModel @Inject constructor(
                 else -> {
                     _uiState.value = OnDeviceRagChatUiState.Error(
                         message = "Routing failed. Please try again.",
-                        stage = "router",
+                        stage = "router"
                     )
                     return@launch
                 }
@@ -116,7 +116,7 @@ open class OnDeviceRagViewModel @Inject constructor(
     private suspend fun runOnDeviceQuery(query: String, fallbackOccurred: Boolean) {
         _uiState.value = OnDeviceRagChatUiState.Searching(
             activePath = OnDeviceInferencePath.ON_DEVICE,
-            fallbackBanner = fallbackOccurred,
+            fallbackBanner = fallbackOccurred
         )
 
         var accumulated = ""
@@ -125,7 +125,7 @@ open class OnDeviceRagViewModel @Inject constructor(
             .catch { e ->
                 _uiState.value = OnDeviceRagChatUiState.Error(
                     message = "On-device query failed: ${e.message}",
-                    stage = "generation",
+                    stage = "generation"
                 )
             }
             .collect { event ->
@@ -138,7 +138,7 @@ open class OnDeviceRagViewModel @Inject constructor(
                         _uiState.value = OnDeviceRagChatUiState.Streaming(
                             activePath = OnDeviceInferencePath.ON_DEVICE,
                             accumulatedText = accumulated,
-                            fallbackBanner = fallbackOccurred,
+                            fallbackBanner = fallbackOccurred
                         )
                     }
                     is OnDeviceQueryEvent.Done -> {
@@ -146,7 +146,7 @@ open class OnDeviceRagViewModel @Inject constructor(
                             activePath = OnDeviceInferencePath.ON_DEVICE,
                             responseText = accumulated,
                             citations = event.citations,
-                            fallbackBanner = fallbackOccurred,
+                            fallbackBanner = fallbackOccurred
                         )
                     }
                     is OnDeviceQueryEvent.NoRelevantContent -> {
@@ -156,7 +156,7 @@ open class OnDeviceRagViewModel @Inject constructor(
                         _uiState.value = OnDeviceRagChatUiState.Error(
                             message = event.message,
                             stage = event.stage,
-                            canRetry = true,
+                            canRetry = true
                         )
                     }
                 }
@@ -170,7 +170,7 @@ open class OnDeviceRagViewModel @Inject constructor(
         // when integrated at the app level.
         _uiState.value = OnDeviceRagChatUiState.Searching(
             activePath = OnDeviceInferencePath.CLOUD,
-            fallbackBanner = false,
+            fallbackBanner = false
         )
         // TODO: Wire to SendMessageUseCase / AIStreamClient when integrating at app level.
         // For now emit a placeholder Done state so the screen is functional.
@@ -178,7 +178,7 @@ open class OnDeviceRagViewModel @Inject constructor(
             activePath = OnDeviceInferencePath.CLOUD,
             responseText = "[Cloud response for: \"${query.take(MAX_QUERY_LOG_LENGTH)}\"]",
             citations = emptyList(),
-            fallbackBanner = false,
+            fallbackBanner = false
         )
     }
 

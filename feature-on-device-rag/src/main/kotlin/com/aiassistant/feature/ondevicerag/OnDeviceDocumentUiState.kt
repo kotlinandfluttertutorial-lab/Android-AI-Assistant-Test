@@ -42,7 +42,7 @@ sealed class OnDeviceDocumentUiState {
     data class DocumentList(
         val documents: List<OnDeviceDocument> = emptyList(),
         val ingestionInProgress: Boolean = false,
-        val lowStorageWarning: Boolean = false,
+        val lowStorageWarning: Boolean = false
     ) : OnDeviceDocumentUiState()
 
     /**
@@ -51,10 +51,7 @@ sealed class OnDeviceDocumentUiState {
      * @param fileName   Name of the rejected file for display.
      * @param sizeBytes  Actual file size for the error message.
      */
-    data class FileSizeRejection(
-        val fileName: String,
-        val sizeBytes: Long,
-    ) : OnDeviceDocumentUiState()
+    data class FileSizeRejection(val fileName: String, val sizeBytes: Long) : OnDeviceDocumentUiState()
 
     /**
      * Ingestion is running for [documentId] and progress events are streaming in.
@@ -68,7 +65,7 @@ sealed class OnDeviceDocumentUiState {
         val documentId: String,
         val fileName: String,
         val progress: IngestionProgress,
-        val documents: List<OnDeviceDocument> = emptyList(),
+        val documents: List<OnDeviceDocument> = emptyList()
     ) : OnDeviceDocumentUiState()
 
     /**

@@ -64,7 +64,7 @@ tasks.withType<Test> {
 configurations.all {
     resolutionStrategy.eachDependency {
         val forbidden = listOf(
-            "com.aiassistant.data",
+            "com.aiassistant.data"
         )
         if (forbidden.any { requested.group.startsWith(it) }) {
             throw GradleException(
@@ -82,7 +82,7 @@ dependencies {
     implementation(project(":domain"))
     implementation(project(":core-ui"))
     implementation(project(":core-common"))
-    implementation(project(":core-ai"))       // QueryRouter, LocalVectorIndex, engine interfaces
+    implementation(project(":core-ai")) // QueryRouter, LocalVectorIndex, engine interfaces
     implementation(project(":core-database")) // OnDeviceChunkDao (via LocalVectorIndex only)
 
     // Compose

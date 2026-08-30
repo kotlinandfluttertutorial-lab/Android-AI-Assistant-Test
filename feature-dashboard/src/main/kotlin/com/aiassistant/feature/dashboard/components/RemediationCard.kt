@@ -201,40 +201,11 @@ private fun RemediationActionRow(
             )
             .padding(12.dp)
     ) {
-        // Title row
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.SpaceBetween
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(6.dp),
-                modifier = Modifier.weight(1f)
-            ) {
-                Text(
-                    text = "#${action.rank}",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = action.title,
-                    style = MaterialTheme.typography.bodySmall,
-                    fontWeight = FontWeight.Medium
-                )
-            }
-            // Risk tier badge
-            Text(
-                text = action.riskTier,
-                color = tierFg,
-                fontSize = 9.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(4.dp))
-                    .background(tierBg)
-                    .padding(horizontal = 6.dp, vertical = 2.dp)
-            )
-        }
+        ActionHeader(
+            action = action,
+            tierBg = tierBg,
+            tierFg = tierFg
+        )
 
         // Status (if reviewed)
         if (isTerminal) {
@@ -246,76 +217,146 @@ private fun RemediationActionRow(
             )
         }
 
-        // Reasoning (expandable)
-        if (action.reasoning.isNotBlank()) {
-            Spacer(Modifier.height(4.dp))
+        ActionDescription(
+            reasoning = action.reasoning,
+            title = action.title,
+            showReasoning = showReasoning,
+            onToggleReasoning = { showReasoning = !showReasoning }
+        )
+
+        ActionControls(
+            action = action,
+            isTerminal = isTerminal,
+            onApprove = onApprove,
+            onReject = onReject
+        )
+    }
+}
+
+@Composable
+private fun ActionHeader(
+    action: RemediationActionUiModel,
+    tierBg: Color,
+    tierFg: Color
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.SpaceBetween
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            modifier = Modifier.weight(1f)
+        ) {
             Text(
-                text = if (showReasoning) "Hide reasoning ▲" else "Show reasoning ▼",
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier
-                    .clickable { showReasoning = !showReasoning }
-                    .semantics { contentDescription = "Toggle reasoning for ${action.title}" }
-                    .padding(vertical = 2.dp)
+                text = "#${action.rank}",
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            AnimatedVisibility(visible = showReasoning) {
-                Text(
-                    text = action.reasoning,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(top = 4.dp)
+            Text(
+                text = action.title,
+                style = MaterialTheme.typography.bodySmall,
+                fontWeight = FontWeight.Medium
+            )
+        }
+        // Risk tier badge
+        Text(
+            text = action.riskTier,
+            color = tierFg,
+            fontSize = 9.sp,
+            fontWeight = FontWeight.Bold,
+            modifier = Modifier
+                .clip(RoundedCornerShape(4.dp))
+                .background(tierBg)
+                .padding(horizontal = 6.dp, vertical = 2.dp)
+        )
+    }
+}
+
+@Composable
+private fun ActionDescription(
+    reasoning: String,
+    title: String,
+    showReasoning: Boolean,
+    onToggleReasoning: () -> Unit
+) {
+    if (reasoning.isNotBlank()) {
+        Spacer(Modifier.height(4.dp))
+        Text(
+            text = if (showReasoning) "Hide reasoning ▲" else "Show reasoning ▼",
+            style = MaterialTheme.typography.labelSmall,
+            color = MaterialTheme.colorScheme.primary,
+            modifier = Modifier
+                .clickable { onToggleReasoning() }
+                .semantics { contentDescription = "Toggle reasoning for $title" }
+                .padding(vertical = 2.dp)
+        )
+        AnimatedVisibility(visible = showReasoning) {
+            Text(
+                text = reasoning,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 4.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun ActionControls(
+    action: RemediationActionUiModel,
+    isTerminal: Boolean,
+    onApprove: () -> Unit,
+    onReject: () -> Unit
+) {
+    // Approve / Reject buttons (only when RECOMMENDED)
+    if (!isTerminal) {
+        Spacer(Modifier.height(8.dp))
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Button(
+                onClick = onApprove,
+                modifier = Modifier
+                    .weight(1f)
+                    .semantics { contentDescription = "Approve ${action.title}" },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
                 )
+            ) {
+                Icon(
+                    Icons.Outlined.CheckCircle,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(Modifier.width(4.dp))
+                Text("Approve", style = MaterialTheme.typography.labelMedium)
+            }
+            OutlinedButton(
+                onClick = onReject,
+                modifier = Modifier
+                    .weight(1f)
+                    .semantics { contentDescription = "Reject ${action.title}" }
+            ) {
+                Icon(
+                    Icons.Outlined.Cancel,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                )
+                Spacer(Modifier.width(4.dp))
+                Text("Reject", style = MaterialTheme.typography.labelMedium)
             }
         }
 
-        // Approve / Reject buttons (only when RECOMMENDED)
-        if (!isTerminal) {
-            Spacer(Modifier.height(8.dp))
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Button(
-                    onClick = onApprove,
-                    modifier = Modifier
-                        .weight(1f)
-                        .semantics { contentDescription = "Approve ${action.title}" },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    )
-                ) {
-                    Icon(
-                        Icons.Outlined.CheckCircle,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(Modifier.width(4.dp))
-                    Text("Approve", style = MaterialTheme.typography.labelMedium)
-                }
-                OutlinedButton(
-                    onClick = onReject,
-                    modifier = Modifier
-                        .weight(1f)
-                        .semantics { contentDescription = "Reject ${action.title}" }
-                ) {
-                    Icon(
-                        Icons.Outlined.Cancel,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(Modifier.width(4.dp))
-                    Text("Reject", style = MaterialTheme.typography.labelMedium)
-                }
-            }
-
-            // HIGH risk extra warning
-            if (action.riskTier.uppercase() == "HIGH") {
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    text = "⚠️ HIGH RISK — verify the previous state is stable before approving.",
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.error
-                )
-            }
+        // HIGH risk extra warning
+        if (action.riskTier.uppercase() == "HIGH") {
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = "⚠️ HIGH RISK — verify the previous state is stable before approving.",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.error
+            )
         }
     }
 }

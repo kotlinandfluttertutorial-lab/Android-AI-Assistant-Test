@@ -54,16 +54,13 @@ import com.aiassistant.domain.model.OnDeviceBenchmarkResult
 // ── Stateful entry point ─────────────────────────────────────────────────────
 
 @Composable
-fun BenchmarkScreen(
-    onNavigateUp: () -> Unit,
-    viewModel: BenchmarkViewModel = hiltViewModel(),
-) {
+fun BenchmarkScreen(onNavigateUp: () -> Unit, viewModel: BenchmarkViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsState()
     BenchmarkContent(
         uiState = uiState,
         onRunBenchmark = viewModel::runBenchmark,
         onNavigateUp = onNavigateUp,
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize()
     )
 }
 
@@ -75,7 +72,7 @@ fun BenchmarkContent(
     uiState: BenchmarkUiState,
     onRunBenchmark: () -> Unit,
     onNavigateUp: () -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     Scaffold(
         modifier = modifier,
@@ -85,13 +82,13 @@ fun BenchmarkContent(
                 navigationIcon = {
                     IconButton(
                         onClick = onNavigateUp,
-                        modifier = Modifier.semantics { contentDescription = "Navigate up" },
+                        modifier = Modifier.semantics { contentDescription = "Navigate up" }
                     ) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
-        },
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
@@ -99,7 +96,7 @@ fun BenchmarkContent(
                 .fillMaxSize()
                 .padding(16.dp)
                 .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             when (uiState) {
                 is BenchmarkUiState.Idle -> {
@@ -107,13 +104,13 @@ fun BenchmarkContent(
                         text = "Run 10 inference iterations with a 200-token fixed prompt to " +
                             "measure time-to-first-token, throughput, and peak RAM.",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Button(
                         onClick = onRunBenchmark,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .semantics { contentDescription = "Run benchmark" },
+                            .semantics { contentDescription = "Run benchmark" }
                     ) {
                         Text("Run Benchmark")
                     }
@@ -122,11 +119,11 @@ fun BenchmarkContent(
                 is BenchmarkUiState.Running -> {
                     Box(
                         modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center,
+                        contentAlignment = Alignment.Center
                     ) {
                         Column(
                             horizontalAlignment = Alignment.CenterHorizontally,
-                            verticalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             CircularProgressIndicator(
                                 modifier = Modifier.semantics {
@@ -135,7 +132,7 @@ fun BenchmarkContent(
                             )
                             Text(
                                 "Running ${uiState.iteration} / 10 iterations…",
-                                style = MaterialTheme.typography.bodyMedium,
+                                style = MaterialTheme.typography.bodyMedium
                             )
                         }
                     }
@@ -148,7 +145,7 @@ fun BenchmarkContent(
                         onClick = onRunBenchmark,
                         modifier = Modifier
                             .fillMaxWidth()
-                            .semantics { contentDescription = "Run benchmark again" },
+                            .semantics { contentDescription = "Run benchmark again" }
                     ) {
                         Text("Run Again")
                     }
@@ -161,11 +158,11 @@ fun BenchmarkContent(
                         color = MaterialTheme.colorScheme.error,
                         modifier = Modifier.semantics {
                             contentDescription = "Benchmark error: ${uiState.message}"
-                        },
+                        }
                     )
                     Button(
                         onClick = onRunBenchmark,
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("Retry")
                     }
@@ -178,15 +175,12 @@ fun BenchmarkContent(
 // ── Benchmark results table ───────────────────────────────────────────────────
 
 @Composable
-private fun BenchmarkResultsTable(
-    result: OnDeviceBenchmarkResult,
-    modifier: Modifier = Modifier,
-) {
+private fun BenchmarkResultsTable(result: OnDeviceBenchmarkResult, modifier: Modifier = Modifier) {
     Card(modifier = modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = "Benchmark Results",
-                style = MaterialTheme.typography.titleMedium,
+                style = MaterialTheme.typography.titleMedium
             )
             Spacer(Modifier.height(12.dp))
 
@@ -195,33 +189,33 @@ private fun BenchmarkResultsTable(
                 col1 = "Metric",
                 col2 = "p50",
                 col3 = "p95",
-                isHeader = true,
+                isHeader = true
             )
             HorizontalDivider()
 
             BenchmarkTableRow(
                 col1 = "TTFT (ms)",
                 col2 = result.ttftMeanMs.toString(),
-                col3 = result.ttftP95Ms.toString(),
+                col3 = result.ttftP95Ms.toString()
             )
             BenchmarkTableRow(
                 col1 = "Tokens/sec",
                 col2 = "%.1f".format(result.tokensPerSecMean),
-                col3 = "%.1f".format(result.tokensPerSecP95),
+                col3 = "%.1f".format(result.tokensPerSecP95)
             )
             HorizontalDivider()
 
             Spacer(Modifier.height(8.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text("Accelerator", style = MaterialTheme.typography.labelMedium)
                 Text(result.accelerator.name, style = MaterialTheme.typography.bodyMedium)
             }
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text("Peak RAM (MB)", style = MaterialTheme.typography.labelMedium)
                 Text(result.peakRamMb.toString(), style = MaterialTheme.typography.bodyMedium)
@@ -236,7 +230,7 @@ private fun BenchmarkTableRow(
     col2: String,
     col3: String,
     isHeader: Boolean = false,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     val style = if (isHeader) {
         MaterialTheme.typography.labelMedium
@@ -247,7 +241,7 @@ private fun BenchmarkTableRow(
         modifier = modifier
             .fillMaxWidth()
             .padding(vertical = 4.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
+        horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(col1, style = style, modifier = Modifier.weight(2f))
         Text(col2, style = style, modifier = Modifier.weight(1f))

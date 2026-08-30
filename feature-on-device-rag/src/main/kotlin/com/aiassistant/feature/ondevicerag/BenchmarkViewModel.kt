@@ -21,11 +21,11 @@ import com.aiassistant.core.common.DispatcherProvider
 import com.aiassistant.domain.model.OnDeviceBenchmarkResult
 import com.aiassistant.domain.usecase.ondevicerag.BenchmarkOnDeviceUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 /** All possible states for BenchmarkScreen. */
 sealed class BenchmarkUiState {
@@ -38,7 +38,7 @@ sealed class BenchmarkUiState {
 @HiltViewModel
 class BenchmarkViewModel @Inject constructor(
     private val benchmarkUseCase: BenchmarkOnDeviceUseCase,
-    private val dispatchers: DispatcherProvider,
+    private val dispatchers: DispatcherProvider
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<BenchmarkUiState>(BenchmarkUiState.Idle)

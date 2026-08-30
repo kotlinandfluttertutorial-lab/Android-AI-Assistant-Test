@@ -27,6 +27,9 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.unmockkAll
 import io.mockk.verify
+import java.time.Instant
+import java.time.LocalDate
+import java.util.UUID
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -44,9 +47,6 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import java.time.Instant
-import java.time.LocalDate
-import java.util.UUID
 
 /**
  * Unit tests for [CalendarViewModel] state logic and use case orchestration.
@@ -103,20 +103,21 @@ class CalendarViewModelTest {
         )
     }
 
-    private fun makeCalendarEvent(id: String = UUID.randomUUID().toString(), title: String = "Test Event") = CalendarEvent(
-        id = id,
-        userId = "user123",
-        title = title,
-        description = "Description",
-        startTime = System.currentTimeMillis() + 3600000,
-        endTime = System.currentTimeMillis() + 7200000,
-        location = "Office",
-        isAllDay = false,
-        source = CalendarEventSource.LOCAL,
-        syncStatus = SyncStatus.SYNCED,
-        createdAt = Instant.now().toEpochMilli(),
-        updatedAt = Instant.now().toEpochMilli()
-    )
+    private fun makeCalendarEvent(id: String = UUID.randomUUID().toString(), title: String = "Test Event") =
+        CalendarEvent(
+            id = id,
+            userId = "user123",
+            title = title,
+            description = "Description",
+            startTime = System.currentTimeMillis() + 3600000,
+            endTime = System.currentTimeMillis() + 7200000,
+            location = "Office",
+            isAllDay = false,
+            source = CalendarEventSource.LOCAL,
+            syncStatus = SyncStatus.SYNCED,
+            createdAt = Instant.now().toEpochMilli(),
+            updatedAt = Instant.now().toEpochMilli()
+        )
 
     // ── Tests ─────────────────────────────────────────────────────────────────
 

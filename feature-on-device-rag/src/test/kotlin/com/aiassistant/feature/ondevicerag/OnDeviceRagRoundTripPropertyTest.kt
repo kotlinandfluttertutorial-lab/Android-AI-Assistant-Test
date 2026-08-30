@@ -34,69 +34,70 @@ import io.mockk.mockk
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.toList
 
-class OnDeviceRagRoundTripPropertyTest : DescribeSpec({
+class OnDeviceRagRoundTripPropertyTest :
+    DescribeSpec({
 
-    describe("Property 37 — On-Device RAG Round-Trip") {
+        describe("Property 37 — On-Device RAG Round-Trip") {
 
-        it("verbatim phrase from ingested document appears in Done citations") {
-            checkAll(
-                iterations = 20,
-                Arb.string(minSize = 100, maxSize = 2000)
-            ) { rawText ->
-                if (rawText.split(" ").size < 5) return@checkAll
+            it("verbatim phrase from ingested document appears in Done citations") {
+                checkAll(
+                    iterations = 20,
+                    Arb.string(minSize = 100, maxSize = 2000)
+                ) { rawText ->
+                    if (rawText.split(" ").size < 5) return@checkAll
 
-                val documentId = "prop37_doc"
-                val userId = "user_prop37"
+                    val documentId = "prop37_doc"
+                    val userId = "user_prop37"
 
-                val document = OnDeviceDocument(
-                    id = documentId,
-                    userId = userId,
-                    fileName = "prop37.txt",
-                    mimeType = "text/plain",
-                    sizeBytes = rawText.length.toLong(),
-                    ingestionStatus = OnDeviceIngestionStatus.PENDING,
-                    createdAt = 0,
-                )
-
-                val chunker = Chunker(chunkSizeTokens = 50, overlapTokens = 10)
-                val embeddingModel = mockk<OnDeviceEmbeddingModel>()
-                coEvery { embeddingModel.generateEmbedding(any()) } returns FloatArray(384) { 0.1f }
-
-                val dao = InMemoryOnDeviceChunkDao()
-                val vectorIndex = LocalVectorIndexImpl(dao)
-
-                val docRepo = mockk<OnDeviceDocumentRepository>(relaxed = true)
-                coEvery { docRepo.saveDocument(any()) } returns ApiResult.Success(document)
-
-                val ingestUseCase = OnDeviceIngestDocumentUseCase(docRepo, chunker, embeddingModel, vectorIndex)
-                ingestUseCase(document, rawText).toList()
-
-                val words = rawText.trim().split(Regex("\\s+")).filter { it.isNotBlank() }
-                if (words.size < 5) return@checkAll
-                val phrase = words.take(5).joinToString(" ")
-
-                val inferenceEngine = mockk<OnDeviceInferenceEngine>()
-                every { inferenceEngine.generateStream(any()) } answers {
-                    flowOf(
-                        OnDeviceStreamEvent.Token("answer"),
-                        OnDeviceStreamEvent.Done(tokensGenerated = 10, generationTimeMs = 50),
+                    val document = OnDeviceDocument(
+                        id = documentId,
+                        userId = userId,
+                        fileName = "prop37.txt",
+                        mimeType = "text/plain",
+                        sizeBytes = rawText.length.toLong(),
+                        ingestionStatus = OnDeviceIngestionStatus.PENDING,
+                        createdAt = 0
                     )
+
+                    val chunker = Chunker(chunkSizeTokens = 50, overlapTokens = 10)
+                    val embeddingModel = mockk<OnDeviceEmbeddingModel>()
+                    coEvery { embeddingModel.generateEmbedding(any()) } returns FloatArray(384) { 0.1f }
+
+                    val dao = InMemoryOnDeviceChunkDao()
+                    val vectorIndex = LocalVectorIndexImpl(dao)
+
+                    val docRepo = mockk<OnDeviceDocumentRepository>(relaxed = true)
+                    coEvery { docRepo.saveDocument(any()) } returns ApiResult.Success(document)
+
+                    val ingestUseCase = OnDeviceIngestDocumentUseCase(docRepo, chunker, embeddingModel, vectorIndex)
+                    ingestUseCase(document, rawText).toList()
+
+                    val words = rawText.trim().split(Regex("\\s+")).filter { it.isNotBlank() }
+                    if (words.size < 5) return@checkAll
+                    val phrase = words.take(5).joinToString(" ")
+
+                    val inferenceEngine = mockk<OnDeviceInferenceEngine>()
+                    every { inferenceEngine.generateStream(any()) } answers {
+                        flowOf(
+                            OnDeviceStreamEvent.Token("answer"),
+                            OnDeviceStreamEvent.Done(tokensGenerated = 10, generationTimeMs = 50)
+                        )
+                    }
+                    every { inferenceEngine.activeAccelerator() } returns HardwareAccelerator.CPU
+
+                    val metricsRepo = mockk<QueryMetricsRepository>(relaxed = true)
+                    val queryUseCase = OnDeviceQueryUseCase(embeddingModel, vectorIndex, inferenceEngine, metricsRepo)
+                    val events = queryUseCase(phrase, userId).toList()
+
+                    val doneEvent = events.filterIsInstance<OnDeviceQueryEvent.Done>().firstOrNull()
+                        ?: return@checkAll
+
+                    val hasCitation = doneEvent.citations.any { it.documentId == documentId }
+                    hasCitation shouldBe true
                 }
-                every { inferenceEngine.activeAccelerator() } returns HardwareAccelerator.CPU
-
-                val metricsRepo = mockk<QueryMetricsRepository>(relaxed = true)
-                val queryUseCase = OnDeviceQueryUseCase(embeddingModel, vectorIndex, inferenceEngine, metricsRepo)
-                val events = queryUseCase(phrase, userId).toList()
-
-                val doneEvent = events.filterIsInstance<OnDeviceQueryEvent.Done>().firstOrNull()
-                    ?: return@checkAll
-
-                val hasCitation = doneEvent.citations.any { it.documentId == documentId }
-                hasCitation shouldBe true
             }
         }
-    }
-})
+    })
 
 private class InMemoryOnDeviceChunkDao : com.aiassistant.core.database.dao.OnDeviceChunkDao {
     private val store = mutableListOf<com.aiassistant.core.database.entity.OnDeviceChunkEntity>()
@@ -113,15 +114,13 @@ private class InMemoryOnDeviceChunkDao : com.aiassistant.core.database.dao.OnDev
     override suspend fun getChunksForDocument(userId: String, documentId: String) =
         store.filter { it.userId == userId && it.documentId == documentId }
 
-    override suspend fun getAllChunks(userId: String) =
-        store.filter { it.userId == userId }
+    override suspend fun getAllChunks(userId: String) = store.filter { it.userId == userId }
 
     override suspend fun deleteByDocument(userId: String, documentId: String) {
         store.removeAll { it.userId == userId && it.documentId == documentId }
     }
 
-    override suspend fun countChunks(userId: String) =
-        store.count { it.userId == userId }
+    override suspend fun countChunks(userId: String) = store.count { it.userId == userId }
 
     override suspend fun totalEmbeddingBytes(userId: String, embeddingDimension: Int): Long = 0L
 }

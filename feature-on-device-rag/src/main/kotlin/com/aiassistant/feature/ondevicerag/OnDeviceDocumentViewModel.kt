@@ -30,6 +30,7 @@ import com.aiassistant.domain.usecase.ondevicerag.DeleteOnDeviceDocumentUseCase
 import com.aiassistant.domain.usecase.ondevicerag.GetOnDeviceDocumentsUseCase
 import com.aiassistant.domain.usecase.ondevicerag.OnDeviceIngestDocumentUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -38,8 +39,6 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
-import javax.inject.Inject
 
 /** Maximum on-device document size: 50 MB. */
 private const val MAX_FILE_SIZE_BYTES = 50L * 1024 * 1024
@@ -49,7 +48,7 @@ open class OnDeviceDocumentViewModel @Inject constructor(
     private val getDocumentsUseCase: GetOnDeviceDocumentsUseCase,
     private val ingestDocumentUseCase: OnDeviceIngestDocumentUseCase,
     private val deleteDocumentUseCase: DeleteOnDeviceDocumentUseCase,
-    private val dispatchers: DispatcherProvider,
+    private val dispatchers: DispatcherProvider
 ) : ViewModel() {
 
     // Authenticated user ID — in production resolved from SecureStorage via the
@@ -80,7 +79,7 @@ open class OnDeviceDocumentViewModel @Inject constructor(
         if (sizeBytes > MAX_FILE_SIZE_BYTES) {
             _uiState.value = OnDeviceDocumentUiState.FileSizeRejection(
                 fileName = document.fileName,
-                sizeBytes = sizeBytes,
+                sizeBytes = sizeBytes
             )
             return
         }
@@ -93,7 +92,7 @@ open class OnDeviceDocumentViewModel @Inject constructor(
                 OnDeviceDocumentUiState.DocumentList(
                     documents = docs,
                     ingestionInProgress = false,
-                    lowStorageWarning = true,
+                    lowStorageWarning = true
                 )
             }
             return
@@ -130,7 +129,7 @@ open class OnDeviceDocumentViewModel @Inject constructor(
     fun clearFileSizeRejection() {
         _uiState.value = OnDeviceDocumentUiState.DocumentList(
             documents = _documents.value,
-            lowStorageWarning = false,
+            lowStorageWarning = false
         )
     }
 
@@ -147,7 +146,7 @@ open class OnDeviceDocumentViewModel @Inject constructor(
                         ingestionInProgress = docs.any {
                             it.ingestionStatus == OnDeviceIngestionStatus.PROCESSING
                         },
-                        lowStorageWarning = isLowStorage(),
+                        lowStorageWarning = isLowStorage()
                     )
                 }
             }
@@ -164,14 +163,14 @@ open class OnDeviceDocumentViewModel @Inject constructor(
                 _uiState.value = OnDeviceDocumentUiState.DocumentList(
                     documents = _documents.value,
                     ingestionInProgress = false,
-                    lowStorageWarning = isLowStorage(),
+                    lowStorageWarning = isLowStorage()
                 )
             }
             is IngestionProgress.Error -> {
                 _uiState.value = OnDeviceDocumentUiState.DocumentList(
                     documents = _documents.value,
                     ingestionInProgress = false,
-                    lowStorageWarning = isLowStorage(),
+                    lowStorageWarning = isLowStorage()
                 )
             }
             else -> {
@@ -179,7 +178,7 @@ open class OnDeviceDocumentViewModel @Inject constructor(
                     documentId = document.id,
                     fileName = document.fileName,
                     progress = progress,
-                    documents = _documents.value,
+                    documents = _documents.value
                 )
             }
         }

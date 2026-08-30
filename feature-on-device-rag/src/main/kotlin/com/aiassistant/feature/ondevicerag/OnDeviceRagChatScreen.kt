@@ -63,10 +63,7 @@ import com.aiassistant.domain.model.OnDeviceInferencePath
 // ── Stateful entry point ─────────────────────────────────────────────────────
 
 @Composable
-fun OnDeviceRagChatScreen(
-    onNavigateUp: () -> Unit,
-    viewModel: OnDeviceRagViewModel = hiltViewModel(),
-) {
+fun OnDeviceRagChatScreen(onNavigateUp: () -> Unit, viewModel: OnDeviceRagViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsState()
     var query by remember { mutableStateOf("") }
 
@@ -82,7 +79,7 @@ fun OnDeviceRagChatScreen(
         onRetryViaCloud = { viewModel.retryViaCloud(query) },
         onReset = viewModel::reset,
         onNavigateUp = onNavigateUp,
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize()
     )
 }
 
@@ -98,7 +95,7 @@ fun OnDeviceRagChatContent(
     onRetryViaCloud: () -> Unit,
     onReset: () -> Unit,
     onNavigateUp: () -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     Scaffold(
         modifier = modifier,
@@ -107,21 +104,21 @@ fun OnDeviceRagChatContent(
                 uiState = uiState,
                 onNavigateUp = onNavigateUp
             )
-        },
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
                 .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             ChatFallbackBanner(uiState)
 
             Box(
                 modifier = Modifier
                     .weight(1f)
-                    .fillMaxWidth(),
+                    .fillMaxWidth()
             ) {
                 ChatMainArea(
                     uiState = uiState,
@@ -142,10 +139,7 @@ fun OnDeviceRagChatContent(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun OnDeviceRagTopAppBar(
-    uiState: OnDeviceRagChatUiState,
-    onNavigateUp: () -> Unit
-) {
+private fun OnDeviceRagTopAppBar(uiState: OnDeviceRagChatUiState, onNavigateUp: () -> Unit) {
     val activePathLabel = when (uiState) {
         is OnDeviceRagChatUiState.Searching -> uiState.activePath.toLabel()
         is OnDeviceRagChatUiState.Streaming -> uiState.activePath.toLabel()
@@ -157,7 +151,7 @@ private fun OnDeviceRagTopAppBar(
         title = {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Text("On-Device RAG Chat")
                 activePathLabel?.let { label ->
@@ -168,7 +162,7 @@ private fun OnDeviceRagTopAppBar(
         navigationIcon = {
             IconButton(
                 onClick = onNavigateUp,
-                modifier = Modifier.semantics { contentDescription = "Navigate up" },
+                modifier = Modifier.semantics { contentDescription = "Navigate up" }
             ) {
                 Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
             }
@@ -180,18 +174,19 @@ private fun OnDeviceRagTopAppBar(
 private fun InferencePathBadge(label: String) {
     Surface(
         shape = MaterialTheme.shapes.small,
-        color = if (label == "Running on device")
+        color = if (label == "Running on device") {
             MaterialTheme.colorScheme.primaryContainer
-        else
-            MaterialTheme.colorScheme.secondaryContainer,
+        } else {
+            MaterialTheme.colorScheme.secondaryContainer
+        },
         modifier = Modifier.semantics {
             contentDescription = "Inference path: $label"
-        },
+        }
     ) {
         Text(
             text = label,
             style = MaterialTheme.typography.labelSmall,
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
         )
     }
 }
@@ -210,11 +205,7 @@ private fun ChatFallbackBanner(uiState: OnDeviceRagChatUiState) {
 }
 
 @Composable
-private fun ChatMainArea(
-    uiState: OnDeviceRagChatUiState,
-    onRetryViaCloud: () -> Unit,
-    onReset: () -> Unit
-) {
+private fun ChatMainArea(uiState: OnDeviceRagChatUiState, onRetryViaCloud: () -> Unit, onReset: () -> Unit) {
     when (uiState) {
         is OnDeviceRagChatUiState.Idle -> IdlePrompt()
         is OnDeviceRagChatUiState.Routing -> CenteredIndicator("Checking capabilities…")
@@ -222,19 +213,19 @@ private fun ChatMainArea(
         is OnDeviceRagChatUiState.Streaming -> ResponseArea(
             text = uiState.accumulatedText,
             citations = emptyList(),
-            isStreaming = true,
+            isStreaming = true
         )
         is OnDeviceRagChatUiState.Done -> ResponseArea(
             text = uiState.responseText,
             citations = uiState.citations,
-            isStreaming = false,
+            isStreaming = false
         )
         is OnDeviceRagChatUiState.NoRelevantContent -> NoRelevantContentState()
         is OnDeviceRagChatUiState.Error -> ErrorState(
             message = uiState.message,
             canRetry = uiState.canRetry,
             onRetryViaCloud = onRetryViaCloud,
-            onReset = onReset,
+            onReset = onReset
         )
     }
 }
@@ -259,7 +250,7 @@ private fun QueryInputArea(
                 .semantics { contentDescription = "Query input field" },
             placeholder = { Text("Ask a question about your documents…") },
             enabled = !isProcessing,
-            maxLines = 4,
+            maxLines = 4
         )
 
         Button(
@@ -267,7 +258,7 @@ private fun QueryInputArea(
             enabled = query.isNotBlank() && !isProcessing,
             modifier = Modifier
                 .fillMaxWidth()
-                .semantics { contentDescription = "Submit query" },
+                .semantics { contentDescription = "Submit query" }
         ) {
             Text("Ask")
         }
@@ -281,12 +272,12 @@ private fun ResponseArea(
     text: String,
     citations: List<ChunkCitation>,
     isStreaming: Boolean,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState()),
+            .verticalScroll(rememberScrollState())
     ) {
         ResponseCard(text, isStreaming)
         if (citations.isNotEmpty()) {
@@ -300,12 +291,12 @@ private fun ResponseCard(text: String, isStreaming: Boolean) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .semantics { contentDescription = if (isStreaming) "Streaming response" else "Response" },
+            .semantics { contentDescription = if (isStreaming) "Streaming response" else "Response" }
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(
                 text = text,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyMedium
             )
             if (isStreaming) {
                 Spacer(Modifier.height(8.dp))
@@ -313,7 +304,7 @@ private fun ResponseCard(text: String, isStreaming: Boolean) {
                     modifier = Modifier
                         .align(Alignment.End)
                         .semantics { contentDescription = "Generating response" },
-                    strokeWidth = 2.dp,
+                    strokeWidth = 2.dp
                 )
             }
         }
@@ -329,7 +320,7 @@ private fun CitationsSection(citations: List<ChunkCitation>) {
         onClick = { showCitations = !showCitations },
         modifier = Modifier.semantics {
             contentDescription = if (showCitations) "Hide sources" else "Show sources"
-        },
+        }
     ) {
         Icon(Icons.Default.Info, contentDescription = null)
         Spacer(Modifier.padding(horizontal = 4.dp))
@@ -346,19 +337,16 @@ private fun CitationsSection(citations: List<ChunkCitation>) {
 }
 
 @Composable
-private fun CitationCard(
-    citation: ChunkCitation,
-    modifier: Modifier = Modifier,
-) {
+private fun CitationCard(citation: ChunkCitation, modifier: Modifier = Modifier) {
     Card(
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
         ),
         modifier = modifier
             .fillMaxWidth()
             .semantics {
                 contentDescription = "Source: ${citation.documentName}, chunk ${citation.chunkIndex}"
-            },
+            }
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             Text(
@@ -366,18 +354,18 @@ private fun CitationCard(
                     (citation.pageNumber?.let { " · page $it" } ?: "") +
                     " · chunk ${citation.chunkIndex}",
                 style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary,
+                color = MaterialTheme.colorScheme.primary
             )
             Text(
                 text = "Similarity: ${"%.2f".format(citation.cosineSimilarity)}",
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Spacer(Modifier.height(4.dp))
             Text(
                 text = citation.excerpt,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -389,11 +377,11 @@ private fun CenteredIndicator(label: String, modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxSize()
             .semantics { contentDescription = label },
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.Center
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(12.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             CircularProgressIndicator()
             Text(text = label, style = MaterialTheme.typography.bodyMedium)
@@ -407,13 +395,13 @@ private fun IdlePrompt(modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxSize()
             .padding(32.dp),
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.Center
     ) {
         Text(
             text = "Type a question below to search your on-device documents.",
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.semantics { contentDescription = "Enter a query to get started" },
+            modifier = Modifier.semantics { contentDescription = "Enter a query to get started" }
         )
     }
 }
@@ -424,7 +412,7 @@ private fun NoRelevantContentState(modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxSize()
             .padding(32.dp),
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.Center
     ) {
         Text(
             text = "No relevant content found in local documents.",
@@ -432,7 +420,7 @@ private fun NoRelevantContentState(modifier: Modifier = Modifier) {
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.semantics {
                 contentDescription = "No relevant content found in local documents"
-            },
+            }
         )
     }
 }
@@ -443,33 +431,33 @@ private fun ErrorState(
     canRetry: Boolean,
     onRetryViaCloud: () -> Unit,
     onReset: () -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier
             .fillMaxSize()
             .padding(16.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center,
+        verticalArrangement = Arrangement.Center
     ) {
         Text(
             text = message,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.error,
-            modifier = Modifier.semantics { contentDescription = "Error: $message" },
+            modifier = Modifier.semantics { contentDescription = "Error: $message" }
         )
         Spacer(Modifier.height(16.dp))
         if (canRetry) {
             Button(
                 onClick = onRetryViaCloud,
-                modifier = Modifier.semantics { contentDescription = "Retry via cloud" },
+                modifier = Modifier.semantics { contentDescription = "Retry via cloud" }
             ) {
                 Text("Retry via cloud")
             }
         }
         OutlinedButton(
             onClick = onReset,
-            modifier = Modifier.semantics { contentDescription = "Start new query" },
+            modifier = Modifier.semantics { contentDescription = "Start new query" }
         ) {
             Text("New query")
         }
@@ -482,12 +470,12 @@ private fun FallbackNotificationBanner(modifier: Modifier = Modifier) {
         color = MaterialTheme.colorScheme.tertiaryContainer,
         modifier = modifier
             .fillMaxWidth()
-            .semantics { contentDescription = "Cloud fallback occurred" },
+            .semantics { contentDescription = "Cloud fallback occurred" }
     ) {
         Text(
             text = "On-device inference unavailable — using cloud AI.",
             style = MaterialTheme.typography.labelSmall,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
     }
 }

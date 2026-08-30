@@ -60,17 +60,14 @@ import java.util.Locale
 // ── Stateful entry point ─────────────────────────────────────────────────────
 
 @Composable
-fun ManageModelsScreen(
-    onNavigateUp: () -> Unit,
-    viewModel: ManageModelsViewModel = hiltViewModel(),
-) {
+fun ManageModelsScreen(onNavigateUp: () -> Unit, viewModel: ManageModelsViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsState()
     ManageModelsContent(
         uiState = uiState,
         onDownloadModel = viewModel::downloadModel,
         onDeleteModel = viewModel::deleteModel,
         onNavigateUp = onNavigateUp,
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize()
     )
 }
 
@@ -83,7 +80,7 @@ fun ManageModelsContent(
     onDownloadModel: (OnDeviceModelInfo) -> Unit,
     onDeleteModel: (OnDeviceModelInfo) -> Unit,
     onNavigateUp: () -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     Scaffold(
         modifier = modifier,
@@ -93,18 +90,18 @@ fun ManageModelsContent(
                 navigationIcon = {
                     IconButton(
                         onClick = onNavigateUp,
-                        modifier = Modifier.semantics { contentDescription = "Navigate up" },
+                        modifier = Modifier.semantics { contentDescription = "Navigate up" }
                     ) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
-        },
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .padding(innerPadding)
-                .fillMaxSize(),
+                .fillMaxSize()
         ) {
             // Battery Saver notice
             if (uiState.batterySaverActive) {
@@ -120,7 +117,7 @@ fun ManageModelsContent(
                 uiState.isLoading -> {
                     Box(
                         modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center,
+                        contentAlignment = Alignment.Center
                     ) {
                         CircularProgressIndicator(
                             modifier = Modifier.semantics { contentDescription = "Loading models" }
@@ -133,7 +130,7 @@ fun ManageModelsContent(
                         modifier = Modifier
                             .fillMaxSize()
                             .padding(32.dp),
-                        contentAlignment = Alignment.Center,
+                        contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = "No models downloaded yet.",
@@ -141,7 +138,7 @@ fun ManageModelsContent(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.semantics {
                                 contentDescription = "No models available"
-                            },
+                            }
                         )
                     }
                 }
@@ -150,7 +147,7 @@ fun ManageModelsContent(
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
                         verticalArrangement = Arrangement.spacedBy(8.dp),
-                        contentPadding = PaddingValues(16.dp),
+                        contentPadding = PaddingValues(16.dp)
                     ) {
                         items(uiState.models, key = { it.name }) { model ->
                             val downloadState = uiState.downloadProgress[model.name]
@@ -158,7 +155,7 @@ fun ManageModelsContent(
                                 model = model,
                                 downloadProgress = downloadState,
                                 onDownload = { onDownloadModel(model) },
-                                onDelete = { onDeleteModel(model) },
+                                onDelete = { onDeleteModel(model) }
                             )
                         }
                     }
@@ -176,12 +173,12 @@ private fun ModelListItem(
     downloadProgress: DownloadState?,
     onDownload: () -> Unit,
     onDelete: () -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .semantics { contentDescription = "Model: ${model.name}" },
+            .semantics { contentDescription = "Model: ${model.name}" }
     ) {
         Column(modifier = Modifier.padding(12.dp)) {
             ModelInfoRow(model, onDownload, onDelete)
@@ -193,31 +190,27 @@ private fun ModelListItem(
 }
 
 @Composable
-private fun ModelInfoRow(
-    model: OnDeviceModelInfo,
-    onDownload: () -> Unit,
-    onDelete: () -> Unit,
-) {
+private fun ModelInfoRow(model: OnDeviceModelInfo, onDownload: () -> Unit, onDelete: () -> Unit) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.Top,
+        verticalAlignment = Alignment.Top
     ) {
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = model.name,
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyMedium
             )
             Text(
                 text = "v${model.version} · ${formatBytes(model.sizeBytes)}",
                 style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             model.lastUsed?.let { lastUsed ->
                 Text(
                     text = "Last used: ${formatDate(lastUsed)}",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -227,7 +220,7 @@ private fun ModelInfoRow(
                 onClick = onDownload,
                 modifier = Modifier.semantics {
                     contentDescription = "Download ${model.name}"
-                },
+                }
             ) {
                 Icon(Icons.Default.Download, contentDescription = "Download model")
             }
@@ -235,12 +228,12 @@ private fun ModelInfoRow(
                 onClick = onDelete,
                 modifier = Modifier.semantics {
                     contentDescription = "Delete ${model.name}"
-                },
+                }
             ) {
                 Icon(
                     Icons.Default.Delete,
                     contentDescription = "Delete model",
-                    tint = MaterialTheme.colorScheme.error,
+                    tint = MaterialTheme.colorScheme.error
                 )
             }
         }
@@ -259,17 +252,18 @@ private fun ModelDownloadProgress(state: DownloadState) {
     Text(
         text = label,
         style = MaterialTheme.typography.labelSmall,
-        color = if (state is DownloadState.Error)
+        color = if (state is DownloadState.Error) {
             MaterialTheme.colorScheme.error
-        else
-            MaterialTheme.colorScheme.primary,
-        modifier = Modifier.semantics { contentDescription = label },
+        } else {
+            MaterialTheme.colorScheme.primary
+        },
+        modifier = Modifier.semantics { contentDescription = label }
     )
     if (state is DownloadState.Downloading) {
         Spacer(Modifier.height(4.dp))
         LinearProgressIndicator(
             progress = { state.percent / 100f },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth()
         )
     }
 }
@@ -280,31 +274,28 @@ private fun BatterySaverNotice(modifier: Modifier = Modifier) {
         color = MaterialTheme.colorScheme.secondaryContainer,
         modifier = modifier
             .fillMaxWidth()
-            .semantics { contentDescription = "Battery saver active" },
+            .semantics { contentDescription = "Battery saver active" }
     ) {
         Text(
             text = "Battery saver active — on-device AI uses CPU only.",
             style = MaterialTheme.typography.labelSmall,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
     }
 }
 
 @Composable
-private fun UpdateAvailableNotice(
-    modelName: String,
-    modifier: Modifier = Modifier,
-) {
+private fun UpdateAvailableNotice(modelName: String, modifier: Modifier = Modifier) {
     Surface(
         color = MaterialTheme.colorScheme.primaryContainer,
         modifier = modifier
             .fillMaxWidth()
-            .semantics { contentDescription = "Update available for $modelName" },
+            .semantics { contentDescription = "Update available for $modelName" }
     ) {
         Text(
             text = "Update available for $modelName. Download to use the latest version.",
             style = MaterialTheme.typography.labelSmall,
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
         )
     }
 }

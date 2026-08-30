@@ -41,10 +41,8 @@ sealed class OnDeviceRagChatUiState {
      * @param activePath       The selected inference path shown in the toolbar badge.
      * @param fallbackBanner   True when a cloud→on-device fallback occurred.
      */
-    data class Searching(
-        val activePath: OnDeviceInferencePath,
-        val fallbackBanner: Boolean = false,
-    ) : OnDeviceRagChatUiState()
+    data class Searching(val activePath: OnDeviceInferencePath, val fallbackBanner: Boolean = false) :
+        OnDeviceRagChatUiState()
 
     /**
      * Tokens streaming in from the on-device or cloud inference engine.
@@ -56,7 +54,7 @@ sealed class OnDeviceRagChatUiState {
     data class Streaming(
         val activePath: OnDeviceInferencePath,
         val accumulatedText: String,
-        val fallbackBanner: Boolean = false,
+        val fallbackBanner: Boolean = false
     ) : OnDeviceRagChatUiState()
 
     /**
@@ -71,7 +69,7 @@ sealed class OnDeviceRagChatUiState {
         val activePath: OnDeviceInferencePath,
         val responseText: String,
         val citations: List<ChunkCitation>,
-        val fallbackBanner: Boolean = false,
+        val fallbackBanner: Boolean = false
     ) : OnDeviceRagChatUiState()
 
     /**
@@ -87,9 +85,5 @@ sealed class OnDeviceRagChatUiState {
      * @param stage     Which stage failed ("embedding"|"search"|"generation"|"router").
      * @param canRetry  True — show "Retry via cloud" action button.
      */
-    data class Error(
-        val message: String,
-        val stage: String,
-        val canRetry: Boolean = true,
-    ) : OnDeviceRagChatUiState()
+    data class Error(val message: String, val stage: String, val canRetry: Boolean = true) : OnDeviceRagChatUiState()
 }

@@ -21,7 +21,6 @@ package com.aiassistant.feature.ondevicerag
 
 import app.cash.turbine.test
 import com.aiassistant.core.common.ApiResult
-import com.aiassistant.core.common.DefaultDispatcherProvider
 import com.aiassistant.domain.model.IngestionProgress
 import com.aiassistant.domain.model.OnDeviceDocument
 import com.aiassistant.domain.model.OnDeviceIngestionStatus
@@ -44,230 +43,234 @@ import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class OnDeviceDocumentViewModelTest : DescribeSpec({
+class OnDeviceDocumentViewModelTest :
+    DescribeSpec({
 
-    val testDispatcher = StandardTestDispatcher()
+        val testDispatcher = StandardTestDispatcher()
 
-    beforeSpec {
-        Dispatchers.setMain(testDispatcher)
-    }
-
-    afterSpec {
-        Dispatchers.resetMain()
-    }
-
-    // ── Helpers ──────────────────────────────────────────────────────────────
-
-    fun fakeDoc(
-        id: String = "doc1",
-        status: OnDeviceIngestionStatus = OnDeviceIngestionStatus.READY,
-        chunks: Int = 5,
-    ) = OnDeviceDocument(
-        id = id,
-        userId = "user1",
-        fileName = "$id.txt",
-        mimeType = "text/plain",
-        sizeBytes = 1000L,
-        totalChunks = chunks,
-        ingestionStatus = status,
-        createdAt = 1000L,
-    )
-
-    fun buildViewModel(
-        getDocumentsUseCase: GetOnDeviceDocumentsUseCase,
-        ingestUseCase: OnDeviceIngestDocumentUseCase,
-        deleteUseCase: DeleteOnDeviceDocumentUseCase,
-        lowStorage: Boolean = false,
-    ): OnDeviceDocumentViewModel {
-        val dispatchers = object : com.aiassistant.core.common.DispatcherProvider {
-            override val main = testDispatcher
-            override val mainImmediate = testDispatcher
-            override val io = testDispatcher
-            override val default = testDispatcher
-            override val unconfined = testDispatcher
+        beforeSpec {
+            Dispatchers.setMain(testDispatcher)
         }
-        return object : OnDeviceDocumentViewModel(
-            getDocumentsUseCase, ingestUseCase, deleteUseCase, dispatchers
-        ) {
-            override fun isLowStorage() = lowStorage
+
+        afterSpec {
+            Dispatchers.resetMain()
         }
-    }
 
-    // ── Document list state transitions ──────────────────────────────────────
+        // ── Helpers ──────────────────────────────────────────────────────────────
 
-    describe("init — observeDocuments()") {
+        fun fakeDoc(
+            id: String = "doc1",
+            status: OnDeviceIngestionStatus = OnDeviceIngestionStatus.READY,
+            chunks: Int = 5
+        ) = OnDeviceDocument(
+            id = id,
+            userId = "user1",
+            fileName = "$id.txt",
+            mimeType = "text/plain",
+            sizeBytes = 1000L,
+            totalChunks = chunks,
+            ingestionStatus = status,
+            createdAt = 1000L
+        )
 
-        it("transitions from Loading to DocumentList when documents are emitted") {
-            runTest {
-                val docsFlow = MutableStateFlow(listOf(fakeDoc()))
-                val getUseCase = mockk<GetOnDeviceDocumentsUseCase>()
-                val ingestUseCase = mockk<OnDeviceIngestDocumentUseCase>()
-                val deleteUseCase = mockk<DeleteOnDeviceDocumentUseCase>()
-
-                every { getUseCase(any()) } returns docsFlow
-
-                val vm = buildViewModel(getUseCase, ingestUseCase, deleteUseCase)
-                testDispatcher.scheduler.advanceUntilIdle()
-
-                val state = vm.uiState.value
-                state.shouldBeInstanceOf<OnDeviceDocumentUiState.DocumentList>()
-                (state as OnDeviceDocumentUiState.DocumentList).documents.size shouldBe 1
+        fun buildViewModel(
+            getDocumentsUseCase: GetOnDeviceDocumentsUseCase,
+            ingestUseCase: OnDeviceIngestDocumentUseCase,
+            deleteUseCase: DeleteOnDeviceDocumentUseCase,
+            lowStorage: Boolean = false
+        ): OnDeviceDocumentViewModel {
+            val dispatchers = object : com.aiassistant.core.common.DispatcherProvider {
+                override val main = testDispatcher
+                override val mainImmediate = testDispatcher
+                override val io = testDispatcher
+                override val default = testDispatcher
+                override val unconfined = testDispatcher
+            }
+            return object : OnDeviceDocumentViewModel(
+                getDocumentsUseCase,
+                ingestUseCase,
+                deleteUseCase,
+                dispatchers
+            ) {
+                override fun isLowStorage() = lowStorage
             }
         }
 
-        it("DocumentList shows ingestionInProgress=true when any doc is PROCESSING") {
-            runTest {
-                val docsFlow = flowOf(listOf(fakeDoc(status = OnDeviceIngestionStatus.PROCESSING)))
-                val getUseCase = mockk<GetOnDeviceDocumentsUseCase>()
-                val ingestUseCase = mockk<OnDeviceIngestDocumentUseCase>()
-                val deleteUseCase = mockk<DeleteOnDeviceDocumentUseCase>()
+        // ── Document list state transitions ──────────────────────────────────────
 
-                every { getUseCase(any()) } returns docsFlow
+        describe("init — observeDocuments()") {
 
-                val vm = buildViewModel(getUseCase, ingestUseCase, deleteUseCase)
-                testDispatcher.scheduler.advanceUntilIdle()
+            it("transitions from Loading to DocumentList when documents are emitted") {
+                runTest {
+                    val docsFlow = MutableStateFlow(listOf(fakeDoc()))
+                    val getUseCase = mockk<GetOnDeviceDocumentsUseCase>()
+                    val ingestUseCase = mockk<OnDeviceIngestDocumentUseCase>()
+                    val deleteUseCase = mockk<DeleteOnDeviceDocumentUseCase>()
 
-                val state = vm.uiState.value as? OnDeviceDocumentUiState.DocumentList
-                state?.ingestionInProgress shouldBe true
-            }
-        }
-    }
+                    every { getUseCase(any()) } returns docsFlow
 
-    // ── 50 MB file rejection ──────────────────────────────────────────────────
-
-    describe("ingestDocument() — file size rejection") {
-
-        it("emits FileSizeRejection when file > 50 MB") {
-            runTest {
-                val getUseCase = mockk<GetOnDeviceDocumentsUseCase>()
-                val ingestUseCase = mockk<OnDeviceIngestDocumentUseCase>()
-                val deleteUseCase = mockk<DeleteOnDeviceDocumentUseCase>()
-
-                every { getUseCase(any()) } returns flowOf(emptyList())
-
-                val vm = buildViewModel(getUseCase, ingestUseCase, deleteUseCase)
-                testDispatcher.scheduler.advanceUntilIdle()
-
-                val oversizedBytes = 51L * 1024 * 1024 // 51 MB
-                val doc = fakeDoc().copy(sizeBytes = oversizedBytes, fileName = "big.pdf")
-
-                vm.ingestDocument(doc, "text content", oversizedBytes)
-
-                vm.uiState.value.shouldBeInstanceOf<OnDeviceDocumentUiState.FileSizeRejection>()
-                (vm.uiState.value as OnDeviceDocumentUiState.FileSizeRejection).fileName shouldBe "big.pdf"
-            }
-        }
-
-        it("clearFileSizeRejection returns to DocumentList state") {
-            runTest {
-                val getUseCase = mockk<GetOnDeviceDocumentsUseCase>()
-                val ingestUseCase = mockk<OnDeviceIngestDocumentUseCase>()
-                val deleteUseCase = mockk<DeleteOnDeviceDocumentUseCase>()
-
-                every { getUseCase(any()) } returns flowOf(emptyList())
-
-                val vm = buildViewModel(getUseCase, ingestUseCase, deleteUseCase)
-                testDispatcher.scheduler.advanceUntilIdle()
-
-                val oversizedBytes = 51L * 1024 * 1024
-                vm.ingestDocument(fakeDoc(), "text", oversizedBytes)
-                vm.uiState.value.shouldBeInstanceOf<OnDeviceDocumentUiState.FileSizeRejection>()
-
-                vm.clearFileSizeRejection()
-                vm.uiState.value.shouldBeInstanceOf<OnDeviceDocumentUiState.DocumentList>()
-            }
-        }
-    }
-
-    // ── Low-storage warning ───────────────────────────────────────────────────
-
-    describe("ingestDocument() — low storage warning") {
-
-        it("shows lowStorageWarning = true when isLowStorage() returns true") {
-            runTest {
-                val getUseCase = mockk<GetOnDeviceDocumentsUseCase>()
-                val ingestUseCase = mockk<OnDeviceIngestDocumentUseCase>()
-                val deleteUseCase = mockk<DeleteOnDeviceDocumentUseCase>()
-
-                every { getUseCase(any()) } returns flowOf(emptyList())
-
-                val vm = buildViewModel(getUseCase, ingestUseCase, deleteUseCase, lowStorage = true)
-                testDispatcher.scheduler.advanceUntilIdle()
-
-                vm.ingestDocument(fakeDoc(), "text", 1000L) // size OK
-
-                val state = vm.uiState.value
-                state.shouldBeInstanceOf<OnDeviceDocumentUiState.DocumentList>()
-                (state as OnDeviceDocumentUiState.DocumentList).lowStorageWarning shouldBe true
-            }
-        }
-    }
-
-    // ── Ingestion progress events ─────────────────────────────────────────────
-
-    describe("ingestDocument() — progress state transitions") {
-
-        it("emits IngestionRunning during ingestion then DocumentList on Complete") {
-            runTest {
-                val getUseCase = mockk<GetOnDeviceDocumentsUseCase>()
-                val ingestUseCase = mockk<OnDeviceIngestDocumentUseCase>()
-                val deleteUseCase = mockk<DeleteOnDeviceDocumentUseCase>()
-                val readyDoc = fakeDoc(status = OnDeviceIngestionStatus.READY)
-
-                every { getUseCase(any()) } returns flowOf(listOf(readyDoc))
-                coEvery { ingestUseCase(any(), any()) } returns flowOf(
-                    IngestionProgress.Parsing,
-                    IngestionProgress.Chunking,
-                    IngestionProgress.Embedding(1, 1),
-                    IngestionProgress.Complete(readyDoc),
-                )
-
-                val vm = buildViewModel(getUseCase, ingestUseCase, deleteUseCase)
-                testDispatcher.scheduler.advanceUntilIdle()
-
-                val states = mutableListOf<OnDeviceDocumentUiState>()
-                vm.uiState.test {
-                    states += awaitItem() // initial DocumentList
-
-                    vm.ingestDocument(fakeDoc(status = OnDeviceIngestionStatus.PENDING), "text", 100L)
+                    val vm = buildViewModel(getUseCase, ingestUseCase, deleteUseCase)
                     testDispatcher.scheduler.advanceUntilIdle()
 
-                    // Collect remaining items
-                    states += cancelAndConsumeRemainingEvents()
-                        .filterIsInstance<app.cash.turbine.Event.Item<OnDeviceDocumentUiState>>()
-                        .map { it.value }
+                    val state = vm.uiState.value
+                    state.shouldBeInstanceOf<OnDeviceDocumentUiState.DocumentList>()
+                    (state as OnDeviceDocumentUiState.DocumentList).documents.size shouldBe 1
                 }
+            }
 
-                val hasIngestionRunning = states.any { it is OnDeviceDocumentUiState.IngestionRunning }
-                hasIngestionRunning shouldBe true
+            it("DocumentList shows ingestionInProgress=true when any doc is PROCESSING") {
+                runTest {
+                    val docsFlow = flowOf(listOf(fakeDoc(status = OnDeviceIngestionStatus.PROCESSING)))
+                    val getUseCase = mockk<GetOnDeviceDocumentsUseCase>()
+                    val ingestUseCase = mockk<OnDeviceIngestDocumentUseCase>()
+                    val deleteUseCase = mockk<DeleteOnDeviceDocumentUseCase>()
 
-                val finalState = states.last()
-                finalState.shouldBeInstanceOf<OnDeviceDocumentUiState.DocumentList>()
+                    every { getUseCase(any()) } returns docsFlow
+
+                    val vm = buildViewModel(getUseCase, ingestUseCase, deleteUseCase)
+                    testDispatcher.scheduler.advanceUntilIdle()
+
+                    val state = vm.uiState.value as? OnDeviceDocumentUiState.DocumentList
+                    state?.ingestionInProgress shouldBe true
+                }
             }
         }
-    }
 
-    // ── Delete action ─────────────────────────────────────────────────────────
+        // ── 50 MB file rejection ──────────────────────────────────────────────────
 
-    describe("deleteDocument()") {
+        describe("ingestDocument() — file size rejection") {
 
-        it("calls deleteDocumentUseCase with correct ids") {
-            runTest {
-                val getUseCase = mockk<GetOnDeviceDocumentsUseCase>()
-                val ingestUseCase = mockk<OnDeviceIngestDocumentUseCase>()
-                val deleteUseCase = mockk<DeleteOnDeviceDocumentUseCase>()
+            it("emits FileSizeRejection when file > 50 MB") {
+                runTest {
+                    val getUseCase = mockk<GetOnDeviceDocumentsUseCase>()
+                    val ingestUseCase = mockk<OnDeviceIngestDocumentUseCase>()
+                    val deleteUseCase = mockk<DeleteOnDeviceDocumentUseCase>()
 
-                every { getUseCase(any()) } returns flowOf(listOf(fakeDoc()))
-                coEvery { deleteUseCase(any(), any()) } returns ApiResult.Success(Unit)
+                    every { getUseCase(any()) } returns flowOf(emptyList())
 
-                val vm = buildViewModel(getUseCase, ingestUseCase, deleteUseCase)
-                testDispatcher.scheduler.advanceUntilIdle()
+                    val vm = buildViewModel(getUseCase, ingestUseCase, deleteUseCase)
+                    testDispatcher.scheduler.advanceUntilIdle()
 
-                vm.deleteDocument("doc1")
-                testDispatcher.scheduler.advanceUntilIdle()
+                    val oversizedBytes = 51L * 1024 * 1024 // 51 MB
+                    val doc = fakeDoc().copy(sizeBytes = oversizedBytes, fileName = "big.pdf")
 
-                io.mockk.coVerify { deleteUseCase("doc1", any()) }
+                    vm.ingestDocument(doc, "text content", oversizedBytes)
+
+                    vm.uiState.value.shouldBeInstanceOf<OnDeviceDocumentUiState.FileSizeRejection>()
+                    (vm.uiState.value as OnDeviceDocumentUiState.FileSizeRejection).fileName shouldBe "big.pdf"
+                }
+            }
+
+            it("clearFileSizeRejection returns to DocumentList state") {
+                runTest {
+                    val getUseCase = mockk<GetOnDeviceDocumentsUseCase>()
+                    val ingestUseCase = mockk<OnDeviceIngestDocumentUseCase>()
+                    val deleteUseCase = mockk<DeleteOnDeviceDocumentUseCase>()
+
+                    every { getUseCase(any()) } returns flowOf(emptyList())
+
+                    val vm = buildViewModel(getUseCase, ingestUseCase, deleteUseCase)
+                    testDispatcher.scheduler.advanceUntilIdle()
+
+                    val oversizedBytes = 51L * 1024 * 1024
+                    vm.ingestDocument(fakeDoc(), "text", oversizedBytes)
+                    vm.uiState.value.shouldBeInstanceOf<OnDeviceDocumentUiState.FileSizeRejection>()
+
+                    vm.clearFileSizeRejection()
+                    vm.uiState.value.shouldBeInstanceOf<OnDeviceDocumentUiState.DocumentList>()
+                }
             }
         }
-    }
-})
+
+        // ── Low-storage warning ───────────────────────────────────────────────────
+
+        describe("ingestDocument() — low storage warning") {
+
+            it("shows lowStorageWarning = true when isLowStorage() returns true") {
+                runTest {
+                    val getUseCase = mockk<GetOnDeviceDocumentsUseCase>()
+                    val ingestUseCase = mockk<OnDeviceIngestDocumentUseCase>()
+                    val deleteUseCase = mockk<DeleteOnDeviceDocumentUseCase>()
+
+                    every { getUseCase(any()) } returns flowOf(emptyList())
+
+                    val vm = buildViewModel(getUseCase, ingestUseCase, deleteUseCase, lowStorage = true)
+                    testDispatcher.scheduler.advanceUntilIdle()
+
+                    vm.ingestDocument(fakeDoc(), "text", 1000L) // size OK
+
+                    val state = vm.uiState.value
+                    state.shouldBeInstanceOf<OnDeviceDocumentUiState.DocumentList>()
+                    (state as OnDeviceDocumentUiState.DocumentList).lowStorageWarning shouldBe true
+                }
+            }
+        }
+
+        // ── Ingestion progress events ─────────────────────────────────────────────
+
+        describe("ingestDocument() — progress state transitions") {
+
+            it("emits IngestionRunning during ingestion then DocumentList on Complete") {
+                runTest {
+                    val getUseCase = mockk<GetOnDeviceDocumentsUseCase>()
+                    val ingestUseCase = mockk<OnDeviceIngestDocumentUseCase>()
+                    val deleteUseCase = mockk<DeleteOnDeviceDocumentUseCase>()
+                    val readyDoc = fakeDoc(status = OnDeviceIngestionStatus.READY)
+
+                    every { getUseCase(any()) } returns flowOf(listOf(readyDoc))
+                    coEvery { ingestUseCase(any(), any()) } returns flowOf(
+                        IngestionProgress.Parsing,
+                        IngestionProgress.Chunking,
+                        IngestionProgress.Embedding(1, 1),
+                        IngestionProgress.Complete(readyDoc)
+                    )
+
+                    val vm = buildViewModel(getUseCase, ingestUseCase, deleteUseCase)
+                    testDispatcher.scheduler.advanceUntilIdle()
+
+                    val states = mutableListOf<OnDeviceDocumentUiState>()
+                    vm.uiState.test {
+                        states += awaitItem() // initial DocumentList
+
+                        vm.ingestDocument(fakeDoc(status = OnDeviceIngestionStatus.PENDING), "text", 100L)
+                        testDispatcher.scheduler.advanceUntilIdle()
+
+                        // Collect remaining items
+                        states += cancelAndConsumeRemainingEvents()
+                            .filterIsInstance<app.cash.turbine.Event.Item<OnDeviceDocumentUiState>>()
+                            .map { it.value }
+                    }
+
+                    val hasIngestionRunning = states.any { it is OnDeviceDocumentUiState.IngestionRunning }
+                    hasIngestionRunning shouldBe true
+
+                    val finalState = states.last()
+                    finalState.shouldBeInstanceOf<OnDeviceDocumentUiState.DocumentList>()
+                }
+            }
+        }
+
+        // ── Delete action ─────────────────────────────────────────────────────────
+
+        describe("deleteDocument()") {
+
+            it("calls deleteDocumentUseCase with correct ids") {
+                runTest {
+                    val getUseCase = mockk<GetOnDeviceDocumentsUseCase>()
+                    val ingestUseCase = mockk<OnDeviceIngestDocumentUseCase>()
+                    val deleteUseCase = mockk<DeleteOnDeviceDocumentUseCase>()
+
+                    every { getUseCase(any()) } returns flowOf(listOf(fakeDoc()))
+                    coEvery { deleteUseCase(any(), any()) } returns ApiResult.Success(Unit)
+
+                    val vm = buildViewModel(getUseCase, ingestUseCase, deleteUseCase)
+                    testDispatcher.scheduler.advanceUntilIdle()
+
+                    vm.deleteDocument("doc1")
+                    testDispatcher.scheduler.advanceUntilIdle()
+
+                    io.mockk.coVerify { deleteUseCase("doc1", any()) }
+                }
+            }
+        }
+    })
