@@ -2007,7 +2007,7 @@ When `LocalReducedMotionEnabled.current == true`:
   - Add `pressScale` modifier extension to a new `core-ui/motion/Modifiers.kt`
   - _Requirements: 24.1, 24.2, 24.3_
 
-- [ ] 50.2 Redesign Login Screen
+- [x] 50.2 Redesign Login Screen
   - Replace static background with `MeshGradientBackground` composable
   - Replace `OutlinedTextField` instances with new `SurfaceFillTextField` composable (add to `core-ui/components/`)
   - Replace plain `Button` with gradient-fill button (using `Brush.linearGradient` modifier pattern)
