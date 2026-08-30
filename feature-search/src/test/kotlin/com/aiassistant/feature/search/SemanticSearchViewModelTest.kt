@@ -115,7 +115,9 @@ class SemanticSearchViewModelTest {
         // Arrange
         val query = "error query"
         val errorMessage = "Search failed"
-        coEvery { semanticSearchUseCase(query) } returns ApiResult.Error(DomainError.ServerError(message = errorMessage))
+        coEvery { semanticSearchUseCase(query) } returns ApiResult.Error(
+            DomainError.ServerError(message = errorMessage)
+        )
 
         // Act
         viewModel.search(query)
@@ -138,7 +140,8 @@ class SemanticSearchViewModelTest {
         // Assert
         val state = viewModel.uiState.value
         assertTrue(state is SemanticSearchUiState.Error)
-        assertEquals("No network connection. Semantic search requires internet access.", (state as SemanticSearchUiState.Error).message)
+        val msg = "No network connection. Semantic search requires internet access."
+        assertEquals(msg, (state as SemanticSearchUiState.Error).message)
     }
 
     @Test

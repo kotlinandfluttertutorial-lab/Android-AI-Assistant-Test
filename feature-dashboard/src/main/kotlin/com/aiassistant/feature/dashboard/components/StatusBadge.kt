@@ -34,17 +34,17 @@ fun SeverityBadge(severity: IncidentSeverity, modifier: Modifier = Modifier) {
             MaterialTheme.colorScheme.onError,
             "CRITICAL"
         )
-        IncidentSeverity.HIGH     -> Triple(
+        IncidentSeverity.HIGH -> Triple(
             MaterialTheme.colorScheme.errorContainer,
             MaterialTheme.colorScheme.onErrorContainer,
             "HIGH"
         )
-        IncidentSeverity.MEDIUM   -> Triple(
+        IncidentSeverity.MEDIUM -> Triple(
             Color(0xFFFFDDB3), // Warning90 — amber container
             Color(0xFF5B2D00), // Warning20 — on-warning-container
             "MEDIUM"
         )
-        IncidentSeverity.LOW      -> Triple(
+        IncidentSeverity.LOW -> Triple(
             MaterialTheme.colorScheme.primaryContainer,
             MaterialTheme.colorScheme.onPrimaryContainer,
             "LOW"
@@ -58,7 +58,7 @@ fun SeverityBadge(severity: IncidentSeverity, modifier: Modifier = Modifier) {
 @Composable
 fun StatusBadge(status: IncidentStatus, modifier: Modifier = Modifier) {
     val (bg, fg, label) = when (status) {
-        IncidentStatus.OPEN          -> Triple(
+        IncidentStatus.OPEN -> Triple(
             MaterialTheme.colorScheme.error,
             MaterialTheme.colorScheme.onError,
             "OPEN"
@@ -68,12 +68,12 @@ fun StatusBadge(status: IncidentStatus, modifier: Modifier = Modifier) {
             Color(0xFF5B2D00),
             "INVESTIGATING"
         )
-        IncidentStatus.RESOLVED      -> Triple(
+        IncidentStatus.RESOLVED -> Triple(
             MaterialTheme.colorScheme.primaryContainer,
             MaterialTheme.colorScheme.onPrimaryContainer,
             "RESOLVED"
         )
-        IncidentStatus.DISMISSED     -> Triple(
+        IncidentStatus.DISMISSED -> Triple(
             MaterialTheme.colorScheme.surfaceVariant,
             MaterialTheme.colorScheme.onSurfaceVariant,
             "DISMISSED"
@@ -85,20 +85,15 @@ fun StatusBadge(status: IncidentStatus, modifier: Modifier = Modifier) {
 // ── Shared chip ───────────────────────────────────────────────────────────────
 
 @Composable
-private fun StatusChip(
-    label:    String,
-    bg:       Color,
-    fg:       Color,
-    modifier: Modifier = Modifier,
-) {
+private fun StatusChip(label: String, bg: Color, fg: Color, modifier: Modifier = Modifier) {
     Text(
-        text     = label,
-        color    = fg,
+        text = label,
+        color = fg,
         fontSize = 10.sp,
         fontWeight = FontWeight.SemiBold,
         modifier = modifier
             .clip(RoundedCornerShape(4.dp))
             .background(bg)
-            .padding(horizontal = 6.dp, vertical = 2.dp),
+            .padding(horizontal = 6.dp, vertical = 2.dp)
     )
 }

@@ -53,11 +53,11 @@ import com.aiassistant.core.common.observability.ObservabilityEventBus
 import com.aiassistant.core.common.observability.ObservabilityManager
 import com.aiassistant.core.common.observability.PiiFilter
 import com.aiassistant.core.common.observability.SessionManager
+import javax.inject.Inject
+import javax.inject.Singleton
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
 import timber.log.Timber
-import javax.inject.Inject
-import javax.inject.Singleton
 
 /**
  * Hard limit on how long we spend trying to flush events during a crash.
@@ -99,7 +99,7 @@ private const val MAX_STACK_FRAMES = 15
 class CrashObservabilityHandler @Inject constructor(
     private val bus: ObservabilityEventBus,
     private val manager: ObservabilityManager,
-    private val sessionManager: SessionManager,
+    private val sessionManager: SessionManager
 ) : Thread.UncaughtExceptionHandler {
 
     /**
@@ -128,7 +128,7 @@ class CrashObservabilityHandler @Inject constructor(
         Thread.setDefaultUncaughtExceptionHandler(this)
         Timber.d(
             "CrashObservabilityHandler: registered (previous handler: %s)",
-            current?.javaClass?.simpleName ?: "none",
+            current?.javaClass?.simpleName ?: "none"
         )
     }
 
@@ -149,6 +149,7 @@ class CrashObservabilityHandler @Inject constructor(
      * @param thread    Thread that crashed.
      * @param throwable Uncaught exception.
      */
+    @Suppress("TooGenericExceptionCaught")
     override fun uncaughtException(thread: Thread, throwable: Throwable) {
         try {
             captureAndFlush(thread, throwable)
@@ -171,7 +172,7 @@ class CrashObservabilityHandler @Inject constructor(
         val timestamp = System.currentTimeMillis()
 
         // ── Build PII-safe crash summary ─────────────────────────────────────
-        val crashClass = throwable.javaClass.name  // class names are never PII
+        val crashClass = throwable.javaClass.name // class names are never PII
         val rawMessage = throwable.message ?: throwable.javaClass.simpleName
         val safeMessage = PiiFilter.filter(rawMessage)
 
@@ -202,7 +203,7 @@ class CrashObservabilityHandler @Inject constructor(
                         put("root_cause_message", PiiFilter.filter(cause.message ?: cause.javaClass.simpleName))
                     }
                 }
-            ),
+            )
         )
 
         // tryEmit is non-suspending — safe to call from the crashing thread.
@@ -223,14 +224,17 @@ class CrashObservabilityHandler @Inject constructor(
                     val events = manager.drain()
                     Timber.d(
                         "CrashObservabilityHandler: flushed %d events before crash handoff",
-                        events.size,
+                        events.size
                     )
                     // Note: we drain the buffer but don't upload here — that would
                     // require full network stack in a crashed state. Instead, drain()
                     // returns the events and the WorkManager task will pick them up
                     // on next launch. The crash event itself is already emitted above
                     // and will be in the next drain batch.
-                } catch (e: Exception) {
+                } catch (
+                    @Suppress("TooGenericExceptionCaught")
+                    e: Exception
+                ) {
                     Timber.e(e, "CrashObservabilityHandler: failed to drain buffer before crash")
                 }
             }

@@ -119,6 +119,7 @@ object NetworkModule {
     //   ci/staging      → pass -Pbase_url="https://your-cloud-run-url.run.app/"
 
     private const val CONNECT_TIMEOUT_SECONDS = 30L
+
     // 90 s gives Cloud Run cold-start containers (typically 10–60 s) time to respond
     // before the client gives up. The previous value of 60 s was too tight.
     private const val READ_TIMEOUT_SECONDS = 90L
@@ -143,43 +144,41 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideLoggingInterceptor(
-        @Named("isDebugBuild") isDebug: Boolean,
-    ): HttpLoggingInterceptor = HttpLoggingInterceptor().apply {
-        level = if (isDebug) {
-            HttpLoggingInterceptor.Level.BODY
-        } else {
-            HttpLoggingInterceptor.Level.NONE
+    fun provideLoggingInterceptor(@Named("isDebugBuild") isDebug: Boolean): HttpLoggingInterceptor =
+        HttpLoggingInterceptor().apply {
+            level = if (isDebug) {
+                HttpLoggingInterceptor.Level.BODY
+            } else {
+                HttpLoggingInterceptor.Level.NONE
+            }
+            if (isDebug) {
+                redactHeader("Authorization")
+            }
         }
-        if (isDebug) {
-            redactHeader("Authorization")
-        }
-    }
 
     // â”€â”€â”€ Certificate pinning interceptor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Provides
     @Singleton
-    fun provideCertificatePinningInterceptor(
-        @Named("isDebugBuild") isDebug: Boolean,
-    ): CertificatePinningInterceptor = if (isDebug) {
-        // In debug builds bypass pinning entirely so local/staging servers work.
-        // NOTE: do NOT use BuildConfig.DEBUG from core-network here — library module
-        // BuildConfig.DEBUG is always false regardless of the app's build type. The
-        // correct value is injected via @Named("isDebugBuild") from AppModule, which
-        // reads from the *app* module's BuildConfig.DEBUG.
-        CertificatePinningInterceptor(pinnedSha256Hashes = emptySet(), bypass = true)
-    } else {
-        // In release builds read the pin set from BuildConfig.
-        // Configure via: buildConfigField("String", "CERTIFICATE_PINS", "\"hash1;hash2\"")
-        val pinsCsv: String = BuildConfig.CERTIFICATE_PINS
-        val pins = pinsCsv
-            .split(";")
-            .map { it.trim() }
-            .filter { it.isNotEmpty() }
-            .toSet()
-        CertificatePinningInterceptor(pinnedSha256Hashes = pins, bypass = false)
-    }
+    fun provideCertificatePinningInterceptor(@Named("isDebugBuild") isDebug: Boolean): CertificatePinningInterceptor =
+        if (isDebug) {
+            // In debug builds bypass pinning entirely so local/staging servers work.
+            // NOTE: do NOT use BuildConfig.DEBUG from core-network here — library module
+            // BuildConfig.DEBUG is always false regardless of the app's build type. The
+            // correct value is injected via @Named("isDebugBuild") from AppModule, which
+            // reads from the *app* module's BuildConfig.DEBUG.
+            CertificatePinningInterceptor(pinnedSha256Hashes = emptySet(), bypass = true)
+        } else {
+            // In release builds read the pin set from BuildConfig.
+            // Configure via: buildConfigField("String", "CERTIFICATE_PINS", "\"hash1;hash2\"")
+            val pinsCsv: String = BuildConfig.CERTIFICATE_PINS
+            val pins = pinsCsv
+                .split(";")
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+                .toSet()
+            CertificatePinningInterceptor(pinnedSha256Hashes = pins, bypass = false)
+        }
 
     // â”€â”€â”€ OkHttpClient â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -190,7 +189,7 @@ object NetworkModule {
         certificatePinningInterceptor: CertificatePinningInterceptor,
         refreshTokenInterceptor: RefreshTokenInterceptor,
         observabilityInterceptor: NetworkObservabilityInterceptor,
-        loggingInterceptor: HttpLoggingInterceptor,
+        loggingInterceptor: HttpLoggingInterceptor
     ): OkHttpClient = OkHttpClient.Builder()
         // Application-level interceptors run for every request (including retries).
         .addInterceptor(authInterceptor)

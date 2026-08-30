@@ -16,3 +16,30 @@ os.environ.setdefault("OLLAMA_BASE_URL", "http://localhost:11434")
 os.environ.setdefault("LOKI_URL", "")
 os.environ.setdefault("ENVIRONMENT", "development")
 os.environ.setdefault("LOG_LEVEL", "INFO")
+os.environ.setdefault("GOOGLE_CLIENT_ID", "test-google-client-id")
+os.environ.setdefault("GOOGLE_ANDROID_CLIENT_ID", "test-google-client-id")
+os.environ.setdefault("ALLOWED_GOOGLE_CLIENT_IDS", "test-google-client-id")
+
+import pytest
+from unittest.mock import AsyncMock, MagicMock
+
+@pytest.fixture(autouse=True)
+def mock_redis():
+    """Mock Redis client for all tests to avoid connection errors."""
+    with (
+        patch("app.database.redis.get_redis_client") as mock_get_client,
+        patch("app.database.redis.get_redis") as mock_get_redis
+    ):
+        mock_client = AsyncMock()
+        mock_client.incr.return_value = 1
+        mock_client.ping.return_value = True
+        mock_client.exists.return_value = 0
+        mock_get_client.return_value = mock_client
+
+        async def _fake_get_redis():
+            yield mock_client
+
+        mock_get_redis.return_value = _fake_get_redis()
+        yield mock_client
+
+from unittest.mock import patch

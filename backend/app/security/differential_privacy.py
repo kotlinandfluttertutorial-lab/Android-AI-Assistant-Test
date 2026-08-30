@@ -123,3 +123,18 @@ async def get_current_epsilon(redis: object = None) -> float:
         )
 
     return fallback
+
+
+async def update_epsilon_in_redis(redis: object, epsilon: float) -> None:
+    """Persist the differential-privacy epsilon value to Redis.
+
+    Writes the key ``"dp:epsilon"`` so that subsequent calls to
+    :func:`get_current_epsilon` pick up the new value without a restart.
+
+    Args:
+        redis: Async Redis client.
+        epsilon: The new ε value to persist.
+
+    Requirements: 37.2, 37.6
+    """
+    await redis.set("dp:epsilon", str(epsilon))

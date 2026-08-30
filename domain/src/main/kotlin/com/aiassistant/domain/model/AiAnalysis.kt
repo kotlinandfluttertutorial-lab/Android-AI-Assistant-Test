@@ -9,15 +9,15 @@
 package com.aiassistant.domain.model
 
 data class AiAnalysis(
-    val analysisId:          String,
-    val severity:            String,
-    val summary:             String,
-    val likelyRootCause:     String,
-    val confidence:          Double,
-    val recommendedFix:      String,
-    val evidence:            List<String> = emptyList(),
-    val possibleCauses:      List<String> = emptyList(),
-    val relatedDocs:         List<String> = emptyList(),
+    val analysisId: String,
+    val severity: String,
+    val summary: String,
+    val likelyRootCause: String,
+    val confidence: Double,
+    val recommendedFix: String,
+    val evidence: List<String> = emptyList(),
+    val possibleCauses: List<String> = emptyList(),
+    val relatedDocs: List<String> = emptyList(),
     val lowConfidenceWarning: String? = null,
-    val eventsAnalysed:      Int = 0,
+    val eventsAnalysed: Int = 0
 )

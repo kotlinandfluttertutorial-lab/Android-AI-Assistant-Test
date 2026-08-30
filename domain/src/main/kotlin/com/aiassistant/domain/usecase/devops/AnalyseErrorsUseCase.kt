@@ -12,14 +12,10 @@ import com.aiassistant.domain.model.AiAnalysis
 import com.aiassistant.domain.repository.DevOpsRepository
 import javax.inject.Inject
 
-class AnalyseErrorsUseCase @Inject constructor(
-    private val repository: DevOpsRepository,
-) {
-    suspend operator fun invoke(
-        lookbackMinutes: Int    = 30,
-        sessionId:       String? = null,
-    ): ApiResult<AiAnalysis> = repository.analyseErrors(
-        lookbackMinutes = lookbackMinutes,
-        sessionId       = sessionId,
-    )
+class AnalyseErrorsUseCase @Inject constructor(private val repository: DevOpsRepository) {
+    suspend operator fun invoke(lookbackMinutes: Int = 30, sessionId: String? = null): ApiResult<AiAnalysis> =
+        repository.analyseErrors(
+            lookbackMinutes = lookbackMinutes,
+            sessionId = sessionId
+        )
 }

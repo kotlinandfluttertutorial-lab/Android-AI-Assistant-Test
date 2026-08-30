@@ -14,36 +14,36 @@ import com.aiassistant.domain.model.Incident
 /** Counts by severity displayed at the top of the dashboard. */
 data class IncidentCounts(
     val critical: Int = 0,
-    val high:     Int = 0,
-    val medium:   Int = 0,
-    val low:      Int = 0,
-    val open:     Int = 0,
+    val high: Int = 0,
+    val medium: Int = 0,
+    val low: Int = 0,
+    val open: Int = 0
 ) {
     val total: Int get() = critical + high + medium + low
 }
 
 /** A single recommended remediation action (Android-side model). */
 data class RemediationActionUiItem(
-    val id:         String,
-    val rank:       Int,
-    val title:      String,
+    val id: String,
+    val rank: Int,
+    val title: String,
     val actionType: String,
-    val riskTier:   String,
-    val reasoning:  String,
+    val riskTier: String,
+    val reasoning: String,
     val confidence: Double?,
-    val status:     String,
+    val status: String
 )
 
 /** State for the remediation panel tied to one incident. */
 sealed class RemediationUiState {
-    data object Idle                                          : RemediationUiState()
-    data object Loading                                       : RemediationUiState()
+    data object Idle : RemediationUiState()
+    data object Loading : RemediationUiState()
     data class Content(
-        val incidentId:            String,
-        val actions:               List<RemediationActionUiItem>,
-        val lowConfidenceWarning:  String?,
-    )                                                         : RemediationUiState()
-    data class Error(val message: String)                     : RemediationUiState()
+        val incidentId: String,
+        val actions: List<RemediationActionUiItem>,
+        val lowConfidenceWarning: String?
+    ) : RemediationUiState()
+    data class Error(val message: String) : RemediationUiState()
 }
 
 sealed class DashboardUiState {
@@ -53,24 +53,21 @@ sealed class DashboardUiState {
 
     /** Full data loaded successfully. */
     data class Content(
-        val counts:       IncidentCounts,
-        val incidents:    List<Incident>,
-        val aiAnalysis:   AiAnalysis?,
+        val counts: IncidentCounts,
+        val incidents: List<Incident>,
+        val aiAnalysis: AiAnalysis?,
         val isRefreshing: Boolean = false,
-        val isOffline:    Boolean = false,
+        val isOffline: Boolean = false
     ) : DashboardUiState()
 
     /** Network or server error on initial load. */
-    data class Error(
-        val message:   String,
-        val isOffline: Boolean = false,
-    ) : DashboardUiState()
+    data class Error(val message: String, val isOffline: Boolean = false) : DashboardUiState()
 }
 
 /** State for the DevOps assistant chat section. */
 sealed class ChatUiState {
-    data object Idle    : ChatUiState()
+    data object Idle : ChatUiState()
     data object Loading : ChatUiState()
-    data class  Success(val result: DevOpsChatResult) : ChatUiState()
-    data class  Error(val message: String)            : ChatUiState()
+    data class Success(val result: DevOpsChatResult) : ChatUiState()
+    data class Error(val message: String) : ChatUiState()
 }

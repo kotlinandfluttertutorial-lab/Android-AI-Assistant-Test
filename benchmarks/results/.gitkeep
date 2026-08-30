@@ -1,0 +1,2 @@
+# Benchmark result JSON files are saved here by on_device_rag_benchmark.sh.
+# This directory is tracked in git but result files are .gitignored.

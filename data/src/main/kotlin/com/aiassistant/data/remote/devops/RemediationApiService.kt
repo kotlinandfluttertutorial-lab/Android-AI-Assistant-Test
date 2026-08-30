@@ -16,34 +16,32 @@ import retrofit2.http.Path
 
 @Serializable
 data class RemediationActionDto(
-    @SerialName("id")                val id: String,
-    @SerialName("incident_id")       val incidentId: String,
-    @SerialName("title")             val title: String,
-    @SerialName("action_type")       val actionType: String,
-    @SerialName("risk_tier")         val riskTier: String,
-    @SerialName("reasoning")         val reasoning: String,
-    @SerialName("confidence")        val confidence: Double? = null,
-    @SerialName("rank")              val rank: Int = 1,
-    @SerialName("status")            val status: String,
-    @SerialName("reviewed_by")       val reviewedBy: String? = null,
-    @SerialName("rejection_reason")  val rejectionReason: String? = null,
-    @SerialName("created_at")        val createdAt: String = "",
-    @SerialName("reviewed_at")       val reviewedAt: String? = null,
+    @SerialName("id") val id: String,
+    @SerialName("incident_id") val incidentId: String,
+    @SerialName("title") val title: String,
+    @SerialName("action_type") val actionType: String,
+    @SerialName("risk_tier") val riskTier: String,
+    @SerialName("reasoning") val reasoning: String,
+    @SerialName("confidence") val confidence: Double? = null,
+    @SerialName("rank") val rank: Int = 1,
+    @SerialName("status") val status: String,
+    @SerialName("reviewed_by") val reviewedBy: String? = null,
+    @SerialName("rejection_reason") val rejectionReason: String? = null,
+    @SerialName("created_at") val createdAt: String = "",
+    @SerialName("reviewed_at") val reviewedAt: String? = null
 )
 
 @Serializable
 data class RemediationPlanDto(
-    @SerialName("incident_id")            val incidentId: String,
-    @SerialName("incident_title")         val incidentTitle: String,
-    @SerialName("ai_summary")             val aiSummary: String,
-    @SerialName("actions")                val actions: List<RemediationActionDto>,
-    @SerialName("low_confidence_warning") val lowConfidenceWarning: String? = null,
+    @SerialName("incident_id") val incidentId: String,
+    @SerialName("incident_title") val incidentTitle: String,
+    @SerialName("ai_summary") val aiSummary: String,
+    @SerialName("actions") val actions: List<RemediationActionDto>,
+    @SerialName("low_confidence_warning") val lowConfidenceWarning: String? = null
 )
 
 @Serializable
-data class RejectRequest(
-    @SerialName("reason") val reason: String = "",
-)
+data class RejectRequest(@SerialName("reason") val reason: String = "")
 
 interface RemediationApiService {
 
@@ -56,13 +54,13 @@ interface RemediationApiService {
     @POST("incidents/{incidentId}/remediation/{actionId}/approve")
     suspend fun approve(
         @Path("incidentId") incidentId: String,
-        @Path("actionId")   actionId:   String,
+        @Path("actionId") actionId: String
     ): RemediationActionDto
 
     @POST("incidents/{incidentId}/remediation/{actionId}/reject")
     suspend fun reject(
         @Path("incidentId") incidentId: String,
-        @Path("actionId")   actionId:   String,
-        @Body               body:       RejectRequest,
+        @Path("actionId") actionId: String,
+        @Body body: RejectRequest
     ): RemediationActionDto
 }

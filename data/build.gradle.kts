@@ -46,11 +46,11 @@ android {
     }
 
     lint {
-        baseline         = file("lint-baseline.xml")
-        abortOnError     = true
+        baseline = file("lint-baseline.xml")
+        abortOnError = true
         warningsAsErrors = false
-        htmlReport       = true
-        xmlReport        = true
+        htmlReport = true
+        xmlReport = true
         checkDependencies = false
     }
 }

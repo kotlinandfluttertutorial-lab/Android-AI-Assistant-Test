@@ -75,6 +75,7 @@ from app.schemas.privacy import (
     PrivacyBudgetResponse,
     UserBudgetEntry,
 )
+from app.security.differential_privacy import update_epsilon_in_redis
 from app.security.rbac import require_admin
 from app.services import admin_service
 
@@ -520,7 +521,7 @@ async def update_epsilon(
             status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
             detail=f"epsilon must be between 0.1 and 10.0, got {body.epsilon}",
         )
-    await redis.set("dp:epsilon", str(body.epsilon))
+    await update_epsilon_in_redis(redis, body.epsilon)
     return EpsilonResponse(epsilon=body.epsilon, mechanism="Laplace")
 
 

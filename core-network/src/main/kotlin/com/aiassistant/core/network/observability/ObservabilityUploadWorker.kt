@@ -43,6 +43,7 @@ import com.aiassistant.core.common.observability.ObservabilityEvent
 import com.aiassistant.core.common.observability.ObservabilityManager
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
+import java.util.concurrent.TimeUnit
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
@@ -50,7 +51,6 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import timber.log.Timber
-import java.util.concurrent.TimeUnit
 
 /** WorkManager unique work name — used to prevent duplicate schedules. */
 private const val WORK_NAME = "observability_upload"
@@ -61,7 +61,10 @@ private const val REPEAT_INTERVAL_MINUTES = 15L
 /** Maximum events to upload in a single batch to avoid oversized payloads. */
 private const val MAX_BATCH_SIZE = 200
 
-private val JSON = Json { encodeDefaults = true; ignoreUnknownKeys = true }
+private val JSON = Json {
+    encodeDefaults = true
+    ignoreUnknownKeys = true
+}
 private val MEDIA_TYPE_JSON = "application/json; charset=utf-8".toMediaType()
 
 /**
@@ -80,7 +83,7 @@ class ObservabilityUploadWorker @AssistedInject constructor(
     @Assisted workerParams: WorkerParameters,
     private val manager: ObservabilityManager,
     private val okHttpClient: OkHttpClient,
-    @ObservabilityBaseUrl private val baseUrl: String,
+    @ObservabilityBaseUrl private val baseUrl: String
 ) : CoroutineWorker(appContext, workerParams) {
 
     override suspend fun doWork(): Result {
@@ -109,7 +112,7 @@ class ObservabilityUploadWorker @AssistedInject constructor(
                         "ObservabilityUploadWorker: network error after %d/%d events — retrying. %s",
                         totalUploaded,
                         events.size,
-                        result.message,
+                        result.message
                     )
                     return Result.retry()
                 }
@@ -120,7 +123,7 @@ class ObservabilityUploadWorker @AssistedInject constructor(
                     Timber.w(
                         "ObservabilityUploadWorker: server error %d for batch of %d events",
                         result.statusCode,
-                        batch.size,
+                        batch.size
                     )
                     // Continue uploading remaining batches
                 }
@@ -131,26 +134,24 @@ class ObservabilityUploadWorker @AssistedInject constructor(
         return Result.success()
     }
 
-    private fun uploadBatch(events: List<ObservabilityEvent>): BatchResult {
-        return try {
-            val body = JSON.encodeToString(events).toRequestBody(MEDIA_TYPE_JSON)
-            val request = Request.Builder()
-                .url("${baseUrl}api/v1/observability/events")
-                .post(body)
-                .header("Content-Type", "application/json")
-                .build()
+    private fun uploadBatch(events: List<ObservabilityEvent>): BatchResult = try {
+        val body = JSON.encodeToString(events).toRequestBody(MEDIA_TYPE_JSON)
+        val request = Request.Builder()
+            .url("${baseUrl}api/v1/observability/events")
+            .post(body)
+            .header("Content-Type", "application/json")
+            .build()
 
-            val response = okHttpClient.newCall(request).execute()
-            response.use {
-                if (it.isSuccessful) {
-                    BatchResult.Success
-                } else {
-                    BatchResult.ServerError(it.code)
-                }
+        val response = okHttpClient.newCall(request).execute()
+        response.use {
+            if (it.isSuccessful) {
+                BatchResult.Success
+            } else {
+                BatchResult.ServerError(it.code)
             }
-        } catch (e: Exception) {
-            BatchResult.NetworkError(e.message ?: "unknown error")
         }
+    } catch (e: Exception) {
+        BatchResult.NetworkError(e.message ?: "unknown error")
     }
 
     private sealed interface BatchResult {
@@ -187,20 +188,20 @@ fun scheduleObservabilityUpload(context: Context) {
 
     val request = PeriodicWorkRequestBuilder<ObservabilityUploadWorker>(
         repeatInterval = REPEAT_INTERVAL_MINUTES,
-        repeatIntervalTimeUnit = TimeUnit.MINUTES,
+        repeatIntervalTimeUnit = TimeUnit.MINUTES
     )
         .setConstraints(constraints)
         .setBackoffCriteria(
             backoffPolicy = BackoffPolicy.EXPONENTIAL,
             backoffDelay = 30L,
-            timeUnit = TimeUnit.SECONDS,
+            timeUnit = TimeUnit.SECONDS
         )
         .build()
 
     WorkManager.getInstance(context).enqueueUniquePeriodicWork(
         WORK_NAME,
         ExistingPeriodicWorkPolicy.KEEP,
-        request,
+        request
     )
 
     Timber.d("ObservabilityUploadWorker: scheduled (interval=%dm)", REPEAT_INTERVAL_MINUTES)

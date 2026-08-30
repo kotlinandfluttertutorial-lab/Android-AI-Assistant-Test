@@ -28,39 +28,35 @@ import androidx.compose.ui.unit.dp
 import com.aiassistant.domain.model.Incident
 
 @Composable
-fun IncidentListItem(
-    incident: Incident,
-    onClick:  () -> Unit,
-    modifier: Modifier = Modifier,
-) {
+fun IncidentListItem(incident: Incident, onClick: () -> Unit, modifier: Modifier = Modifier) {
     Card(
-        modifier  = modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
         elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-        colors    = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface,
-        ),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
             // Title + badges row
             Row(
-                modifier              = Modifier.fillMaxWidth(),
-                verticalAlignment     = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text     = incident.title,
-                    style    = MaterialTheme.typography.bodyMedium,
+                    text = incident.title,
+                    style = MaterialTheme.typography.bodyMedium,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f),
+                    modifier = Modifier.weight(1f)
                 )
                 Row(
                     horizontalArrangement = Arrangement.spacedBy(4.dp),
-                    modifier              = Modifier.padding(start = 8.dp),
+                    modifier = Modifier.padding(start = 8.dp)
                 ) {
                     SeverityBadge(severity = incident.severity)
                     StatusBadge(status = incident.status)
@@ -71,29 +67,29 @@ fun IncidentListItem(
             incident.aiSummary?.let { summary ->
                 Spacer(Modifier.height(4.dp))
                 Text(
-                    text     = summary,
-                    style    = MaterialTheme.typography.bodySmall,
-                    color    = MaterialTheme.colorScheme.onSurfaceVariant,
+                    text = summary,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                     maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
+                    overflow = TextOverflow.Ellipsis
                 )
             }
 
             // Metadata row
             Spacer(Modifier.height(4.dp))
             Row(
-                modifier              = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    text  = incident.triggeredBy.ifBlank { incident.detectionMethod },
+                    text = incident.triggeredBy.ifBlank { incident.detectionMethod },
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text  = incident.detectedAt.take(16).replace("T", " "),
+                    text = incident.detectedAt.take(16).replace("T", " "),
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
@@ -101,12 +97,13 @@ fun IncidentListItem(
             incident.aiConfidence?.let { conf ->
                 Spacer(Modifier.height(2.dp))
                 Text(
-                    text  = "AI confidence: ${(conf * 100).toInt()}%",
+                    text = "AI confidence: ${(conf * 100).toInt()}%",
                     style = MaterialTheme.typography.labelSmall,
-                    color = if (conf >= 0.6)
+                    color = if (conf >= 0.6) {
                         MaterialTheme.colorScheme.primary
-                    else
-                        MaterialTheme.colorScheme.error,
+                    } else {
+                        MaterialTheme.colorScheme.error
+                    }
                 )
             }
         }

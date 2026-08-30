@@ -40,11 +40,11 @@ import kotlinx.coroutines.withContext
 
 @HiltViewModel
 class DashboardViewModel @Inject constructor(
-    private val getIncidents:         GetIncidentsUseCase,
-    private val analyseErrors:        AnalyseErrorsUseCase,
-    private val askDevOpsAssistant:   AskDevOpsAssistantUseCase,
+    private val getIncidents: GetIncidentsUseCase,
+    private val analyseErrors: AnalyseErrorsUseCase,
+    private val askDevOpsAssistant: AskDevOpsAssistantUseCase,
     private val connectivityObserver: ConnectivityObserver,
-    private val dispatchers:          DispatcherProvider,
+    private val dispatchers: DispatcherProvider
 ) : ViewModel() {
 
     // ── Offline state ──────────────────────────────────────────────────────────
@@ -52,9 +52,9 @@ class DashboardViewModel @Inject constructor(
     val isOffline: StateFlow<Boolean> = connectivityObserver.isConnectedFlow
         .map { !it }
         .stateIn(
-            scope          = viewModelScope,
-            started        = SharingStarted.WhileSubscribed(5_000L),
-            initialValue   = !connectivityObserver.isConnected(),
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000L),
+            initialValue = !connectivityObserver.isConnected()
         )
 
     // ── Dashboard state ────────────────────────────────────────────────────────
@@ -99,10 +99,10 @@ class DashboardViewModel @Inject constructor(
             }
 
             _chatState.value = when (result) {
-                is ApiResult.Success            -> ChatUiState.Success(result.data)
-                is ApiResult.Error              -> ChatUiState.Error(result.error.message)
+                is ApiResult.Success -> ChatUiState.Success(result.data)
+                is ApiResult.Error -> ChatUiState.Error(result.error.message)
                 is ApiResult.NetworkUnavailable -> ChatUiState.Error("No network connection.")
-                is ApiResult.Loading            -> ChatUiState.Loading
+                is ApiResult.Loading -> ChatUiState.Loading
             }
         }
     }
@@ -162,31 +162,31 @@ class DashboardViewModel @Inject constructor(
             }
 
             val incidentsResult = incidentsDeferred.await()
-            val analysisResult  = analysisDeferred.await()
+            val analysisResult = analysisDeferred.await()
 
             // Incidents are required; analysis is optional
             when (incidentsResult) {
                 is ApiResult.Success -> {
                     val incidents = incidentsResult.data
-                    val analysis  = (analysisResult as? ApiResult.Success)?.data
+                    val analysis = (analysisResult as? ApiResult.Success)?.data
 
                     _uiState.value = DashboardUiState.Content(
-                        counts       = computeCounts(incidents),
-                        incidents    = incidents,
-                        aiAnalysis   = analysis,
+                        counts = computeCounts(incidents),
+                        incidents = incidents,
+                        aiAnalysis = analysis,
                         isRefreshing = false,
-                        isOffline    = isOffline.value,
+                        isOffline = isOffline.value
                     )
                 }
                 is ApiResult.NetworkUnavailable -> {
                     _uiState.value = DashboardUiState.Error(
-                        message   = "No network connection.",
-                        isOffline = true,
+                        message = "No network connection.",
+                        isOffline = true
                     )
                 }
                 is ApiResult.Error -> {
                     _uiState.value = DashboardUiState.Error(
-                        message = incidentsResult.error.message,
+                        message = incidentsResult.error.message
                     )
                 }
                 is ApiResult.Loading -> { /* ignore */ }
@@ -195,14 +195,16 @@ class DashboardViewModel @Inject constructor(
     }
 
     private fun computeCounts(incidents: List<Incident>): IncidentCounts {
-        val open = incidents.filter { it.status == com.aiassistant.domain.model.IncidentStatus.OPEN
-                || it.status == com.aiassistant.domain.model.IncidentStatus.INVESTIGATING }
+        val open = incidents.filter {
+            it.status == com.aiassistant.domain.model.IncidentStatus.OPEN ||
+                it.status == com.aiassistant.domain.model.IncidentStatus.INVESTIGATING
+        }
         return IncidentCounts(
             critical = open.count { it.severity == IncidentSeverity.CRITICAL },
-            high     = open.count { it.severity == IncidentSeverity.HIGH },
-            medium   = open.count { it.severity == IncidentSeverity.MEDIUM },
-            low      = open.count { it.severity == IncidentSeverity.LOW },
-            open     = open.size,
+            high = open.count { it.severity == IncidentSeverity.HIGH },
+            medium = open.count { it.severity == IncidentSeverity.MEDIUM },
+            low = open.count { it.severity == IncidentSeverity.LOW },
+            open = open.size
         )
     }
 }

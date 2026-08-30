@@ -322,6 +322,7 @@ class AuthRepositoryImpl @Inject constructor(
     private companion object {
         /** Number of additional attempts after the initial one (so total = MAX_RETRIES + 1). */
         const val MAX_RETRIES = 2
+
         /** Base delay in milliseconds; doubled on each subsequent attempt. */
         const val RETRY_BASE_DELAY_MS = 1_000L
     }

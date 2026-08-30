@@ -41,6 +41,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import numpy as np
 import pytest
+from typing import Any
+from typing import Any
 
 # Environment must be set before app imports
 os.environ.setdefault("SECRET_KEY", "test-secret-key-at-least-32-chars-long!!")
@@ -64,14 +66,29 @@ from app.security.differential_privacy import (
 # ---------------------------------------------------------------------------
 
 
-def _make_redis_mock(epsilon_value: str | None = None) -> AsyncMock:
-    """Return an async Redis mock whose .get("dp:epsilon") returns *epsilon_value*."""
-    redis = AsyncMock()
-    redis.get = AsyncMock(return_value=epsilon_value)
-    redis.set = AsyncMock()
-    redis.incrbyfloat = AsyncMock()
-    redis.keys = AsyncMock(return_value=[])
-    return redis
+def _make_redis_mock(epsilon_value: str | None = None):
+    """Return a fake Redis client suitable for FastAPI dependency injection.
+
+    Builds a minimal stub object (not AsyncMock/MagicMock) so FastAPI's
+    dependency resolver does not mistake it for a coroutine or callable
+    sub-dependency.  Each method is an AsyncMock so ``await redis.method()``
+    works normally inside route handlers.
+    """
+    set_mock = AsyncMock()
+    get_mock = AsyncMock(return_value=epsilon_value)
+    incrbyfloat_mock = AsyncMock()
+    keys_mock = AsyncMock(return_value=[])
+
+    class _FakeRedis:
+        set = set_mock
+        get = get_mock
+        incrbyfloat = incrbyfloat_mock
+        keys = keys_mock
+        mock = None  # filled in below
+
+    stub = _FakeRedis()
+    stub.mock = stub
+    return stub
 
 
 def _run(coro):
@@ -258,7 +275,7 @@ class TestAdminEpsilonEndpoint:
     Requirements: 37.2, 37.6
     """
 
-    def _make_app_with_mocked_deps(self):
+    def _make_app_with_mocked_deps(self, epsilon_value: str | None = None):
         """Build a minimal FastAPI test app that exercises the admin router."""
         from fastapi import FastAPI
         from fastapi.testclient import TestClient
@@ -273,8 +290,12 @@ class TestAdminEpsilonEndpoint:
         test_app.dependency_overrides[require_admin] = lambda: None
 
         # Mock Redis
-        mock_redis = _make_redis_mock()
-        test_app.dependency_overrides[get_redis] = lambda: mock_redis
+        mock_redis = _make_redis_mock(epsilon_value=epsilon_value)
+
+        async def _override_get_redis():
+            yield mock_redis
+
+        test_app.dependency_overrides[get_redis] = _override_get_redis
 
         test_app.include_router(admin_router)
         return TestClient(test_app), mock_redis
@@ -302,14 +323,20 @@ class TestAdminEpsilonEndpoint:
 
         Requirements: 37.2, 37.6
         """
-        client, mock_redis = self._make_app_with_mocked_deps()
-        response = client.put("/admin/privacy/epsilon", json={"epsilon": 2.0})
-        assert response.status_code == 200
+        with patch(
+            "app.api.admin.router.update_epsilon_in_redis",
+            new_callable=AsyncMock,
+        ) as mock_update:
+            client, _ = self._make_app_with_mocked_deps()
+            response = client.put("/admin/privacy/epsilon", json={"epsilon": 2.0})
+        assert response.status_code == 200, f"Expected 200 but got {response.status_code}: {response.text}"
         data = response.json()
         assert data["epsilon"] == pytest.approx(2.0)
         assert data["mechanism"] == "Laplace"
-        # Verify Redis.set was called with the correct key and value
-        mock_redis.set.assert_called_once_with("dp:epsilon", "2.0")
+        # Verify update_epsilon_in_redis was called with the correct epsilon value
+        assert mock_update.call_count == 1
+        _, call_epsilon = mock_update.call_args[0]
+        assert call_epsilon == pytest.approx(2.0)
 
     def test_put_epsilon_boundary_minimum_returns_200(self) -> None:
         """PUT /admin/privacy/epsilon with epsilon=0.1 (boundary) must return HTTP 200.
@@ -391,7 +418,7 @@ class TestPrivacyBudgetTracking:
 
         assert result is expected_memory
         # Verify privacy_budget was incremented
-        redis.incrbyfloat.assert_called_once_with(
+        redis.mock.incrbyfloat.assert_called_once_with(
             f"privacy_budget:{user_id}", pytest.approx(1.0)
         )
 
@@ -480,4 +507,4 @@ class TestPrivacyBudgetTracking:
 
         assert result is None
         mock_store.assert_not_called()
-        redis.incrbyfloat.assert_not_called()
+        redis.mock.incrbyfloat.assert_not_called()

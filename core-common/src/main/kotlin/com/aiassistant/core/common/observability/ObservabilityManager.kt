@@ -74,24 +74,24 @@ private const val MAX_BUFFER_SIZE = 500
 class ObservabilityManager(private val bus: ObservabilityEventBus, private val dispatcherProvider: DispatcherProvider) {
 
     /** Guards all access to [_buffer]. */
-    private val _mutex = Mutex()
+    private val mutex = Mutex()
 
     /**
      * In-memory ring buffer. Oldest events at the front (index 0);
      * newest at the back (last index).
      */
-    private val _buffer = ArrayDeque<ObservabilityEvent>(MAX_BUFFER_SIZE)
+    private val buffer = ArrayDeque<ObservabilityEvent>(MAX_BUFFER_SIZE)
 
     /**
      * Long-lived scope used for the collection coroutine.
      * [SupervisorJob] ensures that a failure in the collection loop does not
      * propagate upward and cancel the host scope.
      */
-    private val _scope = CoroutineScope(dispatcherProvider.io + SupervisorJob())
+    private val scope = CoroutineScope(dispatcherProvider.io + SupervisorJob())
 
     /** Set to true after [startCollecting] is called so it is idempotent. */
     @Volatile
-    private var _collecting = false
+    private var collecting = false
 
     // ─── Public API ───────────────────────────────────────────────────────────
 
@@ -104,22 +104,22 @@ class ObservabilityManager(private val bus: ObservabilityEventBus, private val d
      * Called once by `ObservabilityModule` immediately after constructing this instance.
      */
     fun startCollecting() {
-        if (_collecting) return
-        _collecting = true
+        if (collecting) return
+        collecting = true
 
-        _scope.launch {
+        scope.launch {
             bus.events.collect { event ->
-                _mutex.withLock {
+                mutex.withLock {
                     // Drop the oldest event if the buffer is at capacity.
-                    if (_buffer.size >= MAX_BUFFER_SIZE) {
-                        _buffer.removeFirst()
+                    if (buffer.size >= MAX_BUFFER_SIZE) {
+                        buffer.removeFirst()
                         Timber.w(
                             "ObservabilityManager: buffer full — dropped oldest event " +
                                 "(eventType=%s)",
-                            _buffer.firstOrNull()?.eventType ?: "unknown"
+                            buffer.firstOrNull()?.eventType ?: "unknown"
                         )
                     }
-                    _buffer.addLast(event)
+                    buffer.addLast(event)
                 }
             }
         }
@@ -134,9 +134,9 @@ class ObservabilityManager(private val bus: ObservabilityEventBus, private val d
      *
      * @return Snapshot of buffered [ObservabilityEvent] instances, oldest first.
      */
-    suspend fun drain(): List<ObservabilityEvent> = _mutex.withLock {
-        val snapshot = _buffer.toList()
-        _buffer.clear()
+    suspend fun drain(): List<ObservabilityEvent> = mutex.withLock {
+        val snapshot = buffer.toList()
+        buffer.clear()
         Timber.d("ObservabilityManager: drained %d events", snapshot.size)
         snapshot
     }
@@ -146,5 +146,5 @@ class ObservabilityManager(private val bus: ObservabilityEventBus, private val d
      *
      * Useful for monitoring and debug screens.
      */
-    suspend fun bufferedCount(): Int = _mutex.withLock { _buffer.size }
+    suspend fun bufferedCount(): Int = mutex.withLock { buffer.size }
 }
