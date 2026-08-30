@@ -28,6 +28,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navDeepLink
+import com.aiassistant.core.ui.motion.LocalReducedMotionEnabled
+import com.aiassistant.core.ui.motion.enterFadeThrough
+import com.aiassistant.core.ui.motion.enterSlideIn
+import com.aiassistant.core.ui.motion.exitFadeThrough
+import com.aiassistant.core.ui.motion.exitSlideOut
+import com.aiassistant.core.ui.motion.popEnterSlideIn
+import com.aiassistant.core.ui.motion.popExitSlideOut
 import com.aiassistant.core.ui.AppTheme
 import com.aiassistant.feature.auth.AuthRoute
 import com.aiassistant.feature.auth.authNavGraph
@@ -139,9 +146,23 @@ private fun screenViewTracker(navController: NavHostController) {
  */
 @Composable
 private fun rootNavHost(navController: NavHostController) {
+    // Read once at the NavHost level; passed down to AppTransition functions
+    // so every composable {} in the graph inherits the same reduced-motion
+    // preference without reading the local inside each destination.
+    val reducedMotion = LocalReducedMotionEnabled.current
+
     NavHost(
         navController = navController,
-        startDestination = AuthRoute.GRAPH
+        startDestination = AuthRoute.GRAPH,
+        // ── App-wide navigation transitions (Task 50.9 / 50.3) ───────────
+        // Standard push / pop: slide + fade (300 ms).
+        // Tab switches (handled by the NavigationBar's popUpTo/restoreState
+        // pattern) also land here; they visually feel like fade-through
+        // because the destination is restored from the back stack instantly.
+        enterTransition   = { enterSlideIn(reducedMotion) },
+        exitTransition    = { exitSlideOut(reducedMotion) },
+        popEnterTransition = { popEnterSlideIn(reducedMotion) },
+        popExitTransition  = { popExitSlideOut(reducedMotion) },
     ) {
         // ── Auth sub-graph (Splash → Onboarding → Login → Register) ──────────
         authNavGraph(

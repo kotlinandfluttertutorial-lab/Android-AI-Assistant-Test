@@ -2017,7 +2017,7 @@ When `LocalReducedMotionEnabled.current == true`:
   - Add brand logo `pulseScale` animation
   - _Requirements: 1.1, 1.6, 1.7, 24.1, 24.3_
 
-- [ ] 50.3 Redesign Home Dashboard with new `HomeDashboardViewModel`
+- [x] 50.3 Redesign Home Dashboard with new `HomeDashboardViewModel`
   - Create `HomeDashboardViewModel` (Hilt) exposing `userName`, `recentConversations` (max 3), `todayDate`
   - Add hero "Ask AI" card with gradient accent stripe and navigation to new `ChatDetail`
   - Replace `LazyVerticalGrid` feature cards with redesigned `FeatureCard` composable using new tokens and `pressScale` modifier
