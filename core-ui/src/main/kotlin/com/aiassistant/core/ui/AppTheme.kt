@@ -73,6 +73,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.ui.platform.LocalContext
+import com.aiassistant.core.ui.motion.LocalReducedMotionEnabled
+import com.aiassistant.core.ui.motion.rememberReducedMotion
 
 /**
  * The root application theme composable.
@@ -138,8 +140,12 @@ fun AppTheme(themeMode: ThemeMode = ThemeMode.SYSTEM, dynamicColor: Boolean = tr
     }
 
     // â”€â”€â”€ Composition locals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    val reducedMotion = rememberReducedMotion()
+
     CompositionLocalProvider(
-        LocalSpacing provides Spacing.Default
+        LocalSpacing provides Spacing.Default,
+        LocalElevation provides Elevation.Default,
+        LocalReducedMotionEnabled provides reducedMotion,
     ) {
         MaterialTheme(
             colorScheme = colorScheme,

@@ -1998,7 +1998,7 @@ When `LocalReducedMotionEnabled.current == true`:
 
 > These are the actionable sub-tasks for the redesign. Each maps to one or more of the screen specs above.
 
-- [ ] 50.1 Extend `core-ui` design tokens
+- [x] 50.1 Extend `core-ui` design tokens
   - Add `surfaceTonal1/2/3`, `accentGlow`, `gradientStart/End`, `ragAmber/Green/Red`, `ticketOpen/InProgress/Closed/Urgent` color tokens to `Color.kt` and both color schemes
   - Add `Elevation.kt` with 6-tier elevation constants
   - Add `screenEdge` spacing token to `Spacing.kt`
