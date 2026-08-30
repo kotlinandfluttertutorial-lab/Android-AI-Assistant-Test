@@ -66,19 +66,20 @@ from app.security.differential_privacy import (
 # ---------------------------------------------------------------------------
 
 
-def _make_redis_mock(epsilon_value: str | None = None) -> AsyncMock:
-    """Return a fake Redis client that doesn't confuse FastAPI inspection."""
-    redis_mock = AsyncMock()
+def _make_redis_mock(epsilon_value: str | None = None):
+    """Return a fake Redis client that doesn't confuse FastAPI inspection.
+
+    Uses MagicMock (not AsyncMock) as the container so FastAPI does not
+    treat the object itself as an awaitable/callable sub-dependency.
+    Each Redis method is individually wrapped in AsyncMock.
+    """
+    redis_mock = MagicMock()
     redis_mock.get = AsyncMock(return_value=epsilon_value)
     redis_mock.set = AsyncMock()
     redis_mock.incrbyfloat = AsyncMock()
     redis_mock.keys = AsyncMock(return_value=[])
 
-    # Ensure it's not callable
-    redis_mock.__call__ = None
-
-    # Existing tests expect a .mock property sometimes, but if we return AsyncMock
-    # directly we can just set .mock = self.
+    # .mock is a self-reference so callers can write mock_redis.mock.set.assert_*
     redis_mock.mock = redis_mock
     return redis_mock
 
