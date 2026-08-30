@@ -51,6 +51,9 @@ import javax.inject.Singleton
 
 /** Subdirectory inside getFilesDir() where model files are stored. */
 private const val MODELS_DIR = "models"
+private const val HTTP_NOT_FOUND = 404
+private const val HTTP_INTERNAL_ERROR = 500
+private const val SHA256_BUFFER_SIZE = 8192
 
 @Singleton
 class ModelFileRepositoryImpl @Inject constructor(
@@ -63,12 +66,15 @@ class ModelFileRepositoryImpl @Inject constructor(
 
     // ── ModelFileRepository ───────────────────────────────────────────────
 
+    @Suppress("TooGenericExceptionCaught")
     override suspend fun listModels(): ApiResult<List<OnDeviceModelInfo>> =
         withContext(dispatchers.io) {
             try {
                 val files = modelsDir.listFiles() ?: emptyArray()
                 val models = files
-                    .filter { it.isFile && (it.extension == "bin" || it.extension == "tflite" || it.extension == "gguf") }
+                    .filter {
+                        it.isFile && (it.extension == "bin" || it.extension == "tflite" || it.extension == "gguf")
+                    }
                     .map { file ->
                         OnDeviceModelInfo(
                             name = file.nameWithoutExtension,
@@ -80,7 +86,7 @@ class ModelFileRepositoryImpl @Inject constructor(
                     }
                 ApiResult.Success(models)
             } catch (e: Exception) {
-                ApiResult.Error(DomainError.ServerError("Failed to list models: ${e.message}", 500))
+                ApiResult.Error(DomainError.ServerError("Failed to list models: ${e.message}", HTTP_INTERNAL_ERROR))
             }
         }
 
@@ -108,8 +114,10 @@ class ModelFileRepositoryImpl @Inject constructor(
 
         // Stub: simulate 5 progress steps
         val totalBytes = model.sizeBytes
-        for (step in 1..5) {
-            val downloaded = (totalBytes * step / 5)
+        val stubSteps = 5
+        val percentPerStep = 20
+        for (step in 1..stubSteps) {
+            val downloaded = (totalBytes * step / stubSteps)
             emit(ApiResult.Loading)
             kotlinx.coroutines.delay(100)
             emit(
@@ -117,13 +125,14 @@ class ModelFileRepositoryImpl @Inject constructor(
                     DownloadProgress(
                         bytesDownloaded = downloaded,
                         totalBytes = totalBytes,
-                        percentComplete = (step * 20),
+                        percentComplete = (step * percentPerStep),
                     )
                 )
             )
         }
     }.flowOn(dispatchers.io)
 
+    @Suppress("TooGenericExceptionCaught")
     override suspend fun verifyModel(model: OnDeviceModelInfo): ApiResult<Boolean> =
         withContext(dispatchers.io) {
             try {
@@ -136,17 +145,18 @@ class ModelFileRepositoryImpl @Inject constructor(
 
                 if (file == null) {
                     return@withContext ApiResult.Error(
-                        DomainError.ServerError("Model file not found for: ${model.name}", 404)
+                        DomainError.ServerError("Model file not found for: ${model.name}", HTTP_NOT_FOUND)
                     )
                 }
 
                 val actual = computeSha256(file)
                 ApiResult.Success(actual.equals(model.checksum, ignoreCase = true))
             } catch (e: Exception) {
-                ApiResult.Error(DomainError.ServerError("Verification failed: ${e.message}", 500))
+                ApiResult.Error(DomainError.ServerError("Verification failed: ${e.message}", HTTP_INTERNAL_ERROR))
             }
         }
 
+    @Suppress("TooGenericExceptionCaught")
     override suspend fun deleteModel(model: OnDeviceModelInfo): ApiResult<Unit> =
         withContext(dispatchers.io) {
             try {
@@ -155,7 +165,7 @@ class ModelFileRepositoryImpl @Inject constructor(
                 }
                 ApiResult.Success(Unit)
             } catch (e: Exception) {
-                ApiResult.Error(DomainError.ServerError("Failed to delete model: ${e.message}", 500))
+                ApiResult.Error(DomainError.ServerError("Failed to delete model: ${e.message}", HTTP_INTERNAL_ERROR))
             }
         }
 
@@ -172,7 +182,8 @@ class ModelFileRepositoryImpl @Inject constructor(
     private fun computeSha256(file: File): String {
         val digest = java.security.MessageDigest.getInstance("SHA-256")
         file.inputStream().use { input ->
-            val buf = ByteArray(8192); var read: Int
+            val buf = ByteArray(SHA256_BUFFER_SIZE)
+            var read: Int
             while (input.read(buf).also { read = it } != -1) digest.update(buf, 0, read)
         }
         return digest.digest().joinToString("") { "%02x".format(it) }

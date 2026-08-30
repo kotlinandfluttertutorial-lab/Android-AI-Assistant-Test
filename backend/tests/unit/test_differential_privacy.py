@@ -275,11 +275,13 @@ class TestAdminEpsilonEndpoint:
         # Mock Redis
         mock_redis = _make_redis_mock()
 
-        async def _get_redis_override():
+        # Re-import to ensure we use the same function object
+        from app.database.redis import get_redis
+
+        async def _fake_redis_gen():
             yield mock_redis
 
-        test_app.dependency_overrides[get_redis] = _get_redis_override
-
+        test_app.dependency_overrides[get_redis] = _fake_redis_gen
         test_app.include_router(admin_router)
         return TestClient(test_app), mock_redis
 

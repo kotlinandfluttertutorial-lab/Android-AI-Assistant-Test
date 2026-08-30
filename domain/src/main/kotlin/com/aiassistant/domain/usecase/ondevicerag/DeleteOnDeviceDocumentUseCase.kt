@@ -21,6 +21,7 @@ class DeleteOnDeviceDocumentUseCase @Inject constructor(
     private val documentRepository: OnDeviceDocumentRepository,
 ) {
 
+    @Suppress("TooGenericExceptionCaught")
     suspend operator fun invoke(documentId: String, userId: String): ApiResult<Unit> {
         return try {
             vectorIndex.deleteByDocument(userId, documentId)

@@ -23,7 +23,6 @@ import dagger.hilt.android.qualifiers.ApplicationContext
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicBoolean
 import javax.inject.Inject
-import javax.inject.Singleton
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -39,10 +38,13 @@ private const val BENCHMARK_PROMPT_TOKENS = 200
 private const val BENCHMARK_ITERATIONS = 10
 private const val SIMULATED_TOKEN_DELAY_MS = 30L
 private const val BYTES_PER_MB = 1048576
+private const val STUB_RESPONSE_PREVIEW_CHAR_LIMIT = 60
+private const val SHA256_BUFFER_SIZE = 8192
+private const val BENCHMARK_P95_PERCENTILE = 0.95
+private const val DEFAULT_STAT_LONG = 0L
 
-class MediaPipeInferenceEngine @Inject constructor(
-    @ApplicationContext private val context: Context
-) : OnDeviceInferenceEngine {
+class MediaPipeInferenceEngine @Inject constructor(@ApplicationContext private val context: Context) :
+    OnDeviceInferenceEngine {
 
     private val activityManager =
         context.getSystemService(Context.ACTIVITY_SERVICE) as ActivityManager
@@ -179,16 +181,15 @@ class MediaPipeInferenceEngine @Inject constructor(
 
     private data class IterationStats(val firstTokenMs: Long?, val throughput: Float?, val peakRamMb: Int)
 
-    private fun buildBenchmarkResult(ttfts: List<Long>, throughputs: List<Float>, peakRam: Int): BenchmarkResult {
-        return BenchmarkResult(
+    private fun buildBenchmarkResult(ttfts: List<Long>, throughputs: List<Float>, peakRam: Int): BenchmarkResult =
+        BenchmarkResult(
             accelerator = activeAccelerator(),
-            ttftMeanMs = if (ttfts.isEmpty()) 0L else ttfts.average().toLong(),
-            ttftP95Ms = percentile(ttfts, 0.95),
+            ttftMeanMs = if (ttfts.isEmpty()) DEFAULT_STAT_LONG else ttfts.average().toLong(),
+            ttftP95Ms = percentile(ttfts, BENCHMARK_P95_PERCENTILE),
             tokensPerSecMean = if (throughputs.isEmpty()) 0f else throughputs.average().toFloat(),
-            tokensPerSecP95 = percentile(throughputs.map { it.toLong() }, 0.95).toFloat(),
-            peakRamMb = peakRam,
+            tokensPerSecP95 = percentile(throughputs.map { it.toLong() }, BENCHMARK_P95_PERCENTILE).toFloat(),
+            peakRamMb = peakRam
         )
-    }
 
     override fun activeAccelerator(): HardwareAccelerator =
         if (powerManager.isPowerSaveMode) HardwareAccelerator.CPU else HardwareAccelerator.GPU
@@ -214,24 +215,23 @@ class MediaPipeInferenceEngine @Inject constructor(
     }
 
     private fun buildStubResponse(prompt: String): String =
-        "[Gemma on-device] Response for: \"${prompt.take(60)}\"."
+        "[Gemma on-device] Response for: \"${prompt.take(STUB_RESPONSE_PREVIEW_CHAR_LIMIT)}\"."
 
     private fun computeSha256(file: java.io.File): String {
         val digest = java.security.MessageDigest.getInstance("SHA-256")
         file.inputStream().use { input ->
-            val buf = ByteArray(8192)
+            val buf = ByteArray(SHA256_BUFFER_SIZE)
             var read: Int
             while (input.read(buf).also { read = it } != -1) digest.update(buf, 0, read)
         }
         return digest.digest().joinToString("") { "%02x".format(it) }
     }
 
-    private fun percentile(sorted: List<Long>, p: Double): Long =
-        if (sorted.isEmpty()) {
-            0L
-        } else {
-            val list = sorted.sorted()
-            val idx = ((list.size - 1) * p).toInt()
-            list[idx]
-        }
+    private fun percentile(sorted: List<Long>, p: Double): Long = if (sorted.isEmpty()) {
+        0L
+    } else {
+        val list = sorted.sorted()
+        val idx = ((list.size - 1) * p).toInt()
+        list[idx]
+    }
 }

@@ -20,10 +20,7 @@ import javax.inject.Singleton
 @Singleton
 class QueryRouterImpl @Inject constructor() : QueryRouter {
 
-    override fun evaluate(
-        capabilityBitmask: Int,
-        userPreference: PathPreference?
-    ): RoutingDecision {
+    override fun evaluate(capabilityBitmask: Int, userPreference: PathPreference?): RoutingDecision {
         val offlineOnDeviceCapable =
             (capabilityBitmask and CapabilityBit.ALL_ON_DEVICE_CAPABLE) == CapabilityBit.ALL_ON_DEVICE_CAPABLE &&
                 (capabilityBitmask and CapabilityBit.NETWORK_REACHABLE) == 0

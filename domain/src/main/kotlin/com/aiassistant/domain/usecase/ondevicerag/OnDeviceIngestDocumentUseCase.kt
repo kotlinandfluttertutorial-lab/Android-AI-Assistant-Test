@@ -27,6 +27,7 @@ class OnDeviceIngestDocumentUseCase @Inject constructor(
     private val vectorIndex: LocalVectorIndex,
 ) {
 
+    @Suppress("TooGenericExceptionCaught")
     operator fun invoke(document: OnDeviceDocument, rawText: String): Flow<IngestionProgress> = flow {
         documentRepository.saveDocument(document)
         documentRepository.updateStatus(document.id, OnDeviceIngestionStatus.PROCESSING, null, 0)

@@ -27,12 +27,15 @@ import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 
+private const val HTTP_SERVER_ERROR = 500
+
 @Singleton
 class QueryRoutingLogRepositoryImpl @Inject constructor(
     private val dao: QueryRoutingLogDao,
     private val dispatchers: DispatcherProvider,
 ) : QueryRoutingLogRepository {
 
+    @Suppress("TooGenericExceptionCaught")
     override suspend fun logDecision(
         userId: String,
         decision: OnDeviceRoutingDecision,
@@ -52,10 +55,11 @@ class QueryRoutingLogRepositoryImpl @Inject constructor(
             )
             ApiResult.Success(Unit)
         } catch (e: Exception) {
-            ApiResult.Error(DomainError.ServerError("Log write failed: ${e.message}", 500))
+            ApiResult.Error(DomainError.ServerError("Log write failed: ${e.message}", HTTP_SERVER_ERROR))
         }
     }
 
+    @Suppress("TooGenericExceptionCaught")
     override suspend fun getRecentDecisions(
         userId: String,
         limit: Int,
@@ -64,17 +68,18 @@ class QueryRoutingLogRepositoryImpl @Inject constructor(
             val entities = dao.getRecentLogs(userId, limit)
             ApiResult.Success(entities.map { it.toDomain() })
         } catch (e: Exception) {
-            ApiResult.Error(DomainError.ServerError("Failed to load routing logs: ${e.message}", 500))
+            ApiResult.Error(DomainError.ServerError("Failed to load routing logs: ${e.message}", HTTP_SERVER_ERROR))
         }
     }
 
+    @Suppress("TooGenericExceptionCaught")
     override suspend fun deleteOlderThan(cutoffMs: Long): ApiResult<Unit> =
         withContext(dispatchers.io) {
             try {
                 dao.deleteOlderThan(cutoffMs)
                 ApiResult.Success(Unit)
             } catch (e: Exception) {
-                ApiResult.Error(DomainError.ServerError("Failed to prune routing logs: ${e.message}", 500))
+                ApiResult.Error(DomainError.ServerError("Failed to prune routing logs: ${e.message}", HTTP_SERVER_ERROR))
             }
         }
 

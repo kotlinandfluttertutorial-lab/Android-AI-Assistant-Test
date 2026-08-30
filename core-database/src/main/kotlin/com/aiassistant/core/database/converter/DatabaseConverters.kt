@@ -37,6 +37,10 @@ import kotlinx.serialization.json.Json
  */
 class DatabaseConverters {
 
+    companion object {
+        private const val FLOAT_SIZE_BYTES = 4
+    }
+
     // ── List<String> ↔ JSON ──────────────────────────────────────────────────
 
     @TypeConverter
@@ -68,7 +72,7 @@ class DatabaseConverters {
     @TypeConverter
     fun fromFloatArray(value: FloatArray): ByteArray {
         val buffer = java.nio.ByteBuffer
-            .allocate(value.size * 4)
+            .allocate(value.size * FLOAT_SIZE_BYTES)
             .order(java.nio.ByteOrder.LITTLE_ENDIAN)
         buffer.asFloatBuffer().put(value)
         return buffer.array()

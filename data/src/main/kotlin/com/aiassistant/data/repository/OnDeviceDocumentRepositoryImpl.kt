@@ -53,6 +53,7 @@ class OnDeviceDocumentRepositoryImpl @Inject constructor(
             entities.map { it.toDomain() }
         }
 
+    @Suppress("TooGenericExceptionCaught")
     override suspend fun saveDocument(document: OnDeviceDocument): ApiResult<OnDeviceDocument> =
         withContext(dispatchers.io) {
             try {
@@ -67,6 +68,7 @@ class OnDeviceDocumentRepositoryImpl @Inject constructor(
             }
         }
 
+    @Suppress("TooGenericExceptionCaught")
     override suspend fun updateStatus(
         id: String,
         status: OnDeviceIngestionStatus,
@@ -85,6 +87,7 @@ class OnDeviceDocumentRepositoryImpl @Inject constructor(
         }
     }
 
+    @Suppress("TooGenericExceptionCaught")
     override suspend fun deleteDocument(id: String, userId: String): ApiResult<Unit> =
         withContext(dispatchers.io) {
             try {

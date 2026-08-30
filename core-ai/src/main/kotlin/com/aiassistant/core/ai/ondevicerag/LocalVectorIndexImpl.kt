@@ -18,9 +18,7 @@ import javax.inject.Inject
 
 private const val MIN_NORM_THRESHOLD = 1e-9f
 
-class LocalVectorIndexImpl @Inject constructor(
-    private val dao: OnDeviceChunkDao
-) : LocalVectorIndex {
+class LocalVectorIndexImpl @Inject constructor(private val dao: OnDeviceChunkDao) : LocalVectorIndex {
 
     override suspend fun addChunk(userId: String, chunk: TextChunk, embedding: FloatArray) {
         val entity = OnDeviceChunkEntity(
@@ -34,7 +32,7 @@ class LocalVectorIndexImpl @Inject constructor(
             endCharOffset = chunk.endCharOffset,
             content = chunk.content,
             embeddingBlob = embedding,
-            createdAt = System.currentTimeMillis(),
+            createdAt = System.currentTimeMillis()
         )
         dao.insert(entity)
     }
@@ -43,7 +41,7 @@ class LocalVectorIndexImpl @Inject constructor(
         userId: String,
         queryEmbedding: FloatArray,
         k: Int,
-        minSimilarity: Float,
+        minSimilarity: Float
     ): List<ChunkSearchResult> {
         val allChunks = dao.getAllChunks(userId)
         if (allChunks.isEmpty()) return emptyList()

@@ -68,9 +68,11 @@ fun NavGraphBuilder.onDeviceRagNavGraph(navController: NavHostController) {
     // ── Document list ────────────────────────────────────────────────────
     composable(
         route = OnDeviceRagRoute.DOCUMENTS,
-        deepLinks = listOf(navDeepLink {
-            uriPattern = "aiassistant://open/ondevicerag/documents"
-        }),
+        deepLinks = listOf(
+            navDeepLink {
+                uriPattern = "aiassistant://open/ondevicerag/documents"
+            }
+        ),
     ) {
         val viewModel: OnDeviceDocumentViewModel = hiltViewModel()
         OnDeviceDocumentsScreen(
@@ -87,9 +89,11 @@ fun NavGraphBuilder.onDeviceRagNavGraph(navController: NavHostController) {
         arguments = listOf(
             navArgument("documentId") { type = NavType.StringType }
         ),
-        deepLinks = listOf(navDeepLink {
-            uriPattern = "aiassistant://open/ondevicerag/documents/{documentId}/chat"
-        }),
+        deepLinks = listOf(
+            navDeepLink {
+                uriPattern = "aiassistant://open/ondevicerag/documents/{documentId}/chat"
+            }
+        ),
     ) {
         val viewModel: OnDeviceRagViewModel = hiltViewModel()
         OnDeviceRagChatScreen(
@@ -101,9 +105,11 @@ fun NavGraphBuilder.onDeviceRagNavGraph(navController: NavHostController) {
     // ── Benchmark ─────────────────────────────────────────────────────────
     composable(
         route = OnDeviceRagRoute.BENCHMARK,
-        deepLinks = listOf(navDeepLink {
-            uriPattern = "aiassistant://open/ondevicerag/benchmark"
-        }),
+        deepLinks = listOf(
+            navDeepLink {
+                uriPattern = "aiassistant://open/ondevicerag/benchmark"
+            }
+        ),
     ) {
         val viewModel: BenchmarkViewModel = hiltViewModel()
         BenchmarkScreen(
@@ -115,9 +121,11 @@ fun NavGraphBuilder.onDeviceRagNavGraph(navController: NavHostController) {
     // ── Manage models ─────────────────────────────────────────────────────
     composable(
         route = OnDeviceRagRoute.MANAGE_MODELS,
-        deepLinks = listOf(navDeepLink {
-            uriPattern = "aiassistant://open/ondevicerag/models"
-        }),
+        deepLinks = listOf(
+            navDeepLink {
+                uriPattern = "aiassistant://open/ondevicerag/models"
+            }
+        ),
     ) {
         val viewModel: ManageModelsViewModel = hiltViewModel()
         ManageModelsScreen(

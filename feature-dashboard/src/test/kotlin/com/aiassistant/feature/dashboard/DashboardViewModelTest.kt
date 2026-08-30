@@ -175,7 +175,9 @@ class DashboardViewModelTest {
     @Test
     fun `GetIncidentsUseCase error transitions to Error state`() = runTest {
         val errorMessage = "API failure"
-        coEvery { getIncidentsUseCase(any(), any(), any()) } returns ApiResult.Error(DomainError.ServerError(errorMessage))
+        coEvery {
+            getIncidentsUseCase(any(), any(), any())
+        } returns ApiResult.Error(DomainError.ServerError(errorMessage))
 
         initViewModel()
         advanceUntilIdle()

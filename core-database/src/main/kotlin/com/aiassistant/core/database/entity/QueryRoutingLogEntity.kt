@@ -67,7 +67,7 @@ data class QueryRoutingLogEntity(
     @PrimaryKey val id: String,
     val userId: String,
     val timestamp: Long,
-    val selectedPath: String,        // "ON_DEVICE" | "CLOUD"
+    val selectedPath: String, // "ON_DEVICE" | "CLOUD"
     val capabilityBitmask: Int,
     val userOverride: String? = null, // "PREFER_ON_DEVICE" | "PREFER_CLOUD" | null
     val fallbackOccurred: Boolean = false,

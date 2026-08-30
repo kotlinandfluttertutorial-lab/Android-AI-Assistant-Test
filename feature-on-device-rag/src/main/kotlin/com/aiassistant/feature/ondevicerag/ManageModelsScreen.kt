@@ -311,10 +311,14 @@ private fun UpdateAvailableNotice(
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
+private const val BYTES_PER_KB = 1024L
+private const val BYTES_PER_MB = 1048576L
+private const val BYTES_PER_GB = 1073741824L
+
 private fun formatBytes(bytes: Long): String = when {
-    bytes >= 1_073_741_824L -> "%.1f GB".format(bytes / 1_073_741_824.0)
-    bytes >= 1_048_576L -> "%.1f MB".format(bytes / 1_048_576.0)
-    bytes >= 1024L -> "%.1f KB".format(bytes / 1024.0)
+    bytes >= BYTES_PER_GB -> "%.1f GB".format(bytes / BYTES_PER_GB.toDouble())
+    bytes >= BYTES_PER_MB -> "%.1f MB".format(bytes / BYTES_PER_MB.toDouble())
+    bytes >= BYTES_PER_KB -> "%.1f KB".format(bytes / BYTES_PER_KB.toDouble())
     else -> "$bytes B"
 }
 

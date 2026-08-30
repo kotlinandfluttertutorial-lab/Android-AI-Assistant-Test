@@ -49,8 +49,8 @@ class BenchmarkViewModel @Inject constructor(
             _uiState.value = BenchmarkUiState.Running(iteration = 0)
             when (val result = benchmarkUseCase()) {
                 is ApiResult.Success -> _uiState.value = BenchmarkUiState.Done(result.data)
-                is ApiResult.Error -> _uiState.value =
-                    BenchmarkUiState.Error(result.error.message)
+                is ApiResult.Error ->
+                    _uiState.value = BenchmarkUiState.Error(result.error.message)
                 else -> _uiState.value = BenchmarkUiState.Error("Benchmark failed unexpectedly.")
             }
         }

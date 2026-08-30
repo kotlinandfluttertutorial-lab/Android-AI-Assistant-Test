@@ -11,6 +11,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
  */
 object DatabaseMigrations {
 
+    private const val DB_VERSION_1 = 1
+    private const val DB_VERSION_2 = 2
+    private const val DB_VERSION_3 = 3
+
     /**
      * v1 → v2: Add `errorMessage` column to the `documents` table.
      *
@@ -18,7 +22,7 @@ object DatabaseMigrations {
      * (`GET /jobs/{job_id}`) so the UI can display it without an extra network call.
      * NULL for documents that have not failed.
      */
-    val MIGRATION_1_2 = object : Migration(1, 2) {
+    val MIGRATION_1_2 = object : Migration(DB_VERSION_1, DB_VERSION_2) {
         override fun migrate(database: SupportSQLiteDatabase) {
             database.execSQL(
                 "ALTER TABLE documents ADD COLUMN errorMessage TEXT DEFAULT NULL"
@@ -46,7 +50,7 @@ object DatabaseMigrations {
      *
      * No existing data is touched — all three tables are brand new.
      */
-    val MIGRATION_2_3 = object : Migration(2, 3) {
+    val MIGRATION_2_3 = object : Migration(DB_VERSION_2, DB_VERSION_3) {
         override fun migrate(database: SupportSQLiteDatabase) {
             createOnDeviceDocumentsTable(database)
             createOnDeviceChunksTable(database)

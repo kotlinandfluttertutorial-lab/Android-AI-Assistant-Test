@@ -22,6 +22,7 @@ class BenchmarkOnDeviceUseCase @Inject constructor(
     private val inferenceEngine: OnDeviceInferenceEngine,
 ) {
 
+    @Suppress("TooGenericExceptionCaught")
     suspend operator fun invoke(): ApiResult<OnDeviceBenchmarkResult> = try {
         val coreResult = inferenceEngine.benchmarkMode()
         val domainResult = OnDeviceBenchmarkResult(

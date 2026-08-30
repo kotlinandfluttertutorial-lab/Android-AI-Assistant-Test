@@ -239,8 +239,11 @@ private fun BenchmarkTableRow(
     isHeader: Boolean = false,
     modifier: Modifier = Modifier,
 ) {
-    val style = if (isHeader) MaterialTheme.typography.labelMedium
-                else MaterialTheme.typography.bodySmall
+    val style = if (isHeader) {
+        MaterialTheme.typography.labelMedium
+    } else {
+        MaterialTheme.typography.bodySmall
+    }
     Row(
         modifier = modifier
             .fillMaxWidth()

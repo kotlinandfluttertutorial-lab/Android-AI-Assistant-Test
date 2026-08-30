@@ -114,6 +114,7 @@ class DocumentChatViewModelTest {
     @Test
     fun `submitQuery transitions through Loading to Success with parsed citations`() = runTest {
         val query = "What is the revenue?"
+        val doc = makeDocument(documentId, fileName)
         val rawResponse = """
             The revenue is $10M.
             Sources:
@@ -121,14 +122,18 @@ class DocumentChatViewModelTest {
         """.trimIndent()
 
         // Mocking repo for init
-        every { documentRepository.getDocuments() } returns flowOf(ApiResult.Success(listOf(makeDocument(documentId, fileName))))
+        every {
+            documentRepository.getDocuments()
+        } returns flowOf(ApiResult.Success(listOf(doc)))
         initViewModel()
 
         coEvery { queryDocumentUseCase(documentId, query) } returns ApiResult.Success(rawResponse)
 
         val states = mutableListOf<DocumentChatUiState>()
         val job = backgroundScope.launch(testDispatcher) {
-            viewModel.uiState.collect { states.add(it) }
+            viewModel.uiState.collect {
+                states.add(it)
+            }
         }
 
         viewModel.submitQuery(query)
@@ -203,7 +208,10 @@ class DocumentChatViewModelTest {
 
     @Test
     fun `resetToIdle clears exchange but preserves file name`() = runTest {
-        every { documentRepository.getDocuments() } returns flowOf(ApiResult.Success(listOf(makeDocument(documentId, fileName))))
+        val doc = makeDocument(documentId, fileName)
+        every {
+            documentRepository.getDocuments()
+        } returns flowOf(ApiResult.Success(listOf(doc)))
         initViewModel()
 
         viewModel.submitQuery("Query")

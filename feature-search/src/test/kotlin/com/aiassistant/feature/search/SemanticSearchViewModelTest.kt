@@ -138,7 +138,8 @@ class SemanticSearchViewModelTest {
         // Assert
         val state = viewModel.uiState.value
         assertTrue(state is SemanticSearchUiState.Error)
-        assertEquals("No network connection. Semantic search requires internet access.", (state as SemanticSearchUiState.Error).message)
+        val msg = "No network connection. Semantic search requires internet access."
+        assertEquals(msg, (state as SemanticSearchUiState.Error).message)
     }
 
     @Test

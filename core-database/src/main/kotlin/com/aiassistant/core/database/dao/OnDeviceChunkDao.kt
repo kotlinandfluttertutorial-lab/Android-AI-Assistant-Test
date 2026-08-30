@@ -38,6 +38,10 @@ import com.aiassistant.core.database.entity.OnDeviceChunkEntity
 @Dao
 interface OnDeviceChunkDao {
 
+    companion object {
+        private const val FLOAT_SIZE_BYTES = 4L
+    }
+
     /**
      * Inserts or overwrites a chunk.  REPLACE strategy implements the
      * "overwrite existing entry with same chunk.id" requirement from the spec
@@ -101,6 +105,6 @@ interface OnDeviceChunkDao {
      * @param embeddingDimension Number of floats per embedding (e.g. 384 for MiniLM).
      */
     suspend fun totalEmbeddingBytes(userId: String, embeddingDimension: Int): Long {
-        return countChunks(userId).toLong() * embeddingDimension * 4L
+        return countChunks(userId).toLong() * embeddingDimension * FLOAT_SIZE_BYTES
     }
 }
