@@ -80,13 +80,20 @@ object ProductivityRoute {
     /** Productivity root navigation graph route. */
     const val GRAPH = "productivity"
 
-    /** Todo list screen route. */
+    /** Todo list screen route (original). */
     const val TODO_LIST = "productivity/todos"
 
     /** Todo editor screen route — [todoId] query param is optional. */
     const val TODO_EDITOR = "productivity/todos/editor?todoId={todoId}"
-}
 
+    /** Redesigned Tickets list screen route (Task 50.7). */
+    const val TICKETS = "productivity/tickets"
+
+    /** Ticket detail screen route (Task 50.7). */
+    const val TICKET_DETAIL = "productivity/tickets/{ticketId}"
+
+    fun ticketDetail(ticketId: String) = "productivity/tickets/$ticketId"
+}
 /**
  * Embeds the productivity navigation sub-graph into the caller's [NavGraphBuilder].
  *
@@ -164,6 +171,70 @@ fun NavGraphBuilder.productivityNavGraph(
                     viewModel.backToList()
                     onNavigateUp()
                 }
+            )
+        // ── Ticket Detail (Task 50.7) ────────────────────────────────────────
+        composable(
+            route = ProductivityRoute.TICKET_DETAIL,
+            arguments = listOf(
+                navArgument("ticketId") { type = NavType.StringType }
+            ),
+        ) { backStackEntry ->
+            val parentEntry = remember(backStackEntry) {
+                navController.getBackStackEntry(ProductivityRoute.GRAPH)
+            }
+            val viewModel: ProductivityViewModel = hiltViewModel(parentEntry)
+            val ticketId = backStackEntry.arguments?.getString("ticketId") ?: return@composable
+            val uiState by viewModel.uiState.collectAsState()
+            val ticket = (uiState as? ProductivityUiState.TodoList)
+                ?.todos?.firstOrNull { it.id == ticketId } ?: return@composable
+
+            TicketDetailScreen(
+                ticket = ticket,
+                onNavigateUp = onNavigateUp,
+                onEditTicket = { t ->
+                    viewModel.openTodo(t)
+                    navController.navigate("productivity/todos/editor?todoId=${t.id}")
+                },
+                onStatusChange = { t, newStatus ->
+                    // Map status string → isCompleted + tags convention
+                    val updatedTags = t.tags.toMutableList().apply {
+                        remove("in_progress")
+                        if (newStatus == "in_progress") add("in_progress")
+                    }
+                    viewModel.saveTodo(t.copy(isCompleted = newStatus == "closed", tags = updatedTags))
+                },
+                onAiSummarise = { t -> viewModel.generateTodosFromPrompt("Summarise: ${t.title}") },
+                onAiExpand = { t -> viewModel.generateTodosFromPrompt("Expand: ${t.description}") },
+                onAiAddActionItems = { t -> viewModel.generateTodosFromPrompt("Action items for: ${t.title}") },
+            )
+        }
+
+        // ── Tickets List (Task 50.7) ─────────────────────────────────────────
+        composable(route = ProductivityRoute.TICKETS) { backStackEntry ->
+            val parentEntry = remember(backStackEntry) {
+                navController.getBackStackEntry(ProductivityRoute.GRAPH)
+            }
+            val viewModel: ProductivityViewModel = hiltViewModel(parentEntry)
+            val uiState by viewModel.uiState.collectAsState()
+
+            TicketsScreen(
+                uiState = uiState,
+                onTicketClick = { ticket ->
+                    navController.navigate(ProductivityRoute.ticketDetail(ticket.id))
+                },
+                onNewTicket = {
+                    viewModel.openNewTodo()
+                    navController.navigate("productivity/todos/editor")
+                },
+                onDeleteTicket = { id -> viewModel.deleteTodo(id) },
+                onMoveTicket = { ticket, newStatus ->
+                    val updatedTags = ticket.tags.toMutableList().apply {
+                        remove("in_progress")
+                        if (newStatus == "in_progress") add("in_progress")
+                    }
+                    viewModel.saveTodo(ticket.copy(isCompleted = newStatus == "closed", tags = updatedTags))
+                },
+                onApplyFilter = { filter -> viewModel.applyFilter(filter) },
             )
         }
     }

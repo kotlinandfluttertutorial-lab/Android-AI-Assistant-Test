@@ -2055,7 +2055,7 @@ When `LocalReducedMotionEnabled.current == true`:
   - Separate sign-out into its own card with `errorContainer` styling
   - _Requirements: 7.3, 7.4, 28.1, 28.2, 24.1_
 
-- [ ] 50.7 Redesign Tickets Screen (repurposed from Productivity Tasks)
+- [x] 50.7 Redesign Tickets Screen (repurposed from Productivity Tasks)
   - Rename `TodoListScreen.kt` ? `TicketsScreen.kt`; update navigation route references
   - Build `FilterChipRow` for status/priority filters with count badges
   - Build `TicketCard` composable with priority-colored left border accent, `pressScale` modifier, quick-move `Button`
