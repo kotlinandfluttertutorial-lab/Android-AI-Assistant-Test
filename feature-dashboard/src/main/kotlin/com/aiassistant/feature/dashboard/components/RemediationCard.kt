@@ -234,11 +234,7 @@ private fun RemediationActionRow(
 }
 
 @Composable
-private fun ActionHeader(
-    action: RemediationActionUiModel,
-    tierBg: Color,
-    tierFg: Color
-) {
+private fun ActionHeader(action: RemediationActionUiModel, tierBg: Color, tierFg: Color) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
@@ -275,12 +271,7 @@ private fun ActionHeader(
 }
 
 @Composable
-private fun ActionDescription(
-    reasoning: String,
-    title: String,
-    showReasoning: Boolean,
-    onToggleReasoning: () -> Unit
-) {
+private fun ActionDescription(reasoning: String, title: String, showReasoning: Boolean, onToggleReasoning: () -> Unit) {
     if (reasoning.isNotBlank()) {
         Spacer(Modifier.height(4.dp))
         Text(

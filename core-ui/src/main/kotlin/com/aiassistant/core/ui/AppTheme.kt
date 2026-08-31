@@ -145,7 +145,7 @@ fun AppTheme(themeMode: ThemeMode = ThemeMode.SYSTEM, dynamicColor: Boolean = tr
     CompositionLocalProvider(
         LocalSpacing provides Spacing.Default,
         LocalElevation provides Elevation.Default,
-        LocalReducedMotionEnabled provides reducedMotion,
+        LocalReducedMotionEnabled provides reducedMotion
     ) {
         MaterialTheme(
             colorScheme = colorScheme,

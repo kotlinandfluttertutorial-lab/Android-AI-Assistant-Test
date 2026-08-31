@@ -33,27 +33,23 @@ import com.aiassistant.core.common.DispatcherProvider
 import com.aiassistant.domain.model.Conversation
 import com.aiassistant.domain.usecase.conversation.GetConversationsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.onEach
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
-import java.util.Locale
-import javax.inject.Inject
 
 // ── UiState ───────────────────────────────────────────────────────────────────
 
 sealed class HomeDashboardUiState {
     data object Loading : HomeDashboardUiState()
-    data class Ready(
-        val userName: String,
-        val todayDate: String,
-        val recentConversations: List<Conversation>,
-    ) : HomeDashboardUiState()
+    data class Ready(val userName: String, val todayDate: String, val recentConversations: List<Conversation>) :
+        HomeDashboardUiState()
     data class Error(val message: String) : HomeDashboardUiState()
 }
 
@@ -62,7 +58,7 @@ sealed class HomeDashboardUiState {
 @HiltViewModel
 class HomeDashboardViewModel @Inject constructor(
     private val getConversationsUseCase: GetConversationsUseCase,
-    private val dispatchers: DispatcherProvider,
+    private val dispatchers: DispatcherProvider
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow<HomeDashboardUiState>(HomeDashboardUiState.Loading)
@@ -97,9 +93,9 @@ class HomeDashboardViewModel @Inject constructor(
         // Emit a Ready state immediately with empty conversations so the
         // screen renders without waiting for the database.
         _uiState.value = HomeDashboardUiState.Ready(
-            userName = "there",        // replaced by UserRepository in production
+            userName = "there", // replaced by UserRepository in production
             todayDate = todayDate,
-            recentConversations = emptyList(),
+            recentConversations = emptyList()
         )
     }
 

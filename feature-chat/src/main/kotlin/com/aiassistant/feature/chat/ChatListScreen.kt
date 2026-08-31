@@ -40,12 +40,12 @@ import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.PushPin
 import androidx.compose.material.icons.outlined.PushPin
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DockedSearchBar
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -103,7 +103,7 @@ fun ChatListScreen(viewModel: ChatViewModel, onConversationClick: (String) -> Un
         onPinConversation = { id, pinned -> viewModel.pinConversation(id, pinned) },
         onRenameConversation = { id, title -> viewModel.renameConversation(id, title) },
         onDeleteConversation = viewModel::deleteConversation,
-        onCreateConversation = { title -> viewModel.createConversation(title, "openai") },
+        onCreateConversation = { title -> viewModel.createConversation(title, "openai") }
     )
 }
 
@@ -122,7 +122,7 @@ internal fun ChatListScreenContent(
     onPinConversation: (String, Boolean) -> Unit,
     onRenameConversation: (String, String) -> Unit,
     onDeleteConversation: (String) -> Unit,
-    onCreateConversation: (String) -> Unit,
+    onCreateConversation: (String) -> Unit
 ) {
     var showNewConversationDialog by rememberSaveable { mutableStateOf(false) }
     var showRenameDialog by rememberSaveable { mutableStateOf(false) }
@@ -136,16 +136,16 @@ internal fun ChatListScreenContent(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showNewConversationDialog = true },
-                modifier = Modifier.semantics { contentDescription = "New conversation" },
+                modifier = Modifier.semantics { contentDescription = "New conversation" }
             ) {
                 Icon(Icons.Filled.Add, contentDescription = null)
             }
-        },
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(innerPadding)
         ) {
             if (isOffline) {
                 OfflineBanner(modifier = Modifier.fillMaxWidth())
@@ -163,9 +163,9 @@ internal fun ChatListScreenContent(
                     .fillMaxWidth()
                     .padding(
                         horizontal = MaterialTheme.spacing.screenEdge,
-                        vertical = MaterialTheme.spacing.xs,
+                        vertical = MaterialTheme.spacing.xs
                     )
-                    .semantics { contentDescription = "Search conversations" },
+                    .semantics { contentDescription = "Search conversations" }
             ) {
                 // Search results rendered inside the SearchBar's expanded overlay
                 if (searchResults.isEmpty() && searchQuery.isNotBlank()) {
@@ -173,25 +173,25 @@ internal fun ChatListScreenContent(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(MaterialTheme.spacing.lg),
-                        contentAlignment = Alignment.Center,
+                        contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = "No conversations match your search.",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                 } else {
                     LazyColumn(
                         contentPadding = PaddingValues(
                             horizontal = MaterialTheme.spacing.screenEdge,
-                            vertical = MaterialTheme.spacing.xs,
+                            vertical = MaterialTheme.spacing.xs
                         ),
-                        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
+                        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)
                     ) {
                         items(
                             count = searchResults.size,
-                            key = { searchResults[it].id },
+                            key = { searchResults[it].id }
                         ) { idx ->
                             val conv = searchResults[idx]
                             ConversationCard(
@@ -202,11 +202,13 @@ internal fun ChatListScreenContent(
                                 },
                                 onPinClick = { onPinConversation(conv.id, !conv.isPinned) },
                                 onRenameClick = {
-                                    targetConversation = conv; showRenameDialog = true
+                                    targetConversation = conv
+                                    showRenameDialog = true
                                 },
                                 onDeleteClick = {
-                                    targetConversation = conv; showDeleteDialog = true
-                                },
+                                    targetConversation = conv
+                                    showDeleteDialog = true
+                                }
                             )
                         }
                     }
@@ -223,11 +225,13 @@ internal fun ChatListScreenContent(
                     onConversationClick = onConversationClick,
                     onPinConversation = onPinConversation,
                     onRenameRequest = { conv ->
-                        targetConversation = conv; showRenameDialog = true
+                        targetConversation = conv
+                        showRenameDialog = true
                     },
                     onDeleteRequest = { conv ->
-                        targetConversation = conv; showDeleteDialog = true
-                    },
+                        targetConversation = conv
+                        showDeleteDialog = true
+                    }
                 )
             }
         }
@@ -235,8 +239,11 @@ internal fun ChatListScreenContent(
 
     if (showNewConversationDialog) {
         NewConversationDialog(
-            onConfirm = { title -> onCreateConversation(title); showNewConversationDialog = false },
-            onDismiss = { showNewConversationDialog = false },
+            onConfirm = { title ->
+                onCreateConversation(title)
+                showNewConversationDialog = false
+            },
+            onDismiss = { showNewConversationDialog = false }
         )
     }
     if (showRenameDialog && targetConversation != null) {
@@ -244,9 +251,13 @@ internal fun ChatListScreenContent(
             currentTitle = targetConversation!!.title,
             onConfirm = { newTitle ->
                 onRenameConversation(targetConversation!!.id, newTitle)
-                showRenameDialog = false; targetConversation = null
+                showRenameDialog = false
+                targetConversation = null
             },
-            onDismiss = { showRenameDialog = false; targetConversation = null },
+            onDismiss = {
+                showRenameDialog = false
+                targetConversation = null
+            }
         )
     }
     if (showDeleteDialog && targetConversation != null) {
@@ -254,9 +265,13 @@ internal fun ChatListScreenContent(
             conversationTitle = targetConversation!!.title,
             onConfirm = {
                 onDeleteConversation(targetConversation!!.id)
-                showDeleteDialog = false; targetConversation = null
+                showDeleteDialog = false
+                targetConversation = null
             },
-            onDismiss = { showDeleteDialog = false; targetConversation = null },
+            onDismiss = {
+                showDeleteDialog = false
+                targetConversation = null
+            }
         )
     }
 }
@@ -269,16 +284,16 @@ private fun PagedConversationList(
     onConversationClick: (String) -> Unit,
     onPinConversation: (String, Boolean) -> Unit,
     onRenameRequest: (Conversation) -> Unit,
-    onDeleteRequest: (Conversation) -> Unit,
+    onDeleteRequest: (Conversation) -> Unit
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
             horizontal = MaterialTheme.spacing.screenEdge,
             vertical = MaterialTheme.spacing.xs,
-            bottom = MaterialTheme.spacing.xl,
+            bottom = MaterialTheme.spacing.xl
         ),
-        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
+        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)
     ) {
         items(
             count = pagedItems.itemCount,
@@ -288,7 +303,7 @@ private fun PagedConversationList(
                     is ChatListItem.ConversationItem -> "conv:${item.conversation.id}"
                     null -> "null:$idx"
                 }
-            },
+            }
         ) { idx ->
             when (val item = pagedItems[idx]) {
                 is ChatListItem.Header -> SectionHeader(label = item.label)
@@ -299,7 +314,7 @@ private fun PagedConversationList(
                         onPinConversation(item.conversation.id, !item.conversation.isPinned)
                     },
                     onRenameClick = { onRenameRequest(item.conversation) },
-                    onDeleteClick = { onDeleteRequest(item.conversation) },
+                    onDeleteClick = { onDeleteRequest(item.conversation) }
                 )
                 null -> Unit
             }
@@ -310,7 +325,7 @@ private fun PagedConversationList(
                     Modifier
                         .fillMaxWidth()
                         .padding(MaterialTheme.spacing.md),
-                    contentAlignment = Alignment.Center,
+                    contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator(modifier = Modifier.size(MaterialTheme.spacing.lg))
                 }
@@ -327,7 +342,7 @@ private fun ConversationCard(
     onClick: () -> Unit,
     onPinClick: () -> Unit,
     onRenameClick: () -> Unit,
-    onDeleteClick: () -> Unit,
+    onDeleteClick: () -> Unit
 ) {
     val isDark = isSystemInDarkTheme()
     val cardColor = if (isDark) AppColors.surfaceTonal1Dark else AppColors.surfaceTonal1Light
@@ -342,26 +357,26 @@ private fun ConversationCard(
                 onClick = onPinClick,
                 modifier = Modifier.semantics {
                     contentDescription = if (conversation.isPinned) "Unpin conversation" else "Pin conversation"
-                },
+                }
             ) {
                 Icon(
                     imageVector = if (conversation.isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
+                    tint = MaterialTheme.colorScheme.primary
                 )
             }
             // Delete action
             IconButton(
                 onClick = onDeleteClick,
-                modifier = Modifier.semantics { contentDescription = "Delete conversation" },
+                modifier = Modifier.semantics { contentDescription = "Delete conversation" }
             ) {
                 Icon(
                     imageVector = Icons.Filled.Delete,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error,
+                    tint = MaterialTheme.colorScheme.error
                 )
             }
-        },
+        }
     ) {
         ElevatedCard(
             onClick = onClick,
@@ -375,16 +390,16 @@ private fun ConversationCard(
                     }
                 },
             elevation = CardDefaults.elevatedCardElevation(defaultElevation = MaterialTheme.elevation.low),
-            colors = CardDefaults.elevatedCardColors(containerColor = cardColor),
+            colors = CardDefaults.elevatedCardColors(containerColor = cardColor)
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(
                         horizontal = MaterialTheme.spacing.md,
-                        vertical = MaterialTheme.spacing.sm,
+                        vertical = MaterialTheme.spacing.sm
                     ),
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 if (conversation.isPinned) {
                     Icon(
@@ -393,7 +408,7 @@ private fun ConversationCard(
                         tint = MaterialTheme.colorScheme.primary,
                         modifier = Modifier
                             .size(14.dp)
-                            .padding(end = 4.dp),
+                            .padding(end = 4.dp)
                     )
                 }
                 Column(modifier = Modifier.weight(1f)) {
@@ -401,12 +416,12 @@ private fun ConversationCard(
                         text = conversation.title,
                         style = MaterialTheme.typography.bodyLarge,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         text = conversation.updatedAt.formatRelative(),
                         style = AppType.chatTimestamp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
                 Box {
@@ -414,25 +429,34 @@ private fun ConversationCard(
                         onClick = { menuExpanded = true },
                         modifier = Modifier.semantics {
                             contentDescription = "More options for ${conversation.title}"
-                        },
+                        }
                     ) {
                         Icon(Icons.Filled.MoreVert, contentDescription = null)
                     }
                     DropdownMenu(
                         expanded = menuExpanded,
-                        onDismissRequest = { menuExpanded = false },
+                        onDismissRequest = { menuExpanded = false }
                     ) {
                         DropdownMenuItem(
                             text = { Text(if (conversation.isPinned) "Unpin" else "Pin") },
-                            onClick = { menuExpanded = false; onPinClick() },
+                            onClick = {
+                                menuExpanded = false
+                                onPinClick()
+                            }
                         )
                         DropdownMenuItem(
                             text = { Text("Rename") },
-                            onClick = { menuExpanded = false; onRenameClick() },
+                            onClick = {
+                                menuExpanded = false
+                                onRenameClick()
+                            }
                         )
                         DropdownMenuItem(
                             text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
-                            onClick = { menuExpanded = false; onDeleteClick() },
+                            onClick = {
+                                menuExpanded = false
+                                onDeleteClick()
+                            }
                         )
                     }
                 }
@@ -453,9 +477,9 @@ private fun SectionHeader(label: String) {
             .fillMaxWidth()
             .padding(
                 horizontal = MaterialTheme.spacing.screenEdge,
-                vertical = MaterialTheme.spacing.xs,
+                vertical = MaterialTheme.spacing.xs
             )
-            .semantics { contentDescription = "$label section" },
+            .semantics { contentDescription = "$label section" }
     )
 }
 
@@ -463,7 +487,7 @@ private fun SectionHeader(label: String) {
 private fun LoadingContent() {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         CircularProgressIndicator(
-            modifier = Modifier.semantics { contentDescription = "Loading conversations" },
+            modifier = Modifier.semantics { contentDescription = "Loading conversations" }
         )
     }
 }
@@ -472,10 +496,13 @@ private fun LoadingContent() {
 private fun ErrorContent(message: String) {
     Box(
         Modifier.fillMaxSize().padding(MaterialTheme.spacing.md),
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.Center
     ) {
-        Text(text = message, style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.error)
+        Text(
+            text = message,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.error
+        )
     }
 }
 
@@ -483,14 +510,20 @@ private fun ErrorContent(message: String) {
 private fun EmptyContent() {
     Box(
         Modifier.fillMaxSize().padding(MaterialTheme.spacing.md),
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.Center
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
-            Text("No conversations yet", style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                "No conversations yet",
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
             Spacer(Modifier.height(MaterialTheme.spacing.sm))
-            Text("Tap + to start a new conversation.", style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(
+                "Tap + to start a new conversation.",
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
         }
     }
 }
@@ -505,49 +538,45 @@ private fun NewConversationDialog(onConfirm: (String) -> Unit, onDismiss: () -> 
         title = { Text("New Conversation") },
         text = {
             OutlinedTextField(
-                value = title, onValueChange = { title = it },
-                label = { Text("Title") }, singleLine = true,
+                value = title,
+                onValueChange = { title = it },
+                label = { Text("Title") },
+                singleLine = true,
                 modifier = Modifier.fillMaxWidth()
-                    .semantics { contentDescription = "Conversation title input" },
+                    .semantics { contentDescription = "Conversation title input" }
             )
         },
         confirmButton = {
             TextButton(onClick = { if (title.isNotBlank()) onConfirm(title) }) { Text("Create") }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
     )
 }
 
 @Composable
-private fun RenameConversationDialog(
-    currentTitle: String,
-    onConfirm: (String) -> Unit,
-    onDismiss: () -> Unit,
-) {
+private fun RenameConversationDialog(currentTitle: String, onConfirm: (String) -> Unit, onDismiss: () -> Unit) {
     var newTitle by rememberSaveable(currentTitle) { mutableStateOf(currentTitle) }
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Rename Conversation") },
         text = {
             OutlinedTextField(
-                value = newTitle, onValueChange = { newTitle = it },
-                label = { Text("New title") }, singleLine = true,
-                modifier = Modifier.fillMaxWidth(),
+                value = newTitle,
+                onValueChange = { newTitle = it },
+                label = { Text("New title") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
             )
         },
         confirmButton = {
             TextButton(onClick = { if (newTitle.isNotBlank()) onConfirm(newTitle) }) { Text("Save") }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
     )
 }
 
 @Composable
-private fun DeleteConversationDialog(
-    conversationTitle: String,
-    onConfirm: () -> Unit,
-    onDismiss: () -> Unit,
-) {
+private fun DeleteConversationDialog(conversationTitle: String, onConfirm: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Delete Conversation") },
@@ -557,13 +586,12 @@ private fun DeleteConversationDialog(
                 Text("Delete", color = MaterialTheme.colorScheme.error)
             }
         },
-        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
     )
 }
 
 // ── Helper ────────────────────────────────────────────────────────────────────
 
-private fun Instant.formatRelative(): String =
-    DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a")
-        .withZone(ZoneId.systemDefault())
-        .format(this)
+private fun Instant.formatRelative(): String = DateTimeFormatter.ofPattern("MMM d, yyyy h:mm a")
+    .withZone(ZoneId.systemDefault())
+    .format(this)

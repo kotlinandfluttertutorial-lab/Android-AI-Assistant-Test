@@ -93,11 +93,8 @@ import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -140,17 +137,21 @@ private data class BottomNavItem(
     val label: String,
     val icon: ImageVector,
     val route: String,
-    val contentDesc: String = label,
+    val contentDesc: String = label
 )
 
 private val bottomNavItems = listOf(
-    BottomNavItem("Chat",    Icons.Outlined.Forum,              ChatRoute.LIST),
-    BottomNavItem("History", Icons.Outlined.History,            HistoryRoute.GRAPH),
-    BottomNavItem("Voice",   Icons.Outlined.Mic,                VoiceRoute.GRAPH),
-    BottomNavItem("Notes",   Icons.Outlined.NoteAlt,            NotesRoute.GRAPH),
+    BottomNavItem("Chat", Icons.Outlined.Forum, ChatRoute.LIST),
+    BottomNavItem("History", Icons.Outlined.History, HistoryRoute.GRAPH),
+    BottomNavItem("Voice", Icons.Outlined.Mic, VoiceRoute.GRAPH),
+    BottomNavItem("Notes", Icons.Outlined.NoteAlt, NotesRoute.GRAPH),
     // Renamed from "Tasks" → "Tickets" per Task 50.3 spec
-    BottomNavItem("Tickets", Icons.Outlined.ConfirmationNumber, ProductivityRoute.GRAPH,
-        contentDesc = "Tickets and productivity"),
+    BottomNavItem(
+        "Tickets",
+        Icons.Outlined.ConfirmationNumber,
+        ProductivityRoute.GRAPH,
+        contentDesc = "Tickets and productivity"
+    )
 )
 
 // ── Feature grid items ────────────────────────────────────────────────────────
@@ -159,36 +160,32 @@ private data class FeatureCardItem(
     val label: String,
     val icon: ImageVector,
     val route: String,
-    val accentColor: Color? = null,   // optional left-border or icon tint override
+    val accentColor: Color? = null // optional left-border or icon tint override
 )
 
 private val featureCards = listOf(
-    FeatureCardItem("Documents\n& RAG",    Icons.AutoMirrored.Outlined.LibraryBooks, RAGRoute.DOCUMENT_LIST),
-    FeatureCardItem("Camera\n& Vision",    Icons.Outlined.Camera,                   CAMERA_ROUTE),
-    FeatureCardItem("Code\nAssistant",     Icons.Outlined.Code,                     CodeRoute.GRAPH),
-    FeatureCardItem("Resume\nBuilder",     Icons.Outlined.Description,              ResumeRoute.GRAPH),
-    FeatureCardItem("Email\nComposer",     Icons.Outlined.Email,                    EmailRoute.GRAPH),
-    FeatureCardItem("Meeting\nRecorder",   Icons.Outlined.MeetingRoom,              meetingRoute()),
-    FeatureCardItem("Translator",          Icons.Outlined.GTranslate,               TRANSLATOR_ROUTE),
-    FeatureCardItem("Settings",            Icons.Outlined.Settings,                 SettingsRoute.SCREEN),
-    FeatureCardItem("Profile",             Icons.Outlined.Person,                   ProfileRoute.SCREEN),
-    FeatureCardItem("DevOps\nDashboard",   Icons.Outlined.MonitorHeart,             DashboardRoute.SCREEN),
+    FeatureCardItem("Documents\n& RAG", Icons.AutoMirrored.Outlined.LibraryBooks, RAGRoute.DOCUMENT_LIST),
+    FeatureCardItem("Camera\n& Vision", Icons.Outlined.Camera, CAMERA_ROUTE),
+    FeatureCardItem("Code\nAssistant", Icons.Outlined.Code, CodeRoute.GRAPH),
+    FeatureCardItem("Resume\nBuilder", Icons.Outlined.Description, ResumeRoute.GRAPH),
+    FeatureCardItem("Email\nComposer", Icons.Outlined.Email, EmailRoute.GRAPH),
+    FeatureCardItem("Meeting\nRecorder", Icons.Outlined.MeetingRoom, meetingRoute()),
+    FeatureCardItem("Translator", Icons.Outlined.GTranslate, TRANSLATOR_ROUTE),
+    FeatureCardItem("Settings", Icons.Outlined.Settings, SettingsRoute.SCREEN),
+    FeatureCardItem("Profile", Icons.Outlined.Person, ProfileRoute.SCREEN),
+    FeatureCardItem("DevOps\nDashboard", Icons.Outlined.MonitorHeart, DashboardRoute.SCREEN)
 )
 
 // ── Quick-action definitions ──────────────────────────────────────────────────
 
-private data class QuickAction(
-    val label: String,
-    val icon: ImageVector,
-    val route: String,
-)
+private data class QuickAction(val label: String, val icon: ImageVector, val route: String)
 
 private val quickActions = listOf(
-    QuickAction("New Chat",   Icons.Outlined.Chat,              ChatRoute.LIST),
-    QuickAction("Voice",      Icons.Outlined.Mic,               VoiceRoute.GRAPH),
-    QuickAction("Translate",  Icons.Outlined.GTranslate,        TRANSLATOR_ROUTE),
-    QuickAction("Camera",     Icons.Outlined.Camera,            CAMERA_ROUTE),
-    QuickAction("Notes",      Icons.Outlined.NoteAlt,           NotesRoute.GRAPH),
+    QuickAction("New Chat", Icons.Outlined.Chat, ChatRoute.LIST),
+    QuickAction("Voice", Icons.Outlined.Mic, VoiceRoute.GRAPH),
+    QuickAction("Translate", Icons.Outlined.GTranslate, TRANSLATOR_ROUTE),
+    QuickAction("Camera", Icons.Outlined.Camera, CAMERA_ROUTE),
+    QuickAction("Notes", Icons.Outlined.NoteAlt, NotesRoute.GRAPH)
 )
 
 // ── Route constant ────────────────────────────────────────────────────────────
@@ -204,10 +201,7 @@ const val HOME_ROUTE = "home"
  * @param viewModel     Hilt-injected [HomeDashboardViewModel].
  */
 @Composable
-fun homeDashboard(
-    navController: NavHostController,
-    viewModel: HomeDashboardViewModel = hiltViewModel(),
-) {
+fun homeDashboard(navController: NavHostController, viewModel: HomeDashboardViewModel = hiltViewModel()) {
     val uiState by viewModel.uiState.collectAsState()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
@@ -223,15 +217,15 @@ fun homeDashboard(
                         launchSingleTop = true
                         restoreState = true
                     }
-                },
+                }
             )
-        },
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .verticalScroll(rememberScrollState()),
+                .verticalScroll(rememberScrollState())
         ) {
             val ready = uiState as? HomeDashboardUiState.Ready
 
@@ -245,8 +239,8 @@ fun homeDashboard(
                     .fillMaxWidth()
                     .padding(
                         horizontal = MaterialTheme.spacing.screenEdge,
-                        vertical = MaterialTheme.spacing.md,
-                    ),
+                        vertical = MaterialTheme.spacing.md
+                    )
             )
 
             // ── Quick-action chips ─────────────────────────────────────────
@@ -255,8 +249,8 @@ fun homeDashboard(
                 onActionClick = { navController.navigate(it) },
                 modifier = Modifier.padding(
                     start = MaterialTheme.spacing.screenEdge,
-                    bottom = MaterialTheme.spacing.sm,
-                ),
+                    bottom = MaterialTheme.spacing.sm
+                )
             )
 
             // ── Recent conversations (max 3) ──────────────────────────────
@@ -264,23 +258,23 @@ fun homeDashboard(
             AnimatedVisibility(
                 visible = conversations.isNotEmpty(),
                 enter = fadeIn(tween(300)),
-                exit = fadeOut(tween(200)),
+                exit = fadeOut(tween(200))
             ) {
                 Column(
-                    modifier = Modifier.padding(horizontal = MaterialTheme.spacing.screenEdge),
+                    modifier = Modifier.padding(horizontal = MaterialTheme.spacing.screenEdge)
                 ) {
                     Text(
                         text = "RECENT",
                         style = AppType.sectionLabel,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(bottom = MaterialTheme.spacing.xs),
+                        modifier = Modifier.padding(bottom = MaterialTheme.spacing.xs)
                     )
                     conversations.take(3).forEach { conversation ->
                         ConversationPreviewCard(
                             conversation = conversation,
                             onTap = { navController.navigate(ChatRoute.detail(conversation.id)) },
                             onDismiss = { viewModel.dismissConversation(conversation.id) },
-                            isDark = isDark,
+                            isDark = isDark
                         )
                         Spacer(modifier = Modifier.height(MaterialTheme.spacing.xs))
                     }
@@ -295,8 +289,8 @@ fun homeDashboard(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(
                     start = MaterialTheme.spacing.screenEdge,
-                    bottom = MaterialTheme.spacing.xs,
-                ),
+                    bottom = MaterialTheme.spacing.xs
+                )
             )
 
             // LazyVerticalGrid inside a scroll-able Column requires a fixed height.
@@ -314,14 +308,14 @@ fun homeDashboard(
                 horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
                 verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
                 contentPadding = PaddingValues(bottom = MaterialTheme.spacing.sm),
-                userScrollEnabled = false,   // parent Column is the scroll container
+                userScrollEnabled = false // parent Column is the scroll container
             ) {
                 items(featureCards, key = { it.label }) { card ->
                     FeatureCard(
                         label = card.label,
                         icon = card.icon,
                         isDark = isDark,
-                        onClick = { navController.navigate(card.route) },
+                        onClick = { navController.navigate(card.route) }
                     )
                 }
             }
@@ -339,10 +333,10 @@ private fun HeroAskAiCard(
     todayDate: String,
     isDark: Boolean,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     val gradientStart = if (isDark) AppColors.gradientStartDark else AppColors.gradientStartLight
-    val gradientEnd   = if (isDark) AppColors.gradientEndDark   else AppColors.gradientEndLight
+    val gradientEnd = if (isDark) AppColors.gradientEndDark else AppColors.gradientEndLight
 
     ElevatedCard(
         onClick = onClick,
@@ -350,9 +344,9 @@ private fun HeroAskAiCard(
             .pressScale()
             .semantics { contentDescription = "Ask AI hero card — tap to start a new chat" },
         elevation = CardDefaults.elevatedCardElevation(
-            defaultElevation = MaterialTheme.elevation.high,
+            defaultElevation = MaterialTheme.elevation.high
         ),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(20.dp)
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
             // Gradient accent stripe (left edge)
@@ -361,26 +355,26 @@ private fun HeroAskAiCard(
                     .width(6.dp)
                     .height(120.dp)
                     .align(Alignment.CenterStart)
-                    .background(Brush.verticalGradient(listOf(gradientStart, gradientEnd))),
+                    .background(Brush.verticalGradient(listOf(gradientStart, gradientEnd)))
             )
 
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 18.dp, top = 20.dp, end = 20.dp, bottom = 20.dp),
+                    .padding(start = 18.dp, top = 20.dp, end = 20.dp, bottom = 20.dp)
             ) {
                 if (todayDate.isNotBlank()) {
                     Text(
                         text = todayDate,
                         style = AppType.sectionLabel,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(MaterialTheme.spacing.xs))
                 }
 
                 Text(
                     text = "Good day, $userName",
-                    style = MaterialTheme.typography.headlineSmall,
+                    style = MaterialTheme.typography.headlineSmall
                 )
 
                 Spacer(modifier = Modifier.height(MaterialTheme.spacing.xs))
@@ -390,13 +384,13 @@ private fun HeroAskAiCard(
                         imageVector = Icons.Outlined.AutoAwesome,
                         contentDescription = null,
                         tint = gradientStart,
-                        modifier = Modifier.size(16.dp),
+                        modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
                         text = "Ask AI anything →",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = gradientStart,
+                        color = gradientStart
                     )
                 }
             }
@@ -411,12 +405,12 @@ private fun HeroAskAiCard(
 private fun QuickActionChipRow(
     actions: List<QuickAction>,
     onActionClick: (String) -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     LazyRow(
         modifier = modifier,
         contentPadding = PaddingValues(end = MaterialTheme.spacing.screenEdge),
-        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
+        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)
     ) {
         items(actions, key = { it.label }) { action ->
             FilterChip(
@@ -430,8 +424,8 @@ private fun QuickActionChipRow(
                 colors = FilterChipDefaults.filterChipColors(
                     containerColor = MaterialTheme.colorScheme.secondaryContainer,
                     labelColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                    iconColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                ),
+                    iconColor = MaterialTheme.colorScheme.onSecondaryContainer
+                )
             )
         }
     }
@@ -446,14 +440,16 @@ private fun ConversationPreviewCard(
     onTap: () -> Unit,
     onDismiss: () -> Unit,
     isDark: Boolean,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     val dismissState = rememberSwipeToDismissBoxState(
         confirmValueChange = { value ->
             if (value == SwipeToDismissBoxValue.EndToStart) {
                 onDismiss()
                 true
-            } else false
+            } else {
+                false
+            }
         }
     )
 
@@ -466,18 +462,18 @@ private fun ConversationPreviewCard(
                     .fillMaxSize()
                     .clip(RoundedCornerShape(12.dp))
                     .background(MaterialTheme.colorScheme.errorContainer),
-                contentAlignment = Alignment.CenterEnd,
+                contentAlignment = Alignment.CenterEnd
             ) {
                 Text(
                     text = "Dismiss",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onErrorContainer,
-                    modifier = Modifier.padding(end = MaterialTheme.spacing.md),
+                    modifier = Modifier.padding(end = MaterialTheme.spacing.md)
                 )
             }
         },
         modifier = modifier,
-        enableDismissFromStartToEnd = false,
+        enableDismissFromStartToEnd = false
     ) {
         ElevatedCard(
             onClick = onTap,
@@ -488,21 +484,21 @@ private fun ConversationPreviewCard(
                     contentDescription = "Conversation: ${conversation.title}"
                 },
             elevation = CardDefaults.elevatedCardElevation(
-                defaultElevation = MaterialTheme.elevation.low,
+                defaultElevation = MaterialTheme.elevation.low
             ),
-            shape = RoundedCornerShape(12.dp),
+            shape = RoundedCornerShape(12.dp)
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = MaterialTheme.spacing.md, vertical = 12.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Chat,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(20.dp),
+                    modifier = Modifier.size(20.dp)
                 )
                 Spacer(modifier = Modifier.width(MaterialTheme.spacing.sm))
                 Column(modifier = Modifier.weight(1f)) {
@@ -510,12 +506,12 @@ private fun ConversationPreviewCard(
                         text = conversation.title,
                         style = MaterialTheme.typography.bodyMedium,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
                         text = conversation.updatedAt?.toString() ?: "",
                         style = AppType.chatTimestamp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -531,7 +527,7 @@ private fun FeatureCard(
     icon: ImageVector,
     isDark: Boolean,
     onClick: () -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     val containerColor = if (isDark) AppColors.surfaceTonal1Dark else AppColors.surfaceTonal1Light
 
@@ -543,23 +539,23 @@ private fun FeatureCard(
             .pressScale()
             .semantics { contentDescription = label.replace("\n", " ") },
         elevation = CardDefaults.elevatedCardElevation(
-            defaultElevation = MaterialTheme.elevation.low,
+            defaultElevation = MaterialTheme.elevation.low
         ),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.elevatedCardColors(containerColor = containerColor),
+        colors = CardDefaults.elevatedCardColors(containerColor = containerColor)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(MaterialTheme.spacing.sm),
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center,
+            verticalArrangement = Arrangement.Center
         ) {
             Icon(
                 imageVector = icon,
                 contentDescription = null,
                 modifier = Modifier.size(32.dp),
-                tint = MaterialTheme.colorScheme.primary,
+                tint = MaterialTheme.colorScheme.primary
             )
             Text(
                 text = label,
@@ -567,7 +563,7 @@ private fun FeatureCard(
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                 modifier = Modifier.padding(top = MaterialTheme.spacing.xs),
                 maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
+                overflow = TextOverflow.Ellipsis
             )
         }
     }
@@ -576,16 +572,13 @@ private fun FeatureCard(
 // ── Redesigned NavigationBar with animated indicator ─────────────────────────
 
 @Composable
-private fun AppNavigationBar(
-    currentRoute: String?,
-    onNavigate: (String) -> Unit,
-) {
+private fun AppNavigationBar(currentRoute: String?, onNavigate: (String) -> Unit) {
     val isDark = isSystemInDarkTheme()
     val surfaceColor = if (isDark) AppColors.surfaceTonal1Dark else AppColors.surfaceTonal1Light
 
     NavigationBar(
         containerColor = surfaceColor,
-        tonalElevation = 0.dp,   // flat surface — tonal elevation handled by surfaceTonal1
+        tonalElevation = 0.dp // flat surface — tonal elevation handled by surfaceTonal1
     ) {
         bottomNavItems.forEach { item ->
             val selected = currentRoute == item.route ||
@@ -595,7 +588,7 @@ private fun AppNavigationBar(
             val iconScale by animateFloatAsState(
                 targetValue = if (selected) 1.15f else 1f,
                 animationSpec = tween(durationMillis = 200),
-                label = "navIconScale_${item.label}",
+                label = "navIconScale_${item.label}"
             )
 
             NavigationBarItem(
@@ -605,7 +598,7 @@ private fun AppNavigationBar(
                     Icon(
                         imageVector = item.icon,
                         contentDescription = item.contentDesc,
-                        modifier = Modifier.size((24 * iconScale).dp),
+                        modifier = Modifier.size((24 * iconScale).dp)
                     )
                 },
                 label = { Text(item.label, style = MaterialTheme.typography.labelSmall) },
@@ -614,8 +607,8 @@ private fun AppNavigationBar(
                     selectedTextColor = MaterialTheme.colorScheme.primary,
                     indicatorColor = MaterialTheme.colorScheme.primaryContainer,
                     unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                ),
+                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             )
         }
     }

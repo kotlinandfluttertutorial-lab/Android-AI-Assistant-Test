@@ -174,10 +174,7 @@ private fun ChatInputArea(
 }
 
 @Composable
-private fun MessageSection(
-    chatState: ChatUiState,
-    modifier: Modifier = Modifier
-) {
+private fun MessageSection(chatState: ChatUiState, modifier: Modifier = Modifier) {
     Column(modifier = modifier) {
         // Answer
         when (chatState) {

@@ -217,7 +217,7 @@ object AppType {
         fontWeight = FontWeight.SemiBold,
         fontSize = 48.sp,
         lineHeight = 56.sp,
-        letterSpacing = (-0.5).sp,
+        letterSpacing = (-0.5).sp
     )
 
     /** 11 sp Medium — small all-caps section labels ("TODAY", "RECENT"). */
@@ -226,7 +226,7 @@ object AppType {
         fontWeight = FontWeight.Medium,
         fontSize = 11.sp,
         lineHeight = 16.sp,
-        letterSpacing = 1.5.sp,
+        letterSpacing = 1.5.sp
     )
 
     /** 11 sp Normal — compact timestamp text beneath chat bubbles. */
@@ -235,6 +235,6 @@ object AppType {
         fontWeight = FontWeight.Normal,
         fontSize = 11.sp,
         lineHeight = 14.sp,
-        letterSpacing = 0.4.sp,
+        letterSpacing = 0.4.sp
     )
 }

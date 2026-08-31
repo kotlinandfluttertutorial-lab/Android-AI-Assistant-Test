@@ -86,7 +86,7 @@ fun SurfaceFillTextField(
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     singleLine: Boolean = true,
     enabled: Boolean = true,
-    contentDescriptionText: String = label,
+    contentDescriptionText: String = label
 ) {
     val isDark = isSystemInDarkTheme()
     val containerColor = if (isDark) AppColors.surfaceTonal3Dark else AppColors.surfaceTonal3Light
@@ -107,20 +107,20 @@ fun SurfaceFillTextField(
         enabled = enabled,
         colors = TextFieldDefaults.colors(
             // Container
-            focusedContainerColor   = containerColor,
+            focusedContainerColor = containerColor,
             unfocusedContainerColor = containerColor,
-            disabledContainerColor  = containerColor.copy(alpha = 0.38f),
-            errorContainerColor     = containerColor,
+            disabledContainerColor = containerColor.copy(alpha = 0.38f),
+            errorContainerColor = containerColor,
             // Indicator line (bottom border)
-            focusedIndicatorColor   = MaterialTheme.colorScheme.primary,
+            focusedIndicatorColor = MaterialTheme.colorScheme.primary,
             unfocusedIndicatorColor = Color.Transparent,
-            errorIndicatorColor     = MaterialTheme.colorScheme.error,
+            errorIndicatorColor = MaterialTheme.colorScheme.error,
             // Label
-            focusedLabelColor   = MaterialTheme.colorScheme.primary,
+            focusedLabelColor = MaterialTheme.colorScheme.primary,
             unfocusedLabelColor = MaterialTheme.colorScheme.onSurfaceVariant,
             // Text
-            focusedTextColor   = MaterialTheme.colorScheme.onSurface,
-            unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
-        ),
+            focusedTextColor = MaterialTheme.colorScheme.onSurface,
+            unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+        )
     )
 }

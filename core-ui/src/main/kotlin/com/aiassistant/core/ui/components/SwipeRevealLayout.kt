@@ -37,7 +37,6 @@ import androidx.compose.animation.core.spring
 import androidx.compose.foundation.gestures.detectHorizontalDragGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.offset
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -45,12 +44,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import com.aiassistant.core.ui.motion.LocalReducedMotionEnabled
-import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
+import kotlinx.coroutines.launch
 
 /**
  * A composable that reveals [actions] by sliding [content] to the left when the user
@@ -73,7 +72,7 @@ fun SwipeRevealLayout(
     modifier: Modifier = Modifier,
     revealWidth: Dp = 160.dp,
     actions: @Composable () -> Unit,
-    content: @Composable () -> Unit,
+    content: @Composable () -> Unit
 ) {
     val reducedMotion = LocalReducedMotionEnabled.current
     val scope = rememberCoroutineScope()
@@ -85,7 +84,7 @@ fun SwipeRevealLayout(
             modifier = Modifier
                 .matchParentSize()
                 .align(Alignment.CenterEnd),
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             actions()
         }
@@ -117,19 +116,22 @@ fun SwipeRevealLayout(
                                 } else {
                                     offsetX.animateTo(
                                         targetValue = target,
-                                        animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f),
+                                        animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f)
                                     )
                                 }
                             }
                         },
                         onDragCancel = {
                             scope.launch {
-                                if (reducedMotion) offsetX.snapTo(0f)
-                                else offsetX.animateTo(0f, spring())
+                                if (reducedMotion) {
+                                    offsetX.snapTo(0f)
+                                } else {
+                                    offsetX.animateTo(0f, spring())
+                                }
                             }
-                        },
+                        }
                     )
-                },
+                }
         ) {
             content()
         }

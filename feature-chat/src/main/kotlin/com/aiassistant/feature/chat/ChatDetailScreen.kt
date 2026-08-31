@@ -58,7 +58,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CompareArrows
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Lock
-import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
@@ -97,7 +96,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.aiassistant.core.common.DomainError
 import com.aiassistant.core.ui.AppColors
 import com.aiassistant.core.ui.components.ChatBubble
 import com.aiassistant.core.ui.components.ChatBubbleRole
@@ -132,7 +130,7 @@ fun ChatDetailScreen(viewModel: ChatDetailViewModel, onNavigateUp: () -> Unit) {
         onAcceptContinuationSuggestion = viewModel::acceptContinuationSuggestion,
         onDismissContinuationSuggestion = viewModel::dismissContinuationSuggestion,
         onPreFillConsumed = viewModel::clearPreFillText,
-        onNavigateUp = onNavigateUp,
+        onNavigateUp = onNavigateUp
     )
 }
 
@@ -150,7 +148,7 @@ internal fun ChatDetailScreenContent(
     onNavigateUp: () -> Unit,
     onAcceptContinuationSuggestion: () -> Unit = {},
     onDismissContinuationSuggestion: () -> Unit = {},
-    onPreFillConsumed: () -> Unit = {},
+    onPreFillConsumed: () -> Unit = {}
 ) {
     val listState = rememberLazyListState()
 
@@ -168,12 +166,12 @@ internal fun ChatDetailScreenContent(
                 navigationIcon = {
                     IconButton(
                         onClick = onNavigateUp,
-                        modifier = Modifier.semantics { contentDescription = "Navigate back" },
+                        modifier = Modifier.semantics { contentDescription = "Navigate back" }
                     ) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
                     }
                 },
-                actions = { ExportMenuButton(onExportConversation) },
+                actions = { ExportMenuButton(onExportConversation) }
             )
         },
         bottomBar = {
@@ -182,7 +180,7 @@ internal fun ChatDetailScreenContent(
                     ContinuationSuggestionChip(
                         suggestion = uiState.continuationSuggestion,
                         onAccept = onAcceptContinuationSuggestion,
-                        onDismiss = onDismissContinuationSuggestion,
+                        onDismiss = onDismissContinuationSuggestion
                     )
                 }
                 // ── Redesigned pill MessageInputBar ────────────────────────
@@ -193,15 +191,15 @@ internal fun ChatDetailScreenContent(
                     onSendMessage = onSendMessage,
                     onAttachClick = { /* TODO: launch file picker */ },
                     onCameraClick = { /* TODO: open camera feature */ },
-                    onCompareClick = { /* TODO: open comparison mode */ },
+                    onCompareClick = { /* TODO: open comparison mode */ }
                 )
             }
-        },
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(innerPadding)
         ) {
             // General error
             if (uiState.error != null && !uiState.showRetryOption) {
@@ -212,7 +210,7 @@ internal fun ChatDetailScreenContent(
                 RetryBanner(
                     errorMessage = uiState.error?.message ?: "Streaming was interrupted.",
                     onRetry = onRetryStreaming,
-                    onDismiss = onDismissError,
+                    onDismiss = onDismissError
                 )
             }
             // On-device persistent indicator
@@ -226,9 +224,9 @@ internal fun ChatDetailScreenContent(
                 modifier = Modifier.weight(1f),
                 contentPadding = PaddingValues(
                     horizontal = MaterialTheme.spacing.sm,
-                    vertical = MaterialTheme.spacing.sm,
+                    vertical = MaterialTheme.spacing.sm
                 ),
-                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)
             ) {
                 items(uiState.messages, key = { it.id }) { message ->
                     MessageItem(message = message, onRegenerate = { onRegenerateMessage(message.id) })
@@ -247,22 +245,22 @@ internal fun ChatDetailScreenContent(
                                 .padding(
                                     end = MaterialTheme.spacing.xxl,
                                     top = MaterialTheme.spacing.xs,
-                                    bottom = MaterialTheme.spacing.xs,
+                                    bottom = MaterialTheme.spacing.xs
                                 ),
-                            horizontalArrangement = Arrangement.Start,
+                            horizontalArrangement = Arrangement.Start
                         ) {
                             Surface(
                                 shape = MaterialTheme.shapes.medium,
                                 color = MaterialTheme.colorScheme.surfaceVariant,
                                 modifier = Modifier.semantics {
                                     contentDescription = "Assistant is typing"
-                                },
+                                }
                             ) {
                                 TypingIndicator(
                                     modifier = Modifier.padding(
                                         horizontal = MaterialTheme.spacing.md,
-                                        vertical = MaterialTheme.spacing.sm,
-                                    ),
+                                        vertical = MaterialTheme.spacing.sm
+                                    )
                                 )
                             }
                         }
@@ -286,7 +284,7 @@ private fun MessageItem(message: Message, onRegenerate: () -> Unit) {
             role = ChatBubbleRole.USER,
             contentDescription = "You: ${message.content}",
             onLongPress = { clipboardManager.setText(AnnotatedString(message.content)) },
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier.fillMaxWidth()
         )
     } else {
         AssistantMessageItem(message = message, onRegenerate = onRegenerate)
@@ -305,39 +303,42 @@ private fun AssistantMessageItem(message: Message, onRegenerate: () -> Unit) {
             .padding(
                 end = MaterialTheme.spacing.xxl,
                 top = MaterialTheme.spacing.xs,
-                bottom = MaterialTheme.spacing.xs,
+                bottom = MaterialTheme.spacing.xs
             ),
         horizontalArrangement = Arrangement.Start,
-        verticalAlignment = Alignment.Top,
+        verticalAlignment = Alignment.Top
     ) {
         Surface(
             shape = MaterialTheme.shapes.medium,
             color = MaterialTheme.colorScheme.surfaceVariant,
             modifier = Modifier
                 .weight(1f)
-                .semantics { contentDescription = "Assistant: ${message.content}" },
+                .semantics { contentDescription = "Assistant: ${message.content}" }
         ) {
             Column(modifier = Modifier.padding(MaterialTheme.spacing.sm)) {
                 Text(
                     text = "Assistant",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
                 )
                 Spacer(Modifier.height(MaterialTheme.spacing.xs))
                 MarkdownText(
                     markdown = message.content,
                     contentDescription = message.content,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
         }
         Box {
             IconButton(
                 onClick = { menuExpanded = true },
-                modifier = Modifier.semantics { contentDescription = "Message actions" },
+                modifier = Modifier.semantics { contentDescription = "Message actions" }
             ) {
-                Icon(Icons.Filled.MoreVert, contentDescription = null,
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                Icon(
+                    Icons.Filled.MoreVert,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
             DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
                 DropdownMenuItem(
@@ -346,17 +347,23 @@ private fun AssistantMessageItem(message: Message, onRegenerate: () -> Unit) {
                     onClick = {
                         menuExpanded = false
                         clipboardManager.setText(AnnotatedString(message.content))
-                    },
+                    }
                 )
                 DropdownMenuItem(
                     text = { Text("Share") },
                     leadingIcon = { Icon(Icons.Filled.Share, null) },
-                    onClick = { menuExpanded = false; shareText(context, message.content) },
+                    onClick = {
+                        menuExpanded = false
+                        shareText(context, message.content)
+                    }
                 )
                 DropdownMenuItem(
                     text = { Text("Regenerate") },
                     leadingIcon = { Icon(Icons.Filled.Refresh, null) },
-                    onClick = { menuExpanded = false; onRegenerate() },
+                    onClick = {
+                        menuExpanded = false
+                        onRegenerate()
+                    }
                 )
             }
         }
@@ -371,26 +378,29 @@ private fun StreamingMessageItem(text: String) {
             .padding(
                 end = MaterialTheme.spacing.xxl,
                 top = MaterialTheme.spacing.xs,
-                bottom = MaterialTheme.spacing.xs,
+                bottom = MaterialTheme.spacing.xs
             ),
-        horizontalArrangement = Arrangement.Start,
+        horizontalArrangement = Arrangement.Start
     ) {
         Surface(
             shape = MaterialTheme.shapes.medium,
             color = MaterialTheme.colorScheme.surfaceVariant,
             modifier = Modifier
                 .weight(1f)
-                .semantics { contentDescription = "Assistant is responding: $text" },
+                .semantics { contentDescription = "Assistant is responding: $text" }
         ) {
             Column(modifier = Modifier.padding(MaterialTheme.spacing.sm)) {
                 Text(
                     text = "Assistant",
                     style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
                 )
                 Spacer(Modifier.height(MaterialTheme.spacing.xs))
-                MarkdownText(markdown = text, contentDescription = text,
-                    modifier = Modifier.fillMaxWidth())
+                MarkdownText(
+                    markdown = text,
+                    contentDescription = text,
+                    modifier = Modifier.fillMaxWidth()
+                )
             }
         }
     }
@@ -412,17 +422,20 @@ private fun PillMessageInputBar(
     onPreFillConsumed: () -> Unit = {},
     onAttachClick: () -> Unit,
     onCameraClick: () -> Unit,
-    onCompareClick: () -> Unit,
+    onCompareClick: () -> Unit
 ) {
     var inputText by rememberSaveable { mutableStateOf("") }
     val isDark = isSystemInDarkTheme()
     val gradientStart = if (isDark) AppColors.gradientStartDark else AppColors.gradientStartLight
-    val gradientEnd   = if (isDark) AppColors.gradientEndDark   else AppColors.gradientEndLight
+    val gradientEnd = if (isDark) AppColors.gradientEndDark else AppColors.gradientEndLight
     val charCount = inputText.length
     val isOverLimit = charCount > MAX_MESSAGE_LENGTH
 
     LaunchedEffect(preFillText) {
-        if (preFillText.isNotEmpty()) { inputText = preFillText; onPreFillConsumed() }
+        if (preFillText.isNotEmpty()) {
+            inputText = preFillText
+            onPreFillConsumed()
+        }
     }
 
     Surface(
@@ -430,36 +443,48 @@ private fun PillMessageInputBar(
             .fillMaxWidth()
             .navigationBarsPadding()
             .imePadding(),
-        tonalElevation = 3.dp,
+        tonalElevation = 3.dp
     ) {
-        Column(modifier = Modifier.padding(horizontal = MaterialTheme.spacing.sm,
-            vertical = MaterialTheme.spacing.xs)) {
-
+        Column(
+            modifier = Modifier.padding(
+                horizontal = MaterialTheme.spacing.sm,
+                vertical = MaterialTheme.spacing.xs
+            )
+        ) {
             // ── Accessory row ──────────────────────────────────────────────
             Row(
                 horizontalArrangement = Arrangement.spacedBy(0.dp),
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
                     onClick = onCameraClick,
-                    modifier = Modifier.semantics { contentDescription = "Open camera" },
+                    modifier = Modifier.semantics { contentDescription = "Open camera" }
                 ) {
-                    Icon(Icons.Filled.CameraAlt, contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Icon(
+                        Icons.Filled.CameraAlt,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
                 IconButton(
                     onClick = onAttachClick,
-                    modifier = Modifier.semantics { contentDescription = "Attach file" },
+                    modifier = Modifier.semantics { contentDescription = "Attach file" }
                 ) {
-                    Icon(Icons.Filled.AttachFile, contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Icon(
+                        Icons.Filled.AttachFile,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
                 IconButton(
                     onClick = onCompareClick,
-                    modifier = Modifier.semantics { contentDescription = "Compare models" },
+                    modifier = Modifier.semantics { contentDescription = "Compare models" }
                 ) {
-                    Icon(Icons.Filled.CompareArrows, contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                    Icon(
+                        Icons.Filled.CompareArrows,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
                 }
                 Spacer(Modifier.weight(1f))
                 // Character counter — visible when > 90% of limit
@@ -467,9 +492,12 @@ private fun PillMessageInputBar(
                     Text(
                         text = "$charCount / $MAX_MESSAGE_LENGTH",
                         style = MaterialTheme.typography.labelSmall,
-                        color = if (isOverLimit) MaterialTheme.colorScheme.error
-                                else MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(end = MaterialTheme.spacing.xs),
+                        color = if (isOverLimit) {
+                            MaterialTheme.colorScheme.error
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        },
+                        modifier = Modifier.padding(end = MaterialTheme.spacing.xs)
                     )
                 }
             }
@@ -477,7 +505,7 @@ private fun PillMessageInputBar(
             // ── Pill input row ─────────────────────────────────────────────
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 // Pill text field
                 TextField(
@@ -494,13 +522,13 @@ private fun PillMessageInputBar(
                     enabled = !isStreaming,
                     keyboardOptions = KeyboardOptions(
                         capitalization = KeyboardCapitalization.Sentences,
-                        imeAction = ImeAction.Default,
+                        imeAction = ImeAction.Default
                     ),
                     colors = TextFieldDefaults.colors(
                         focusedIndicatorColor = Color.Transparent,
-                        unfocusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
                     ),
-                    shape = RoundedCornerShape(28.dp),
+                    shape = RoundedCornerShape(28.dp)
                 )
 
                 Spacer(Modifier.width(MaterialTheme.spacing.xs))
@@ -512,38 +540,47 @@ private fun PillMessageInputBar(
                         .size(48.dp)
                         .clip(RoundedCornerShape(50))
                         .background(
-                            if (canSend)
+                            if (canSend) {
                                 Brush.linearGradient(listOf(gradientStart, gradientEnd))
-                            else
-                                Brush.linearGradient(listOf(
-                                    MaterialTheme.colorScheme.surfaceVariant,
-                                    MaterialTheme.colorScheme.surfaceVariant,
-                                ))
+                            } else {
+                                Brush.linearGradient(
+                                    listOf(
+                                        MaterialTheme.colorScheme.surfaceVariant,
+                                        MaterialTheme.colorScheme.surfaceVariant
+                                    )
+                                )
+                            }
                         ),
-                    contentAlignment = Alignment.Center,
+                    contentAlignment = Alignment.Center
                 ) {
                     IconButton(
                         onClick = {
                             val trimmed = inputText.trim()
-                            if (trimmed.isNotEmpty()) { onSendMessage(trimmed); inputText = "" }
+                            if (trimmed.isNotEmpty()) {
+                                onSendMessage(trimmed)
+                                inputText = ""
+                            }
                         },
                         enabled = canSend,
                         modifier = Modifier
                             .matchParentSize()
-                            .semantics { contentDescription = "Send message" },
+                            .semantics { contentDescription = "Send message" }
                     ) {
                         if (isStreaming) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(20.dp),
                                 strokeWidth = 2.dp,
-                                color = Color.White,
+                                color = Color.White
                             )
                         } else {
                             Icon(
                                 Icons.AutoMirrored.Filled.Send,
                                 contentDescription = null,
-                                tint = if (canSend) Color.White
-                                       else MaterialTheme.colorScheme.onSurfaceVariant,
+                                tint = if (canSend) {
+                                    Color.White
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                }
                             )
                         }
                     }
@@ -565,21 +602,27 @@ private fun OnDeviceBanner() {
                     "Running on device: inference is running locally with no network calls"
             },
         color = MaterialTheme.colorScheme.secondaryContainer,
-        tonalElevation = 2.dp,
+        tonalElevation = 2.dp
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = MaterialTheme.spacing.md, vertical = MaterialTheme.spacing.xs),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
+            horizontalArrangement = Arrangement.Center
         ) {
-            Icon(Icons.Filled.Lock, contentDescription = null,
+            Icon(
+                Icons.Filled.Lock,
+                contentDescription = null,
                 modifier = Modifier.size(14.dp),
-                tint = MaterialTheme.colorScheme.onSecondaryContainer)
+                tint = MaterialTheme.colorScheme.onSecondaryContainer
+            )
             Spacer(Modifier.width(MaterialTheme.spacing.xs))
-            Text("Running on device", style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.onSecondaryContainer)
+            Text(
+                "Running on device",
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSecondaryContainer
+            )
         }
     }
 }
@@ -591,7 +634,7 @@ private fun RetryBanner(errorMessage: String, onRetry: () -> Unit, onDismiss: ()
         onRetry = onRetry,
         onDismiss = onDismiss,
         contentDescription = "Streaming interrupted: $errorMessage. Tap Retry to reconnect.",
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth()
     )
 }
 
@@ -599,20 +642,20 @@ private fun RetryBanner(errorMessage: String, onRetry: () -> Unit, onDismiss: ()
 private fun ContinuationSuggestionChip(
     suggestion: com.aiassistant.domain.model.ContextSuggestion,
     onAccept: () -> Unit,
-    onDismiss: () -> Unit,
+    onDismiss: () -> Unit
 ) {
     Surface(
         modifier = Modifier
             .fillMaxWidth()
             .semantics { contentDescription = "AI suggestion: ${suggestion.displayText}" },
-        tonalElevation = 1.dp,
+        tonalElevation = 1.dp
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = MaterialTheme.spacing.sm, vertical = MaterialTheme.spacing.xs),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
+            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)
         ) {
             AssistChip(
                 onClick = onAccept,
@@ -620,15 +663,18 @@ private fun ContinuationSuggestionChip(
                     Text(suggestion.displayText, style = MaterialTheme.typography.labelMedium)
                 },
                 modifier = Modifier.weight(1f)
-                    .semantics { contentDescription = "Tap to continue: ${suggestion.displayText}" },
+                    .semantics { contentDescription = "Tap to continue: ${suggestion.displayText}" }
             )
             IconButton(
                 onClick = onDismiss,
                 modifier = Modifier.size(MaterialTheme.spacing.lg)
-                    .semantics { contentDescription = "Dismiss suggestion" },
+                    .semantics { contentDescription = "Dismiss suggestion" }
             ) {
-                Icon(Icons.Filled.Close, contentDescription = null,
-                    modifier = Modifier.size(MaterialTheme.spacing.md))
+                Icon(
+                    Icons.Filled.Close,
+                    contentDescription = null,
+                    modifier = Modifier.size(MaterialTheme.spacing.md)
+                )
             }
         }
     }
@@ -641,18 +687,24 @@ private fun ExportMenuButton(onExportConversation: (ExportFormat) -> Unit) {
     Box {
         IconButton(
             onClick = { menuExpanded = true },
-            modifier = Modifier.semantics { contentDescription = "Export conversation" },
+            modifier = Modifier.semantics { contentDescription = "Export conversation" }
         ) {
             Icon(Icons.Filled.Share, contentDescription = null)
         }
         DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
             DropdownMenuItem(
                 text = { Text("Export as Markdown") },
-                onClick = { menuExpanded = false; onExportConversation(ExportFormat.MARKDOWN) },
+                onClick = {
+                    menuExpanded = false
+                    onExportConversation(ExportFormat.MARKDOWN)
+                }
             )
             DropdownMenuItem(
                 text = { Text("Export as PDF") },
-                onClick = { menuExpanded = false; onExportConversation(ExportFormat.PDF) },
+                onClick = {
+                    menuExpanded = false
+                    onExportConversation(ExportFormat.PDF)
+                }
             )
         }
     }

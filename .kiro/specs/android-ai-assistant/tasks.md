@@ -2039,7 +2039,7 @@ When `LocalReducedMotionEnabled.current == true`:
   - Integrate `SharedTransitionLayout` hero transition from Home hero card to `ChatDetailScreen`
   - _Requirements: 2.1, 2.2, 2.5, 24.1, 24.3_
 
-- [ ] 50.5 Redesign RAG Search Screens
+- [x] 50.5 Redesign RAG Search Screens
   - Add `StorageSummaryCard` to `DocumentListScreen` showing document count + storage `LinearProgressIndicator`
   - Replace `DocumentCard` styling with new token-based design (status badge colors, `SwipeRevealLayout` delete)
   - Animate status badge transitions with `AnimatedContent`

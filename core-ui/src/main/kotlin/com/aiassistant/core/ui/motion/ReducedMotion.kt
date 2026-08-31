@@ -36,8 +36,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 
 /**
@@ -69,5 +67,30 @@ fun rememberReducedMotion(): Boolean {
     val context = LocalContext.current
     val am = context.getSystemService(android.content.Context.ACCESSIBILITY_SERVICE)
         as? AccessibilityManager
-    return am?.isAnimationEnabled == false
+
+    // Prefer AccessibilityManager.isAnimationEnabled when available at runtime.
+    // Use reflection to avoid compile-time reference to newer API surfaces.
+    am?.let {
+        try {
+            val method = AccessibilityManager::class.java.getMethod("isAnimationEnabled")
+            val enabled = method.invoke(it) as? Boolean
+            if (enabled != null) return enabled == false
+        } catch (e: NoSuchMethodException) {
+            // Not available on this API level — fall back below.
+        } catch (_: Exception) {
+            // Reflection failed for some reason — fall back below.
+        }
+    }
+
+    // Fallback: treat animator duration scale == 0 as reduced-motion requested.
+    val scale = try {
+        android.provider.Settings.Global.getFloat(
+            context.contentResolver,
+            android.provider.Settings.Global.ANIMATOR_DURATION_SCALE,
+            1f
+        )
+    } catch (_: Exception) {
+        1f
+    }
+    return scale == 0f
 }

@@ -61,9 +61,7 @@ private const val PRESS_SCALE_FACTOR = 0.97f
  * @param interactionSource  Optional [MutableInteractionSource]; a new one is
  *                           created automatically when not provided.
  */
-fun Modifier.pressScale(
-    interactionSource: MutableInteractionSource? = null,
-): Modifier = composed {
+fun Modifier.pressScale(interactionSource: MutableInteractionSource? = null): Modifier = composed {
     val reducedMotion = LocalReducedMotionEnabled.current
     if (reducedMotion) return@composed this
 
@@ -73,7 +71,7 @@ fun Modifier.pressScale(
     val scale by animateFloatAsState(
         targetValue = if (isPressed) PRESS_SCALE_FACTOR else 1f,
         animationSpec = spring(dampingRatio = 0.6f, stiffness = 500f),
-        label = "pressScale",
+        label = "pressScale"
     )
 
     this.scale(scale)

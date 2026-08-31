@@ -28,14 +28,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navDeepLink
+import com.aiassistant.core.ui.AppTheme
 import com.aiassistant.core.ui.motion.LocalReducedMotionEnabled
-import com.aiassistant.core.ui.motion.enterFadeThrough
 import com.aiassistant.core.ui.motion.enterSlideIn
-import com.aiassistant.core.ui.motion.exitFadeThrough
 import com.aiassistant.core.ui.motion.exitSlideOut
 import com.aiassistant.core.ui.motion.popEnterSlideIn
 import com.aiassistant.core.ui.motion.popExitSlideOut
-import com.aiassistant.core.ui.AppTheme
 import com.aiassistant.feature.auth.AuthRoute
 import com.aiassistant.feature.auth.authNavGraph
 import com.aiassistant.feature.camera.cameraNavGraph
@@ -159,10 +157,10 @@ private fun rootNavHost(navController: NavHostController) {
         // Tab switches (handled by the NavigationBar's popUpTo/restoreState
         // pattern) also land here; they visually feel like fade-through
         // because the destination is restored from the back stack instantly.
-        enterTransition   = { enterSlideIn(reducedMotion) },
-        exitTransition    = { exitSlideOut(reducedMotion) },
+        enterTransition = { enterSlideIn(reducedMotion) },
+        exitTransition = { exitSlideOut(reducedMotion) },
         popEnterTransition = { popEnterSlideIn(reducedMotion) },
-        popExitTransition  = { popExitSlideOut(reducedMotion) },
+        popExitTransition = { popExitSlideOut(reducedMotion) }
     ) {
         // ── Auth sub-graph (Splash → Onboarding → Login → Register) ──────────
         authNavGraph(

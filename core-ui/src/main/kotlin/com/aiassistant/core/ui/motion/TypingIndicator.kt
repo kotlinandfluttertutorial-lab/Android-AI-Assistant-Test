@@ -84,7 +84,7 @@ fun TypingIndicator(
     modifier: Modifier = Modifier,
     dotColor: Color = MaterialTheme.colorScheme.onSurfaceVariant,
     dotSize: Dp = 8.dp,
-    dotSpacing: Dp = 4.dp,
+    dotSpacing: Dp = 4.dp
 ) {
     val reducedMotion = LocalReducedMotionEnabled.current
 
@@ -93,26 +93,21 @@ fun TypingIndicator(
             .padding(horizontal = 4.dp, vertical = 2.dp)
             .semantics { contentDescription = "AI is thinking" },
         horizontalArrangement = Arrangement.spacedBy(dotSpacing),
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         repeat(3) { index ->
             TypingDot(
                 delayMs = if (reducedMotion) 0 else index * DOT_STAGGER_MS,
                 reducedMotion = reducedMotion,
                 color = dotColor,
-                size = dotSize,
+                size = dotSize
             )
         }
     }
 }
 
 @Composable
-private fun TypingDot(
-    delayMs: Int,
-    reducedMotion: Boolean,
-    color: Color,
-    size: Dp,
-) {
+private fun TypingDot(delayMs: Int, reducedMotion: Boolean, color: Color, size: Dp) {
     val scale: Float = if (reducedMotion) {
         1f
     } else {
@@ -124,11 +119,11 @@ private fun TypingDot(
                 animation = tween(
                     durationMillis = DOT_CYCLE_MS,
                     delayMillis = delayMs,
-                    easing = FastOutSlowInEasing,
+                    easing = FastOutSlowInEasing
                 ),
-                repeatMode = RepeatMode.Reverse,
+                repeatMode = RepeatMode.Reverse
             ),
-            label = "dotScale_$delayMs",
+            label = "dotScale_$delayMs"
         )
         animatedScale
     }
@@ -137,6 +132,6 @@ private fun TypingDot(
         modifier = Modifier
             .size(size)
             .scale(scale)
-            .background(color = color, shape = CircleShape),
+            .background(color = color, shape = CircleShape)
     )
 }

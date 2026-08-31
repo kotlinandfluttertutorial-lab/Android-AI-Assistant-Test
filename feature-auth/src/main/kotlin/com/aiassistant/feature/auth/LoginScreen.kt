@@ -33,12 +33,10 @@ package com.aiassistant.feature.auth
 
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.animateFloatAsState
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.expandVertically
 import androidx.compose.animation.fadeIn
@@ -56,7 +54,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
@@ -68,9 +65,9 @@ import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -103,7 +100,6 @@ import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.GetCredentialException
 import com.aiassistant.core.ui.AppColors
-import com.aiassistant.core.ui.AppType
 import com.aiassistant.core.ui.components.ErrorBanner
 import com.aiassistant.core.ui.components.SurfaceFillTextField
 import com.aiassistant.core.ui.motion.LocalReducedMotionEnabled
@@ -141,7 +137,7 @@ fun LoginScreen(
     onGoogleSignIn: (String) -> Unit,
     onBiometricLogin: () -> Unit,
     isBiometricAvailable: Boolean = false,
-    googleWebClientId: String = "",
+    googleWebClientId: String = ""
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -158,10 +154,9 @@ fun LoginScreen(
 
     // ── Gradient colours ──────────────────────────────────────────────────────
     val gradientStart = if (isDark) AppColors.gradientStartDark else AppColors.gradientStartLight
-    val gradientEnd   = if (isDark) AppColors.gradientEndDark   else AppColors.gradientEndLight
+    val gradientEnd = if (isDark) AppColors.gradientEndDark else AppColors.gradientEndLight
 
     Box(modifier = Modifier.fillMaxSize()) {
-
         // ── 1. Animated mesh gradient background ──────────────────────────────
         MeshGradientBackground(modifier = Modifier.fillMaxSize())
 
@@ -172,9 +167,8 @@ fun LoginScreen(
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = MaterialTheme.spacing.screenEdge),
             verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-
             // ── 8. Pulsing brand logo ─────────────────────────────────────────
             PulsingLogo(isDark = isDark)
 
@@ -184,27 +178,28 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth(),
                 elevation = CardDefaults.elevatedCardElevation(defaultElevation = 8.dp),
                 colors = CardDefaults.elevatedCardColors(
-                    containerColor = if (isDark)
+                    containerColor = if (isDark) {
                         AppColors.surfaceTonal1Dark.copy(alpha = 0.92f)
-                    else
-                        AppColors.surfaceTonal1Light.copy(alpha = 0.95f),
-                ),
+                    } else {
+                        AppColors.surfaceTonal1Light.copy(alpha = 0.95f)
+                    }
+                )
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(MaterialTheme.spacing.lg),
-                    horizontalAlignment = Alignment.CenterHorizontally,
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
                         text = "Welcome back",
-                        style = MaterialTheme.typography.headlineMedium,
+                        style = MaterialTheme.typography.headlineMedium
                     )
                     Spacer(modifier = Modifier.height(MaterialTheme.spacing.xs))
                     Text(
                         text = "Sign in to your account",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
 
                     Spacer(modifier = Modifier.height(MaterialTheme.spacing.lg))
@@ -213,12 +208,12 @@ fun LoginScreen(
                     AnimatedVisibility(
                         visible = generalError != null,
                         enter = expandVertically() + fadeIn(animationSpec = tween(200)),
-                        exit = shrinkVertically() + fadeOut(animationSpec = tween(150)),
+                        exit = shrinkVertically() + fadeOut(animationSpec = tween(150))
                     ) {
                         Column {
                             ErrorBanner(
                                 message = generalError ?: "",
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier.fillMaxWidth()
                             )
                             Spacer(modifier = Modifier.height(MaterialTheme.spacing.md))
                         }
@@ -234,13 +229,13 @@ fun LoginScreen(
                         supportingText = fieldErrors["email"],
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Email,
-                            imeAction = ImeAction.Next,
+                            imeAction = ImeAction.Next
                         ),
                         keyboardActions = KeyboardActions(
-                            onNext = { focusManager.moveFocus(FocusDirection.Down) },
+                            onNext = { focusManager.moveFocus(FocusDirection.Down) }
                         ),
                         contentDescriptionText = "Email address input field",
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth()
                     )
 
                     Spacer(modifier = Modifier.height(MaterialTheme.spacing.sm))
@@ -252,37 +247,39 @@ fun LoginScreen(
                         label = "Password",
                         isError = fieldErrors.containsKey("password"),
                         supportingText = fieldErrors["password"],
-                        visualTransformation = if (passwordVisible)
+                        visualTransformation = if (passwordVisible) {
                             VisualTransformation.None
-                        else
-                            PasswordVisualTransformation(),
+                        } else {
+                            PasswordVisualTransformation()
+                        },
                         keyboardOptions = KeyboardOptions(
                             keyboardType = KeyboardType.Password,
-                            imeAction = ImeAction.Done,
+                            imeAction = ImeAction.Done
                         ),
                         keyboardActions = KeyboardActions(
                             onDone = {
                                 focusManager.clearFocus()
                                 onLogin(email, password)
-                            },
+                            }
                         ),
                         trailingIcon = {
                             val desc = if (passwordVisible) "Hide password" else "Show password"
                             IconButton(
                                 onClick = { passwordVisible = !passwordVisible },
-                                modifier = Modifier.semantics { contentDescription = desc },
+                                modifier = Modifier.semantics { contentDescription = desc }
                             ) {
                                 Icon(
-                                    imageVector = if (passwordVisible)
+                                    imageVector = if (passwordVisible) {
                                         Icons.Filled.VisibilityOff
-                                    else
-                                        Icons.Filled.Visibility,
-                                    contentDescription = null,
+                                    } else {
+                                        Icons.Filled.Visibility
+                                    },
+                                    contentDescription = null
                                 )
                             }
                         },
                         contentDescriptionText = "Password input field",
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth()
                     )
 
                     Spacer(modifier = Modifier.height(MaterialTheme.spacing.lg))
@@ -293,7 +290,7 @@ fun LoginScreen(
                         onClick = { onLogin(email, password) },
                         gradientStart = gradientStart,
                         gradientEnd = gradientEnd,
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth()
                     )
 
                     Spacer(modifier = Modifier.height(MaterialTheme.spacing.sm))
@@ -302,7 +299,7 @@ fun LoginScreen(
                     GoogleSignInButton(
                         googleWebClientId = googleWebClientId,
                         enabled = !isLoading,
-                        onTokenReceived = onGoogleSignIn,
+                        onTokenReceived = onGoogleSignIn
                     )
 
                     if (isBiometricAvailable) {
@@ -311,13 +308,13 @@ fun LoginScreen(
                             onClick = onBiometricLogin,
                             modifier = Modifier
                                 .size(MaterialTheme.spacing.xxl)
-                                .semantics { contentDescription = "Login with biometrics" },
+                                .semantics { contentDescription = "Login with biometrics" }
                         ) {
                             Icon(
                                 imageVector = Icons.Filled.Fingerprint,
                                 contentDescription = null,
                                 tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(MaterialTheme.spacing.lg),
+                                modifier = Modifier.size(MaterialTheme.spacing.lg)
                             )
                         }
                     }
@@ -326,7 +323,7 @@ fun LoginScreen(
 
                     TextButton(
                         onClick = onNavigateToRegister,
-                        modifier = Modifier.semantics { contentDescription = "Create a new account" },
+                        modifier = Modifier.semantics { contentDescription = "Create a new account" }
                     ) {
                         Text("Don't have an account? Create Account")
                     }
@@ -358,16 +355,16 @@ private fun PulsingLogo(isDark: Boolean) {
             targetValue = 1f,
             animationSpec = infiniteRepeatable(
                 animation = tween(durationMillis = 1_800),
-                repeatMode = RepeatMode.Reverse,
+                repeatMode = RepeatMode.Reverse
             ),
-            label = "logoPulse",
+            label = "logoPulse"
         )
         animated
     }
 
     val glowColor = if (isDark) AppColors.accentGlowDark else AppColors.accentGlowLight
     val gradientStart = if (isDark) AppColors.gradientStartDark else AppColors.gradientStartLight
-    val gradientEnd   = if (isDark) AppColors.gradientEndDark   else AppColors.gradientEndLight
+    val gradientEnd = if (isDark) AppColors.gradientEndDark else AppColors.gradientEndLight
 
     Box(
         modifier = Modifier
@@ -375,16 +372,16 @@ private fun PulsingLogo(isDark: Boolean) {
             .scale(scale)
             .clip(CircleShape)
             .background(
-                brush = Brush.linearGradient(listOf(gradientStart, gradientEnd)),
+                brush = Brush.linearGradient(listOf(gradientStart, gradientEnd))
             )
             .semantics { contentDescription = "AI Assistant brand logo" },
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.Center
     ) {
         Icon(
             imageVector = Icons.Filled.AutoAwesome,
             contentDescription = null,
             tint = androidx.compose.ui.graphics.Color.White,
-            modifier = Modifier.size(32.dp),
+            modifier = Modifier.size(32.dp)
         )
     }
 }
@@ -404,7 +401,7 @@ private fun GradientSignInButton(
     onClick: () -> Unit,
     gradientStart: androidx.compose.ui.graphics.Color,
     gradientEnd: androidx.compose.ui.graphics.Color,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     Box(
         modifier = modifier
@@ -412,9 +409,9 @@ private fun GradientSignInButton(
             .clip(ButtonDefaults.shape)
             .background(
                 brush = Brush.linearGradient(listOf(gradientStart, gradientEnd)),
-                alpha = if (isLoading) 0.6f else 1f,
+                alpha = if (isLoading) 0.6f else 1f
             ),
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.Center
     ) {
         // Transparent button on top to provide ripple + click + accessibility
         androidx.compose.material3.Button(
@@ -423,15 +420,15 @@ private fun GradientSignInButton(
             modifier = Modifier.matchParentSize(),
             colors = ButtonDefaults.buttonColors(
                 containerColor = androidx.compose.ui.graphics.Color.Transparent,
-                disabledContainerColor = androidx.compose.ui.graphics.Color.Transparent,
+                disabledContainerColor = androidx.compose.ui.graphics.Color.Transparent
             ),
-            elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp),
+            elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
         ) {
             // ── 5. Crossfade between label and spinner ───────────────────────
             Crossfade(
                 targetState = isLoading,
                 animationSpec = tween(durationMillis = 200),
-                label = "signInButtonContent",
+                label = "signInButtonContent"
             ) { loading ->
                 if (loading) {
                     CircularProgressIndicator(
@@ -439,13 +436,13 @@ private fun GradientSignInButton(
                             .size(20.dp)
                             .semantics { contentDescription = "Signing in, please wait" },
                         color = androidx.compose.ui.graphics.Color.White,
-                        strokeWidth = 2.dp,
+                        strokeWidth = 2.dp
                     )
                 } else {
                     Text(
                         text = "Sign In",
                         color = androidx.compose.ui.graphics.Color.White,
-                        style = MaterialTheme.typography.labelLarge,
+                        style = MaterialTheme.typography.labelLarge
                     )
                 }
             }
@@ -463,11 +460,7 @@ private fun GradientSignInButton(
  * reads clearly against the gradient background.
  */
 @Composable
-fun GoogleSignInButton(
-    googleWebClientId: String,
-    enabled: Boolean,
-    onTokenReceived: (String) -> Unit,
-) {
+fun GoogleSignInButton(googleWebClientId: String, enabled: Boolean, onTokenReceived: (String) -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var isSigningIn by remember { mutableStateOf(false) }
@@ -505,22 +498,22 @@ fun GoogleSignInButton(
             .height(BUTTON_HEIGHT)
             .semantics { contentDescription = "Sign in with Google button" },
         colors = ButtonDefaults.outlinedButtonColors(
-            containerColor = containerColor,
-        ),
+            containerColor = containerColor
+        )
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center,
+            horizontalArrangement = Arrangement.Center
         ) {
             Crossfade(
                 targetState = isSigningIn,
                 animationSpec = tween(200),
-                label = "googleButtonContent",
+                label = "googleButtonContent"
             ) { signing ->
                 if (signing) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(18.dp),
-                        strokeWidth = 2.dp,
+                        strokeWidth = 2.dp
                     )
                 } else {
                     Text(text = "Sign in with Google")

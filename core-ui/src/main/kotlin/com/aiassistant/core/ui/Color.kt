@@ -207,37 +207,37 @@ object AppColors {
 
     // ── Surface tonal hierarchy ───────────────────────────────────────────────
     val surfaceTonal1Light = Color(0xFFF4F6FF)
-    val surfaceTonal1Dark  = Color(0xFF1E2030)
+    val surfaceTonal1Dark = Color(0xFF1E2030)
     val surfaceTonal2Light = Color(0xFFEEF0FC)
-    val surfaceTonal2Dark  = Color(0xFF252740)
+    val surfaceTonal2Dark = Color(0xFF252740)
     val surfaceTonal3Light = Color(0xFFE5E8F9)
-    val surfaceTonal3Dark  = Color(0xFF2C2F4A)
+    val surfaceTonal3Dark = Color(0xFF2C2F4A)
 
     // ── Brand gradient (blue → purple) ───────────────────────────────────────
     val gradientStartLight = Color(0xFF1B6EF5)
-    val gradientStartDark  = Color(0xFF5C8FFF)
-    val gradientEndLight   = Color(0xFF705572)
-    val gradientEndDark    = Color(0xFFDDB9DF)
+    val gradientStartDark = Color(0xFF5C8FFF)
+    val gradientEndLight = Color(0xFF705572)
+    val gradientEndDark = Color(0xFFDDB9DF)
 
     // ── Accent glow (15% alpha primary) ──────────────────────────────────────
     val accentGlowLight = Color(0x261B6EF5)
-    val accentGlowDark  = Color(0x265C8FFF)
+    val accentGlowDark = Color(0x265C8FFF)
 
     // ── RAG ingestion status ──────────────────────────────────────────────────
     val ragGreenLight = Color(0xFF10B981)
-    val ragGreenDark  = Color(0xFF34D399)
+    val ragGreenDark = Color(0xFF34D399)
     val ragAmberLight = Color(0xFFF59E0B)
-    val ragAmberDark  = Color(0xFFFCD34D)
-    val ragRedLight   = Color(0xFFEF4444)
-    val ragRedDark    = Color(0xFFF87171)
+    val ragAmberDark = Color(0xFFFCD34D)
+    val ragRedLight = Color(0xFFEF4444)
+    val ragRedDark = Color(0xFFF87171)
 
     // ── Ticket / issue status ─────────────────────────────────────────────────
-    val ticketOpenLight       = Color(0xFF3B82F6)
-    val ticketOpenDark        = Color(0xFF60A5FA)
+    val ticketOpenLight = Color(0xFF3B82F6)
+    val ticketOpenDark = Color(0xFF60A5FA)
     val ticketInProgressLight = Color(0xFF8B5CF6)
-    val ticketInProgressDark  = Color(0xFFA78BFA)
-    val ticketClosedLight     = Color(0xFF6B7280)
-    val ticketClosedDark      = Color(0xFF9CA3AF)
-    val ticketUrgentLight     = Color(0xFFEF4444)
-    val ticketUrgentDark      = Color(0xFFF87171)
+    val ticketInProgressDark = Color(0xFFA78BFA)
+    val ticketClosedLight = Color(0xFF6B7280)
+    val ticketClosedDark = Color(0xFF9CA3AF)
+    val ticketUrgentLight = Color(0xFFEF4444)
+    val ticketUrgentDark = Color(0xFFF87171)
 }

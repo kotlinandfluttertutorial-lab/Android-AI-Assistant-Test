@@ -94,10 +94,7 @@ fun AiAnalysisCard(analysis: AiAnalysis, modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun AiAnalysisHeader(
-    expanded: Boolean,
-    onToggle: () -> Unit
-) {
+private fun AiAnalysisHeader(expanded: Boolean, onToggle: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -130,11 +127,7 @@ private fun AiAnalysisHeader(
 }
 
 @Composable
-private fun ConfidenceSection(
-    confidence: Double,
-    isLowConfidence: Boolean,
-    confidencePct: Int
-) {
+private fun ConfidenceSection(confidence: Double, isLowConfidence: Boolean, confidencePct: Int) {
     Spacer(Modifier.height(8.dp))
     Text(
         text = "Confidence: $confidencePct%",

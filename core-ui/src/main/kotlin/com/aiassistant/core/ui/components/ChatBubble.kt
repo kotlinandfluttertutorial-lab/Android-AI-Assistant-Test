@@ -37,7 +37,6 @@ import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -70,16 +69,17 @@ import com.aiassistant.core.ui.spacing
 // ── Bubble shape constants ────────────────────────────────────────────────────
 
 private val BUBBLE_RADIUS_LARGE = 18.dp
-private val BUBBLE_RADIUS_TAIL  = 4.dp
-private val AVATAR_SIZE         = 28.dp
-private val MAX_BUBBLE_WIDTH    = 300.dp
+private val BUBBLE_RADIUS_TAIL = 4.dp
+private val AVATAR_SIZE = 28.dp
+private val MAX_BUBBLE_WIDTH = 300.dp
 
 /** Identifies the sender of a chat message. */
 enum class ChatBubbleRole {
     /** A message sent by the human user. */
     USER,
+
     /** A message sent by the AI assistant. */
-    ASSISTANT,
+    ASSISTANT
 }
 
 /**
@@ -102,7 +102,7 @@ fun ChatBubble(
     contentDescription: String? = null,
     providerLabel: String? = null,
     onLongPress: (() -> Unit)? = null,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     val isUser = role == ChatBubbleRole.USER
     val isDark = isSystemInDarkTheme()
@@ -122,17 +122,17 @@ fun ChatBubble(
     // ── Asymmetric shape (tail corner = 4dp) ──────────────────────────────
     val bubbleShape = if (isUser) {
         RoundedCornerShape(
-            topStart    = BUBBLE_RADIUS_LARGE,
-            topEnd      = BUBBLE_RADIUS_LARGE,
+            topStart = BUBBLE_RADIUS_LARGE,
+            topEnd = BUBBLE_RADIUS_LARGE,
             bottomStart = BUBBLE_RADIUS_LARGE,
-            bottomEnd   = BUBBLE_RADIUS_TAIL,   // user "tail"
+            bottomEnd = BUBBLE_RADIUS_TAIL // user "tail"
         )
     } else {
         RoundedCornerShape(
-            topStart    = BUBBLE_RADIUS_TAIL,   // assistant "tail"
-            topEnd      = BUBBLE_RADIUS_LARGE,
+            topStart = BUBBLE_RADIUS_TAIL, // assistant "tail"
+            topEnd = BUBBLE_RADIUS_LARGE,
             bottomStart = BUBBLE_RADIUS_LARGE,
-            bottomEnd   = BUBBLE_RADIUS_LARGE,
+            bottomEnd = BUBBLE_RADIUS_LARGE
         )
     }
 
@@ -144,13 +144,13 @@ fun ChatBubble(
             .fillMaxWidth()
             .padding(
                 start = if (isUser) MaterialTheme.spacing.xxl else MaterialTheme.spacing.xs,
-                end   = if (isUser) MaterialTheme.spacing.xs  else MaterialTheme.spacing.xxl,
-                top   = MaterialTheme.spacing.xs,
-                bottom = MaterialTheme.spacing.xs,
+                end = if (isUser) MaterialTheme.spacing.xs else MaterialTheme.spacing.xxl,
+                top = MaterialTheme.spacing.xs,
+                bottom = MaterialTheme.spacing.xs
             )
             .semantics { this.contentDescription = a11yDesc },
         horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start,
-        verticalAlignment = Alignment.Bottom,
+        verticalAlignment = Alignment.Bottom
     ) {
         // ── Assistant avatar (left of bubble) ─────────────────────────────
         if (!isUser) {
@@ -167,8 +167,8 @@ fun ChatBubble(
                 .clip(bubbleShape)
                 .combinedClickable(
                     onClick = {},
-                    onLongClick = onLongPress ?: {},
-                ),
+                    onLongClick = onLongPress ?: {}
+                )
         ) {
             Text(
                 text = text,
@@ -176,8 +176,8 @@ fun ChatBubble(
                 color = textColor,
                 modifier = Modifier.padding(
                     horizontal = MaterialTheme.spacing.md,
-                    vertical   = MaterialTheme.spacing.sm,
-                ),
+                    vertical = MaterialTheme.spacing.sm
+                )
             )
         }
     }
@@ -192,20 +192,20 @@ private fun AssistantAvatar(providerLabel: String?) {
             .size(AVATAR_SIZE)
             .clip(CircleShape)
             .background(MaterialTheme.colorScheme.primaryContainer),
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.Center
     ) {
         if (providerLabel != null) {
             Text(
                 text = providerLabel.take(2).uppercase(),
                 style = MaterialTheme.typography.labelSmall.copy(fontSize = 9.sp),
-                color = MaterialTheme.colorScheme.onPrimaryContainer,
+                color = MaterialTheme.colorScheme.onPrimaryContainer
             )
         } else {
             Icon(
                 imageVector = Icons.Filled.Person,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                modifier = Modifier.size(16.dp),
+                modifier = Modifier.size(16.dp)
             )
         }
     }
@@ -228,7 +228,7 @@ private fun ChatBubbleAssistantPreview() {
         ChatBubble(
             text = "Of course! Here's a simple example.",
             role = ChatBubbleRole.ASSISTANT,
-            providerLabel = "GPT",
+            providerLabel = "GPT"
         )
     }
 }
@@ -240,7 +240,7 @@ private fun ChatBubbleAssistantDarkPreview() {
         ChatBubble(
             text = "Dark mode response bubble.",
             role = ChatBubbleRole.ASSISTANT,
-            providerLabel = "Ge",
+            providerLabel = "Ge"
         )
     }
 }

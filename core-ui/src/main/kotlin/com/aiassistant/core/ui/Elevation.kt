@@ -28,11 +28,11 @@
  */
 package com.aiassistant.core.ui
 
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.Immutable
 import androidx.compose.runtime.ReadOnlyComposable
 import androidx.compose.runtime.compositionLocalOf
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.runtime.Composable
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
@@ -55,12 +55,12 @@ import androidx.compose.ui.unit.dp
  */
 @Immutable
 data class Elevation(
-    val none: Dp  = 0.dp,
-    val low: Dp   = 1.dp,
-    val mid: Dp   = 3.dp,
-    val high: Dp  = 6.dp,
+    val none: Dp = 0.dp,
+    val low: Dp = 1.dp,
+    val mid: Dp = 3.dp,
+    val high: Dp = 6.dp,
     val modal: Dp = 12.dp,
-    val toast: Dp = 24.dp,
+    val toast: Dp = 24.dp
 ) {
     companion object {
         /** Default elevation instance — use this outside a [CompositionLocal] context. */

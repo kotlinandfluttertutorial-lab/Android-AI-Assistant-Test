@@ -56,48 +56,56 @@ const val TAB_TRANSITION_MS = 200
  *
  * @param reducedMotion When `true`, returns [EnterTransition.None] (0 ms).
  */
-fun enterSlideIn(reducedMotion: Boolean): EnterTransition =
-    if (reducedMotion) EnterTransition.None
-    else slideInHorizontally(
+fun enterSlideIn(reducedMotion: Boolean): EnterTransition = if (reducedMotion) {
+    EnterTransition.None
+} else {
+    slideInHorizontally(
         initialOffsetX = { fullWidth -> fullWidth },
-        animationSpec = tween(NAV_TRANSITION_MS),
+        animationSpec = tween(NAV_TRANSITION_MS)
     ) + fadeIn(animationSpec = tween(NAV_TRANSITION_MS))
+}
 
 /**
  * Exit transition when navigating forward — slide out to left + fade out.
  *
  * @param reducedMotion When `true`, returns [ExitTransition.None].
  */
-fun exitSlideOut(reducedMotion: Boolean): ExitTransition =
-    if (reducedMotion) ExitTransition.None
-    else slideOutHorizontally(
+fun exitSlideOut(reducedMotion: Boolean): ExitTransition = if (reducedMotion) {
+    ExitTransition.None
+} else {
+    slideOutHorizontally(
         targetOffsetX = { fullWidth -> -fullWidth / 3 },
-        animationSpec = tween(NAV_TRANSITION_MS),
+        animationSpec = tween(NAV_TRANSITION_MS)
     ) + fadeOut(animationSpec = tween(NAV_TRANSITION_MS))
+}
 
 /**
  * Pop-enter transition when navigating back — slide in from left + fade in.
  *
  * @param reducedMotion When `true`, returns [EnterTransition.None].
  */
-fun popEnterSlideIn(reducedMotion: Boolean): EnterTransition =
-    if (reducedMotion) EnterTransition.None
-    else slideInHorizontally(
+fun popEnterSlideIn(reducedMotion: Boolean): EnterTransition = if (reducedMotion) {
+    EnterTransition.None
+} else {
+    slideInHorizontally(
         initialOffsetX = { fullWidth -> -fullWidth / 3 },
-        animationSpec = tween(NAV_TRANSITION_MS),
+        animationSpec = tween(NAV_TRANSITION_MS)
     ) + fadeIn(animationSpec = tween(NAV_TRANSITION_MS))
+}
 
 /**
  * Pop-exit transition when navigating back — slide out to right + fade out.
  *
  * @param reducedMotion When `true`, returns [ExitTransition.None].
  */
-fun popExitSlideOut(reducedMotion: Boolean): ExitTransition =
-    if (reducedMotion) ExitTransition.None
-    else slideOutHorizontally(
+fun popExitSlideOut(reducedMotion: Boolean): ExitTransition = if (reducedMotion) {
+    ExitTransition.None
+} else {
+    slideOutHorizontally(
         targetOffsetX = { fullWidth -> fullWidth },
-        animationSpec = tween(NAV_TRANSITION_MS),
+        animationSpec = tween(NAV_TRANSITION_MS)
     ) + fadeOut(animationSpec = tween(NAV_TRANSITION_MS))
+}
 
 // ── Tab fade-through transitions ──────────────────────────────────────────────
 
@@ -106,18 +114,22 @@ fun popExitSlideOut(reducedMotion: Boolean): ExitTransition =
  *
  * @param reducedMotion When `true`, returns [EnterTransition.None].
  */
-fun enterFadeThrough(reducedMotion: Boolean): EnterTransition =
-    if (reducedMotion) EnterTransition.None
-    else fadeIn(animationSpec = tween(TAB_TRANSITION_MS))
+fun enterFadeThrough(reducedMotion: Boolean): EnterTransition = if (reducedMotion) {
+    EnterTransition.None
+} else {
+    fadeIn(animationSpec = tween(TAB_TRANSITION_MS))
+}
 
 /**
  * Exit transition for bottom-nav tab switches — fade out.
  *
  * @param reducedMotion When `true`, returns [ExitTransition.None].
  */
-fun exitFadeThrough(reducedMotion: Boolean): ExitTransition =
-    if (reducedMotion) ExitTransition.None
-    else fadeOut(animationSpec = tween(TAB_TRANSITION_MS))
+fun exitFadeThrough(reducedMotion: Boolean): ExitTransition = if (reducedMotion) {
+    ExitTransition.None
+} else {
+    fadeOut(animationSpec = tween(TAB_TRANSITION_MS))
+}
 
 // ── SharedTransitionLayout instant spec ──────────────────────────────────────
 

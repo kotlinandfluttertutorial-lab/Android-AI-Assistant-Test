@@ -73,14 +73,11 @@ private const val GRADIENT_PERIOD_MS = 8_000
  * @param isDark      Override for dark/light variant selection (defaults to system).
  */
 @Composable
-fun MeshGradientBackground(
-    modifier: Modifier = Modifier.fillMaxSize(),
-    isDark: Boolean = isSystemInDarkTheme(),
-) {
+fun MeshGradientBackground(modifier: Modifier = Modifier.fillMaxSize(), isDark: Boolean = isSystemInDarkTheme()) {
     val reducedMotion = LocalReducedMotionEnabled.current
 
     val startColor = if (isDark) AppColors.gradientStartDark else AppColors.gradientStartLight
-    val endColor   = if (isDark) AppColors.gradientEndDark   else AppColors.gradientEndLight
+    val endColor = if (isDark) AppColors.gradientEndDark else AppColors.gradientEndLight
 
     // ── Animate center offsets (Lissajous path) ───────────────────────────────
     val phase1: Float
@@ -96,25 +93,25 @@ fun MeshGradientBackground(
             targetValue = (2 * Math.PI).toFloat(),
             animationSpec = infiniteRepeatable(
                 animation = tween(durationMillis = GRADIENT_PERIOD_MS, easing = FastOutSlowInEasing),
-                repeatMode = RepeatMode.Restart,
+                repeatMode = RepeatMode.Restart
             ),
-            label = "gradientPhase1",
+            label = "gradientPhase1"
         )
         val p2 by infiniteTransition.animateFloat(
             initialValue = (Math.PI / 2).toFloat(),
             targetValue = ((2 * Math.PI) + Math.PI / 2).toFloat(),
             animationSpec = infiniteRepeatable(
                 animation = tween(durationMillis = GRADIENT_PERIOD_MS, easing = FastOutSlowInEasing),
-                repeatMode = RepeatMode.Restart,
+                repeatMode = RepeatMode.Restart
             ),
-            label = "gradientPhase2",
+            label = "gradientPhase2"
         )
         phase1 = p1
         phase2 = p2
     }
 
     Canvas(
-        modifier = modifier.semantics { contentDescription = "Animated gradient background" },
+        modifier = modifier.semantics { contentDescription = "Animated gradient background" }
     ) {
         val w = size.width
         val h = size.height
@@ -132,9 +129,9 @@ fun MeshGradientBackground(
             brush = Brush.verticalGradient(
                 colors = listOf(
                     startColor.copy(alpha = 0.9f),
-                    endColor.copy(alpha = 0.8f),
-                ),
-            ),
+                    endColor.copy(alpha = 0.8f)
+                )
+            )
         )
 
         // Overlay radial 1 (primary brand blue / warm glow)
@@ -143,10 +140,10 @@ fun MeshGradientBackground(
                 colors = listOf(startColor.copy(alpha = 0.45f), Color.Transparent),
                 center = Offset(cx1, cy1),
                 radius = w * 0.7f,
-                tileMode = TileMode.Clamp,
+                tileMode = TileMode.Clamp
             ),
             center = Offset(cx1, cy1),
-            radius = w * 0.7f,
+            radius = w * 0.7f
         )
 
         // Overlay radial 2 (brand purple / tertiary hue)
@@ -155,10 +152,10 @@ fun MeshGradientBackground(
                 colors = listOf(endColor.copy(alpha = 0.35f), Color.Transparent),
                 center = Offset(cx2, cy2),
                 radius = w * 0.6f,
-                tileMode = TileMode.Clamp,
+                tileMode = TileMode.Clamp
             ),
             center = Offset(cx2, cy2),
-            radius = w * 0.6f,
+            radius = w * 0.6f
         )
     }
 }
