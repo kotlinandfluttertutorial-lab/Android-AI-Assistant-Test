@@ -2047,7 +2047,7 @@ When `LocalReducedMotionEnabled.current == true`:
   - Add blockquote styling to assistant bubbles in `DocumentChatScreen` (4dp left-border Box overlay)
   - _Requirements: 4.1, 4.6, 4.7, 24.1_
 
-- [ ] 50.6 Redesign Profile Screen
+- [x] 50.6 Redesign Profile Screen
   - Redesign avatar section with gradient fill, `ElevatedCard` shape, edit badge
   - Add account tier chip (`Premium` / `Free` `SuggestionChip`)
   - Build `MemorySummaryCard` with `FlowRow` chip layout and `SharedTransitionLayout` hero to `MemoryListScreen`
