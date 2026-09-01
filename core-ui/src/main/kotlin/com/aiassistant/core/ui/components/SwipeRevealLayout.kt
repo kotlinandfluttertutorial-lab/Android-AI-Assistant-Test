@@ -93,47 +93,50 @@ fun SwipeRevealLayout(
         Box(
             modifier = Modifier
                 .offset { IntOffset(offsetX.value.roundToInt(), 0) }
-                .pointerInput(Unit) {
-                    detectHorizontalDragGestures(
-                        onHorizontalDrag = { _, dragAmount ->
-                            scope.launch {
-                                val newOffset = (offsetX.value + dragAmount)
-                                    .coerceIn(-revealWidth.toPx(), 0f)
-                                if (reducedMotion) {
-                                    offsetX.snapTo(newOffset)
-                                } else {
-                                    offsetX.snapTo(newOffset)
-                                }
-                            }
-                        },
-                        onDragEnd = {
-                            scope.launch {
-                                // Snap open if dragged more than half-way, else close
-                                val threshold = -revealWidth.toPx() / 2f
-                                val target = if (offsetX.value < threshold) -revealWidth.toPx() else 0f
-                                if (reducedMotion) {
-                                    offsetX.snapTo(target)
-                                } else {
-                                    offsetX.animateTo(
-                                        targetValue = target,
-                                        animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f)
-                                    )
-                                }
-                            }
-                        },
-                        onDragCancel = {
-                            scope.launch {
-                                if (reducedMotion) {
-                                    offsetX.snapTo(0f)
-                                } else {
-                                    offsetX.animateTo(0f, spring())
-                                }
-                            }
-                        }
-                    )
-                }
+                .swipeRevealPointerInput(
+                    offsetX = offsetX,
+                    revealWidth = revealWidth,
+                    reducedMotion = reducedMotion,
+                    scope = scope
+                )
         ) {
             content()
         }
     }
+}
+
+// Helper to extract pointerInput handling and reduce function complexity for detekt
+private fun androidx.compose.ui.Modifier.swipeRevealPointerInput(
+    offsetX: Animatable<Float, *>,
+    revealWidth: Dp,
+    reducedMotion: Boolean,
+    scope: kotlinx.coroutines.CoroutineScope
+): androidx.compose.ui.Modifier = this.pointerInput(Unit) {
+    detectHorizontalDragGestures(
+        onHorizontalDrag = { _, dragAmount ->
+            scope.launch {
+                val newOffset = (offsetX.value + dragAmount).coerceIn(-revealWidth.toPx(), 0f)
+                offsetX.snapTo(newOffset)
+            }
+        },
+        onDragEnd = {
+            scope.launch {
+                val threshold = -revealWidth.toPx() / 2f
+                val target = if (offsetX.value < threshold) -revealWidth.toPx() else 0f
+                if (reducedMotion) {
+                    offsetX.snapTo(target)
+                } else {
+                    offsetX.animateTo(
+                        targetValue = target,
+                        animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f)
+                    )
+                }
+            }
+        },
+        onDragCancel = {
+            scope.launch {
+                if (reducedMotion) offsetX.snapTo(0f) else offsetX.animateTo(0f, spring())
+            }
+        }
+    )
 }

@@ -14,8 +14,6 @@ import com.aiassistant.core.common.OnDeviceEmbeddingModel
 import javax.inject.Inject
 import javax.inject.Singleton
 
-private const val MINI_LM_DIMENSION = 384
-
 @Singleton
 class MiniLmEmbeddingModel @Inject constructor() : OnDeviceEmbeddingModel {
     override val embeddingDimension: Int = MINI_LM_DIMENSION
@@ -38,5 +36,9 @@ class MiniLmEmbeddingModel @Inject constructor() : OnDeviceEmbeddingModel {
 
     override fun releaseMemory() {
         // Free native memory...
+    }
+
+    companion object {
+        private const val MINI_LM_DIMENSION = 384
     }
 }

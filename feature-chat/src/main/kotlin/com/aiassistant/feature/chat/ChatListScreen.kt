@@ -63,6 +63,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextOverflow
@@ -128,8 +129,6 @@ internal fun ChatListScreenContent(
     var showRenameDialog by rememberSaveable { mutableStateOf(false) }
     var showDeleteDialog by rememberSaveable { mutableStateOf(false) }
     var targetConversation by remember { mutableStateOf<Conversation?>(null) }
-
-    // SearchBar active state
     var searchActive by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
@@ -151,127 +150,194 @@ internal fun ChatListScreenContent(
                 OfflineBanner(modifier = Modifier.fillMaxWidth())
             }
 
-            // ── M3 DockedSearchBar ─────────────────────────────────────────
-            DockedSearchBar(
-                query = searchQuery,
-                onQueryChange = onSearchQueryChange,
-                onSearch = { /* FTS fires automatically via ViewModel */ },
-                active = searchActive,
+            ChatSearchBar(
+                searchQuery = searchQuery,
+                onSearchQueryChange = onSearchQueryChange,
+                searchActive = searchActive,
                 onActiveChange = { searchActive = it },
-                placeholder = { Text("Search conversations…") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        horizontal = MaterialTheme.spacing.screenEdge,
-                        vertical = MaterialTheme.spacing.xs
-                    )
-                    .semantics { contentDescription = "Search conversations" }
-            ) {
-                // Search results rendered inside the SearchBar's expanded overlay
-                if (searchResults.isEmpty() && searchQuery.isNotBlank()) {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(MaterialTheme.spacing.lg),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = "No conversations match your search.",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                } else {
-                    LazyColumn(
-                        contentPadding = PaddingValues(
-                            horizontal = MaterialTheme.spacing.screenEdge,
-                            vertical = MaterialTheme.spacing.xs
-                        ),
-                        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)
-                    ) {
-                        items(
-                            count = searchResults.size,
-                            key = { searchResults[it].id }
-                        ) { idx ->
-                            val conv = searchResults[idx]
-                            ConversationCard(
-                                conversation = conv,
-                                onClick = {
-                                    searchActive = false
-                                    onConversationClick(conv.id)
-                                },
-                                onPinClick = { onPinConversation(conv.id, !conv.isPinned) },
-                                onRenameClick = {
-                                    targetConversation = conv
-                                    showRenameDialog = true
-                                },
-                                onDeleteClick = {
-                                    targetConversation = conv
-                                    showDeleteDialog = true
-                                }
-                            )
-                        }
-                    }
+                searchResults = searchResults,
+                onConversationClick = { id ->
+                    searchActive = false
+                    onConversationClick(id)
+                },
+                onPinConversation = onPinConversation,
+                onRenameClick = { conv ->
+                    targetConversation = conv
+                    showRenameDialog = true
+                },
+                onDeleteClick = { conv ->
+                    targetConversation = conv
+                    showDeleteDialog = true
                 }
-            }
+            )
 
-            // ── Body ───────────────────────────────────────────────────────
-            when {
-                uiState is ChatListUiState.Loading -> LoadingContent()
-                uiState is ChatListUiState.Error -> ErrorContent(message = uiState.message)
-                uiState is ChatListUiState.Empty -> EmptyContent()
-                else -> PagedConversationList(
-                    pagedItems = pagedItems,
-                    onConversationClick = onConversationClick,
-                    onPinConversation = onPinConversation,
-                    onRenameRequest = { conv ->
-                        targetConversation = conv
-                        showRenameDialog = true
-                    },
-                    onDeleteRequest = { conv ->
-                        targetConversation = conv
-                        showDeleteDialog = true
-                    }
-                )
-            }
+            ChatListBody(
+                uiState = uiState,
+                pagedItems = pagedItems,
+                onConversationClick = onConversationClick,
+                onPinConversation = onPinConversation,
+                onRenameRequest = { conv ->
+                    targetConversation = conv
+                    showRenameDialog = true
+                },
+                onDeleteRequest = { conv ->
+                    targetConversation = conv
+                    showDeleteDialog = true
+                }
+            )
         }
     }
 
+    ChatDialogs(
+        showNewConversationDialog = showNewConversationDialog,
+        showRenameDialog = showRenameDialog,
+        showDeleteDialog = showDeleteDialog,
+        targetConversation = targetConversation,
+        onCreateConversation = onCreateConversation,
+        onRenameConversation = onRenameConversation,
+        onDeleteConversation = onDeleteConversation,
+        onDismissNew = { showNewConversationDialog = false },
+        onDismissRename = {
+            showRenameDialog = false
+            targetConversation = null
+        },
+        onDismissDelete = {
+            showDeleteDialog = false
+            targetConversation = null
+        }
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun ChatSearchBar(
+    searchQuery: String,
+    onSearchQueryChange: (String) -> Unit,
+    searchActive: Boolean,
+    onActiveChange: (Boolean) -> Unit,
+    searchResults: List<Conversation>,
+    onConversationClick: (String) -> Unit,
+    onPinConversation: (String, Boolean) -> Unit,
+    onRenameClick: (Conversation) -> Unit,
+    onDeleteClick: (Conversation) -> Unit
+) {
+    DockedSearchBar(
+        query = searchQuery,
+        onQueryChange = onSearchQueryChange,
+        onSearch = { },
+        active = searchActive,
+        onActiveChange = onActiveChange,
+        placeholder = { Text("Search conversations…") },
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(
+                horizontal = MaterialTheme.spacing.screenEdge,
+                vertical = MaterialTheme.spacing.xs
+            )
+            .semantics { contentDescription = "Search conversations" }
+    ) {
+        if (searchResults.isEmpty() && searchQuery.isNotBlank()) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(MaterialTheme.spacing.lg),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "No conversations match your search.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        } else {
+            LazyColumn(
+                contentPadding = PaddingValues(
+                    horizontal = MaterialTheme.spacing.screenEdge,
+                    vertical = MaterialTheme.spacing.xs
+                ),
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)
+            ) {
+                items(
+                    count = searchResults.size,
+                    key = { searchResults[it].id }
+                ) { idx ->
+                    val conv = searchResults[idx]
+                    ConversationCard(
+                        conversation = conv,
+                        onClick = { onConversationClick(conv.id) },
+                        onPinClick = { onPinConversation(conv.id, !conv.isPinned) },
+                        onRenameClick = { onRenameClick(conv) },
+                        onDeleteClick = { onDeleteClick(conv) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ChatListBody(
+    uiState: ChatListUiState,
+    pagedItems: LazyPagingItems<ChatListItem>,
+    onConversationClick: (String) -> Unit,
+    onPinConversation: (String, Boolean) -> Unit,
+    onRenameRequest: (Conversation) -> Unit,
+    onDeleteRequest: (Conversation) -> Unit
+) {
+    when {
+        uiState is ChatListUiState.Loading -> LoadingContent()
+        uiState is ChatListUiState.Error -> ErrorContent(message = uiState.message)
+        uiState is ChatListUiState.Empty -> EmptyContent()
+        else -> PagedConversationList(
+            pagedItems = pagedItems,
+            onConversationClick = onConversationClick,
+            onPinConversation = onPinConversation,
+            onRenameRequest = onRenameRequest,
+            onDeleteRequest = onDeleteRequest
+        )
+    }
+}
+
+@Composable
+private fun ChatDialogs(
+    showNewConversationDialog: Boolean,
+    showRenameDialog: Boolean,
+    showDeleteDialog: Boolean,
+    targetConversation: Conversation?,
+    onCreateConversation: (String) -> Unit,
+    onRenameConversation: (String, String) -> Unit,
+    onDeleteConversation: (String) -> Unit,
+    onDismissNew: () -> Unit,
+    onDismissRename: () -> Unit,
+    onDismissDelete: () -> Unit
+) {
     if (showNewConversationDialog) {
         NewConversationDialog(
             onConfirm = { title ->
                 onCreateConversation(title)
-                showNewConversationDialog = false
+                onDismissNew()
             },
-            onDismiss = { showNewConversationDialog = false }
+            onDismiss = onDismissNew
         )
     }
     if (showRenameDialog && targetConversation != null) {
         RenameConversationDialog(
-            currentTitle = targetConversation!!.title,
+            currentTitle = targetConversation.title,
             onConfirm = { newTitle ->
-                onRenameConversation(targetConversation!!.id, newTitle)
-                showRenameDialog = false
-                targetConversation = null
+                onRenameConversation(targetConversation.id, newTitle)
+                onDismissRename()
             },
-            onDismiss = {
-                showRenameDialog = false
-                targetConversation = null
-            }
+            onDismiss = onDismissRename
         )
     }
     if (showDeleteDialog && targetConversation != null) {
         DeleteConversationDialog(
-            conversationTitle = targetConversation!!.title,
+            conversationTitle = targetConversation.title,
             onConfirm = {
-                onDeleteConversation(targetConversation!!.id)
-                showDeleteDialog = false
-                targetConversation = null
+                onDeleteConversation(targetConversation.id)
+                onDismissDelete()
             },
-            onDismiss = {
-                showDeleteDialog = false
-                targetConversation = null
-            }
+            onDismiss = onDismissDelete
         )
     }
 }
@@ -347,122 +413,170 @@ private fun ConversationCard(
 ) {
     val isDark = isSystemInDarkTheme()
     val cardColor = if (isDark) AppColors.surfaceTonal1Dark else AppColors.surfaceTonal1Light
-    var menuExpanded by remember { mutableStateOf(false) }
 
     SwipeRevealLayout(
         modifier = Modifier.fillMaxWidth(),
         revealWidth = 128.dp,
         actions = {
-            // Pin / Unpin action
-            IconButton(
-                onClick = onPinClick,
-                modifier = Modifier.semantics {
-                    contentDescription = if (conversation.isPinned) "Unpin conversation" else "Pin conversation"
-                }
-            ) {
-                Icon(
-                    imageVector = if (conversation.isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
-            // Delete action
-            IconButton(
-                onClick = onDeleteClick,
-                modifier = Modifier.semantics { contentDescription = "Delete conversation" }
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Delete,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error
-                )
-            }
+            ConversationCardActions(
+                conversation = conversation,
+                onPinClick = onPinClick,
+                onDeleteClick = onDeleteClick
+            )
         }
     ) {
-        ElevatedCard(
+        ConversationCardContent(
+            conversation = conversation,
+            cardColor = cardColor,
             onClick = onClick,
+            onPinClick = onPinClick,
+            onRenameClick = onRenameClick,
+            onDeleteClick = onDeleteClick
+        )
+    }
+}
+
+@Composable
+private fun ConversationCardContent(
+    conversation: Conversation,
+    cardColor: Color,
+    onClick: () -> Unit,
+    onPinClick: () -> Unit,
+    onRenameClick: () -> Unit,
+    onDeleteClick: () -> Unit
+) {
+    var menuExpanded by remember { mutableStateOf(false) }
+
+    ElevatedCard(
+        onClick = onClick,
+        modifier = Modifier
+            .fillMaxWidth()
+            .semantics(mergeDescendants = true) {
+                contentDescription = buildString {
+                    append(conversation.title)
+                    if (conversation.isPinned) append(", pinned")
+                    append(", updated ${conversation.updatedAt.formatRelative()}")
+                }
+            },
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = MaterialTheme.elevation.low),
+        colors = CardDefaults.elevatedCardColors(containerColor = cardColor)
+    ) {
+        Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .semantics(mergeDescendants = true) {
-                    contentDescription = buildString {
-                        append(conversation.title)
-                        if (conversation.isPinned) append(", pinned")
-                        append(", updated ${conversation.updatedAt.formatRelative()}")
-                    }
-                },
-            elevation = CardDefaults.elevatedCardElevation(defaultElevation = MaterialTheme.elevation.low),
-            colors = CardDefaults.elevatedCardColors(containerColor = cardColor)
+                .padding(
+                    horizontal = MaterialTheme.spacing.md,
+                    vertical = MaterialTheme.spacing.sm
+                ),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(
-                        horizontal = MaterialTheme.spacing.md,
-                        vertical = MaterialTheme.spacing.sm
-                    ),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                if (conversation.isPinned) {
-                    Icon(
-                        imageVector = Icons.Filled.PushPin,
-                        contentDescription = "Pinned",
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier
-                            .size(14.dp)
-                            .padding(end = 4.dp)
-                    )
-                }
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = conversation.title,
-                        style = MaterialTheme.typography.bodyLarge,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                    Text(
-                        text = conversation.updatedAt.formatRelative(),
-                        style = AppType.chatTimestamp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                Box {
-                    IconButton(
-                        onClick = { menuExpanded = true },
-                        modifier = Modifier.semantics {
-                            contentDescription = "More options for ${conversation.title}"
-                        }
-                    ) {
-                        Icon(Icons.Filled.MoreVert, contentDescription = null)
+            if (conversation.isPinned) {
+                Icon(
+                    imageVector = Icons.Filled.PushPin,
+                    contentDescription = "Pinned",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier
+                        .size(14.dp)
+                        .padding(end = 4.dp)
+                )
+            }
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = conversation.title,
+                    style = MaterialTheme.typography.bodyLarge,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = conversation.updatedAt.formatRelative(),
+                    style = AppType.chatTimestamp,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Box {
+                IconButton(
+                    onClick = { menuExpanded = true },
+                    modifier = Modifier.semantics {
+                        contentDescription = "More options for ${conversation.title}"
                     }
-                    DropdownMenu(
-                        expanded = menuExpanded,
-                        onDismissRequest = { menuExpanded = false }
-                    ) {
-                        DropdownMenuItem(
-                            text = { Text(if (conversation.isPinned) "Unpin" else "Pin") },
-                            onClick = {
-                                menuExpanded = false
-                                onPinClick()
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Rename") },
-                            onClick = {
-                                menuExpanded = false
-                                onRenameClick()
-                            }
-                        )
-                        DropdownMenuItem(
-                            text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
-                            onClick = {
-                                menuExpanded = false
-                                onDeleteClick()
-                            }
-                        )
-                    }
+                ) {
+                    Icon(Icons.Filled.MoreVert, contentDescription = null)
                 }
+                ConversationMenu(
+                    expanded = menuExpanded,
+                    isPinned = conversation.isPinned,
+                    onDismiss = { menuExpanded = false },
+                    onPinClick = onPinClick,
+                    onRenameClick = onRenameClick,
+                    onDeleteClick = onDeleteClick
+                )
             }
         }
+    }
+}
+
+@Composable
+private fun ConversationMenu(
+    expanded: Boolean,
+    isPinned: Boolean,
+    onDismiss: () -> Unit,
+    onPinClick: () -> Unit,
+    onRenameClick: () -> Unit,
+    onDeleteClick: () -> Unit
+) {
+    DropdownMenu(
+        expanded = expanded,
+        onDismissRequest = onDismiss
+    ) {
+        DropdownMenuItem(
+            text = { Text(if (isPinned) "Unpin" else "Pin") },
+            onClick = {
+                onDismiss()
+                onPinClick()
+            }
+        )
+        DropdownMenuItem(
+            text = { Text("Rename") },
+            onClick = {
+                onDismiss()
+                onRenameClick()
+            }
+        )
+        DropdownMenuItem(
+            text = { Text("Delete", color = MaterialTheme.colorScheme.error) },
+            onClick = {
+                onDismiss()
+                onDeleteClick()
+            }
+        )
+    }
+}
+
+@Composable
+private fun ConversationCardActions(conversation: Conversation, onPinClick: () -> Unit, onDeleteClick: () -> Unit) {
+    // Pin / Unpin action
+    IconButton(
+        onClick = onPinClick,
+        modifier = Modifier.semantics {
+            contentDescription = if (conversation.isPinned) "Unpin conversation" else "Pin conversation"
+        }
+    ) {
+        Icon(
+            imageVector = if (conversation.isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary
+        )
+    }
+    // Delete action
+    IconButton(
+        onClick = onDeleteClick,
+        modifier = Modifier.semantics { contentDescription = "Delete conversation" }
+    ) {
+        Icon(
+            imageVector = Icons.Filled.Delete,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.error
+        )
     }
 }
 

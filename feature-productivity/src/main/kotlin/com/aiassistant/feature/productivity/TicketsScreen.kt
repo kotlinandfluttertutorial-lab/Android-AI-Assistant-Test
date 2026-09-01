@@ -131,24 +131,7 @@ fun TicketsScreen(
     onApplyFilter: (TodoFilterState) -> Unit
 ) {
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)
-                    ) {
-                        Icon(
-                            Icons.Outlined.ConfirmationNumber,
-                            contentDescription = null,
-                            modifier = Modifier.size(22.dp),
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                        Text("Tickets")
-                    }
-                }
-            )
-        },
+        topBar = { TicketsTopBar() },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onNewTicket,
@@ -163,66 +146,107 @@ fun TicketsScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            if (uiState is ProductivityUiState.Error) {
-                ErrorBanner(
-                    message = uiState.message,
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = MaterialTheme.spacing.md)
-                )
-            }
-
-            if (uiState is ProductivityUiState.Loading) {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.semantics { contentDescription = "Loading tickets" }
-                    )
-                }
-                return@Column
-            }
-
-            if (uiState !is ProductivityUiState.TodoList) return@Column
-
-            // ── FilterChipRow with count badges ───────────────────────────
-            TicketFilterChipRow(
+            TicketsListContent(
                 uiState = uiState,
+                onTicketClick = onTicketClick,
+                onDeleteTicket = onDeleteTicket,
+                onMoveTicket = onMoveTicket,
                 onApplyFilter = onApplyFilter
             )
+        }
+    }
+}
 
-            Spacer(Modifier.height(MaterialTheme.spacing.xs))
-
-            // ── Ticket list ───────────────────────────────────────────────
-            if (uiState.todos.isEmpty()) {
-                Box(
-                    Modifier.fillMaxSize().padding(MaterialTheme.spacing.lg),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = "No tickets yet. Tap + to create one.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.semantics {
-                            contentDescription = "No tickets yet. Tap + to create one."
-                        }
-                    )
-                }
-            } else {
-                LazyColumn(
-                    contentPadding = PaddingValues(
-                        horizontal = MaterialTheme.spacing.md,
-                        vertical = MaterialTheme.spacing.sm
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm)
-                ) {
-                    items(uiState.todos, key = { it.id }) { ticket ->
-                        TicketCard(
-                            ticket = ticket,
-                            onClick = { onTicketClick(ticket) },
-                            onDelete = { onDeleteTicket(ticket.id) },
-                            onMove = { onMoveTicket(ticket, ticket.nextStatus()) }
-                        )
-                    }
-                }
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun TicketsTopBar() {
+    TopAppBar(
+        title = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)
+            ) {
+                Icon(
+                    Icons.Outlined.ConfirmationNumber,
+                    contentDescription = null,
+                    modifier = Modifier.size(22.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+                Text("Tickets")
             }
         }
+    )
+}
+
+@Composable
+private fun TicketsListContent(
+    uiState: ProductivityUiState,
+    onTicketClick: (TodoItem) -> Unit,
+    onDeleteTicket: (String) -> Unit,
+    onMoveTicket: (TodoItem, String) -> Unit,
+    onApplyFilter: (TodoFilterState) -> Unit
+) {
+    if (uiState is ProductivityUiState.Error) {
+        ErrorBanner(
+            message = uiState.message,
+            modifier = Modifier.fillMaxWidth().padding(horizontal = MaterialTheme.spacing.md)
+        )
+    }
+
+    if (uiState is ProductivityUiState.Loading) {
+        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator(
+                modifier = Modifier.semantics { contentDescription = "Loading tickets" }
+            )
+        }
+        return
+    }
+
+    if (uiState !is ProductivityUiState.TodoList) return
+
+    TicketFilterChipRow(
+        uiState = uiState,
+        onApplyFilter = onApplyFilter
+    )
+
+    Spacer(Modifier.height(MaterialTheme.spacing.xs))
+
+    if (uiState.todos.isEmpty()) {
+        EmptyTicketsContent()
+    } else {
+        LazyColumn(
+            contentPadding = PaddingValues(
+                horizontal = MaterialTheme.spacing.md,
+                vertical = MaterialTheme.spacing.sm
+            ),
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm)
+        ) {
+            items(uiState.todos, key = { it.id }) { ticket ->
+                TicketCard(
+                    ticket = ticket,
+                    onClick = { onTicketClick(ticket) },
+                    onDelete = { onDeleteTicket(ticket.id) },
+                    onMove = { onMoveTicket(ticket, ticket.nextStatus()) }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun EmptyTicketsContent() {
+    Box(
+        Modifier.fillMaxSize().padding(MaterialTheme.spacing.lg),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = "No tickets yet. Tap + to create one.",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.semantics {
+                contentDescription = "No tickets yet. Tap + to create one."
+            }
+        )
     }
 }
 
@@ -232,78 +256,17 @@ fun TicketsScreen(
 @Composable
 private fun TicketFilterChipRow(uiState: ProductivityUiState.TodoList, onApplyFilter: (TodoFilterState) -> Unit) {
     val todos = uiState.todos
-    val openCount = todos.count { it.derivedStatus() == "open" }
-    val inProgressCount = todos.count { it.derivedStatus() == "in_progress" }
-    val closedCount = todos.count { it.derivedStatus() == "closed" }
-    val urgentCount = todos.count { it.priority == Priority.HIGH }
 
     LazyRow(
         contentPadding = PaddingValues(horizontal = MaterialTheme.spacing.md),
         horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)
     ) {
-        // Status filters
         item {
-            FilterChipWithBadge(
-                label = "Open",
-                count = openCount,
-                selected = uiState.filterState.priority == null && uiState.filterState.showCompleted,
-                onClick = {
-                    onApplyFilter(uiState.filterState.copy(showCompleted = true, priority = null))
-                },
-                badgeColor = if (isSystemInDarkTheme()) AppColors.ticketOpenDark else AppColors.ticketOpenLight
-            )
-        }
-        item {
-            FilterChipWithBadge(
-                label = "In Progress",
-                count = inProgressCount,
-                selected = false,
-                onClick = {
-                    onApplyFilter(uiState.filterState.copy(showCompleted = false))
-                },
-                badgeColor = if (isSystemInDarkTheme()) {
-                    AppColors.ticketInProgressDark
-                } else {
-                    AppColors.ticketInProgressLight
-                }
-            )
-        }
-        item {
-            FilterChipWithBadge(
-                label = "Closed",
-                count = closedCount,
-                selected = !uiState.filterState.showCompleted,
-                onClick = {
-                    onApplyFilter(uiState.filterState.copy(showCompleted = false))
-                },
-                badgeColor = if (isSystemInDarkTheme()) {
-                    AppColors.ticketClosedDark
-                } else {
-                    AppColors.ticketClosedLight
-                }
-            )
+            StatusFilterChips(uiState = uiState, todos = todos, onApplyFilter = onApplyFilter)
         }
         item { Spacer(Modifier.width(MaterialTheme.spacing.xs)) }
-        // Priority filter
         item {
-            FilterChipWithBadge(
-                label = "Urgent",
-                count = urgentCount,
-                selected = uiState.filterState.priority == Priority.HIGH,
-                onClick = {
-                    val newPriority = if (uiState.filterState.priority == Priority.HIGH) {
-                        null
-                    } else {
-                        Priority.HIGH
-                    }
-                    onApplyFilter(uiState.filterState.copy(priority = newPriority))
-                },
-                badgeColor = if (isSystemInDarkTheme()) {
-                    AppColors.ticketUrgentDark
-                } else {
-                    AppColors.ticketUrgentLight
-                }
-            )
+            PriorityFilterChips(uiState = uiState, todos = todos, onApplyFilter = onApplyFilter)
         }
         item {
             FilterChip(
@@ -314,6 +277,83 @@ private fun TicketFilterChipRow(uiState: ProductivityUiState.TodoList, onApplyFi
             )
         }
     }
+}
+
+@Composable
+private fun StatusFilterChips(
+    uiState: ProductivityUiState.TodoList,
+    todos: List<TodoItem>,
+    onApplyFilter: (TodoFilterState) -> Unit
+) {
+    val openCount = todos.count { it.derivedStatus() == "open" }
+    val inProgressCount = todos.count { it.derivedStatus() == "in_progress" }
+    val closedCount = todos.count { it.derivedStatus() == "closed" }
+
+    Row(horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)) {
+        FilterChipWithBadge(
+            label = "Open",
+            count = openCount,
+            selected = uiState.filterState.priority == null && uiState.filterState.showCompleted,
+            onClick = {
+                onApplyFilter(uiState.filterState.copy(showCompleted = true, priority = null))
+            },
+            badgeColor = if (isSystemInDarkTheme()) AppColors.ticketOpenDark else AppColors.ticketOpenLight
+        )
+        FilterChipWithBadge(
+            label = "In Progress",
+            count = inProgressCount,
+            selected = false,
+            onClick = {
+                onApplyFilter(uiState.filterState.copy(showCompleted = false))
+            },
+            badgeColor = if (isSystemInDarkTheme()) {
+                AppColors.ticketInProgressDark
+            } else {
+                AppColors.ticketInProgressLight
+            }
+        )
+        FilterChipWithBadge(
+            label = "Closed",
+            count = closedCount,
+            selected = !uiState.filterState.showCompleted,
+            onClick = {
+                onApplyFilter(uiState.filterState.copy(showCompleted = false))
+            },
+            badgeColor = if (isSystemInDarkTheme()) {
+                AppColors.ticketClosedDark
+            } else {
+                AppColors.ticketClosedLight
+            }
+        )
+    }
+}
+
+@Composable
+private fun PriorityFilterChips(
+    uiState: ProductivityUiState.TodoList,
+    todos: List<TodoItem>,
+    onApplyFilter: (TodoFilterState) -> Unit
+) {
+    val urgentCount = todos.count { it.priority == Priority.HIGH }
+
+    FilterChipWithBadge(
+        label = "Urgent",
+        count = urgentCount,
+        selected = uiState.filterState.priority == Priority.HIGH,
+        onClick = {
+            val newPriority = if (uiState.filterState.priority == Priority.HIGH) {
+                null
+            } else {
+                Priority.HIGH
+            }
+            onApplyFilter(uiState.filterState.copy(priority = newPriority))
+        },
+        badgeColor = if (isSystemInDarkTheme()) {
+            AppColors.ticketUrgentDark
+        } else {
+            AppColors.ticketUrgentLight
+        }
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -390,135 +430,159 @@ fun TicketCard(
             }
         }
     ) {
-        Box(modifier = Modifier.fillMaxWidth()) {
-            ElevatedCard(
-                onClick = onClick,
+        TicketCardContent(
+            ticket = ticket,
+            cardColor = cardColor,
+            accentColor = accentColor,
+            onClick = onClick,
+            onMove = onMove
+        )
+    }
+}
+
+@Composable
+private fun TicketCardContent(
+    ticket: TodoItem,
+    cardColor: Color,
+    accentColor: Color,
+    onClick: () -> Unit,
+    onMove: () -> Unit
+) {
+    Box(modifier = Modifier.fillMaxWidth()) {
+        ElevatedCard(
+            onClick = onClick,
+            modifier = Modifier
+                .fillMaxWidth()
+                .pressScale()
+                .semantics { contentDescription = "Ticket: ${ticket.title}" },
+            elevation = CardDefaults.elevatedCardElevation(
+                defaultElevation = MaterialTheme.elevation.low
+            ),
+            colors = CardDefaults.elevatedCardColors(containerColor = cardColor),
+            shape = RoundedCornerShape(12.dp)
+        ) {
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .pressScale()
-                    .semantics { contentDescription = "Ticket: ${ticket.title}" },
-                elevation = CardDefaults.elevatedCardElevation(
-                    defaultElevation = MaterialTheme.elevation.low
-                ),
-                colors = CardDefaults.elevatedCardColors(containerColor = cardColor),
-                shape = RoundedCornerShape(12.dp)
+                    .padding(
+                        start = MaterialTheme.spacing.md + 4.dp,
+                        end = MaterialTheme.spacing.sm,
+                        top = MaterialTheme.spacing.sm,
+                        bottom = MaterialTheme.spacing.sm
+                    ),
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)
             ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(
-                            start = MaterialTheme.spacing.md + 4.dp, // leave room for accent stripe
-                            end = MaterialTheme.spacing.sm,
-                            top = MaterialTheme.spacing.sm,
-                            bottom = MaterialTheme.spacing.sm
-                        ),
-                    verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)
-                ) {
-                    // Title row
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = ticket.title.ifBlank { "Untitled ticket" },
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.SemiBold,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f)
-                        )
-                        // Sync badge
-                        TicketSyncBadge(ticket.syncStatus)
-                    }
-
-                    // Description preview
-                    if (ticket.description.isNotBlank()) {
-                        Text(
-                            text = ticket.description,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
-
-                    // Bottom row: priority + due date + quick-move
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Priority label chip
-                        AssistChip(
-                            onClick = {},
-                            label = {
-                                Text(
-                                    text = ticket.priority.value
-                                        .replaceFirstChar { it.uppercaseChar() },
-                                    style = MaterialTheme.typography.labelSmall
-                                )
-                            },
-                            modifier = Modifier.semantics {
-                                contentDescription = "${ticket.priority.value} priority"
-                            }
-                        )
-
-                        ticket.dueDate?.let { dueMs ->
-                            Spacer(Modifier.width(MaterialTheme.spacing.xs))
-                            val formatted = Instant.ofEpochMilli(dueMs)
-                                .atZone(ZoneId.systemDefault())
-                                .toLocalDate()
-                                .format(DateTimeFormatter.ofPattern("MMM d"))
-                            Text(
-                                text = "Due $formatted",
-                                style = AppType.sectionLabel,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-
-                        Spacer(Modifier.weight(1f))
-
-                        // Quick-move button → next status
-                        Button(
-                            onClick = onMove,
-                            contentPadding = PaddingValues(
-                                horizontal = MaterialTheme.spacing.sm,
-                                vertical = 4.dp
-                            ),
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = accentColor.copy(alpha = 0.15f),
-                                contentColor = accentColor
-                            ),
-                            modifier = Modifier.semantics {
-                                contentDescription = "Move ticket to ${ticket.nextStatus()}"
-                            },
-                            elevation = ButtonDefaults.buttonElevation(0.dp)
-                        ) {
-                            Icon(
-                                Icons.Filled.ArrowForward,
-                                contentDescription = null,
-                                modifier = Modifier.size(14.dp)
-                            )
-                            Spacer(Modifier.width(4.dp))
-                            Text(
-                                text = ticket.nextStatus()
-                                    .replace("_", " ")
-                                    .replaceFirstChar { it.uppercaseChar() },
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                        }
-                    }
-                }
+                TicketCardTitleRow(ticket = ticket)
+                TicketCardMetadata(ticket = ticket, accentColor = accentColor, onMove = onMove)
             }
+        }
 
-            // 4 dp priority-colored left-border accent stripe
-            Box(
-                modifier = Modifier
-                    .width(4.dp)
-                    .matchParentSize()
-                    .clip(RoundedCornerShape(topStart = 12.dp, bottomStart = 12.dp))
-                    .background(accentColor)
+        Box(
+            modifier = Modifier
+                .width(4.dp)
+                .matchParentSize()
+                .clip(RoundedCornerShape(topStart = 12.dp, bottomStart = 12.dp))
+                .background(accentColor)
+        )
+    }
+}
+
+@Composable
+private fun TicketCardTitleRow(ticket: TodoItem) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = ticket.title.ifBlank { "Untitled ticket" },
+            style = MaterialTheme.typography.bodyLarge,
+            fontWeight = FontWeight.SemiBold,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.weight(1f)
+        )
+        TicketSyncBadge(ticket.syncStatus)
+    }
+}
+
+@Composable
+private fun TicketCardMetadata(ticket: TodoItem, accentColor: Color, onMove: () -> Unit) {
+    if (ticket.description.isNotBlank()) {
+        Text(
+            text = ticket.description,
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            maxLines = 2,
+            overflow = TextOverflow.Ellipsis
+        )
+    }
+
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        AssistChip(
+            onClick = {},
+            label = {
+                Text(
+                    text = ticket.priority.value
+                        .replaceFirstChar { it.uppercaseChar() },
+                    style = MaterialTheme.typography.labelSmall
+                )
+            },
+            modifier = Modifier.semantics {
+                contentDescription = "${ticket.priority.value} priority"
+            }
+        )
+
+        ticket.dueDate?.let { dueMs ->
+            Spacer(Modifier.width(MaterialTheme.spacing.xs))
+            val formatted = Instant.ofEpochMilli(dueMs)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate()
+                .format(DateTimeFormatter.ofPattern("MMM d"))
+            Text(
+                text = "Due $formatted",
+                style = AppType.sectionLabel,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+
+        Spacer(Modifier.weight(1f))
+
+        TicketMoveButton(ticket = ticket, accentColor = accentColor, onMove = onMove)
+    }
+}
+
+@Composable
+private fun TicketMoveButton(ticket: TodoItem, accentColor: Color, onMove: () -> Unit) {
+    Button(
+        onClick = onMove,
+        contentPadding = PaddingValues(
+            horizontal = MaterialTheme.spacing.sm,
+            vertical = 4.dp
+        ),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = accentColor.copy(alpha = 0.15f),
+            contentColor = accentColor
+        ),
+        modifier = Modifier.semantics {
+            contentDescription = "Move ticket to ${ticket.nextStatus()}"
+        },
+        elevation = ButtonDefaults.buttonElevation(0.dp)
+    ) {
+        Icon(
+            Icons.Filled.ArrowForward,
+            contentDescription = null,
+            modifier = Modifier.size(14.dp)
+        )
+        Spacer(Modifier.width(4.dp))
+        Text(
+            text = ticket.nextStatus()
+                .replace("_", " ")
+                .replaceFirstChar { it.uppercaseChar() },
+            style = MaterialTheme.typography.labelSmall
+        )
     }
 }
 

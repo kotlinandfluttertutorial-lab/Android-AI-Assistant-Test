@@ -42,7 +42,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import numpy as np
 import pytest
 from typing import Any
-from typing import Any
 
 # Environment must be set before app imports
 os.environ.setdefault("SECRET_KEY", "test-secret-key-at-least-32-chars-long!!")
@@ -74,21 +73,16 @@ def _make_redis_mock(epsilon_value: str | None = None):
     sub-dependency.  Each method is an AsyncMock so ``await redis.method()``
     works normally inside route handlers.
     """
-    set_mock = AsyncMock()
-    get_mock = AsyncMock(return_value=epsilon_value)
-    incrbyfloat_mock = AsyncMock()
-    keys_mock = AsyncMock(return_value=[])
 
-    class _FakeRedis:
-        set = set_mock
-        get = get_mock
-        incrbyfloat = incrbyfloat_mock
-        keys = keys_mock
-        mock = None  # filled in below
+    class FakeRedis:
+        def __init__(self, epsilon_val: str | None):
+            self.set = AsyncMock()
+            self.get = AsyncMock(return_value=epsilon_val)
+            self.incrbyfloat = AsyncMock()
+            self.keys = AsyncMock(return_value=[])
+            self.mock = self
 
-    stub = _FakeRedis()
-    stub.mock = stub
-    return stub
+    return FakeRedis(epsilon_value)
 
 
 def _run(coro):
@@ -115,98 +109,96 @@ class TestLaplaceNoiseInjector:
         random sample for each dimension.  With 1000 samples of a 2-dim embedding,
         the Pearson correlation coefficient between the two noise dimensions
         should be approximately 0 (well within ±0.1).
-
-        Requirements: 37.1, 37.3
         """
-        rng = np.random.default_rng(seed=42)
-        n_samples = 1000
-        noise_dim0 = []
-        noise_dim1 = []
+        # Sensible epsilon for testing noise distribution
+        epsilon = 1.0
+        # 1000 samples of a 2-dimension embedding
+        samples = []
+        for _ in range(1000):
+            # Input vector [0.0, 0.0]
+            noised = LaplaceNoiseInjector.add_noise([0.0, 0.0], epsilon=epsilon)
+            samples.append(noised)
 
-        for _ in range(n_samples):
-            original = rng.standard_normal(2).tolist()
-            noised = LaplaceNoiseInjector.add_noise(original, epsilon=1.0)
-            noise_dim0.append(noised[0] - original[0])
-            noise_dim1.append(noised[1] - original[1])
+        arr = np.array(samples)
+        # Calculate Pearson correlation coefficient between dimension 0 and 1
+        corr_matrix = np.corrcoef(arr[:, 0], arr[:, 1])
+        correlation = corr_matrix[0, 1]
 
-        # Compute Pearson correlation between the two noise dimensions
-        correlation = float(np.corrcoef(noise_dim0, noise_dim1)[0, 1])
-        assert (
-            abs(correlation) < 0.1
-        ), f"Noise dimensions should be independent (|r| < 0.1), got r={correlation:.4f}"
+        # The noise added to each dimension MUST be independent.
+        # Correlation should be near 0.
+        assert abs(correlation) < 0.1, f"Expected near-zero correlation, got {correlation}"
 
     def test_output_length_matches_input(self) -> None:
-        """add_noise returns a list of the same length as the input embedding.
-
-        Requirements: 37.1
-        """
-        embedding = [0.1, 0.2, 0.3, 0.4, 0.5]
-        noised = LaplaceNoiseInjector.add_noise(embedding, epsilon=1.0)
-        assert len(noised) == len(embedding)
-
-    def test_returns_list_of_floats(self) -> None:
-        """add_noise output contains only Python floats.
-
-        Requirements: 37.1
-        """
-        embedding = [0.1] * 10
-        noised = LaplaceNoiseInjector.add_noise(embedding, epsilon=1.0)
-        assert all(isinstance(v, float) for v in noised)
-
-    def test_noise_changes_values(self) -> None:
-        """Noised embedding differs from original (with overwhelming probability).
-
-        Requirements: 37.1
-        """
-        embedding = [0.5] * 384
-        noised = LaplaceNoiseInjector.add_noise(embedding, epsilon=1.0)
-        assert noised != embedding, "Noised embedding should differ from original."
-
-    def test_invalid_epsilon_raises_value_error(self) -> None:
-        """add_noise must raise ValueError for non-positive epsilon.
-
-        Requirements: 37.1
-        """
-        with pytest.raises(ValueError, match="epsilon must be positive"):
-            LaplaceNoiseInjector.add_noise([0.1, 0.2], epsilon=0.0)
-
-    def test_epsilon_controls_noise_scale(self) -> None:
-        """Larger epsilon produces smaller noise (tighter privacy guarantee = smaller scale).
-
-        scale = sensitivity/epsilon; larger epsilon → smaller scale → less noise.
+        """The output embedding must have the same dimension as the input.
 
         Requirements: 37.3
         """
-        np.random.seed(0)
-        embedding = [0.5] * 384
+        injector = LaplaceNoiseInjector()
+        input_vec = [0.1, 0.2, 0.3, 0.4, 0.5]
+        output_vec = injector.add_noise(input_vec, epsilon=1.0)
+        assert len(output_vec) == len(input_vec)
 
-        noised_tight = LaplaceNoiseInjector.add_noise(embedding, epsilon=0.1)
-        np.random.seed(0)
-        noised_loose = LaplaceNoiseInjector.add_noise(embedding, epsilon=5.0)
+    def test_returns_list_of_floats(self) -> None:
+        """The output must be a standard Python list of floats.
 
-        noise_tight = np.mean(np.abs(np.array(noised_tight) - np.array(embedding)))
-        noise_loose = np.mean(np.abs(np.array(noised_loose) - np.array(embedding)))
-        assert (
-            noise_tight > noise_loose
-        ), "Smaller epsilon should produce larger noise magnitude."
+        Requirements: 37.3
+        """
+        input_vec = [1.0, 2.0]
+        output_vec = LaplaceNoiseInjector.add_noise(input_vec, epsilon=1.0)
+        assert isinstance(output_vec, list)
+        assert all(isinstance(x, float) for x in output_vec)
+
+    def test_noise_changes_values(self) -> None:
+        """Verify that the noise injector actually modifies the values.
+
+        Requirements: 37.1
+        """
+        input_vec = [0.5, 0.5, 0.5]
+        output_vec = LaplaceNoiseInjector.add_noise(input_vec, epsilon=0.5)
+        # Probability of noise being exactly 0 for all dimensions is near-zero.
+        assert output_vec != input_vec
+
+    def test_invalid_epsilon_raises_value_error(self) -> None:
+        """Providing an epsilon <= 0 must raise a ValueError.
+
+        Requirements: 37.1
+        """
+        input_vec = [0.1]
+        with pytest.raises(ValueError, match="epsilon must be positive"):
+            LaplaceNoiseInjector.add_noise(input_vec, epsilon=0.0)
+        with pytest.raises(ValueError, match="epsilon must be positive"):
+            LaplaceNoiseInjector.add_noise(input_vec, epsilon=-1.0)
+
+    def test_epsilon_controls_noise_scale(self) -> None:
+        """Smaller epsilon must produce larger variance (more noise).
+
+        Requirements: 37.1
+        """
+        input_vec = [0.0] * 100
+        # High epsilon (low noise)
+        output_high = LaplaceNoiseInjector.add_noise(input_vec, epsilon=10.0)
+        std_high = np.std(output_high)
+
+        # Low epsilon (high noise)
+        output_low = LaplaceNoiseInjector.add_noise(input_vec, epsilon=0.1)
+        std_low = np.std(output_low)
+
+        assert std_low > std_high
 
 
 # ---------------------------------------------------------------------------
-# Default epsilon from settings
+# get_current_epsilon — defaults and Redis overrides
 # ---------------------------------------------------------------------------
 
 
 class TestDefaultEpsilonFromSettings:
-    """Verify default epsilon = 1.0 is loaded from Settings.
+    """Tests for get_current_epsilon default behaviour.
 
-    Requirements: 37.1
+    Requirements: 37.1, 37.8
     """
 
     def test_default_dp_epsilon_is_1_0(self) -> None:
-        """Settings.DP_EPSILON should default to 1.0.
-
-        Requirements: 37.1
-        """
+        """Settings.DP_EPSILON should defaults to 1.0."""
         from app.config.settings import get_settings
 
         settings = get_settings()
@@ -215,45 +207,46 @@ class TestDefaultEpsilonFromSettings:
     def test_get_current_epsilon_returns_settings_default_when_redis_is_none(
         self,
     ) -> None:
-        """get_current_epsilon(redis=None) returns Settings.DP_EPSILON.
+        """get_current_epsilon(redis=None) must return Settings.DP_EPSILON.
 
         Requirements: 37.8
         """
         result = _run(get_current_epsilon(redis=None))
         assert result == 1.0
 
-    def test_get_current_epsilon_returns_settings_when_redis_returns_none(self) -> None:
-        """get_current_epsilon falls back to settings when Redis key is absent.
+    def test_get_current_epsilon_returns_settings_when_redis_returns_none(
+        self,
+    ) -> None:
+        """If Redis lookup returns None, fall back to settings.
 
         Requirements: 37.8
         """
-        redis = _make_redis_mock(epsilon_value=None)
+        redis = AsyncMock()
+        redis.get = AsyncMock(return_value=None)
+
         result = _run(get_current_epsilon(redis=redis))
         assert result == 1.0
 
 
-# ---------------------------------------------------------------------------
-# GET /admin/privacy/epsilon — epsilon Redis override
-# ---------------------------------------------------------------------------
-
-
 class TestGetCurrentEpsilonRedis:
-    """Tests for get_current_epsilon with Redis.
+    """Tests for get_current_epsilon with Redis overrides.
 
     Requirements: 37.8
     """
 
     def test_get_current_epsilon_returns_redis_value(self) -> None:
-        """When Redis key dp:epsilon is set, get_current_epsilon returns it.
+        """If "dp:epsilon" key exists in Redis, its value must be returned.
 
         Requirements: 37.8
         """
-        redis = _make_redis_mock(epsilon_value="2.5")
+        redis = AsyncMock()
+        redis.get = AsyncMock(return_value="2.5")
+
         result = _run(get_current_epsilon(redis=redis))
-        assert result == pytest.approx(2.5)
+        assert result == 2.5
 
     def test_get_current_epsilon_falls_back_on_redis_error(self) -> None:
-        """When Redis raises, get_current_epsilon falls back to settings value.
+        """If Redis is unreachable, fall back gracefully to settings.
 
         Requirements: 37.8
         """
@@ -280,25 +273,35 @@ class TestAdminEpsilonEndpoint:
         from fastapi import FastAPI
         from fastapi.testclient import TestClient
 
+        # CRITICAL: Import router AFTER potentially mocking dependencies or ensure
+        # overrides use the exact same objects. If any dependency (like require_admin
+        # or get_redis) is a MagicMock, FastAPI will try to resolve its *args and
+        # **kwargs as query parameters, causing HTTP 422. We override them with
+        # plain functions to prevent this.
         from app.api.admin import router as admin_router
-        from app.database.redis import get_redis
         from app.security.rbac import require_admin
+        from app.database.redis import get_redis
+        from app.database import get_db
 
-        test_app = FastAPI()
-
-        # Override auth dependency so tests don't need a real JWT
-        test_app.dependency_overrides[require_admin] = lambda: None
-
-        # Mock Redis
+        app = FastAPI()
         mock_redis = _make_redis_mock(epsilon_value=epsilon_value)
 
-        async def _override_get_redis():
+        # Use plain functions for overrides to avoid MagicMock signature issues
+        def override_require_admin():
+            return None
+
+        async def override_get_redis():
             yield mock_redis
 
-        test_app.dependency_overrides[get_redis] = _override_get_redis
+        async def override_get_db():
+            yield AsyncMock()
 
-        test_app.include_router(admin_router)
-        return TestClient(test_app), mock_redis
+        app.dependency_overrides[require_admin] = override_require_admin
+        app.dependency_overrides[get_redis] = override_get_redis
+        app.dependency_overrides[get_db] = override_get_db
+
+        app.include_router(admin_router)
+        return TestClient(app), mock_redis
 
     def test_put_epsilon_below_minimum_returns_422(self) -> None:
         """PUT /admin/privacy/epsilon with epsilon=0.05 must return HTTP 422.
@@ -323,20 +326,14 @@ class TestAdminEpsilonEndpoint:
 
         Requirements: 37.2, 37.6
         """
-        with patch(
-            "app.api.admin.router.update_epsilon_in_redis",
-            new_callable=AsyncMock,
-        ) as mock_update:
-            client, _ = self._make_app_with_mocked_deps()
-            response = client.put("/admin/privacy/epsilon", json={"epsilon": 2.0})
+        client, mock_redis = self._make_app_with_mocked_deps()
+        response = client.put("/admin/privacy/epsilon", json={"epsilon": 2.0})
         assert response.status_code == 200, f"Expected 200 but got {response.status_code}: {response.text}"
         data = response.json()
         assert data["epsilon"] == pytest.approx(2.0)
         assert data["mechanism"] == "Laplace"
-        # Verify update_epsilon_in_redis was called with the correct epsilon value
-        assert mock_update.call_count == 1
-        _, call_epsilon = mock_update.call_args[0]
-        assert call_epsilon == pytest.approx(2.0)
+        # Verify Redis.set was called with the correct key and value
+        mock_redis.set.assert_called_once_with("dp:epsilon", "2.0")
 
     def test_put_epsilon_boundary_minimum_returns_200(self) -> None:
         """PUT /admin/privacy/epsilon with epsilon=0.1 (boundary) must return HTTP 200.
@@ -358,12 +355,12 @@ class TestAdminEpsilonEndpoint:
 
 
 # ---------------------------------------------------------------------------
-# Privacy budget tracking — store_memory increments Redis counter
+# Privacy budget tracking — Req 37.8
 # ---------------------------------------------------------------------------
 
 
 class TestPrivacyBudgetTracking:
-    """Tests verifying store_memory increments the per-user privacy budget.
+    """Tests for privacy budget (epsilon) tracking in Redis.
 
     Requirements: 37.8
     """
@@ -418,13 +415,13 @@ class TestPrivacyBudgetTracking:
 
         assert result is expected_memory
         # Verify privacy_budget was incremented
-        redis.mock.incrbyfloat.assert_called_once_with(
+        redis.incrbyfloat.assert_called_once_with(
             f"privacy_budget:{user_id}", pytest.approx(1.0)
         )
 
     @pytest.mark.asyncio
     async def test_store_memory_does_not_increment_when_redis_is_none(self) -> None:
-        """When redis=None, store_memory still works but skips budget tracking.
+        """If redis client is missing, store_memory proceeds but skips increment.
 
         Requirements: 37.8
         """
@@ -435,7 +432,6 @@ class TestPrivacyBudgetTracking:
         from app.services.memory_service import MemoryService
 
         user_id = uuid.uuid4()
-
         mock_user = types.SimpleNamespace(
             id=user_id,
             email="test@example.com",
@@ -446,8 +442,6 @@ class TestPrivacyBudgetTracking:
         db_result = MagicMock()
         db_result.scalar_one_or_none.return_value = mock_user
         db.execute = AsyncMock(return_value=db_result)
-        db.flush = AsyncMock()
-        db.add = MagicMock()
 
         expected_memory = MagicMock(spec=Memory)
         with patch.object(
@@ -455,17 +449,17 @@ class TestPrivacyBudgetTracking:
             "store_memory",
             new_callable=AsyncMock,
             return_value=expected_memory,
-        ):
+        ) as mock_store:
             service = MemoryService(db)
             result = await service.store_memory(
                 user_id=user_id,
-                content="Test memory content",
+                content="Test",
                 memory_type=MemoryType.fact,
                 redis=None,
             )
 
-        # Should succeed and return the memory
         assert result is expected_memory
+        mock_store.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_store_memory_privacy_mode_skips_budget_increment(self) -> None:
@@ -507,4 +501,4 @@ class TestPrivacyBudgetTracking:
 
         assert result is None
         mock_store.assert_not_called()
-        redis.mock.incrbyfloat.assert_not_called()
+        redis.incrbyfloat.assert_not_called()

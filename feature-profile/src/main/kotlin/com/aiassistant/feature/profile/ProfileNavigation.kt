@@ -115,7 +115,6 @@ fun NavGraphBuilder.profileNavGraph(
                 navController.navigate(MemoryListRoute.SCREEN)
             },
             // ── Memory actions ─────────────────────────────────────────────
-            onStartEditMemory = { memory -> viewModel.startEditMemory(memory) },
             onUpdateEditContent = { content -> viewModel.updateEditContent(content) },
             onCancelEdit = { viewModel.cancelEditMemory() },
             onSaveEdit = { viewModel.saveMemoryEdit() },
@@ -127,7 +126,6 @@ fun NavGraphBuilder.profileNavGraph(
             onSaveDisplayName = { viewModel.saveDisplayName() },
             // ── Data export (Requirement 28.1) ────────────────────────────
             onRequestDataExport = { viewModel.requestDataExport() },
-            onDismissExportStatus = { viewModel.dismissExportStatus() },
             // ── Account deletion (Requirement 28.2) ───────────────────────
             onInitiateAccountDeletion = { viewModel.initiateAccountDeletion() },
             onUpdateDeletionInput = { input -> viewModel.updateDeletionConfirmationInput(input) },

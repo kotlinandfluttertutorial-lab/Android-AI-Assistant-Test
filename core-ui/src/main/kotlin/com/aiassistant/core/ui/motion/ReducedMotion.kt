@@ -75,7 +75,7 @@ fun rememberReducedMotion(): Boolean {
             val method = AccessibilityManager::class.java.getMethod("isAnimationEnabled")
             val enabled = method.invoke(it) as? Boolean
             if (enabled != null) return enabled == false
-        } catch (e: NoSuchMethodException) {
+        } catch (_: NoSuchMethodException) {
             // Not available on this API level — fall back below.
         } catch (_: Exception) {
             // Reflection failed for some reason — fall back below.

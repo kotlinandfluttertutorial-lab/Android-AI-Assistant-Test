@@ -48,12 +48,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.FormatQuote
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -503,58 +501,19 @@ private fun DocumentQueryInputBar(isQuerying: Boolean, onSendQuery: (String) -> 
             Spacer(Modifier.width(MaterialTheme.spacing.xs))
 
             // Gradient send button
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(RoundedCornerShape(50))
-                    .background(
-                        if (canSend) {
-                            androidx.compose.ui.graphics.Brush.linearGradient(
-                                listOf(gradientStart, gradientEnd)
-                            )
-                        } else {
-                            androidx.compose.ui.graphics.Brush.linearGradient(
-                                listOf(
-                                    MaterialTheme.colorScheme.surfaceVariant,
-                                    MaterialTheme.colorScheme.surfaceVariant
-                                )
-                            )
-                        }
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
-                IconButton(
-                    onClick = {
-                        val trimmed = query.trim()
-                        if (trimmed.isNotEmpty()) {
-                            onSendQuery(trimmed)
-                            query = ""
-                        }
-                    },
-                    enabled = canSend,
-                    modifier = Modifier
-                        .matchParentSize()
-                        .semantics { contentDescription = "Send query" }
-                ) {
-                    if (isQuerying) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(20.dp),
-                            strokeWidth = 2.dp,
-                            color = Color.White
-                        )
-                    } else {
-                        Icon(
-                            Icons.AutoMirrored.Filled.Send,
-                            contentDescription = null,
-                            tint = if (canSend) {
-                                Color.White
-                            } else {
-                                MaterialTheme.colorScheme.onSurfaceVariant
-                            }
-                        )
+            DocumentSendButton(
+                canSend = canSend,
+                isQuerying = isQuerying,
+                gradientStart = gradientStart,
+                gradientEnd = gradientEnd,
+                onSend = {
+                    val trimmed = query.trim()
+                    if (trimmed.isNotEmpty()) {
+                        onSendQuery(trimmed)
+                        query = ""
                     }
                 }
-            }
+            )
         }
     }
 }

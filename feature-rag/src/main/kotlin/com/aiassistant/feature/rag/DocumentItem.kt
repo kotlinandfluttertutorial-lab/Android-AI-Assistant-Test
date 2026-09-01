@@ -197,48 +197,10 @@ private data class StatusChipConfig(
 @Composable
 fun IngestionStatusBadge(status: IngestionStatus, modifier: Modifier = Modifier) {
     val isDark = isSystemInDarkTheme()
-
-    val config = when (status) {
-        IngestionStatus.PENDING -> StatusChipConfig(
-            containerColor = if (isDark) AppColors.surfaceTonal2Dark else AppColors.surfaceTonal2Light,
-            contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
-            icon = Icons.Filled.HourglassEmpty,
-            label = "Pending"
-        )
-        IngestionStatus.PROCESSING -> StatusChipConfig(
-            containerColor = if (isDark) {
-                AppColors.ragAmberDark.copy(alpha = 0.25f)
-            } else {
-                AppColors.ragAmberLight.copy(alpha = 0.18f)
-            },
-            contentColor = if (isDark) AppColors.ragAmberDark else AppColors.ragAmberLight,
-            icon = Icons.Filled.Sync,
-            label = "Processing"
-        )
-        IngestionStatus.READY -> StatusChipConfig(
-            containerColor = if (isDark) {
-                AppColors.ragGreenDark.copy(alpha = 0.22f)
-            } else {
-                AppColors.ragGreenLight.copy(alpha = 0.15f)
-            },
-            contentColor = if (isDark) AppColors.ragGreenDark else AppColors.ragGreenLight,
-            icon = Icons.Filled.CheckCircle,
-            label = "Ready"
-        )
-        IngestionStatus.FAILED -> StatusChipConfig(
-            containerColor = if (isDark) {
-                AppColors.ragRedDark.copy(alpha = 0.22f)
-            } else {
-                AppColors.ragRedLight.copy(alpha = 0.15f)
-            },
-            contentColor = if (isDark) AppColors.ragRedDark else AppColors.ragRedLight,
-            icon = Icons.Filled.Error,
-            label = "Failed"
-        )
-    }
+    val config = getStatusChipConfig(status, isDark)
 
     AssistChip(
-        onClick = { /* non-interactive */ },
+        onClick = { },
         label = {
             Text(
                 text = config.label,
@@ -263,6 +225,60 @@ fun IngestionStatusBadge(status: IngestionStatus, modifier: Modifier = Modifier)
         modifier = modifier.semantics { contentDescription = "Status: ${config.label}" }
     )
 }
+
+@Composable
+private fun getStatusChipConfig(status: IngestionStatus, isDark: Boolean): StatusChipConfig {
+    return when (status) {
+        IngestionStatus.PENDING -> getPendingConfig(isDark)
+        IngestionStatus.PROCESSING -> getProcessingConfig(isDark)
+        IngestionStatus.READY -> getReadyConfig(isDark)
+        IngestionStatus.FAILED -> getFailedConfig(isDark)
+    }
+}
+
+@Composable
+private fun getPendingConfig(isDark: Boolean) = StatusChipConfig(
+    containerColor = if (isDark) AppColors.surfaceTonal2Dark else AppColors.surfaceTonal2Light,
+    contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
+    icon = Icons.Filled.HourglassEmpty,
+    label = "Pending"
+)
+
+@Composable
+private fun getProcessingConfig(isDark: Boolean) = StatusChipConfig(
+    containerColor = if (isDark) {
+        AppColors.ragAmberDark.copy(alpha = 0.25f)
+    } else {
+        AppColors.ragAmberLight.copy(alpha = 0.18f)
+    },
+    contentColor = if (isDark) AppColors.ragAmberDark else AppColors.ragAmberLight,
+    icon = Icons.Filled.Sync,
+    label = "Processing"
+)
+
+@Composable
+private fun getReadyConfig(isDark: Boolean) = StatusChipConfig(
+    containerColor = if (isDark) {
+        AppColors.ragGreenDark.copy(alpha = 0.22f)
+    } else {
+        AppColors.ragGreenLight.copy(alpha = 0.15f)
+    },
+    contentColor = if (isDark) AppColors.ragGreenDark else AppColors.ragGreenLight,
+    icon = Icons.Filled.CheckCircle,
+    label = "Ready"
+)
+
+@Composable
+private fun getFailedConfig(isDark: Boolean) = StatusChipConfig(
+    containerColor = if (isDark) {
+        AppColors.ragRedDark.copy(alpha = 0.22f)
+    } else {
+        AppColors.ragRedLight.copy(alpha = 0.15f)
+    },
+    contentColor = if (isDark) AppColors.ragRedDark else AppColors.ragRedLight,
+    icon = Icons.Filled.Error,
+    label = "Failed"
+)
 
 // ── Display helpers ───────────────────────────────────────────────────────────
 

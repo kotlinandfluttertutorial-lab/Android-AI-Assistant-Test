@@ -274,8 +274,7 @@ fun homeDashboard(navController: NavHostController, viewModel: HomeDashboardView
                         ConversationPreviewCard(
                             conversation = conversation,
                             onTap = { navController.navigate(ChatRoute.detail(conversation.id)) },
-                            onDismiss = { viewModel.dismissConversation(conversation.id) },
-                            isDark = isDark
+                            onDismiss = { viewModel.dismissConversation(conversation.id) }
                         )
                         Spacer(modifier = Modifier.height(MaterialTheme.spacing.xs))
                     }
@@ -440,7 +439,6 @@ private fun ConversationPreviewCard(
     conversation: Conversation,
     onTap: () -> Unit,
     onDismiss: () -> Unit,
-    isDark: Boolean,
     modifier: Modifier = Modifier
 ) {
     val dismissState = rememberSwipeToDismissBoxState(

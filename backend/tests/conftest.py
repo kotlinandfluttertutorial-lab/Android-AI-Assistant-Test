@@ -26,20 +26,12 @@ from unittest.mock import AsyncMock, MagicMock
 @pytest.fixture(autouse=True)
 def mock_redis():
     """Mock Redis client for all tests to avoid connection errors."""
-    with (
-        patch("app.database.redis.get_redis_client") as mock_get_client,
-        patch("app.database.redis.get_redis") as mock_get_redis
-    ):
+    with patch("app.database.redis.get_redis_client") as mock_get_client:
         mock_client = AsyncMock()
         mock_client.incr.return_value = 1
         mock_client.ping.return_value = True
         mock_client.exists.return_value = 0
         mock_get_client.return_value = mock_client
-
-        async def _fake_get_redis():
-            yield mock_client
-
-        mock_get_redis.return_value = _fake_get_redis()
         yield mock_client
 
 from unittest.mock import patch
