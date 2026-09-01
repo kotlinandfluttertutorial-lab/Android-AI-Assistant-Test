@@ -85,7 +85,7 @@ private val Error80 = Color(0xFFFFB4AB)
 private val Error20 = Color(0xFF93000A)
 private val Error90 = Color(0xFFFFDAD6)
 
-private val Neutral10 = Color(0xFF1A1B1F) // Darkest surface
+private val Neutral10 = Color(0xFF1A1B1F) // Darkest surface — used for dark containers
 private val Neutral20 = Color(0xFF2F3033)
 private val Neutral90 = Color(0xFFE3E2E6)
 private val Neutral95 = Color(0xFFF1F0F4)
@@ -98,7 +98,11 @@ private val NeutralVariant60 = Color(0xFF8E9099)
 private val NeutralVariant80 = Color(0xFFC4C6D0)
 private val NeutralVariant90 = Color(0xFFE3E2EC)
 
-// ── Warning / amber (Phase 14 — DevOps severity badges) ──────────────────────
+// ── OLED-optimised dark background (Task 50.8) ───────────────────────────────
+// #111318 is intentionally NOT pure black — pure black causes PWM flicker on
+// some OLED panels and makes adjacent UI elements hard to distinguish.
+// Using #111318 aligns with the steering file dark-first palette spec.
+private val OledDark = Color(0xFF111318)
 // Material 3 does not have a built-in "warning" role; we add one as a custom
 // extension token following the same naming convention (Amber40 / Amber80 / etc.)
 
@@ -183,10 +187,13 @@ internal val DarkColorScheme = darkColorScheme(
     errorContainer = Color(0xFF93000A),
     onErrorContainer = Error90,
 
-    background = Neutral10,
+    // Task 50.8: background and surface corrected to OledDark (#111318).
+    // Neutral10 (#1A1B1F) is retained for containers such as surfaceVariant
+    // so nested cards have a visible lift above the base background.
+    background = OledDark,
     onBackground = Neutral90,
 
-    surface = Neutral10,
+    surface = OledDark,
     onSurface = Neutral90,
     surfaceVariant = NeutralVariant30,
     onSurfaceVariant = NeutralVariant80,

@@ -382,7 +382,7 @@ private fun AvatarCard(
     val gradientEnd   = if (isDark) AppColors.gradientEndDark   else AppColors.gradientEndLight
 
     // ── 2. Account tier chip ─────────────────────────────────────────────
-    val isPremium = user?.role == "premium"
+    val isPremium = user?.role == com.aiassistant.domain.model.UserRole.PREMIUM
 
     ElevatedCard(
         modifier = Modifier

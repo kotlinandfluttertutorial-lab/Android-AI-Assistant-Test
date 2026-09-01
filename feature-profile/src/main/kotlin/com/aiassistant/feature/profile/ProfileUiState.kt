@@ -98,7 +98,7 @@ sealed class AccountDeletionState {
     data class Confirming(val confirmationInput: String = "") : AccountDeletionState()
 
     /** The DELETE request is in-flight to the backend. */
-    data object Deleting : AccountDeletionState()
+    data class Deleting(val confirmationInput: String = "") : AccountDeletionState()
 
     /**
      * The deletion request was accepted. Local data has been cleared; the caller

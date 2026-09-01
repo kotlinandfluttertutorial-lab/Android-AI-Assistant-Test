@@ -2064,7 +2064,7 @@ When `LocalReducedMotionEnabled.current == true`:
   - Update `NavigationBar` tab to use `Icons.Outlined.ConfirmationNumber` and label "Tickets"
   - _Requirements: 29.1, 29.2, 24.1_
 
-- [ ] 50.8 Implement Dark Mode refinements
+- [x] 50.8 Implement Dark Mode refinements
   - Update `DarkColorScheme` in `Color.kt` with corrected `background` (#111318), `surface` (#111318), and new `surfaceTonal1/2/3` tokens
   - Update all screen composables that use `surfaceVariant` as a card background to use `surfaceTonal1` instead
   - Update `ChatBubble` user bubble to use `primary.copy(alpha = 0.9f)` in dark mode

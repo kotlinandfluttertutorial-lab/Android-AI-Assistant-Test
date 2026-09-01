@@ -435,7 +435,7 @@ class ProfileViewModel @Inject constructor(
         val confirming = current.accountDeletionState as? AccountDeletionState.Confirming ?: return
         if (confirming.confirmationInput != DELETION_CONFIRMATION_PHRASE) return
 
-        _uiState.value = current.copy(accountDeletionState = AccountDeletionState.Deleting)
+        _uiState.value = current.copy(accountDeletionState = AccountDeletionState.Deleting(confirming.confirmationInput))
 
         viewModelScope.launch {
             val result = withContext(dispatchers.io) {

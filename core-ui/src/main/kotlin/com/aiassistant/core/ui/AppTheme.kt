@@ -65,6 +65,8 @@
 package com.aiassistant.core.ui
 
 import android.os.Build
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.dynamicDarkColorScheme
@@ -142,17 +144,30 @@ fun AppTheme(themeMode: ThemeMode = ThemeMode.SYSTEM, dynamicColor: Boolean = tr
     // â”€â”€â”€ Composition locals â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     val reducedMotion = rememberReducedMotion()
 
+    // Task 50.8: Crossfade wraps the entire MaterialTheme so switching between
+    // Light / Dark / System-default modes animates as a 400 ms fade rather than
+    // an instant cut.  The colorScheme is the key � a new scheme object triggers
+    // the transition.  When reduced motion is active the Crossfade duration
+    // collapses to 0 ms (no animation) via the reducedMotion branch.
+    val crossfadeDurationMs = if (reducedMotion) 0 else 400
+
     CompositionLocalProvider(
         LocalSpacing provides Spacing.Default,
         LocalElevation provides Elevation.Default,
-        LocalReducedMotionEnabled provides reducedMotion
+        LocalReducedMotionEnabled provides reducedMotion,
     ) {
-        MaterialTheme(
-            colorScheme = colorScheme,
-            typography = MaterialTypography,
-            shapes = MaterialShapes,
-            content = content
-        )
+        Crossfade(
+            targetState = colorScheme,
+            animationSpec = tween(durationMillis = crossfadeDurationMs),
+            label = "themeColorSchemeCrossfade",
+        ) { animatedColorScheme ->
+            MaterialTheme(
+                colorScheme = animatedColorScheme,
+                typography = MaterialTypography,
+                shapes = MaterialShapes,
+                content = content,
+            )
+        }
     }
 }
 

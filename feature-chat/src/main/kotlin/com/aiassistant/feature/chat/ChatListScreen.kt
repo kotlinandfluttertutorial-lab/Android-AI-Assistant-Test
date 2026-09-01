@@ -289,8 +289,9 @@ private fun PagedConversationList(
     LazyColumn(
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(
-            horizontal = MaterialTheme.spacing.screenEdge,
-            vertical = MaterialTheme.spacing.xs,
+            start = MaterialTheme.spacing.screenEdge,
+            top = MaterialTheme.spacing.xs,
+            end = MaterialTheme.spacing.screenEdge,
             bottom = MaterialTheme.spacing.xl
         ),
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)
