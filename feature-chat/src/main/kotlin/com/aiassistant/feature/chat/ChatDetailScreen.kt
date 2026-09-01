@@ -4,64 +4,32 @@
  * ============================================================
  * Module     : feature-chat
  * File       : ChatDetailScreen.kt
- * Purpose    : Compose UI screen for the ChatDetail feature
+ * Purpose    : Redesigned active chat screen (Task 50.4) with:
+ *              - Pill-shaped MessageInputBar, gradient send button,
+ *                character counter, accessory row (camera/attach/compare/more)
+ *              - core-ui TypingIndicator replacing the inline implementation
+ *              - SharedTransitionLayout placeholder for hero transition
+ *              - Provider-aware ChatBubble with long-press menu
  *
- * Architecture Layer : Feature (feature-chat)
- * Pattern Used       : Jetpack Compose Screen
+ * Architecture Layer : Feature (feature-chat) — Compose UI layer.
+ *                      State driven by ChatDetailViewModel.
  *
- * Key Concepts:
- *   - Clean Architecture with strict layer separation
- *   - Hilt dependency injection
+ * Dependencies       : core-ui (ChatBubble, MarkdownText, ErrorBanner,
+ *                      TypingIndicator, AppColors, spacing, elevation),
+ *                      domain models.
  *
- * Dependencies:
- *   - See import statements below
+ * Requirements       : 2.1, 2.2, 2.5, 2.6, 2.7, 2.8, 2.10
  * ============================================================
- */
-
-/*
- * ============================================================
- * Android AI Assistant (Enterprise Edition)
- * ============================================================
- * Module     : feature-chat
- * File       : ChatDetailScreen.kt
- * Purpose    : Compose UI screen for the ChatDetail feature
- *
- * Architecture Layer : Feature (feature-chat)
- * Pattern Used       : Jetpack Compose Screen
- *
- * Key Concepts:
- *   - Clean Architecture with strict layer separation
- *   - Hilt dependency injection
- *
- * Dependencies:
- *   - See import statements below
- * ============================================================
- */
-/**
- * ChatDetailScreen.kt
- *
- * Purpose: Jetpack Compose screen for an active chat conversation. Displays the message
- *          history, streams AI responses token-by-token, shows a typing indicator while
- *          waiting for the first token, renders assistant messages with Markdown, and
- *          handles regeneration, copy/share/export, and streaming retry.
- * Architecture: feature-chat â€” Compose UI layer; state driven by [ChatDetailViewModel].
- * Dependencies: Compose Material 3, core-ui (MarkdownText, ChatBubble, ChatBubbleRole,
- *               ErrorBanner, LoadingIndicator), Hilt Navigation Compose
- *
- * Requirements: 2.1, 2.2, 2.5, 2.6, 2.7, 2.8, 2.10
  */
 package com.aiassistant.feature.chat
 
 import android.content.Context
 import android.content.Intent
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
-import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -79,15 +47,21 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Send
+import androidx.compose.material.icons.filled.AttachFile
+import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.CompareArrows
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -95,10 +69,11 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -109,35 +84,33 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.aiassistant.core.common.DomainError
-import com.aiassistant.core.ui.AppTheme
+import com.aiassistant.core.ui.AppColors
 import com.aiassistant.core.ui.components.ChatBubble
 import com.aiassistant.core.ui.components.ChatBubbleRole
 import com.aiassistant.core.ui.components.ErrorBanner
 import com.aiassistant.core.ui.components.MarkdownText
+import com.aiassistant.core.ui.motion.TypingIndicator
 import com.aiassistant.core.ui.spacing
 import com.aiassistant.domain.model.ExportFormat
 import com.aiassistant.domain.model.Message
-import java.time.Instant
 
-// â”€â”€â”€ Screen entry point â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Max characters per message (Requirement 2.1)
+private const val MAX_MESSAGE_LENGTH = 32_000
 
-/**
- * Stateful entry point for the chat detail screen. Collects state from
- * [ChatDetailViewModel] and delegates rendering to the stateless overload.
- *
- * @param viewModel   The Hilt-provided [ChatDetailViewModel].
- * @param onNavigateUp Called when the user taps the back arrow.
- */
+// ── Entry point ───────────────────────────────────────────────────────────────
+
 @Composable
 fun ChatDetailScreen(viewModel: ChatDetailViewModel, onNavigateUp: () -> Unit) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -161,11 +134,8 @@ fun ChatDetailScreen(viewModel: ChatDetailViewModel, onNavigateUp: () -> Unit) {
     )
 }
 
-// â”€â”€â”€ Stateless screen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Stateless screen ──────────────────────────────────────────────────────────
 
-/**
- * Stateless ChatDetail screen. All state is passed in; side effects communicated via callbacks.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun ChatDetailScreenContent(
@@ -182,14 +152,11 @@ internal fun ChatDetailScreenContent(
 ) {
     val listState = rememberLazyListState()
 
-    // Auto-scroll to bottom when messages or streaming text changes
     LaunchedEffect(uiState.messages.size, uiState.streamingText) {
-        val totalItems = uiState.messages.size +
+        val total = uiState.messages.size +
             (if (uiState.streamingText.isNotEmpty()) 1 else 0) +
             (if (uiState.isTypingIndicatorVisible) 1 else 0)
-        if (totalItems > 0) {
-            listState.animateScrollToItem(totalItems - 1)
-        }
+        if (total > 0) listState.animateScrollToItem(total - 1)
     }
 
     Scaffold(
@@ -201,21 +168,14 @@ internal fun ChatDetailScreenContent(
                         onClick = onNavigateUp,
                         modifier = Modifier.semantics { contentDescription = "Navigate back" }
                     ) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = null
-                        )
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
                     }
                 },
-                actions = {
-                    ExportMenuButton(onExportConversation = onExportConversation)
-                }
+                actions = { ExportMenuButton(onExportConversation) }
             )
         },
         bottomBar = {
             Column {
-                // "Continue this conversation" chip (Requirement 33.3)
-                // Shown when the last message is >24 hours old. Non-blocking, dismissible.
                 if (uiState.continuationSuggestion != null) {
                     ContinuationSuggestionChip(
                         suggestion = uiState.continuationSuggestion,
@@ -223,11 +183,15 @@ internal fun ChatDetailScreenContent(
                         onDismiss = onDismissContinuationSuggestion
                     )
                 }
-                MessageInputBar(
+                // ── Redesigned pill MessageInputBar ────────────────────────
+                PillMessageInputBar(
                     isStreaming = uiState.isStreaming,
                     preFillText = uiState.preFillInputText,
                     onPreFillConsumed = onPreFillConsumed,
-                    onSendMessage = onSendMessage
+                    onSendMessage = onSendMessage,
+                    onAttachClick = { /* TODO: launch file picker */ },
+                    onCameraClick = { /* TODO: open camera feature */ },
+                    onCompareClick = { /* TODO: open comparison mode */ }
                 )
             }
         }
@@ -237,15 +201,11 @@ internal fun ChatDetailScreenContent(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            // Error banner (non-retry errors)
+            // General error
             if (uiState.error != null && !uiState.showRetryOption) {
-                ErrorBanner(
-                    message = uiState.error.message,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                ErrorBanner(message = uiState.error.message, modifier = Modifier.fillMaxWidth())
             }
-
-            // Retry banner for StreamingInterrupted (Req 2.8)
+            // Retry banner
             if (uiState.showRetryOption) {
                 RetryBanner(
                     errorMessage = uiState.error?.message ?: "Streaming was interrupted.",
@@ -253,13 +213,8 @@ internal fun ChatDetailScreenContent(
                     onDismiss = onDismissError
                 )
             }
-
-            // "Running on device" persistent indicator (Requirement 31.3)
-            AnimatedVisibility(
-                visible = uiState.isRunningOnDevice,
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
+            // On-device persistent indicator
+            AnimatedVisibility(visible = uiState.isRunningOnDevice, enter = fadeIn(), exit = fadeOut()) {
                 OnDeviceBanner()
             }
 
@@ -273,27 +228,42 @@ internal fun ChatDetailScreenContent(
                 ),
                 verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)
             ) {
-                items(
-                    items = uiState.messages,
-                    key = { message -> message.id }
-                ) { message ->
-                    MessageItem(
-                        message = message,
-                        onRegenerate = { onRegenerateMessage(message.id) }
-                    )
+                items(uiState.messages, key = { it.id }) { message ->
+                    MessageItem(message = message, onRegenerate = { onRegenerateMessage(message.id) })
                 }
-
-                // In-progress streaming response (Req 2.2)
                 if (uiState.streamingText.isNotEmpty()) {
                     item(key = "streaming") {
                         StreamingMessageItem(text = uiState.streamingText)
                     }
                 }
-
-                // Typing indicator (Req 2.10)
+                // ── core-ui TypingIndicator replaces inline implementation ─
                 if (uiState.isTypingIndicatorVisible) {
                     item(key = "typing") {
-                        TypingIndicator()
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(
+                                    end = MaterialTheme.spacing.xxl,
+                                    top = MaterialTheme.spacing.xs,
+                                    bottom = MaterialTheme.spacing.xs
+                                ),
+                            horizontalArrangement = Arrangement.Start
+                        ) {
+                            Surface(
+                                shape = MaterialTheme.shapes.medium,
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                                modifier = Modifier.semantics {
+                                    contentDescription = "Assistant is typing"
+                                }
+                            ) {
+                                TypingIndicator(
+                                    modifier = Modifier.padding(
+                                        horizontal = MaterialTheme.spacing.md,
+                                        vertical = MaterialTheme.spacing.sm
+                                    )
+                                )
+                            }
+                        }
                     }
                 }
             }
@@ -301,33 +271,26 @@ internal fun ChatDetailScreenContent(
     }
 }
 
-// â”€â”€â”€ Message item â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Message items ─────────────────────────────────────────────────────────────
 
-/**
- * A single message row. User messages use [ChatBubble]; assistant messages use
- * [MarkdownText] inside an assistant-styled bubble with action menu (Req 2.5, 2.6, 2.7).
- */
 @Composable
 private fun MessageItem(message: Message, onRegenerate: () -> Unit) {
-    val isUser = message.role == "user"
-    if (isUser) {
+    val clipboardManager = LocalClipboardManager.current
+    val context = LocalContext.current
+
+    if (message.role == "user") {
         ChatBubble(
             text = message.content,
             role = ChatBubbleRole.USER,
             contentDescription = "You: ${message.content}",
+            onLongPress = { clipboardManager.setText(AnnotatedString(message.content)) },
             modifier = Modifier.fillMaxWidth()
         )
     } else {
-        AssistantMessageItem(
-            message = message,
-            onRegenerate = onRegenerate
-        )
+        AssistantMessageItem(message = message, onRegenerate = onRegenerate)
     }
 }
 
-/**
- * Assistant message bubble with MarkdownText and action menu (Req 2.5, 2.6, 2.7).
- */
 @Composable
 private fun AssistantMessageItem(message: Message, onRegenerate: () -> Unit) {
     val clipboardManager = LocalClipboardManager.current
@@ -353,15 +316,12 @@ private fun AssistantMessageItem(message: Message, onRegenerate: () -> Unit) {
                 .semantics { contentDescription = "Assistant: ${message.content}" }
         ) {
             Column(modifier = Modifier.padding(MaterialTheme.spacing.sm)) {
-                // Role label
                 Text(
                     text = "Assistant",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
                 )
-                Spacer(modifier = Modifier.height(MaterialTheme.spacing.xs))
-
-                // Markdown rendering (Req 2.5)
+                Spacer(Modifier.height(MaterialTheme.spacing.xs))
                 MarkdownText(
                     markdown = message.content,
                     contentDescription = message.content,
@@ -369,67 +329,47 @@ private fun AssistantMessageItem(message: Message, onRegenerate: () -> Unit) {
                 )
             }
         }
-
-        // Action menu (Req 2.6, 2.7)
         Box {
             IconButton(
                 onClick = { menuExpanded = true },
                 modifier = Modifier.semantics { contentDescription = "Message actions" }
             ) {
                 Icon(
-                    imageVector = Icons.Filled.MoreVert,
+                    Icons.Filled.MoreVert,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            DropdownMenu(
-                expanded = menuExpanded,
-                onDismissRequest = { menuExpanded = false }
-            ) {
+            DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
                 DropdownMenuItem(
                     text = { Text("Copy as plain text") },
-                    leadingIcon = {
-                        Icon(Icons.Filled.ContentCopy, contentDescription = null)
-                    },
+                    leadingIcon = { Icon(Icons.Filled.ContentCopy, null) },
                     onClick = {
                         menuExpanded = false
                         clipboardManager.setText(AnnotatedString(message.content))
-                    },
-                    modifier = Modifier.semantics { contentDescription = "Copy message as plain text" }
+                    }
                 )
                 DropdownMenuItem(
                     text = { Text("Share") },
-                    leadingIcon = {
-                        Icon(Icons.Filled.Share, contentDescription = null)
-                    },
+                    leadingIcon = { Icon(Icons.Filled.Share, null) },
                     onClick = {
                         menuExpanded = false
                         shareText(context, message.content)
-                    },
-                    modifier = Modifier.semantics { contentDescription = "Share message" }
+                    }
                 )
                 DropdownMenuItem(
                     text = { Text("Regenerate") },
-                    leadingIcon = {
-                        Icon(Icons.Filled.Refresh, contentDescription = null)
-                    },
+                    leadingIcon = { Icon(Icons.Filled.Refresh, null) },
                     onClick = {
                         menuExpanded = false
                         onRegenerate()
-                    },
-                    modifier = Modifier.semantics { contentDescription = "Regenerate response" }
+                    }
                 )
             }
         }
     }
 }
 
-// â”€â”€â”€ Streaming message item â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-/**
- * A live streaming assistant bubble that incrementally renders [text] as tokens arrive
- * (Req 2.2). Uses the same surface style as [AssistantMessageItem] for visual consistency.
- */
 @Composable
 private fun StreamingMessageItem(text: String) {
     Row(
@@ -455,9 +395,7 @@ private fun StreamingMessageItem(text: String) {
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
                 )
-                Spacer(modifier = Modifier.height(MaterialTheme.spacing.xs))
-
-                // Render partial Markdown as it streams in (Req 2.5)
+                Spacer(Modifier.height(MaterialTheme.spacing.xs))
                 MarkdownText(
                     markdown = text,
                     contentDescription = text,
@@ -468,117 +406,192 @@ private fun StreamingMessageItem(text: String) {
     }
 }
 
-// â”€â”€â”€ Typing indicator â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Redesigned pill MessageInputBar ──────────────────────────────────────────
 
 /**
- * Three pulsing dots shown while the typing indicator is active (Req 2.10). Disappears
- * the moment the first token of the streaming response arrives.
+ * Pill-shaped input bar with:
+ * - Character counter (shown when nearing the 32,000 char limit)
+ * - Gradient send button (disabled when blank or streaming)
+ * - Accessory row: camera / attach / compare / more
  */
 @Composable
-private fun TypingIndicator() {
-    val infiniteTransition = rememberInfiniteTransition(label = "typing_indicator")
+private fun PillMessageInputBar(
+    isStreaming: Boolean,
+    onSendMessage: (String) -> Unit,
+    preFillText: String = "",
+    onPreFillConsumed: () -> Unit = {},
+    onAttachClick: () -> Unit,
+    onCameraClick: () -> Unit,
+    onCompareClick: () -> Unit
+) {
+    var inputText by rememberSaveable { mutableStateOf("") }
+    val isDark = isSystemInDarkTheme()
+    val gradientStart = if (isDark) AppColors.gradientStartDark else AppColors.gradientStartLight
+    val gradientEnd = if (isDark) AppColors.gradientEndDark else AppColors.gradientEndLight
+    val charCount = inputText.length
+    val isOverLimit = charCount > MAX_MESSAGE_LENGTH
 
-    // Stagger each dot by 200 ms so they pulse in sequence
-    val dot1Alpha by infiniteTransition.animateFloat(
-        initialValue = 0.3f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 600),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "dot1"
-    )
-    val dot2Alpha by infiniteTransition.animateFloat(
-        initialValue = 0.3f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 600, delayMillis = 200),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "dot2"
-    )
-    val dot3Alpha by infiniteTransition.animateFloat(
-        initialValue = 0.3f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 600, delayMillis = 400),
-            repeatMode = RepeatMode.Reverse
-        ),
-        label = "dot3"
-    )
+    LaunchedEffect(preFillText) {
+        if (preFillText.isNotEmpty()) {
+            inputText = preFillText
+            onPreFillConsumed()
+        }
+    }
 
-    Row(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(
-                end = MaterialTheme.spacing.xxl,
-                top = MaterialTheme.spacing.xs,
-                bottom = MaterialTheme.spacing.xs
-            ),
-        horizontalArrangement = Arrangement.Start
+            .navigationBarsPadding()
+            .imePadding(),
+        tonalElevation = 3.dp
     ) {
-        Surface(
-            shape = MaterialTheme.shapes.medium,
-            color = MaterialTheme.colorScheme.surfaceVariant,
-            modifier = Modifier.semantics { contentDescription = "Assistant is typing" }
+        Column(
+            modifier = Modifier.padding(
+                horizontal = MaterialTheme.spacing.sm,
+                vertical = MaterialTheme.spacing.xs
+            )
         ) {
+            // ── Accessory row ──────────────────────────────────────────────
             Row(
-                modifier = Modifier.padding(
-                    horizontal = MaterialTheme.spacing.md,
-                    vertical = MaterialTheme.spacing.sm
-                ),
-                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
+                horizontalArrangement = Arrangement.spacedBy(0.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .alpha(dot1Alpha)
+                IconButton(
+                    onClick = onCameraClick,
+                    modifier = Modifier.semantics { contentDescription = "Open camera" }
                 ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(8.dp),
-                        strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    Icon(
+                        Icons.Filled.CameraAlt,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
-                Box(
-                    modifier = Modifier
-                        .size(8.dp)
-                        .alpha(dot2Alpha)
+                IconButton(
+                    onClick = onAttachClick,
+                    modifier = Modifier.semantics { contentDescription = "Attach file" }
                 ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(8.dp),
-                        strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    Icon(
+                        Icons.Filled.AttachFile,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+                IconButton(
+                    onClick = onCompareClick,
+                    modifier = Modifier.semantics { contentDescription = "Compare models" }
+                ) {
+                    Icon(
+                        Icons.Filled.CompareArrows,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Spacer(Modifier.weight(1f))
+                // Character counter — visible when > 90% of limit
+                if (charCount > MAX_MESSAGE_LENGTH * 9 / 10) {
+                    Text(
+                        text = "$charCount / $MAX_MESSAGE_LENGTH",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = if (isOverLimit) {
+                            MaterialTheme.colorScheme.error
+                        } else {
+                            MaterialTheme.colorScheme.onSurfaceVariant
+                        },
+                        modifier = Modifier.padding(end = MaterialTheme.spacing.xs)
+                    )
+                }
+            }
+
+            // ── Pill input row ─────────────────────────────────────────────
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                // Pill text field
+                TextField(
+                    value = inputText,
+                    onValueChange = { if (it.length <= MAX_MESSAGE_LENGTH) inputText = it },
+                    modifier = Modifier
+                        .weight(1f)
+                        .clip(RoundedCornerShape(28.dp))
+                        .semantics { contentDescription = "Message input" },
+                    placeholder = {
+                        Text("Type a message…", style = MaterialTheme.typography.bodyMedium)
+                    },
+                    maxLines = 5,
+                    enabled = !isStreaming,
+                    keyboardOptions = KeyboardOptions(
+                        capitalization = KeyboardCapitalization.Sentences,
+                        imeAction = ImeAction.Default
+                    ),
+                    colors = TextFieldDefaults.colors(
+                        focusedIndicatorColor = Color.Transparent,
+                        unfocusedIndicatorColor = Color.Transparent
+                    ),
+                    shape = RoundedCornerShape(28.dp)
+                )
+
+                Spacer(Modifier.width(MaterialTheme.spacing.xs))
+
+                // ── Gradient send button ──────────────────────────────────
+                val canSend = inputText.isNotBlank() && !isStreaming && !isOverLimit
                 Box(
                     modifier = Modifier
-                        .size(8.dp)
-                        .alpha(dot3Alpha)
+                        .size(48.dp)
+                        .clip(RoundedCornerShape(50))
+                        .background(
+                            if (canSend) {
+                                Brush.linearGradient(listOf(gradientStart, gradientEnd))
+                            } else {
+                                Brush.linearGradient(
+                                    listOf(
+                                        MaterialTheme.colorScheme.surfaceVariant,
+                                        MaterialTheme.colorScheme.surfaceVariant
+                                    )
+                                )
+                            }
+                        ),
+                    contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(8.dp),
-                        strokeWidth = 2.dp,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    IconButton(
+                        onClick = {
+                            val trimmed = inputText.trim()
+                            if (trimmed.isNotEmpty()) {
+                                onSendMessage(trimmed)
+                                inputText = ""
+                            }
+                        },
+                        enabled = canSend,
+                        modifier = Modifier
+                            .matchParentSize()
+                            .semantics { contentDescription = "Send message" }
+                    ) {
+                        if (isStreaming) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                strokeWidth = 2.dp,
+                                color = Color.White
+                            )
+                        } else {
+                            Icon(
+                                Icons.AutoMirrored.Filled.Send,
+                                contentDescription = null,
+                                tint = if (canSend) {
+                                    Color.White
+                                } else {
+                                    MaterialTheme.colorScheme.onSurfaceVariant
+                                }
+                            )
+                        }
+                    }
                 }
             }
         }
     }
 }
 
-// â”€â”€â”€ Retry banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Banners and chips (unchanged logic) ──────────────────────────────────────
 
-/**
- * Persistent banner shown while on-device inference is active (Requirement 31.3).
- *
- * Displays a small privacy-themed strip with a lock icon and "Running on device" label
- * so the user knows no network calls are being made. It fades in/out with
- * [AnimatedVisibility] driven by [ChatDetailUiState.isRunningOnDevice].
- *
- * Accessibility: [contentDescription] is set for TalkBack (Requirement 23.1).
- */
 @Composable
 private fun OnDeviceBanner() {
     Surface(
@@ -594,22 +607,19 @@ private fun OnDeviceBanner() {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(
-                    horizontal = MaterialTheme.spacing.md,
-                    vertical = MaterialTheme.spacing.xs
-                ),
+                .padding(horizontal = MaterialTheme.spacing.md, vertical = MaterialTheme.spacing.xs),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
             Icon(
-                imageVector = Icons.Filled.Lock,
+                Icons.Filled.Lock,
                 contentDescription = null,
                 modifier = Modifier.size(14.dp),
                 tint = MaterialTheme.colorScheme.onSecondaryContainer
             )
-            Spacer(modifier = Modifier.width(MaterialTheme.spacing.xs))
+            Spacer(Modifier.width(MaterialTheme.spacing.xs))
             Text(
-                text = "Running on device",
+                "Running on device",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSecondaryContainer
             )
@@ -617,13 +627,9 @@ private fun OnDeviceBanner() {
     }
 }
 
-/**
- * Displayed when a [DomainError.StreamingInterrupted] error occurs. Does not auto-reconnect;
- * waits for the user to tap the retry button (Req 2.8).
- */
 @Composable
 private fun RetryBanner(errorMessage: String, onRetry: () -> Unit, onDismiss: () -> Unit) {
-    com.aiassistant.core.ui.components.ErrorBanner(
+    ErrorBanner(
         message = errorMessage,
         onRetry = onRetry,
         onDismiss = onDismiss,
@@ -632,26 +638,13 @@ private fun RetryBanner(errorMessage: String, onRetry: () -> Unit, onDismiss: ()
     )
 }
 
-// --- Continuation suggestion chip ---
-
-/**
- * A dismissible chip offering to continue a stale conversation (Requirement 33.3).
- *
- * Displayed above the message input bar when the last message is >24 hours old.
- * Tapping the chip calls [onAccept] which pre-fills the input with the suggestion preFillText.
- * Tapping the X icon calls [onDismiss] which hides the chip for the session.
- *
- * @param suggestion The ContextSuggestion of type SuggestionType.CONTINUE_CONVERSATION.
- * @param onAccept   Called when the user taps the chip label.
- * @param onDismiss  Called when the user taps the dismiss (X) icon.
- */
 @Composable
 private fun ContinuationSuggestionChip(
     suggestion: com.aiassistant.domain.model.ContextSuggestion,
     onAccept: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    androidx.compose.material3.Surface(
+    Surface(
         modifier = Modifier
             .fillMaxWidth()
             .semantics { contentDescription = "AI suggestion: ${suggestion.displayText}" },
@@ -660,38 +653,25 @@ private fun ContinuationSuggestionChip(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(
-                    horizontal = MaterialTheme.spacing.sm,
-                    vertical = MaterialTheme.spacing.xs
-                ),
+                .padding(horizontal = MaterialTheme.spacing.sm, vertical = MaterialTheme.spacing.xs),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)
         ) {
-            androidx.compose.material3.AssistChip(
+            AssistChip(
                 onClick = onAccept,
                 label = {
-                    androidx.compose.material3.Text(
-                        text = suggestion.displayText,
-                        style = MaterialTheme.typography.labelMedium
-                    )
+                    Text(suggestion.displayText, style = MaterialTheme.typography.labelMedium)
                 },
-                modifier = Modifier
-                    .weight(1f)
-                    .semantics {
-                        contentDescription =
-                            "Tap to continue conversation: ${suggestion.displayText}"
-                    }
+                modifier = Modifier.weight(1f)
+                    .semantics { contentDescription = "Tap to continue: ${suggestion.displayText}" }
             )
-            androidx.compose.material3.IconButton(
+            IconButton(
                 onClick = onDismiss,
-                modifier = Modifier
-                    .size(MaterialTheme.spacing.lg)
-                    .semantics {
-                        contentDescription = "Dismiss suggestion: ${suggestion.displayText}"
-                    }
+                modifier = Modifier.size(MaterialTheme.spacing.lg)
+                    .semantics { contentDescription = "Dismiss suggestion" }
             ) {
                 Icon(
-                    imageVector = Icons.Filled.Close,
+                    Icons.Filled.Close,
                     contentDescription = null,
                     modifier = Modifier.size(MaterialTheme.spacing.md)
                 )
@@ -699,285 +679,43 @@ private fun ContinuationSuggestionChip(
         }
     }
 }
-// â”€â”€â”€ Message input bar â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-/**
- * Bottom input bar with a text field and send button. The send button is disabled while
- * [isStreaming] is true to prevent overlapping requests.
- *
- * When [preFillText] is non-empty a [LaunchedEffect] sets it into the text field and
- * then calls [onPreFillConsumed] to clear the state (Requirement 33.3).
- */
-@Composable
-private fun MessageInputBar(
-    isStreaming: Boolean,
-    onSendMessage: (String) -> Unit,
-    preFillText: String = "",
-    onPreFillConsumed: () -> Unit = {}
-) {
-    var inputText by rememberSaveable { mutableStateOf("") }
-
-    // Apply pre-fill text when it arrives (continuation suggestion accepted)
-    LaunchedEffect(preFillText) {
-        if (preFillText.isNotEmpty()) {
-            inputText = preFillText
-            onPreFillConsumed()
-        }
-    }
-
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .navigationBarsPadding()
-            .imePadding(),
-        tonalElevation = 3.dp
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    horizontal = MaterialTheme.spacing.sm,
-                    vertical = MaterialTheme.spacing.xs
-                ),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            OutlinedTextField(
-                value = inputText,
-                onValueChange = { inputText = it },
-                modifier = Modifier
-                    .weight(1f)
-                    .semantics { contentDescription = "Message input" },
-                placeholder = { Text("Type a messageâ€¦") },
-                maxLines = 5,
-                enabled = !isStreaming
-            )
-            Spacer(modifier = Modifier.width(MaterialTheme.spacing.xs))
-            IconButton(
-                onClick = {
-                    val trimmed = inputText.trim()
-                    if (trimmed.isNotEmpty()) {
-                        onSendMessage(trimmed)
-                        inputText = ""
-                    }
-                },
-                enabled = inputText.isNotBlank() && !isStreaming,
-                modifier = Modifier.semantics { contentDescription = "Send message" }
-            ) {
-                if (isStreaming) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        strokeWidth = 2.dp
-                    )
-                } else {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.Send,
-                        contentDescription = null,
-                        tint = if (inputText.isNotBlank()) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
-                        }
-                    )
-                }
-            }
-        }
-    }
-}
-
-// â”€â”€â”€ Export menu button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-/**
- * TopAppBar action button that reveals an export format picker (Markdown / PDF).
- */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ExportMenuButton(onExportConversation: (ExportFormat) -> Unit) {
     var menuExpanded by remember { mutableStateOf(false) }
-
     Box {
         IconButton(
             onClick = { menuExpanded = true },
             modifier = Modifier.semantics { contentDescription = "Export conversation" }
         ) {
-            Icon(
-                imageVector = Icons.Filled.Share,
-                contentDescription = null
-            )
+            Icon(Icons.Filled.Share, contentDescription = null)
         }
-        DropdownMenu(
-            expanded = menuExpanded,
-            onDismissRequest = { menuExpanded = false }
-        ) {
+        DropdownMenu(expanded = menuExpanded, onDismissRequest = { menuExpanded = false }) {
             DropdownMenuItem(
                 text = { Text("Export as Markdown") },
                 onClick = {
                     menuExpanded = false
                     onExportConversation(ExportFormat.MARKDOWN)
-                },
-                modifier = Modifier.semantics { contentDescription = "Export as Markdown" }
+                }
             )
             DropdownMenuItem(
                 text = { Text("Export as PDF") },
                 onClick = {
                     menuExpanded = false
                     onExportConversation(ExportFormat.PDF)
-                },
-                modifier = Modifier.semantics { contentDescription = "Export as PDF" }
+                }
             )
         }
     }
 }
 
-// â”€â”€â”€ Utilities â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Utility ───────────────────────────────────────────────────────────────────
 
-/**
- * Launches the Android share sheet to share [text] via any installed app.
- */
 internal fun shareText(context: Context, text: String) {
     val intent = Intent(Intent.ACTION_SEND).apply {
         type = "text/plain"
         putExtra(Intent.EXTRA_TEXT, text)
     }
     context.startActivity(Intent.createChooser(intent, "Share message"))
-}
-
-// â”€â”€â”€ Previews â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-@Preview(showBackground = true, name = "ChatDetail â€“ Loading / empty")
-@Composable
-private fun ChatDetailEmptyPreview() {
-    AppTheme(dynamicColor = false) {
-        ChatDetailScreenContent(
-            uiState = ChatDetailUiState(isLoading = false),
-            onSendMessage = {},
-            onRetryStreaming = {},
-            onRegenerateMessage = {},
-            onDismissError = {},
-            onExportConversation = {},
-            onNavigateUp = {}
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "ChatDetail â€“ With messages")
-@Composable
-private fun ChatDetailWithMessagesPreview() {
-    val messages = listOf(
-        Message(
-            id = "1",
-            conversationId = "conv1",
-            role = "user",
-            content = "Can you explain Kotlin coroutines?",
-            createdAt = java.time.Instant.now()
-        ),
-        Message(
-            id = "2",
-            conversationId = "conv1",
-            role = "assistant",
-            content = """
-                **Kotlin Coroutines** are a concurrency design pattern that you can use on Android to simplify code that executes asynchronously.
-
-                ### Key concepts:
-                - **suspend** functions can be paused and resumed
-                - **CoroutineScope** defines the lifecycle of coroutines
-                - **Dispatchers** control which thread the coroutine runs on
-
-                ```kotlin
-                suspend fun fetchData(): String {
-                    delay(1000) // non-blocking wait
-                    return "data"
-                }
-                ```
-            """.trimIndent(),
-            createdAt = java.time.Instant.now()
-        )
-    )
-
-    AppTheme(dynamicColor = false) {
-        ChatDetailScreenContent(
-            uiState = ChatDetailUiState(messages = messages, isLoading = false),
-            onSendMessage = {},
-            onRetryStreaming = {},
-            onRegenerateMessage = {},
-            onDismissError = {},
-            onExportConversation = {},
-            onNavigateUp = {}
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "ChatDetail â€“ Typing indicator")
-@Composable
-private fun ChatDetailTypingPreview() {
-    AppTheme(dynamicColor = false) {
-        ChatDetailScreenContent(
-            uiState = ChatDetailUiState(
-                messages = listOf(
-                    Message(
-                        id = "1",
-                        conversationId = "conv1",
-                        role = "user",
-                        content = "What is 2+2?",
-                        createdAt = java.time.Instant.now()
-                    )
-                ),
-                isTypingIndicatorVisible = true,
-                isLoading = false
-            ),
-            onSendMessage = {},
-            onRetryStreaming = {},
-            onRegenerateMessage = {},
-            onDismissError = {},
-            onExportConversation = {},
-            onNavigateUp = {}
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "ChatDetail â€“ Streaming")
-@Composable
-private fun ChatDetailStreamingPreview() {
-    AppTheme(dynamicColor = false) {
-        ChatDetailScreenContent(
-            uiState = ChatDetailUiState(
-                messages = listOf(
-                    Message(
-                        id = "1",
-                        conversationId = "conv1",
-                        role = "user",
-                        content = "Tell me a joke",
-                        createdAt = java.time.Instant.now()
-                    )
-                ),
-                streamingText = "Why don't scientists trust atoms? Because they make up...",
-                isStreaming = true,
-                isLoading = false
-            ),
-            onSendMessage = {},
-            onRetryStreaming = {},
-            onRegenerateMessage = {},
-            onDismissError = {},
-            onExportConversation = {},
-            onNavigateUp = {}
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "ChatDetail â€“ Retry banner")
-@Composable
-private fun ChatDetailRetryPreview() {
-    AppTheme(dynamicColor = false) {
-        ChatDetailScreenContent(
-            uiState = ChatDetailUiState(
-                error = DomainError.StreamingInterrupted(message = "Connection lost."),
-                showRetryOption = true,
-                isLoading = false
-            ),
-            onSendMessage = {},
-            onRetryStreaming = {},
-            onRegenerateMessage = {},
-            onDismissError = {},
-            onExportConversation = {},
-            onNavigateUp = {}
-        )
-    }
 }

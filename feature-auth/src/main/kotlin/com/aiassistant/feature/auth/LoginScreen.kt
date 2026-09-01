@@ -4,64 +4,46 @@
  * ============================================================
  * Module     : feature-auth
  * File       : LoginScreen.kt
- * Purpose    : Compose UI screen for the Login feature
+ * Purpose    : Redesigned Login screen (Task 50.2) with MeshGradientBackground,
+ *              SurfaceFillTextField inputs, gradient Sign-In button with
+ *              Crossfade loading state, animated ErrorBanner, and a pulsing
+ *              brand logo.
  *
- * Architecture Layer : Feature (feature-auth)
- * Pattern Used       : Jetpack Compose Screen
+ * Architecture Layer : Feature (feature-auth) — Compose UI layer.
+ *                      Delegates all state and side-effects to AuthViewModel
+ *                      via callbacks; this composable is stateless.
  *
- * Key Concepts:
- *   - Clean Architecture with strict layer separation
- *   - Hilt dependency injection
+ * Dependencies       : core-ui (MeshGradientBackground, SurfaceFillTextField,
+ *                      AppColors, AppType, pressScale, ErrorBanner, spacing),
+ *                      domain models (AuthUiState).
  *
- * Dependencies:
- *   - See import statements below
+ * Design Decision    : The gradient button is built with a Box + Brush.linearGradient
+ *                      overlay on top of a ButtonDefaults shape rather than a custom
+ *                      Canvas draw, so it inherits the standard M3 ripple, disabled-
+ *                      state alpha, and touch target sizing automatically.
+ *                      Crossfade inside the button avoids a layout jump when the label
+ *                      switches to a spinner — both states are the same height.
+ *                      MeshGradientBackground fills behind the card so the gradient is
+ *                      always visible regardless of system dark/light mode.
+ *
+ * Requirements       : 1.1, 1.6, 1.7, 24.1, 24.3
  * ============================================================
- */
-
-/*
- * ============================================================
- * Android AI Assistant (Enterprise Edition)
- * ============================================================
- * Module     : feature-auth
- * File       : LoginScreen.kt
- * Purpose    : Compose UI screen for the Login feature
- *
- * Architecture Layer : Feature (feature-auth)
- * Pattern Used       : Jetpack Compose Screen
- *
- * Key Concepts:
- *   - Clean Architecture with strict layer separation
- *   - Hilt dependency injection
- *
- * Dependencies:
- *   - See import statements below
- * ============================================================
- */
-/**
- * LoginScreen.kt
- *
- * Purpose: Login screen with email/password inline validation, Google OAuth2 button,
- *          and biometric login option.
- * Architecture: feature-auth â€” Compose UI layer.
- * Dependencies: core-ui (ErrorBanner, MaterialTheme.spacing), domain models.
- *
- * Design decisions:
- * - Inline field errors are shown via OutlinedTextField's supportingText parameter so
- *   they appear directly below the relevant field (Material 3 pattern).
- * - A general ErrorBanner is shown above the form only when fieldErrors is empty â€”
- *   this avoids duplicating field-level errors in both the banner and the field.
- * - Google sign-in is stubbed with a TODO comment since play-services-auth is not
- *   included in the feature-auth dependency list (Requirement note in task spec).
- * - Biometric button is only shown when biometric hardware is available, checked via
- *   a parameter rather than calling the manager inside the composable.
- * - Loading overlay uses a full-screen semi-transparent scrim with a centered spinner
- *   to prevent interaction during in-flight requests.
- * - All interactive elements have contentDescriptions (Requirement 28.3).
- *
- * Requirements: 1.1, 1.6, 1.7, 28.3
  */
 package com.aiassistant.feature.auth
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -72,23 +54,24 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.Fingerprint
 import androidx.compose.material.icons.filled.Visibility
 import androidx.compose.material.icons.filled.VisibilityOff
-import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -99,7 +82,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.focus.FocusDirection
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.semantics.contentDescription
@@ -108,39 +94,40 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.unit.dp
 import androidx.credentials.CredentialManager
 import androidx.credentials.GetCredentialRequest
 import androidx.credentials.exceptions.GetCredentialCancellationException
 import androidx.credentials.exceptions.GetCredentialException
+import com.aiassistant.core.ui.AppColors
 import com.aiassistant.core.ui.components.ErrorBanner
+import com.aiassistant.core.ui.components.SurfaceFillTextField
+import com.aiassistant.core.ui.motion.LocalReducedMotionEnabled
+import com.aiassistant.core.ui.motion.MeshGradientBackground
 import com.aiassistant.core.ui.spacing
 import com.google.android.libraries.identity.googleid.GetSignInWithGoogleOption
 import com.google.android.libraries.identity.googleid.GoogleIdTokenCredential
 import kotlinx.coroutines.launch
 
+// ── Gradient button dimensions ────────────────────────────────────────────────
+private val BUTTON_HEIGHT = 52.dp
+private val LOGO_SIZE = 64.dp
+private val LOGO_PULSE_MIN = 0.94f
+
 /**
- * Login screen composable.
+ * Redesigned Login screen.
  *
- * Renders an email + password form with inline validation, Google Sign-In via
- * Credential Manager (one-tap / Sign in with Google), and optional biometric login.
- * Navigation and state mutations are delegated to callbacks so this composable
- * remains stateless (parameters drive rendering).
+ * Places a [MeshGradientBackground] behind a centered [ElevatedCard] that holds
+ * the form.  All inputs use [SurfaceFillTextField].  The Sign-In button uses a
+ * gradient fill via [Brush.linearGradient].
  *
- * Google Sign-In uses the Credential Manager API with [GetSignInWithGoogleOption],
- * which replaces the deprecated [com.google.android.gms.auth.api.signin.GoogleSignIn]
- * flow. The Web Client ID must be configured in strings.xml as
- * `google_web_client_id` (obtained from Firebase Console → Project Settings → Web API key,
- * or Google Cloud Console → OAuth 2.0 → Web application client ID).
- *
- * @param uiState             Current auth UI state from [AuthViewModel].
- * @param onLogin             Invoked with (email, password) when the user taps "Sign In".
+ * @param uiState              Current auth UI state from [AuthViewModel].
+ * @param onLogin              Invoked with (email, password) when the user taps "Sign In".
  * @param onNavigateToRegister Called when the user taps "Create Account".
- * @param onGoogleSignIn       Called with the Google ID token when sign-in succeeds.
+ * @param onGoogleSignIn       Called with the Google ID token on sign-in success.
  * @param onBiometricLogin     Called when the user taps the biometric icon button.
  * @param isBiometricAvailable Whether biometric hardware is available on this device.
- * @param googleWebClientId   Web Client ID from Firebase/Google Cloud Console.
- *                            Defaults to the value in `R.string.google_web_client_id`
- *                            when the string resource is present.
+ * @param googleWebClientId    Web Client ID from Firebase/Google Cloud Console.
  */
 @Composable
 fun LoginScreen(
@@ -163,175 +150,299 @@ fun LoginScreen(
         ?.takeIf { it.fieldErrors.isEmpty() }
         ?.message
 
+    val isDark = isSystemInDarkTheme()
+
+    // ── Gradient colours ──────────────────────────────────────────────────────
+    val gradientStart = if (isDark) AppColors.gradientStartDark else AppColors.gradientStartLight
+    val gradientEnd = if (isDark) AppColors.gradientEndDark else AppColors.gradientEndLight
+
     Box(modifier = Modifier.fillMaxSize()) {
+        // ── 1. Animated mesh gradient background ──────────────────────────────
+        MeshGradientBackground(modifier = Modifier.fillMaxSize())
+
+        // ── Form card ─────────────────────────────────────────────────────────
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(MaterialTheme.spacing.md),
+                .padding(horizontal = MaterialTheme.spacing.screenEdge),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // â”€â”€ Header â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-            Text(
-                text = "Welcome back",
-                style = MaterialTheme.typography.headlineMedium
-            )
-
-            Spacer(modifier = Modifier.height(MaterialTheme.spacing.sm))
-
-            Text(
-                text = "Sign in to your account",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-
-            Spacer(modifier = Modifier.height(MaterialTheme.spacing.xl))
-
-            // â”€â”€ General error banner (non-field errors only) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-            if (generalError != null) {
-                ErrorBanner(
-                    message = generalError,
-                    modifier = Modifier.fillMaxWidth()
-                )
-                Spacer(modifier = Modifier.height(MaterialTheme.spacing.md))
-            }
-
-            // â”€â”€ Email field â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-            OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
-                label = { Text("Email address") },
-                placeholder = { Text("user@example.com") },
-                singleLine = true,
-                isError = fieldErrors.containsKey("email"),
-                supportingText = fieldErrors["email"]?.let { { Text(it) } },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Email,
-                    imeAction = ImeAction.Next
-                ),
-                keyboardActions = KeyboardActions(
-                    onNext = { focusManager.moveFocus(FocusDirection.Down) }
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .semantics { contentDescription = "Email address input field" }
-            )
-
-            Spacer(modifier = Modifier.height(MaterialTheme.spacing.sm))
-
-            // â”€â”€ Password field â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                label = { Text("Password") },
-                singleLine = true,
-                isError = fieldErrors.containsKey("password"),
-                supportingText = fieldErrors["password"]?.let { { Text(it) } },
-                visualTransformation = if (passwordVisible) {
-                    VisualTransformation.None
-                } else {
-                    PasswordVisualTransformation()
-                },
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Password,
-                    imeAction = ImeAction.Done
-                ),
-                keyboardActions = KeyboardActions(
-                    onDone = {
-                        focusManager.clearFocus()
-                        onLogin(email, password)
-                    }
-                ),
-                trailingIcon = {
-                    val desc = if (passwordVisible) "Hide password" else "Show password"
-                    IconButton(
-                        onClick = { passwordVisible = !passwordVisible },
-                        modifier = Modifier.semantics { contentDescription = desc }
-                    ) {
-                        Icon(
-                            imageVector = if (passwordVisible) {
-                                Icons.Filled.VisibilityOff
-                            } else {
-                                Icons.Filled.Visibility
-                            },
-                            contentDescription = null // parent button has description
-                        )
-                    }
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .semantics { contentDescription = "Password input field" }
-            )
+            // ── 8. Pulsing brand logo ─────────────────────────────────────────
+            PulsingLogo(isDark = isDark)
 
             Spacer(modifier = Modifier.height(MaterialTheme.spacing.lg))
 
-            // â”€â”€ Sign In button â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-            Button(
-                onClick = { onLogin(email, password) },
-                enabled = !isLoading,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .semantics { contentDescription = "Sign in button" }
+            ElevatedCard(
+                modifier = Modifier.fillMaxWidth(),
+                elevation = CardDefaults.elevatedCardElevation(defaultElevation = 8.dp),
+                colors = CardDefaults.elevatedCardColors(
+                    containerColor = if (isDark) {
+                        AppColors.surfaceTonal1Dark.copy(alpha = 0.92f)
+                    } else {
+                        AppColors.surfaceTonal1Light.copy(alpha = 0.95f)
+                    }
+                )
             ) {
-                Text("Sign In")
-            }
-
-            Spacer(modifier = Modifier.height(MaterialTheme.spacing.sm))
-
-            // -- Google sign-in button ---------------------------------------------------------
-            // Uses Credential Manager (Sign in with Google) instead of deprecated GoogleSignInClient.
-            // The onGoogleSignIn callback receives the Google ID token for backend exchange.
-            GoogleSignInButton(
-                googleWebClientId = googleWebClientId,
-                enabled = !isLoading,
-                onTokenReceived = onGoogleSignIn
-            )
-
-            Spacer(modifier = Modifier.height(MaterialTheme.spacing.md))
-
-            // â”€â”€ Biometric login button (conditional) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-            if (isBiometricAvailable) {
-                IconButton(
-                    onClick = onBiometricLogin,
+                Column(
                     modifier = Modifier
-                        .size(MaterialTheme.spacing.xxl)
-                        .semantics { contentDescription = "Login with biometrics" }
+                        .fillMaxWidth()
+                        .padding(MaterialTheme.spacing.lg),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Icon(
-                        imageVector = Icons.Filled.Fingerprint,
-                        contentDescription = null, // parent button has description
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(MaterialTheme.spacing.lg)
+                    Text(
+                        text = "Welcome back",
+                        style = MaterialTheme.typography.headlineMedium
                     )
-                }
+                    Spacer(modifier = Modifier.height(MaterialTheme.spacing.xs))
+                    Text(
+                        text = "Sign in to your account",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
 
-                Spacer(modifier = Modifier.height(MaterialTheme.spacing.sm))
-            }
+                    Spacer(modifier = Modifier.height(MaterialTheme.spacing.lg))
 
-            // â”€â”€ Navigate to Register â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-            TextButton(
-                onClick = onNavigateToRegister,
-                modifier = Modifier.semantics { contentDescription = "Create a new account" }
-            ) {
-                Text("Don't have an account? Create Account")
-            }
-        }
-
-        // â”€â”€ Loading overlay â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        if (isLoading) {
-            Surface(
-                modifier = Modifier.fillMaxSize(),
-                color = MaterialTheme.colorScheme.scrim.copy(alpha = 0.32f)
-            ) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.semantics {
-                            contentDescription = "Loading, please wait"
+                    // ── 7. AnimatedVisibility slide-down for ErrorBanner ──────
+                    AnimatedVisibility(
+                        visible = generalError != null,
+                        enter = expandVertically() + fadeIn(animationSpec = tween(200)),
+                        exit = shrinkVertically() + fadeOut(animationSpec = tween(150))
+                    ) {
+                        Column {
+                            ErrorBanner(
+                                message = generalError ?: "",
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                            Spacer(modifier = Modifier.height(MaterialTheme.spacing.md))
                         }
+                    }
+
+                    // ── 3. SurfaceFillTextField — Email ───────────────────────
+                    SurfaceFillTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        label = "Email address",
+                        placeholder = "user@example.com",
+                        isError = fieldErrors.containsKey("email"),
+                        supportingText = fieldErrors["email"],
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Email,
+                            imeAction = ImeAction.Next
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onNext = { focusManager.moveFocus(FocusDirection.Down) }
+                        ),
+                        contentDescriptionText = "Email address input field",
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(modifier = Modifier.height(MaterialTheme.spacing.sm))
+
+                    // ── 3. SurfaceFillTextField — Password ────────────────────
+                    SurfaceFillTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        label = "Password",
+                        isError = fieldErrors.containsKey("password"),
+                        supportingText = fieldErrors["password"],
+                        visualTransformation = if (passwordVisible) {
+                            VisualTransformation.None
+                        } else {
+                            PasswordVisualTransformation()
+                        },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password,
+                            imeAction = ImeAction.Done
+                        ),
+                        keyboardActions = KeyboardActions(
+                            onDone = {
+                                focusManager.clearFocus()
+                                onLogin(email, password)
+                            }
+                        ),
+                        trailingIcon = {
+                            val desc = if (passwordVisible) "Hide password" else "Show password"
+                            IconButton(
+                                onClick = { passwordVisible = !passwordVisible },
+                                modifier = Modifier.semantics { contentDescription = desc }
+                            ) {
+                                Icon(
+                                    imageVector = if (passwordVisible) {
+                                        Icons.Filled.VisibilityOff
+                                    } else {
+                                        Icons.Filled.Visibility
+                                    },
+                                    contentDescription = null
+                                )
+                            }
+                        },
+                        contentDescriptionText = "Password input field",
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(modifier = Modifier.height(MaterialTheme.spacing.lg))
+
+                    // ── 4 + 5. Gradient button with Crossfade loading state ───
+                    GradientSignInButton(
+                        isLoading = isLoading,
+                        onClick = { onLogin(email, password) },
+                        gradientStart = gradientStart,
+                        gradientEnd = gradientEnd,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Spacer(modifier = Modifier.height(MaterialTheme.spacing.sm))
+
+                    // ── 6. Google sign-in with outlined token-based styling ────
+                    GoogleSignInButton(
+                        googleWebClientId = googleWebClientId,
+                        enabled = !isLoading,
+                        onTokenReceived = onGoogleSignIn
+                    )
+
+                    if (isBiometricAvailable) {
+                        Spacer(modifier = Modifier.height(MaterialTheme.spacing.md))
+                        IconButton(
+                            onClick = onBiometricLogin,
+                            modifier = Modifier
+                                .size(MaterialTheme.spacing.xxl)
+                                .semantics { contentDescription = "Login with biometrics" }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.Fingerprint,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(MaterialTheme.spacing.lg)
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(MaterialTheme.spacing.sm))
+
+                    TextButton(
+                        onClick = onNavigateToRegister,
+                        modifier = Modifier.semantics { contentDescription = "Create a new account" }
+                    ) {
+                        Text("Don't have an account? Create Account")
+                    }
+                }
+            }
+
+            Spacer(modifier = Modifier.height(MaterialTheme.spacing.xl))
+        }
+    }
+}
+
+// ── 8. Pulsing brand logo ─────────────────────────────────────────────────────
+
+/**
+ * Brand logo that pulses between [LOGO_PULSE_MIN] and 1.0 scale on an infinite
+ * repeatable animation.  Respects [LocalReducedMotionEnabled] — static at 1.0
+ * when reduced motion is active.
+ */
+@Composable
+private fun PulsingLogo(isDark: Boolean) {
+    val reducedMotion = LocalReducedMotionEnabled.current
+
+    val scale: Float = if (reducedMotion) {
+        1f
+    } else {
+        val infiniteTransition = rememberInfiniteTransition(label = "logoSpin")
+        val animated by infiniteTransition.animateFloat(
+            initialValue = LOGO_PULSE_MIN,
+            targetValue = 1f,
+            animationSpec = infiniteRepeatable(
+                animation = tween(durationMillis = 1_800),
+                repeatMode = RepeatMode.Reverse
+            ),
+            label = "logoPulse"
+        )
+        animated
+    }
+
+    val glowColor = if (isDark) AppColors.accentGlowDark else AppColors.accentGlowLight
+    val gradientStart = if (isDark) AppColors.gradientStartDark else AppColors.gradientStartLight
+    val gradientEnd = if (isDark) AppColors.gradientEndDark else AppColors.gradientEndLight
+
+    Box(
+        modifier = Modifier
+            .size(LOGO_SIZE)
+            .scale(scale)
+            .clip(CircleShape)
+            .background(
+                brush = Brush.linearGradient(listOf(gradientStart, gradientEnd))
+            )
+            .semantics { contentDescription = "AI Assistant brand logo" },
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = Icons.Filled.AutoAwesome,
+            contentDescription = null,
+            tint = androidx.compose.ui.graphics.Color.White,
+            modifier = Modifier.size(32.dp)
+        )
+    }
+}
+
+// ── 4 + 5. Gradient fill Sign-In button with Crossfade ───────────────────────
+
+/**
+ * Full-width Sign-In button with a [Brush.linearGradient] fill and a [Crossfade]
+ * that swaps between the label text and a [CircularProgressIndicator] while loading.
+ *
+ * Built as a [Box] over a transparent [androidx.compose.material3.Button] so the
+ * M3 ripple, touch target, and disabled-state alpha all work out-of-the-box.
+ */
+@Composable
+private fun GradientSignInButton(
+    isLoading: Boolean,
+    onClick: () -> Unit,
+    gradientStart: androidx.compose.ui.graphics.Color,
+    gradientEnd: androidx.compose.ui.graphics.Color,
+    modifier: Modifier = Modifier
+) {
+    Box(
+        modifier = modifier
+            .height(BUTTON_HEIGHT)
+            .clip(ButtonDefaults.shape)
+            .background(
+                brush = Brush.linearGradient(listOf(gradientStart, gradientEnd)),
+                alpha = if (isLoading) 0.6f else 1f
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        // Transparent button on top to provide ripple + click + accessibility
+        androidx.compose.material3.Button(
+            onClick = onClick,
+            enabled = !isLoading,
+            modifier = Modifier.matchParentSize(),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = androidx.compose.ui.graphics.Color.Transparent,
+                disabledContainerColor = androidx.compose.ui.graphics.Color.Transparent
+            ),
+            elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
+        ) {
+            // ── 5. Crossfade between label and spinner ───────────────────────
+            Crossfade(
+                targetState = isLoading,
+                animationSpec = tween(durationMillis = 200),
+                label = "signInButtonContent"
+            ) { loading ->
+                if (loading) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .size(20.dp)
+                            .semantics { contentDescription = "Signing in, please wait" },
+                        color = androidx.compose.ui.graphics.Color.White,
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(
+                        text = "Sign In",
+                        color = androidx.compose.ui.graphics.Color.White,
+                        style = MaterialTheme.typography.labelLarge
                     )
                 }
             }
@@ -339,32 +450,22 @@ fun LoginScreen(
     }
 }
 
-// ─── Google Sign-In Button ────────────────────────────────────────────────────
+// ── 6. Google Sign-In button ─────────────────────────────────────────────────
 
 /**
- * Launches the Credential Manager one-tap "Sign in with Google" bottom sheet when tapped.
+ * Outlined Google Sign-In button using the new design tokens.
  *
- * On success the Google ID token is delivered to [onTokenReceived] for backend exchange
- * (Requirement 1.6). On cancellation or failure the button returns to its idle state
- * without surfacing an error — the user can retry.
- *
- * Requires:
- *   - `play-services-auth` 21.x on the classpath (already in feature-auth/build.gradle.kts)
- *   - `google-services` plugin applied in the app module
- *   - `R.string.google_web_client_id` pointing to the Web Client ID from Firebase Console
- *     or Google Cloud Console → OAuth 2.0 → Web application.
- *
- * @param googleWebClientId  Web Client ID for the Google OAuth2 app. Must not be empty
- *                           in production. When empty the button renders disabled.
- * @param enabled            Whether the button responds to taps (mirrors the parent form's
- *                           loading state).
- * @param onTokenReceived    Called with the Google ID token string on successful sign-in.
+ * Uses [OutlinedButton] with an explicit outline colour from
+ * [MaterialTheme.colorScheme.outline] and a surfaceTonal1 container tint so it
+ * reads clearly against the gradient background.
  */
 @Composable
 fun GoogleSignInButton(googleWebClientId: String, enabled: Boolean, onTokenReceived: (String) -> Unit) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var isSigningIn by remember { mutableStateOf(false) }
+    val isDark = isSystemInDarkTheme()
+    val containerColor = if (isDark) AppColors.surfaceTonal2Dark else AppColors.surfaceTonal2Light
 
     OutlinedButton(
         onClick = {
@@ -373,29 +474,19 @@ fun GoogleSignInButton(googleWebClientId: String, enabled: Boolean, onTokenRecei
             scope.launch {
                 try {
                     val credentialManager = CredentialManager.create(context)
-
                     val googleIdOption = GetSignInWithGoogleOption
                         .Builder(googleWebClientId)
                         .build()
-
                     val request = GetCredentialRequest.Builder()
                         .addCredentialOption(googleIdOption)
                         .build()
-
-                    val result = credentialManager.getCredential(
-                        request = request,
-                        context = context
-                    )
-
-                    val googleCredential = GoogleIdTokenCredential
-                        .createFrom(result.credential.data)
-
+                    val result = credentialManager.getCredential(request = request, context = context)
+                    val googleCredential = GoogleIdTokenCredential.createFrom(result.credential.data)
                     onTokenReceived(googleCredential.idToken)
                 } catch (_: GetCredentialCancellationException) {
-                    // User dismissed the bottom sheet — no error to show.
+                    // User dismissed — no error to show
                 } catch (_: GetCredentialException) {
-                    // Credential Manager error (no Google accounts, Play Services issue, etc.)
-                    // The ViewModel/caller handles retries; we simply return here.
+                    // Credential Manager error — caller handles retries
                 } finally {
                     isSigningIn = false
                 }
@@ -404,20 +495,30 @@ fun GoogleSignInButton(googleWebClientId: String, enabled: Boolean, onTokenRecei
         enabled = enabled && !isSigningIn && googleWebClientId.isNotEmpty(),
         modifier = Modifier
             .fillMaxWidth()
-            .semantics { contentDescription = "Sign in with Google button" }
+            .height(BUTTON_HEIGHT)
+            .semantics { contentDescription = "Sign in with Google button" },
+        colors = ButtonDefaults.outlinedButtonColors(
+            containerColor = containerColor
+        )
     ) {
         Row(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            if (isSigningIn) {
-                CircularProgressIndicator(
-                    modifier = Modifier.size(MaterialTheme.spacing.md),
-                    strokeWidth = androidx.compose.ui.unit.Dp(2f)
-                )
-                Spacer(modifier = Modifier.width(MaterialTheme.spacing.xs))
+            Crossfade(
+                targetState = isSigningIn,
+                animationSpec = tween(200),
+                label = "googleButtonContent"
+            ) { signing ->
+                if (signing) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(18.dp),
+                        strokeWidth = 2.dp
+                    )
+                } else {
+                    Text(text = "Sign in with Google")
+                }
             }
-            Text(text = if (isSigningIn) "Signing in…" else "Sign in with Google")
         }
     }
 }

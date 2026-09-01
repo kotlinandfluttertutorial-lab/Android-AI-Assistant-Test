@@ -4,57 +4,28 @@
  * ============================================================
  * Module     : feature-rag
  * File       : DocumentListScreen.kt
- * Purpose    : Compose UI screen for the DocumentList feature
+ * Purpose    : Redesigned RAG document list (Task 50.5) with StorageSummaryCard,
+ *              per-document SwipeRevealLayout + AnimatedContent status badges,
+ *              M3 LinearProgressIndicator storage meter, and surfaceTonal1 cards.
  *
- * Architecture Layer : Feature (feature-rag)
- * Pattern Used       : Jetpack Compose Screen
+ * Architecture Layer : Feature (feature-rag) — Compose UI layer.
+ *                      State driven by RAGViewModel.
  *
- * Key Concepts:
- *   - Clean Architecture with strict layer separation
- *   - Hilt dependency injection
+ * Dependencies       : core-ui (AppColors, SwipeRevealLayout, OfflineBanner,
+ *                      ErrorBanner, LoadingIndicator, AppType, spacing, elevation),
+ *                      domain (Document, IngestionStatus).
  *
- * Dependencies:
- *   - See import statements below
+ * Requirements       : 4.1, 27.2, 27.5
  * ============================================================
- */
-
-/*
- * ============================================================
- * Android AI Assistant (Enterprise Edition)
- * ============================================================
- * Module     : feature-rag
- * File       : DocumentListScreen.kt
- * Purpose    : Compose UI screen for the DocumentList feature
- *
- * Architecture Layer : Feature (feature-rag)
- * Pattern Used       : Jetpack Compose Screen
- *
- * Key Concepts:
- *   - Clean Architecture with strict layer separation
- *   - Hilt dependency injection
- *
- * Dependencies:
- *   - See import statements below
- * ============================================================
- */
-/**
- * DocumentListScreen.kt
- *
- * Purpose: Jetpack Compose screen displaying the paginated list of RAG documents with
- *          per-document ingestion status badges, an FAB to open the file picker sheet,
- *          and an offline banner.
- * Architecture: feature-rag â€” Compose UI layer; state driven by [RAGViewModel].
- * Dependencies: Compose Material 3, Paging 3 Compose, Hilt Navigation Compose,
- *               core-ui (AppTheme, OfflineBanner, ErrorBanner, LoadingIndicator)
- *
- * Requirements: 4.1, 27.2, 27.5
  */
 package com.aiassistant.feature.rag
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -65,11 +36,15 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.FolderOff
+import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.SnackbarHost
@@ -90,33 +65,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.paging.LoadState
-import androidx.paging.PagingData
 import androidx.paging.compose.LazyPagingItems
 import androidx.paging.compose.collectAsLazyPagingItems
-import com.aiassistant.core.ui.AppTheme
+import com.aiassistant.core.ui.AppColors
+import com.aiassistant.core.ui.AppType
 import com.aiassistant.core.ui.components.ErrorBanner
 import com.aiassistant.core.ui.components.LoadingIndicator
 import com.aiassistant.core.ui.components.LoadingIndicatorStyle
 import com.aiassistant.core.ui.components.OfflineBanner
+import com.aiassistant.core.ui.elevation
 import com.aiassistant.core.ui.spacing
 import com.aiassistant.domain.model.Document
-import com.aiassistant.domain.model.IngestionStatus
-import kotlinx.coroutines.flow.flowOf
 
-// â”€â”€â”€ Screen entry point â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Max storage limit shown in the progress meter (50 MB × 20 docs) ──────────
+private const val STORAGE_SOFT_LIMIT_BYTES = 50L * 1024 * 1024 * 20
 
-/**
- * Stateful entry point for the Document List screen. Collects state from [RAGViewModel]
- * and delegates rendering to the stateless overload.
- *
- * @param viewModel           The Hilt-provided [RAGViewModel].
- * @param onDocumentClick     Callback invoked when the user taps a document row (navigates
- *                            to DocumentChat).
- */
+// ── Screen entry point ────────────────────────────────────────────────────────
+
 @Composable
 fun DocumentListScreen(viewModel: RAGViewModel, onDocumentClick: (String) -> Unit) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -134,12 +102,8 @@ fun DocumentListScreen(viewModel: RAGViewModel, onDocumentClick: (String) -> Uni
     )
 }
 
-// â”€â”€â”€ Stateless screen â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Stateless screen ──────────────────────────────────────────────────────────
 
-/**
- * Stateless Document List screen. All state is passed in; side-effects are communicated
- * via callbacks.
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun DocumentListScreenContent(
@@ -156,17 +120,11 @@ internal fun DocumentListScreenContent(
     var pendingDeleteId by remember { mutableStateOf<String?>(null) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
-    // Show a snackbar when upload completes or errors.
     LaunchedEffect(uiState) {
         when (uiState) {
-            is RAGUiState.UploadSuccess -> {
-                snackbarHostState.showSnackbar(
-                    "\"${uiState.document.fileName}\" uploaded â€” ingestion in progress."
-                )
-            }
+            is RAGUiState.UploadSuccess ->
+                snackbarHostState.showSnackbar("\"${uiState.document.fileName}\" uploaded — ingestion in progress.")
             is RAGUiState.UploadError -> {
-                // Inline error is also shown in the sheet. This snackbar handles the case
-                // where the sheet has already been dismissed.
                 if (!showFilePickerSheet) {
                     snackbarHostState.showSnackbar(uiState.message)
                     onClearUploadError()
@@ -179,12 +137,7 @@ internal fun DocumentListScreenContent(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Text(
-                        text = "Documents",
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                },
+                title = { Text("Documents", style = MaterialTheme.typography.titleLarge) },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface
                 )
@@ -193,14 +146,9 @@ internal fun DocumentListScreenContent(
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showFilePickerSheet = true },
-                modifier = Modifier.semantics {
-                    contentDescription = "Upload a new document"
-                }
+                modifier = Modifier.semantics { contentDescription = "Upload a new document" }
             ) {
-                Icon(
-                    imageVector = Icons.Filled.Add,
-                    contentDescription = null
-                )
+                Icon(Icons.Filled.Add, contentDescription = null)
             }
         },
         snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
@@ -210,50 +158,52 @@ internal fun DocumentListScreenContent(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            // â”€â”€ Persistent offline banner â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            // ── Persistent offline banner ─────────────────────────────────
             if (isOffline) {
                 OfflineBanner(modifier = Modifier.fillMaxWidth())
             }
 
-            // â”€â”€ Body â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            // ── Storage summary card (Task 50.5) ──────────────────────────
+            StorageSummaryCard(
+                pagedDocuments = pagedDocuments,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        horizontal = MaterialTheme.spacing.md,
+                        vertical = MaterialTheme.spacing.xs
+                    )
+            )
+
+            // ── Body ──────────────────────────────────────────────────────
             when (uiState) {
                 is RAGUiState.Loading -> LoadingContent()
                 is RAGUiState.Error -> ErrorContent(
                     message = uiState.message,
-                    onRetry = null // Refresh handled by Paging 3
+                    onRetry = null
                 )
                 else -> {
-                    // DocumentList, UploadInProgress, UploadSuccess, UploadError â€”
-                    // all show the paged document list as the background.
                     PagedDocumentList(
                         pagedDocuments = pagedDocuments,
                         onDocumentClick = onDocumentClick,
-                        onDeleteRequest = { documentId ->
-                            pendingDeleteId = documentId
-                        }
+                        onDeleteRequest = { pendingDeleteId = it }
                     )
                 }
             }
         }
     }
 
-    // â”€â”€ File picker bottom sheet â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (showFilePickerSheet) {
         FilePickerBottomSheet(
             uiState = uiState,
-            onUpload = { uri, fileName, mimeType, sizeBytes ->
-                onUploadDocument(uri, fileName, mimeType, sizeBytes)
-            },
+            onUpload = onUploadDocument,
             onDismiss = {
                 showFilePickerSheet = false
-                // If there was an upload error in the sheet, clear it when the sheet closes.
                 if (uiState is RAGUiState.UploadError) onClearUploadError()
             },
             sheetState = sheetState
         )
     }
 
-    // â”€â”€ Delete confirmation dialog â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
     if (pendingDeleteId != null) {
         DeleteDocumentDialog(
             onConfirm = {
@@ -265,11 +215,88 @@ internal fun DocumentListScreenContent(
     }
 }
 
-// â”€â”€â”€ List components â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Storage summary card ──────────────────────────────────────────────────────
 
 /**
- * Paged [LazyColumn] of [DocumentItem] composables backed by [LazyPagingItems].
+ * Card showing total document count and a [LinearProgressIndicator] storage meter.
+ *
+ * The meter fills relative to [STORAGE_SOFT_LIMIT_BYTES] (20 × 50 MB = 1 GB).
+ * Once the total exceeds 80% of the limit the indicator turns amber; above 100% it
+ * turns red.  These thresholds are visual only — the backend enforces per-file limits.
  */
+@Composable
+private fun StorageSummaryCard(pagedDocuments: LazyPagingItems<Document>, modifier: Modifier = Modifier) {
+    val isDark = isSystemInDarkTheme()
+    val cardColor = if (isDark) AppColors.surfaceTonal1Dark else AppColors.surfaceTonal1Light
+
+    // Compute totals from the current loaded items
+    val totalDocs = pagedDocuments.itemCount
+    val totalBytes = (0 until totalDocs).sumOf { idx ->
+        pagedDocuments.peek(idx)?.sizeBytes ?: 0L
+    }
+    val fraction = (totalBytes.toFloat() / STORAGE_SOFT_LIMIT_BYTES).coerceIn(0f, 1f)
+
+    val barColor = when {
+        fraction > 1f -> if (isDark) AppColors.ragRedDark else AppColors.ragRedLight
+        fraction > 0.8f -> if (isDark) AppColors.ragAmberDark else AppColors.ragAmberLight
+        else -> MaterialTheme.colorScheme.primary
+    }
+
+    ElevatedCard(
+        modifier = modifier.semantics {
+            contentDescription = "$totalDocs documents, ${totalBytes.formatFileSize()} used"
+        },
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = MaterialTheme.elevation.low),
+        colors = CardDefaults.elevatedCardColors(containerColor = cardColor)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = MaterialTheme.spacing.md, vertical = MaterialTheme.spacing.sm)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Storage,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Text(
+                        text = "$totalDocs document${if (totalDocs != 1) "s" else ""}",
+                        style = MaterialTheme.typography.bodyMedium
+                    )
+                }
+                Text(
+                    text = "${totalBytes.formatFileSize()} used",
+                    style = AppType.sectionLabel,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            Spacer(Modifier.height(MaterialTheme.spacing.xs))
+            LinearProgressIndicator(
+                progress = { fraction },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics {
+                        contentDescription =
+                            "${(fraction * 100).toInt()}% of recommended storage used"
+                    },
+                color = barColor
+            )
+        }
+    }
+}
+
+// ── Paged list ────────────────────────────────────────────────────────────────
+
 @Composable
 private fun PagedDocumentList(
     pagedDocuments: LazyPagingItems<Document>,
@@ -278,9 +305,7 @@ private fun PagedDocumentList(
 ) {
     when {
         pagedDocuments.loadState.refresh is LoadState.Loading &&
-            pagedDocuments.itemCount == 0 -> {
-            LoadingContent()
-        }
+            pagedDocuments.itemCount == 0 -> LoadingContent()
         pagedDocuments.loadState.refresh is LoadState.Error -> {
             val error = pagedDocuments.loadState.refresh as LoadState.Error
             ErrorContent(
@@ -289,9 +314,7 @@ private fun PagedDocumentList(
             )
         }
         pagedDocuments.itemCount == 0 &&
-            pagedDocuments.loadState.refresh is LoadState.NotLoading -> {
-            EmptyContent()
-        }
+            pagedDocuments.loadState.refresh is LoadState.NotLoading -> EmptyContent()
         else -> {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
@@ -303,9 +326,9 @@ private fun PagedDocumentList(
             ) {
                 items(
                     count = pagedDocuments.itemCount,
-                    key = { index -> pagedDocuments.peek(index)?.id ?: "null:$index" }
-                ) { index ->
-                    pagedDocuments[index]?.let { document ->
+                    key = { idx -> pagedDocuments.peek(idx)?.id ?: "null:$idx" }
+                ) { idx ->
+                    pagedDocuments[idx]?.let { document ->
                         DocumentItem(
                             document = document,
                             onDocumentClick = onDocumentClick,
@@ -314,32 +337,23 @@ private fun PagedDocumentList(
                     }
                 }
 
-                // Append loading indicator while fetching the next page.
                 if (pagedDocuments.loadState.append is LoadState.Loading) {
                     item {
                         Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(MaterialTheme.spacing.md),
+                            Modifier.fillMaxWidth().padding(MaterialTheme.spacing.md),
                             contentAlignment = Alignment.Center
                         ) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(24.dp)
-                            )
+                            CircularProgressIndicator(modifier = Modifier.size(24.dp))
                         }
                     }
                 }
-
-                // Append error row for next-page failures.
                 if (pagedDocuments.loadState.append is LoadState.Error) {
                     item {
                         val error = pagedDocuments.loadState.append as LoadState.Error
                         ErrorBanner(
-                            message = error.error.localizedMessage ?: "Failed to load more documents.",
+                            message = error.error.localizedMessage ?: "Failed to load more.",
                             onRetry = { pagedDocuments.retry() },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = MaterialTheme.spacing.md)
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = MaterialTheme.spacing.md)
                         )
                     }
                 }
@@ -348,14 +362,11 @@ private fun PagedDocumentList(
     }
 }
 
-// â”€â”€â”€ Content state placeholders â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Content placeholders ──────────────────────────────────────────────────────
 
 @Composable
 private fun LoadingContent() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
-    ) {
+    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         LoadingIndicator(
             style = LoadingIndicatorStyle.CIRCULAR,
             contentDescription = "Loading documents"
@@ -366,25 +377,17 @@ private fun LoadingContent() {
 @Composable
 private fun ErrorContent(message: String, onRetry: (() -> Unit)?) {
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(MaterialTheme.spacing.md),
+        Modifier.fillMaxSize().padding(MaterialTheme.spacing.md),
         contentAlignment = Alignment.Center
     ) {
-        ErrorBanner(
-            message = message,
-            onRetry = onRetry,
-            modifier = Modifier.fillMaxWidth()
-        )
+        ErrorBanner(message = message, onRetry = onRetry, modifier = Modifier.fillMaxWidth())
     }
 }
 
 @Composable
 private fun EmptyContent() {
     Box(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(MaterialTheme.spacing.md),
+        Modifier.fillMaxSize().padding(MaterialTheme.spacing.md),
         contentAlignment = Alignment.Center
     ) {
         Column(
@@ -397,14 +400,14 @@ private fun EmptyContent() {
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.size(64.dp)
             )
-            Spacer(modifier = Modifier.height(MaterialTheme.spacing.xs))
+            Spacer(Modifier.height(MaterialTheme.spacing.xs))
             Text(
-                text = "No documents yet",
+                "No documents yet",
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
-                text = "Tap + to upload a PDF, DOCX, TXT, or Markdown file.",
+                "Tap + to upload a PDF, DOCX, TXT, or Markdown file.",
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -412,7 +415,7 @@ private fun EmptyContent() {
     }
 }
 
-// â”€â”€â”€ Dialogs â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Delete dialog ─────────────────────────────────────────────────────────────
 
 @Composable
 private fun DeleteDocumentDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
@@ -421,7 +424,7 @@ private fun DeleteDocumentDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
         title = { Text("Delete Document") },
         text = {
             Text(
-                text = "Delete this document? All associated data will be permanently removed from the RAG index.",
+                "Delete this document? All associated data will be permanently removed from the RAG index.",
                 style = MaterialTheme.typography.bodyMedium
             )
         },
@@ -430,10 +433,7 @@ private fun DeleteDocumentDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
                 onClick = onConfirm,
                 modifier = Modifier.semantics { contentDescription = "Confirm delete document" }
             ) {
-                Text(
-                    text = "Delete",
-                    color = MaterialTheme.colorScheme.error
-                )
+                Text("Delete", color = MaterialTheme.colorScheme.error)
             }
         },
         dismissButton = {
@@ -445,128 +445,4 @@ private fun DeleteDocumentDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
             }
         }
     )
-}
-
-// â”€â”€â”€ Previews â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-
-private val previewDocuments = listOf(
-    Document(
-        id = "1",
-        userId = "u1",
-        fileName = "annual_report.pdf",
-        mimeType = "application/pdf",
-        sizeBytes = 4_567_890L,
-        ingestionStatus = IngestionStatus.READY,
-        pageCount = 24,
-        createdAt = System.currentTimeMillis() - 86_400_000L
-    ),
-    Document(
-        id = "2",
-        userId = "u1",
-        fileName = "product_spec.docx",
-        mimeType = "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        sizeBytes = 987_654L,
-        ingestionStatus = IngestionStatus.PROCESSING,
-        jobId = "job-abc",
-        createdAt = System.currentTimeMillis() - 3_600_000L
-    ),
-    Document(
-        id = "3",
-        userId = "u1",
-        fileName = "notes.md",
-        mimeType = "text/markdown",
-        sizeBytes = 23_456L,
-        ingestionStatus = IngestionStatus.PENDING,
-        jobId = "job-xyz",
-        createdAt = System.currentTimeMillis()
-    ),
-    Document(
-        id = "4",
-        userId = "u1",
-        fileName = "broken.pdf",
-        mimeType = "application/pdf",
-        sizeBytes = 1_234L,
-        ingestionStatus = IngestionStatus.FAILED,
-        createdAt = System.currentTimeMillis() - 172_800_000L
-    )
-)
-
-@Preview(showBackground = true, name = "DocumentList â€“ Success")
-@Composable
-private fun DocumentListSuccessPreview() {
-    AppTheme(dynamicColor = false) {
-        DocumentListScreenContent(
-            uiState = RAGUiState.DocumentList(isOffline = false),
-            isOffline = false,
-            pagedDocuments = flowOf(PagingData.from(previewDocuments)).collectAsLazyPagingItems(),
-            onDocumentClick = {},
-            onDeleteDocument = {},
-            onUploadDocument = { _, _, _, _ -> },
-            onClearUploadError = {}
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "DocumentList â€“ Offline")
-@Composable
-private fun DocumentListOfflinePreview() {
-    AppTheme(dynamicColor = false) {
-        DocumentListScreenContent(
-            uiState = RAGUiState.DocumentList(isOffline = true),
-            isOffline = true,
-            pagedDocuments = flowOf(PagingData.from(previewDocuments)).collectAsLazyPagingItems(),
-            onDocumentClick = {},
-            onDeleteDocument = {},
-            onUploadDocument = { _, _, _, _ -> },
-            onClearUploadError = {}
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "DocumentList â€“ Empty")
-@Composable
-private fun DocumentListEmptyPreview() {
-    AppTheme(dynamicColor = false) {
-        DocumentListScreenContent(
-            uiState = RAGUiState.DocumentList(isOffline = false),
-            isOffline = false,
-            pagedDocuments = flowOf(PagingData.empty<Document>()).collectAsLazyPagingItems(),
-            onDocumentClick = {},
-            onDeleteDocument = {},
-            onUploadDocument = { _, _, _, _ -> },
-            onClearUploadError = {}
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "DocumentList â€“ Loading")
-@Composable
-private fun DocumentListLoadingPreview() {
-    AppTheme(dynamicColor = false) {
-        DocumentListScreenContent(
-            uiState = RAGUiState.Loading,
-            isOffline = false,
-            pagedDocuments = flowOf(PagingData.empty<Document>()).collectAsLazyPagingItems(),
-            onDocumentClick = {},
-            onDeleteDocument = {},
-            onUploadDocument = { _, _, _, _ -> },
-            onClearUploadError = {}
-        )
-    }
-}
-
-@Preview(showBackground = true, name = "DocumentList â€“ Error")
-@Composable
-private fun DocumentListErrorPreview() {
-    AppTheme(dynamicColor = false) {
-        DocumentListScreenContent(
-            uiState = RAGUiState.Error("Failed to load documents. Please try again."),
-            isOffline = false,
-            pagedDocuments = flowOf(PagingData.empty<Document>()).collectAsLazyPagingItems(),
-            onDocumentClick = {},
-            onDeleteDocument = {},
-            onUploadDocument = { _, _, _, _ -> },
-            onClearUploadError = {}
-        )
-    }
 }

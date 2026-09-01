@@ -33,6 +33,11 @@ android {
     }
 }
 
+// ─── JUnit 5 (Kotest runner) ─────────────────────────────────────────────────
+tasks.withType<Test> {
+    useJUnitPlatform()
+}
+
 // ─── Dependency rule enforcement ─────────────────────────────────────────────
 // core-ui MUST NOT depend on feature, data, or domain modules.
 configurations.all {
@@ -82,6 +87,8 @@ dependencies {
     // Testing
     testImplementation(libs.junit)
     testImplementation(libs.mockk)
+    // Kotest assertions/specs used by core-ui unit tests
+    testImplementation(libs.bundles.kotest)
     androidTestImplementation(platform(libs.compose.bom))
     androidTestImplementation(libs.compose.ui.test.junit4)
     androidTestImplementation(libs.junit.ext)

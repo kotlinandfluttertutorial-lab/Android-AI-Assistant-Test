@@ -289,3 +289,44 @@ fun provideWsBaseUrl(): String =
 - [ ] `isRunningOnDevice` set from `provider == ON_DEVICE_PROVIDER_ID`
 - [ ] JWT read from `SecureStorage`, never hard-coded in production paths
 - [ ] `collectAsStateWithLifecycle()` used in the Screen composable
+
+---
+
+## Pre-Push CI Gate
+
+Every change to streaming code must pass all checks in `pre-push-check.ps1` before
+pushing. Run from the repo root:
+
+```powershell
+.\pre-push-check.ps1
+```
+
+Exit `0` = safe to push. Exit `1` = fix failures first.
+
+### Checks that streaming changes commonly affect
+
+| Check | What to watch for in streaming code |
+|-------|-------------------------------------|
+| **ktlint** | Auto-fix with `./gradlew ktlintFormat` before committing |
+| **Detekt** | `LongFunction` in `startStreaming()` — keep it under 60 lines; extract `handleEvent()` helper |
+| **Detekt** | `MagicNumber` — extract reconnect constants (`MAX_RETRY_ATTEMPTS = 5`, `BASE_BACKOFF_MS = 1000L`) |
+| **Android Unit Tests** | New `ViewModel` changes require updated `StateFlow` emission tests via Turbine |
+| **Android Lint** | `ContentDescription` on every streaming-status icon/indicator composable |
+
+### Run only Android checks (skip backend) when editing Kotlin only
+
+```powershell
+.\pre-push-check.ps1 -SkipBackend -SkipSecurity
+```
+
+### JaCoCo coverage gate (≥ 70% combined `domain` + `data`)
+
+Streaming `UseCase` and `Repository` changes in `:domain` / `:data` affect coverage.
+Check before pushing:
+
+```powershell
+./gradlew :domain:jacocoTestReport :data:jacocoTestReport
+# Open domain/build/reports/jacoco/jacocoTestReport/html/index.html
+```
+
+See `.kiro/skills/pre-push-cicd-checks.md` for full fix guides for every check.

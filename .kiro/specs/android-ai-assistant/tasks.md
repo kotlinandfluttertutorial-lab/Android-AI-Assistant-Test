@@ -865,6 +865,12 @@ Implementation follows Clean Architecture from the ground up: core modules first
       "description": "On-Device RAG — database entities, engine components, domain layer, feature module, property tests, documentation",
       "tasks": ["44", "45", "46", "47", "48", "49"],
       "dependsOn": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "43"]
+    },
+    {
+      "wave": 12,
+      "description": "UI Redesign",
+      "tasks": ["50"],
+      "dependsOn": ["3", "11", "12", "14", "21", "20.5"]
     }
   ]
 }
@@ -1998,7 +2004,7 @@ When `LocalReducedMotionEnabled.current == true`:
 
 > These are the actionable sub-tasks for the redesign. Each maps to one or more of the screen specs above.
 
-- [ ] 50.1 Extend `core-ui` design tokens
+- [x] 50.1 Extend `core-ui` design tokens
   - Add `surfaceTonal1/2/3`, `accentGlow`, `gradientStart/End`, `ragAmber/Green/Red`, `ticketOpen/InProgress/Closed/Urgent` color tokens to `Color.kt` and both color schemes
   - Add `Elevation.kt` with 6-tier elevation constants
   - Add `screenEdge` spacing token to `Spacing.kt`
@@ -2007,7 +2013,7 @@ When `LocalReducedMotionEnabled.current == true`:
   - Add `pressScale` modifier extension to a new `core-ui/motion/Modifiers.kt`
   - _Requirements: 24.1, 24.2, 24.3_
 
-- [ ] 50.2 Redesign Login Screen
+- [x] 50.2 Redesign Login Screen
   - Replace static background with `MeshGradientBackground` composable
   - Replace `OutlinedTextField` instances with new `SurfaceFillTextField` composable (add to `core-ui/components/`)
   - Replace plain `Button` with gradient-fill button (using `Brush.linearGradient` modifier pattern)
@@ -2017,7 +2023,7 @@ When `LocalReducedMotionEnabled.current == true`:
   - Add brand logo `pulseScale` animation
   - _Requirements: 1.1, 1.6, 1.7, 24.1, 24.3_
 
-- [ ] 50.3 Redesign Home Dashboard with new `HomeDashboardViewModel`
+- [x] 50.3 Redesign Home Dashboard with new `HomeDashboardViewModel`
   - Create `HomeDashboardViewModel` (Hilt) exposing `userName`, `recentConversations` (max 3), `todayDate`
   - Add hero "Ask AI" card with gradient accent stripe and navigation to new `ChatDetail`
   - Replace `LazyVerticalGrid` feature cards with redesigned `FeatureCard` composable using new tokens and `pressScale` modifier
@@ -2029,7 +2035,7 @@ When `LocalReducedMotionEnabled.current == true`:
   - Apply navigation transitions via `AppTransition` in root `NavHost`
   - _Requirements: 19.1, 24.1, 24.2_
 
-- [ ] 50.4 Redesign Chat Screens
+- [x] 50.4 Redesign Chat Screens
   - Replace `OutlinedTextField` search with M3 `SearchBar` in `ChatListScreen`
   - Add `SwipeRevealLayout` composable (new, in `core-ui/components/`) for swipe-to-action on list rows
   - Extend `ChatBubble` in `core-ui` with asymmetric corner radii, provider avatar, long-press action callback
@@ -2039,7 +2045,7 @@ When `LocalReducedMotionEnabled.current == true`:
   - Integrate `SharedTransitionLayout` hero transition from Home hero card to `ChatDetailScreen`
   - _Requirements: 2.1, 2.2, 2.5, 24.1, 24.3_
 
-- [ ] 50.5 Redesign RAG Search Screens
+- [x] 50.5 Redesign RAG Search Screens
   - Add `StorageSummaryCard` to `DocumentListScreen` showing document count + storage `LinearProgressIndicator`
   - Replace `DocumentCard` styling with new token-based design (status badge colors, `SwipeRevealLayout` delete)
   - Animate status badge transitions with `AnimatedContent`
@@ -2047,7 +2053,7 @@ When `LocalReducedMotionEnabled.current == true`:
   - Add blockquote styling to assistant bubbles in `DocumentChatScreen` (4dp left-border Box overlay)
   - _Requirements: 4.1, 4.6, 4.7, 24.1_
 
-- [ ] 50.6 Redesign Profile Screen
+- [x] 50.6 Redesign Profile Screen
   - Redesign avatar section with gradient fill, `ElevatedCard` shape, edit badge
   - Add account tier chip (`Premium` / `Free` `SuggestionChip`)
   - Build `MemorySummaryCard` with `FlowRow` chip layout and `SharedTransitionLayout` hero to `MemoryListScreen`
@@ -2055,7 +2061,7 @@ When `LocalReducedMotionEnabled.current == true`:
   - Separate sign-out into its own card with `errorContainer` styling
   - _Requirements: 7.3, 7.4, 28.1, 28.2, 24.1_
 
-- [ ] 50.7 Redesign Tickets Screen (repurposed from Productivity Tasks)
+- [x] 50.7 Redesign Tickets Screen (repurposed from Productivity Tasks)
   - Rename `TodoListScreen.kt` ? `TicketsScreen.kt`; update navigation route references
   - Build `FilterChipRow` for status/priority filters with count badges
   - Build `TicketCard` composable with priority-colored left border accent, `pressScale` modifier, quick-move `Button`
@@ -2064,7 +2070,7 @@ When `LocalReducedMotionEnabled.current == true`:
   - Update `NavigationBar` tab to use `Icons.Outlined.ConfirmationNumber` and label "Tickets"
   - _Requirements: 29.1, 29.2, 24.1_
 
-- [ ] 50.8 Implement Dark Mode refinements
+- [x] 50.8 Implement Dark Mode refinements
   - Update `DarkColorScheme` in `Color.kt` with corrected `background` (#111318), `surface` (#111318), and new `surfaceTonal1/2/3` tokens
   - Update all screen composables that use `surfaceVariant` as a card background to use `surfaceTonal1` instead
   - Update `ChatBubble` user bubble to use `primary.copy(alpha = 0.9f)` in dark mode
@@ -2073,7 +2079,7 @@ When `LocalReducedMotionEnabled.current == true`:
   - Verify all contrast ratios in the checklist table (§50.8) by running Compose UI tests
   - _Requirements: 24.1, 24.2, 24.3_
 
-- [ ] 50.9 Implement animation system
+- [x] 50.9 Implement animation system
   - Implement `MeshGradientBackground` (§50.9.1) with reduced-motion fallback
   - Wire `SharedTransitionLayout` for Home?Chat and Profile?Memory transitions (§50.9.2)
   - Apply `AppTransition` specs to `NavHost` `enterTransition`/`exitTransition`/`popEnterTransition`/`popExitTransition` (§50.9.4)
@@ -2083,6 +2089,6 @@ When `LocalReducedMotionEnabled.current == true`:
   - Write Compose UI tests asserting: TypingIndicator is hidden after first streaming token; navigation indicator animates on tab switch; theme `Crossfade` is applied when `ThemeMode` changes; all animations are disabled when `LocalReducedMotionEnabled == true`
   - _Requirements: 23.1, 23.2, 24.1, 24.3_
 
-- [ ] 50.10 Update Task Dependency Graph wave entry for Task 50
+- [x] 50.10 Update Task Dependency Graph wave entry for Task 50
   - Wave 12: Task 50 (UI Redesign) — depends on Tasks 3, 11, 12, 14, 21, 20.5; can run in parallel with Tasks 44–49 as it touches only `core-ui` and feature-level composable files
   - _Requirements: 24.1, 24.2, 24.3_
