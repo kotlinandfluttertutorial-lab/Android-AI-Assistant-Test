@@ -272,7 +272,7 @@ class RAGService:
             )
 
     # ------------------------------------------------------------------
-    # MinIO storage
+    # File storage — delegates to storage_service (GCS or MinIO)
     # ------------------------------------------------------------------
 
     async def store_file_minio(
@@ -282,60 +282,34 @@ class RAGService:
         user_id: str,
         document_id: str | None = None,
     ) -> str:
-        """Store file bytes in MinIO and return the object key.
+        """Store file bytes using the configured storage backend and return the object key.
+
+        Previously MinIO-only; now delegates to ``storage_service`` which
+        selects GCS (production) or MinIO (local) based on ``STORAGE_BACKEND``.
 
         The key format is ``{user_id}/{document_id}/{filename}`` so each
         document lives in a user-scoped namespace (Property 8 at storage layer).
 
         Args:
-            file_bytes: Raw file content.
-            filename: Original filename (used as the leaf key segment).
-            user_id: String UUID of the uploading user.
+            file_bytes:  Raw file content.
+            filename:    Original filename (used as the leaf key segment).
+            user_id:     String UUID of the uploading user.
             document_id: String UUID of the document row; generated if not provided.
 
         Returns:
-            MinIO object key (string), e.g. ``"uuid1/uuid2/report.pdf"``.
+            Object key (string), e.g. ``"uuid1/uuid2/report.pdf"``.
         """
-        if document_id is None:
-            document_id = str(uuid.uuid4())
+        from app.services.storage_service import storage_service  # noqa: PLC0415
 
-        object_key = f"{user_id}/{document_id}/{filename}"
-
-        def _upload() -> None:
-            from minio import Minio
-            from minio.error import S3Error
-
-            s = self._settings
-            client = Minio(
-                s.MINIO_ENDPOINT,
-                access_key=s.MINIO_ACCESS_KEY or None,
-                secret_key=s.MINIO_SECRET_KEY or None,
-                secure=False,
-            )
-
-            # Ensure bucket exists
-            try:
-                if not client.bucket_exists(s.MINIO_BUCKET_NAME):
-                    client.make_bucket(s.MINIO_BUCKET_NAME)
-            except S3Error as exc:
-                logger.warning("MinIO bucket check/create failed: %s", exc)
-
-            import os
-
-            content_type = _mime_from_extension(os.path.splitext(filename)[1].lower())
-            client.put_object(
-                s.MINIO_BUCKET_NAME,
-                object_key,
-                io.BytesIO(file_bytes),
-                length=len(file_bytes),
-                content_type=content_type,
-            )
-
-        await asyncio.to_thread(_upload)
-        return object_key
+        return await storage_service.upload(
+            file_bytes,
+            filename,
+            user_id,
+            document_id=document_id,
+        )
 
     async def download_file_minio(self, minio_key: str) -> bytes:
-        """Download a file from MinIO by object key.
+        """Download a file by object key using the configured storage backend.
 
         Args:
             minio_key: Object key returned by ``store_file_minio``.
@@ -343,49 +317,21 @@ class RAGService:
         Returns:
             Raw file bytes.
         """
+        from app.services.storage_service import storage_service  # noqa: PLC0415
 
-        def _download() -> bytes:
-            from minio import Minio
-
-            s = self._settings
-            client = Minio(
-                s.MINIO_ENDPOINT,
-                access_key=s.MINIO_ACCESS_KEY or None,
-                secret_key=s.MINIO_SECRET_KEY or None,
-                secure=False,
-            )
-            response = client.get_object(s.MINIO_BUCKET_NAME, minio_key)
-            try:
-                return response.read()
-            finally:
-                response.close()
-                response.release_conn()
-
-        return await asyncio.to_thread(_download)
+        return await storage_service.download(minio_key)
 
     async def delete_file_minio(self, minio_key: str) -> None:
-        """Delete a file from MinIO.
+        """Delete a file by object key using the configured storage backend.
+
+        Best-effort: errors are logged but not re-raised.
 
         Args:
             minio_key: Object key to delete.
         """
+        from app.services.storage_service import storage_service  # noqa: PLC0415
 
-        def _delete() -> None:
-            from minio import Minio
-
-            s = self._settings
-            client = Minio(
-                s.MINIO_ENDPOINT,
-                access_key=s.MINIO_ACCESS_KEY or None,
-                secret_key=s.MINIO_SECRET_KEY or None,
-                secure=False,
-            )
-            client.remove_object(s.MINIO_BUCKET_NAME, minio_key)
-
-        try:
-            await asyncio.to_thread(_delete)
-        except Exception as exc:
-            logger.warning("MinIO delete failed for key '%s': %s", minio_key, exc)
+        await storage_service.delete(minio_key)
 
     # ------------------------------------------------------------------
     # Text extraction

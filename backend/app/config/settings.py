@@ -161,28 +161,46 @@ class Settings(BaseSettings):
     )
 
     # -------------------------------------------------------------------------
-    # Object Storage (MinIO)
+    # Object Storage (MinIO local / GCS production)
     # -------------------------------------------------------------------------
+
+    STORAGE_BACKEND: str = Field(
+        default="minio",
+        description="Storage backend to use for uploaded documents. "
+        "One of: 'minio' (local Docker Compose / S3-compatible) or 'gcs' (Google Cloud Storage). "
+        "Set to 'gcs' on Cloud Run — files are stored in GCS_BUCKET_NAME using ADC. "
+        "Set to 'minio' for local development with docker-compose.",
+    )
+
+    GCS_BUCKET_NAME: str = Field(
+        default="",
+        description="Google Cloud Storage bucket name for document uploads. "
+        "Required when STORAGE_BACKEND=gcs. "
+        "The Cloud Run service account must have roles/storage.objectAdmin on this bucket. "
+        "Example: android-ai-assistant-89cec-files",
+    )
 
     MINIO_ENDPOINT: str = Field(
         default="localhost:9000",
         description="MinIO server endpoint in host:port format (no scheme). "
+        "Only used when STORAGE_BACKEND=minio. "
         "Example: minio.example.com:9000",
     )
 
     MINIO_ACCESS_KEY: str = Field(
         default="",
-        description="MinIO access key (username). Leave blank when using IAM roles.",
+        description="MinIO access key (username). Only used when STORAGE_BACKEND=minio.",
     )
 
     MINIO_SECRET_KEY: str = Field(
         default="",
-        description="MinIO secret key (password). Leave blank when using IAM roles.",
+        description="MinIO secret key (password). Only used when STORAGE_BACKEND=minio.",
     )
 
     MINIO_BUCKET_NAME: str = Field(
         default="documents",
-        description="Name of the MinIO bucket where uploaded documents are stored.",
+        description="Name of the MinIO bucket where uploaded documents are stored. "
+        "Only used when STORAGE_BACKEND=minio.",
     )
 
     # -------------------------------------------------------------------------

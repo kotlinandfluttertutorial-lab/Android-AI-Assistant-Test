@@ -199,7 +199,7 @@ jobs:
   SECRET_KEY=SECRET_KEY:latest,\
   REDIS_URL=REDIS_URL:latest,\
   AES_ENCRYPTION_KEY=AES_ENCRYPTION_KEY:latest" \
-            --set-env-vars="ENVIRONMENT=production" \
+            --set-env-vars="STORAGE_BACKEND=gcs,ENVIRONMENT=production" \
             --command="python" \
             --args="-m,alembic,upgrade,head" \
             --max-retries=1 \
@@ -293,16 +293,14 @@ jobs:
             AES_ENCRYPTION_KEY=AES_ENCRYPTION_KEY:latest
             DATABASE_URL=DATABASE_URL:latest
             REDIS_URL=REDIS_URL:latest
-            MINIO_ACCESS_KEY=MINIO_ACCESS_KEY:latest
-            MINIO_SECRET_KEY=MINIO_SECRET_KEY:latest
             OPENAI_API_KEY=OPENAI_API_KEY:latest
             GEMINI_API_KEY=GEMINI_API_KEY:latest
             ANTHROPIC_API_KEY=ANTHROPIC_API_KEY:latest
           env_vars: |-
             ENVIRONMENT=production
             LOG_LEVEL=INFO
-            MINIO_ENDPOINT=storage.googleapis.com
-            MINIO_BUCKET_NAME=${{ secrets.GCP_PROJECT_ID }}-files
+            STORAGE_BACKEND=gcs
+            GCS_BUCKET_NAME=${{ secrets.GCP_PROJECT_ID }}-files
             CHROMA_HOST=${{ steps.chroma.outputs.host }}
             CHROMA_PORT=8001
             DEFAULT_LLM_PROVIDER=gemini

@@ -75,6 +75,9 @@ chromadb==1.5.9
 # Object storage
 # ──────────────────────────────────────────────────────────────────────────────
 minio==7.2.9
+# GCS client — used on Cloud Run (STORAGE_BACKEND=gcs).
+# MinIO client used for local Docker Compose (STORAGE_BACKEND=minio).
+google-cloud-storage==2.18.2
 
 # ──────────────────────────────────────────────────────────────────────────────
 # LLM providers
