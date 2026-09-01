@@ -57,6 +57,8 @@ private const val SHA256_BUFFER_SIZE = 8192
 private const val PERCENT_MAX = 100
 private const val PERCENT_STEP = 20
 
+private const val STUB_DELAY_MS = 100L
+
 @Singleton
 class ModelFileRepositoryImpl @Inject constructor(
     @ApplicationContext private val context: Context,
@@ -117,7 +119,7 @@ class ModelFileRepositoryImpl @Inject constructor(
             for (step in 1..stubSteps) {
                 val downloaded = (totalBytes * step / stubSteps)
                 emit(ApiResult.Loading)
-                kotlinx.coroutines.delay(100)
+                kotlinx.coroutines.delay(STUB_DELAY_MS)
                 emit(
                     ApiResult.Success(
                         DownloadProgress(

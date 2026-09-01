@@ -29,7 +29,6 @@ package com.aiassistant
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.aiassistant.core.common.DispatcherProvider
 import com.aiassistant.domain.model.Conversation
 import com.aiassistant.domain.usecase.conversation.GetConversationsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -56,10 +55,8 @@ sealed class HomeDashboardUiState {
 // ── ViewModel ─────────────────────────────────────────────────────────────────
 
 @HiltViewModel
-class HomeDashboardViewModel @Inject constructor(
-    private val getConversationsUseCase: GetConversationsUseCase,
-    private val dispatchers: DispatcherProvider
-) : ViewModel() {
+class HomeDashboardViewModel @Inject constructor(private val getConversationsUseCase: GetConversationsUseCase) :
+    ViewModel() {
 
     private val _uiState = MutableStateFlow<HomeDashboardUiState>(HomeDashboardUiState.Loading)
     val uiState: StateFlow<HomeDashboardUiState> = _uiState.asStateFlow()

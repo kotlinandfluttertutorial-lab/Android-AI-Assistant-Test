@@ -187,6 +187,7 @@ private fun AssistantAvatar(providerLabel: String?) {
 }
 
 // Helper extraction to reduce complexity in ChatBubble
+@Composable
 private fun chatBubbleColor(isUser: Boolean, isDark: Boolean) = if (isUser) {
     MaterialTheme.colorScheme.primary.copy(alpha = if (isDark) 0.9f else 1f)
 } else {

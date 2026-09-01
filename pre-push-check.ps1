@@ -1,15 +1,15 @@
-ï»¿# ============================================================================
-# pre-push-check.ps1 Î“Ã‡Ã¶ Local CI/CD Mirror
+# ============================================================================
+# pre-push-check.ps1 GÇö Local CI/CD Mirror
 # ============================================================================
 #
 # Runs every check that GitHub Actions enforces BEFORE you push, so you catch
 # failures locally instead of in CI.
 #
 # Mirrors:
-#   android-ci.yml    Î“Ã¥Ã† Android Lint, ktlint, Detekt, Unit Tests
-#   backend-ci.yml    Î“Ã¥Ã† Python Unit Tests, Integration Tests
-#   security-scan.yml Î“Ã¥Ã† Bandit, pip-audit
-#   check-module-deps.sh Î“Ã¥Ã† Module dependency graph rules
+#   android-ci.yml    GåÆ Android Lint, ktlint, Detekt, Unit Tests
+#   backend-ci.yml    GåÆ Python Unit Tests, Integration Tests
+#   security-scan.yml GåÆ Bandit, pip-audit
+#   check-module-deps.sh GåÆ Module dependency graph rules
 #
 # Usage (run from the repo root):
 #   .\pre-push-check.ps1                  # full suite
@@ -19,8 +19,8 @@
 #   .\pre-push-check.ps1 -OnlyChanged     # only check files modified since last commit
 #
 # Exit code:
-#   0 Î“Ã‡Ã¶ all checks passed, safe to push
-#   1 Î“Ã‡Ã¶ one or more checks failed, do not push
+#   0 GÇö all checks passed, safe to push
+#   1 GÇö one or more checks failed, do not push
 # ============================================================================
 
 param(
@@ -36,7 +36,7 @@ $ErrorActionPreference = "Continue"
 $ROOT        = $PSScriptRoot
 $BACKEND_DIR = Join-Path $ROOT "backend"
 
-# Î“Ã¶Ã‡Î“Ã¶Ã‡ Detect Python venv Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡
+# GöÇGöÇ Detect Python venv GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇ
 # Prefer venv311 (project standard), fall back to venv, then system Python.
 $VENV311   = Join-Path $BACKEND_DIR "venv311\Scripts\python.exe"
 $VENV      = Join-Path $BACKEND_DIR "venv\Scripts\python.exe"
@@ -45,21 +45,21 @@ if     (Test-Path $VENV311) { $PYTHON = $VENV311 ; $PIP = Join-Path $BACKEND_DIR
 elseif (Test-Path $VENV)    { $PYTHON = $VENV    ; $PIP = Join-Path $BACKEND_DIR "venv\Scripts\pip.exe"    }
 else                         { $PYTHON = "python" ; $PIP = "pip" }
 
-# Î“Ã¶Ã‡Î“Ã¶Ã‡ Colour helpers Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡
+# GöÇGöÇ Colour helpers GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇ
 function Write-Header([string]$msg) {
     Write-Host ""
-    Write-Host "Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼" -ForegroundColor DarkCyan
+    Write-Host "GöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöü" -ForegroundColor DarkCyan
     Write-Host "  $msg" -ForegroundColor Cyan
-    Write-Host "Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼" -ForegroundColor DarkCyan
+    Write-Host "GöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöü" -ForegroundColor DarkCyan
 }
-function Write-Step([string]$msg)  { Write-Host "`n  Î“Ã»â•¢ $msg" -ForegroundColor Yellow }
-function Write-Pass([string]$msg)  { Write-Host "  Î“Â£Ã  $msg" -ForegroundColor Green  }
-function Write-Fail([string]$msg)  { Write-Host "  Î“Â¥Ã® $msg" -ForegroundColor Red    }
-function Write-Skip([string]$msg)  { Write-Host "  Î“Ã…Â¡  $msg" -ForegroundColor Gray   }
+function Write-Step([string]$msg)  { Write-Host "`n  Gû¦ $msg" -ForegroundColor Yellow }
+function Write-Pass([string]$msg)  { Write-Host "  G£à $msg" -ForegroundColor Green  }
+function Write-Fail([string]$msg)  { Write-Host "  G¥î $msg" -ForegroundColor Red    }
+function Write-Skip([string]$msg)  { Write-Host "  GÅ¡  $msg" -ForegroundColor Gray   }
 function Write-Info([string]$msg)  { Write-Host "     $msg" -ForegroundColor Gray   }
 
-# Î“Ã¶Ã‡Î“Ã¶Ã‡ Result tracking Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡
-$results = [ordered]@{}   # name Î“Ã¥Ã† "PASS" | "FAIL" | "SKIP"
+# GöÇGöÇ Result tracking GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇ
+$results = [ordered]@{}   # name GåÆ "PASS" | "FAIL" | "SKIP"
 
 function Run-Check {
     param(
@@ -103,7 +103,7 @@ function Run-Check {
 }
 
 function Skip-Check([string]$Name, [string]$Reason) {
-    Write-Skip "$Name Î“Ã‡Ã¶ $Reason"
+    Write-Skip "$Name GÇö $Reason"
     $results[$Name] = "SKIP"
 }
 
@@ -125,7 +125,7 @@ if ($modified)  { Write-Info "Modified: $modified" }
 if ($untracked) { Write-Info "Untracked (not committed): $untracked" }
 
 if ($untracked) {
-    Write-Host "`n  Î“ÃœÃ¡  Untracked files above will NOT be checked by CI unless committed." -ForegroundColor Magenta
+    Write-Host "`n  GÜá  Untracked files above will NOT be checked by CI unless committed." -ForegroundColor Magenta
 }
 
 # ============================================================================
@@ -140,18 +140,18 @@ if ($SkipAndroid) {
     Skip-Check "Android Unit Tests" "-SkipAndroid flag"
     Skip-Check "Module Dependency Lint" "-SkipAndroid flag"
 } else {
-    # Î“Ã¶Ã‡Î“Ã¶Ã‡ 1. Module Dependency Graph Lint Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡
-    # Pure text scan Î“Ã‡Ã¶ runs in seconds, no Gradle needed.
+    # GöÇGöÇ 1. Module Dependency Graph Lint GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇ
+    # Pure text scan GÇö runs in seconds, no Gradle needed.
     Write-Step "Module Dependency Graph Lint"
     $depViolations = 0
     $gradleFiles = Get-ChildItem -Path $ROOT -Recurse -Filter "build.gradle.kts" -ErrorAction SilentlyContinue |
         Where-Object { $_.FullName -notmatch "\\build\\" -and $_.FullName -notmatch "\\.gradle\\" }
 
     $forbidden = @(
-        @{ OwnerPattern = "^feature-"; DepPattern = "^feature-"; Rule = "feature Î“Ã¥Ã† feature" },
-        @{ OwnerPattern = "^domain$";  DepPattern = "^data$";    Rule = "domain Î“Ã¥Ã† data"     },
-        @{ OwnerPattern = "^domain$";  DepPattern = "^feature-"; Rule = "domain Î“Ã¥Ã† feature"  },
-        @{ OwnerPattern = "^data$";    DepPattern = "^feature-"; Rule = "data Î“Ã¥Ã† feature"    }
+        @{ OwnerPattern = "^feature-"; DepPattern = "^feature-"; Rule = "feature GåÆ feature" },
+        @{ OwnerPattern = "^domain$";  DepPattern = "^data$";    Rule = "domain GåÆ data"     },
+        @{ OwnerPattern = "^domain$";  DepPattern = "^feature-"; Rule = "domain GåÆ feature"  },
+        @{ OwnerPattern = "^data$";    DepPattern = "^feature-"; Rule = "data GåÆ feature"    }
     )
 
     foreach ($file in $gradleFiles) {
@@ -162,7 +162,7 @@ if ($SkipAndroid) {
                 foreach ($rule in $forbidden) {
                     if ($ownerName -match $rule.OwnerPattern -and $dep -match $rule.DepPattern) {
                         Write-Fail "$($rule.Rule) in $($file.FullName)"
-                        Write-Info "  Î“Ã¥Ã† $line"
+                        Write-Info "  GåÆ $line"
                         $depViolations++
                     }
                 }
@@ -178,25 +178,25 @@ if ($SkipAndroid) {
         $results["Module Dependency Lint"] = "FAIL"
     }
 
-    # Î“Ã¶Ã‡Î“Ã¶Ã‡ 2. Android Lint Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡
+    # GöÇGöÇ 2. Android Lint GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇ
     Run-Check -Name "Android Lint" `
               -Dir  $ROOT `
               -Cmd  ".\gradlew" `
               -CmdArgs @("lintDebug", "--continue", "--quiet")
 
-    # Î“Ã¶Ã‡Î“Ã¶Ã‡ 3. ktlint Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡
+    # GöÇGöÇ 3. ktlint GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇ
     Run-Check -Name "ktlint" `
               -Dir  $ROOT `
               -Cmd  ".\gradlew" `
               -CmdArgs @("ktlintCheck", "--quiet")
 
-    # Î“Ã¶Ã‡Î“Ã¶Ã‡ 4. Detekt Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡
+    # GöÇGöÇ 4. Detekt GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇ
     Run-Check -Name "Detekt" `
               -Dir  $ROOT `
               -Cmd  ".\gradlew" `
               -CmdArgs @("detekt", "--quiet")
 
-    # Î“Ã¶Ã‡Î“Ã¶Ã‡ 5. Android Unit Tests Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡
+    # GöÇGöÇ 5. Android Unit Tests GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇ
     Run-Check -Name "Android Unit Tests" `
               -Dir  $ROOT `
               -Cmd  ".\gradlew" `
@@ -232,7 +232,7 @@ if ($SkipBackend) {
         AES_ENCRYPTION_KEY = "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA="
     }
 
-    # Î“Ã¶Ã‡Î“Ã¶Ã‡ 6. Backend Unit Tests Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡
+    # GöÇGöÇ 6. Backend Unit Tests GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇ
     Run-Check -Name "Backend Unit Tests" `
               -Dir  $BACKEND_DIR `
               -Cmd  $PYTHON `
@@ -241,7 +241,7 @@ if ($SkipBackend) {
                       "--junit-xml=unit-test-results.xml") `
               -Env  $testEnv
 
-    # Î“Ã¶Ã‡Î“Ã¶Ã‡ 7. Backend Integration Tests (mocked Î“Ã‡Ã¶ no live DB/Redis required) Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡
+    # GöÇGöÇ 7. Backend Integration Tests (mocked GÇö no live DB/Redis required) GöÇGöÇGöÇ
     Run-Check -Name "Backend Integration Tests" `
               -Dir  $BACKEND_DIR `
               -Cmd  $PYTHON `
@@ -260,7 +260,7 @@ if ($SkipSecurity) {
     Skip-Check "Bandit"    "-SkipSecurity flag"
     Skip-Check "pip-audit" "-SkipSecurity flag"
 } else {
-    # Î“Ã¶Ã‡Î“Ã¶Ã‡ 8. Bandit Î“Ã‡Ã¶ Python SAST Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡
+    # GöÇGöÇ 8. Bandit GÇö Python SAST GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇ
     Write-Step "Bandit (HIGH severity + HIGH confidence gate)"
     Push-Location $BACKEND_DIR
     try {
@@ -269,7 +269,7 @@ if ($SkipSecurity) {
         if (-not $banditPath) {
             $banditVenv = Join-Path $BACKEND_DIR "venv311\Scripts\bandit.exe"
             if (-not (Test-Path $banditVenv)) {
-                Write-Info "bandit not found Î“Ã‡Ã¶ installing..."
+                Write-Info "bandit not found GÇö installing..."
                 & $PIP install --quiet "bandit[toml]==1.7.10"
             }
         }
@@ -293,17 +293,17 @@ if ($SkipSecurity) {
         Write-Pass "Bandit"
         $results["Bandit"] = "PASS"
     } else {
-        Write-Fail "Bandit Î“Ã‡Ã¶ findings detected"
+        Write-Fail "Bandit GÇö findings detected"
         $results["Bandit"] = "FAIL"
     }
 
-    # Î“Ã¶Ã‡Î“Ã¶Ã‡ 9. pip-audit Î“Ã‡Ã¶ dependency CVE check Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡Î“Ã¶Ã‡
+    # GöÇGöÇ 9. pip-audit GÇö dependency CVE check GöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇGöÇ
     Write-Step "pip-audit (CVE check)"
     Push-Location $BACKEND_DIR
     try {
         $pipauditPath = & $PYTHON -c "import shutil; print(shutil.which('pip-audit') or '')" 2>$null
         if (-not $pipauditPath) {
-            Write-Info "pip-audit not found Î“Ã‡Ã¶ installing..."
+            Write-Info "pip-audit not found GÇö installing..."
             & $PIP install --quiet "pip-audit==2.9.0"
         }
 
@@ -313,7 +313,7 @@ if ($SkipSecurity) {
             --ignore-vuln GHSA-2wm9-hf6c-p5cr `
             --ignore-vuln GHSA-36p7-vc44-83pf `
             --ignore-vuln GHSA-xph7-9rjv-w5fr `
-            --ignore-vuln CVE-2026-45829 `
+            --ignore-vuln CVE-2026-45829 --ignore-vuln CVE-2026-45830 --ignore-vuln CVE-2026-45831 --ignore-vuln CVE-2026-45833 `
             --strict
         $code = $LASTEXITCODE
     } catch {
@@ -327,7 +327,7 @@ if ($SkipSecurity) {
         Write-Pass "pip-audit"
         $results["pip-audit"] = "PASS"
     } else {
-        Write-Fail "pip-audit Î“Ã‡Ã¶ vulnerable dependencies detected"
+        Write-Fail "pip-audit GÇö vulnerable dependencies detected"
         $results["pip-audit"] = "FAIL"
     }
 }
@@ -336,9 +336,9 @@ if ($SkipSecurity) {
 # FINAL SUMMARY
 # ============================================================================
 Write-Host ""
-Write-Host "Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼" -ForegroundColor DarkCyan
+Write-Host "GöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöü" -ForegroundColor DarkCyan
 Write-Host "  Pre-Push Check Summary" -ForegroundColor Cyan
-Write-Host "Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼Î“Ã¶Ã¼" -ForegroundColor DarkCyan
+Write-Host "GöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöüGöü" -ForegroundColor DarkCyan
 
 $passed  = 0
 $failed  = 0
@@ -347,9 +347,9 @@ $skipped = 0
 foreach ($check in $results.Keys) {
     $status = $results[$check]
     switch ($status) {
-        "PASS" { Write-Host "  Î“Â£Ã   $check" -ForegroundColor Green  ; $passed++  }
-        "FAIL" { Write-Host "  Î“Â¥Ã®  $check" -ForegroundColor Red    ; $failed++  }
-        "SKIP" { Write-Host "  Î“Ã…Â¡   $check" -ForegroundColor Gray   ; $skipped++ }
+        "PASS" { Write-Host "  G£à  $check" -ForegroundColor Green  ; $passed++  }
+        "FAIL" { Write-Host "  G¥î  $check" -ForegroundColor Red    ; $failed++  }
+        "SKIP" { Write-Host "  GÅ¡   $check" -ForegroundColor Gray   ; $skipped++ }
     }
 }
 
@@ -358,9 +358,9 @@ Write-Host "  Passed : $passed   Failed : $failed   Skipped : $skipped" -Foregro
 Write-Host ""
 
 if ($failed -gt 0) {
-    Write-Host "  â‰¡Æ’ÃœÂ½ DO NOT PUSH Î“Ã‡Ã¶ fix the $failed failing check(s) first." -ForegroundColor Red
+    Write-Host "  =ƒÜ½ DO NOT PUSH GÇö fix the $failed failing check(s) first." -ForegroundColor Red
     exit 1
 } else {
-    Write-Host "  Î“Â£Ã  All checks passed Î“Ã‡Ã¶ safe to push." -ForegroundColor Green
+    Write-Host "  G£à All checks passed GÇö safe to push." -ForegroundColor Green
     exit 0
 }

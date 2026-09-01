@@ -362,7 +362,6 @@ private fun PulsingLogo(isDark: Boolean) {
         animated
     }
 
-    val glowColor = if (isDark) AppColors.accentGlowDark else AppColors.accentGlowLight
     val gradientStart = if (isDark) AppColors.gradientStartDark else AppColors.gradientStartLight
     val gradientEnd = if (isDark) AppColors.gradientEndDark else AppColors.gradientEndLight
 

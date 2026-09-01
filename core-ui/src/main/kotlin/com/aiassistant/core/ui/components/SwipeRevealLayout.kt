@@ -93,7 +93,12 @@ fun SwipeRevealLayout(
         Box(
             modifier = Modifier
                 .offset { IntOffset(offsetX.value.roundToInt(), 0) }
-                .swipeRevealPointerInput(offsetX = offsetX, revealWidth = revealWidth, reducedMotion = reducedMotion, scope = scope)
+                .swipeRevealPointerInput(
+                    offsetX = offsetX,
+                    revealWidth = revealWidth,
+                    reducedMotion = reducedMotion,
+                    scope = scope
+                )
         ) {
             content()
         }
@@ -118,10 +123,14 @@ private fun androidx.compose.ui.Modifier.swipeRevealPointerInput(
             scope.launch {
                 val threshold = -revealWidth.toPx() / 2f
                 val target = if (offsetX.value < threshold) -revealWidth.toPx() else 0f
-                if (reducedMotion) offsetX.snapTo(target) else offsetX.animateTo(
-                    targetValue = target,
-                    animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f)
-                )
+                if (reducedMotion) {
+                    offsetX.snapTo(target)
+                } else {
+                    offsetX.animateTo(
+                        targetValue = target,
+                        animationSpec = spring(dampingRatio = 0.7f, stiffness = 400f)
+                    )
+                }
             }
         },
         onDragCancel = {

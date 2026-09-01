@@ -24,6 +24,7 @@
 package com.aiassistant.feature.profile
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -100,13 +101,6 @@ import com.aiassistant.core.ui.motion.pressScale
 import com.aiassistant.core.ui.spacing
 import com.aiassistant.domain.model.Memory
 import com.aiassistant.domain.model.User
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-
-private val memoryDateFormatter: DateTimeFormatter =
-    DateTimeFormatter.ofPattern("MMM d, yyyy").withZone(ZoneId.systemDefault())
-
-// ── Root screen ────────────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -114,7 +108,6 @@ fun ProfileScreen(
     uiState: ProfileUiState,
     onNavigateUp: () -> Unit,
     onNavigateToMemoryList: () -> Unit = {},
-    onStartEditMemory: (Memory) -> Unit,
     onUpdateEditContent: (String) -> Unit,
     onCancelEdit: () -> Unit,
     onSaveEdit: () -> Unit,
@@ -124,7 +117,6 @@ fun ProfileScreen(
     onCancelEditName: () -> Unit,
     onSaveDisplayName: () -> Unit,
     onRequestDataExport: () -> Unit,
-    onDismissExportStatus: () -> Unit,
     onInitiateAccountDeletion: () -> Unit,
     onUpdateDeletionInput: (String) -> Unit,
     onCancelAccountDeletion: () -> Unit,
@@ -132,7 +124,6 @@ fun ProfileScreen(
     onDismissDeletionError: () -> Unit,
     onDismissError: () -> Unit,
     onRetry: () -> Unit,
-    // Logout callback wired to AuthViewModel
     onLogout: () -> Unit = {}
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
@@ -179,7 +170,6 @@ fun ProfileScreen(
             is ProfileUiState.Content -> ProfileBody(
                 state = uiState,
                 onNavigateToMemoryList = onNavigateToMemoryList,
-                onStartEditMemory = onStartEditMemory,
                 onUpdateEditContent = onUpdateEditContent,
                 onCancelEdit = onCancelEdit,
                 onSaveEdit = onSaveEdit,
@@ -189,7 +179,6 @@ fun ProfileScreen(
                 onCancelEditName = onCancelEditName,
                 onSaveDisplayName = onSaveDisplayName,
                 onRequestDataExport = onRequestDataExport,
-                onDismissExportStatus = onDismissExportStatus,
                 onInitiateAccountDeletion = onInitiateAccountDeletion,
                 onUpdateDeletionInput = onUpdateDeletionInput,
                 onCancelAccountDeletion = onCancelAccountDeletion,
@@ -241,7 +230,6 @@ private fun ErrorContent(message: String, onRetry: () -> Unit, modifier: Modifie
 private fun ProfileBody(
     state: ProfileUiState.Content,
     onNavigateToMemoryList: () -> Unit,
-    onStartEditMemory: (Memory) -> Unit,
     onUpdateEditContent: (String) -> Unit,
     onCancelEdit: () -> Unit,
     onSaveEdit: () -> Unit,
@@ -251,7 +239,6 @@ private fun ProfileBody(
     onCancelEditName: () -> Unit,
     onSaveDisplayName: () -> Unit,
     onRequestDataExport: () -> Unit,
-    onDismissExportStatus: () -> Unit,
     onInitiateAccountDeletion: () -> Unit,
     onUpdateDeletionInput: (String) -> Unit,
     onCancelAccountDeletion: () -> Unit,
@@ -269,7 +256,6 @@ private fun ProfileBody(
     ) {
         Spacer(Modifier.height(MaterialTheme.spacing.xs))
 
-        // ── 1. Gradient avatar card ────────────────────────────────────────
         AvatarCard(
             user = state.user,
             isEditingName = state.isEditingName,
@@ -281,7 +267,6 @@ private fun ProfileBody(
             onSaveDisplayName = onSaveDisplayName
         )
 
-        // ── 3. Memory summary card with FlowRow chips ──────────────────────
         MemorySummaryCard(
             memories = state.memories,
             deletingIds = state.deletingMemoryIds,
@@ -289,54 +274,85 @@ private fun ProfileBody(
             onViewAll = onNavigateToMemoryList
         )
 
-        // ── 4. Settings groups ─────────────────────────────────────────────
-        SettingsGroup(title = "Data & Privacy") {
-            SettingsRow(
-                icon = Icons.Filled.Download,
-                label = "Export My Data",
-                sublabel = "Request a full archive (up to 24 hours)",
-                onClick = onRequestDataExport,
-                contentDesc = "Request data export"
-            )
-            HorizontalDivider(
-                modifier = Modifier.padding(start = MaterialTheme.spacing.xxl),
-                color = MaterialTheme.colorScheme.outlineVariant
-            )
-            SettingsRow(
-                icon = Icons.Filled.Lock,
-                label = "Privacy Policy",
-                onClick = { /* navigate to privacy policy */ },
-                contentDesc = "View privacy policy"
-            )
-        }
+        ProfileSettingsGroups(
+            onRequestDataExport = onRequestDataExport,
+            onInitiateAccountDeletion = onInitiateAccountDeletion
+        )
 
-        SettingsGroup(title = "Account") {
-            SettingsRow(
-                icon = Icons.Filled.Shield,
-                label = "Change Password",
-                onClick = { /* navigate to change password */ },
-                contentDesc = "Change password"
-            )
-            HorizontalDivider(
-                modifier = Modifier.padding(start = MaterialTheme.spacing.xxl),
-                color = MaterialTheme.colorScheme.outlineVariant
-            )
-            SettingsRow(
-                icon = Icons.Filled.PersonOff,
-                label = "Delete Account",
-                labelColor = MaterialTheme.colorScheme.error,
-                onClick = onInitiateAccountDeletion,
-                contentDesc = "Delete account"
-            )
-        }
-
-        // ── 5. Sign-out card with errorContainer styling ───────────────────
         SignOutCard(onLogout = onLogout)
 
         Spacer(Modifier.height(MaterialTheme.spacing.xl))
     }
 
-    // Dialogs
+    ProfileDialogs(
+        state = state,
+        onUpdateEditContent = onUpdateEditContent,
+        onSaveEdit = onSaveEdit,
+        onCancelEdit = onCancelEdit,
+        onUpdateDeletionInput = onUpdateDeletionInput,
+        onConfirmAccountDeletion = onConfirmAccountDeletion,
+        onCancelAccountDeletion = onCancelAccountDeletion,
+        onDismissDeletionError = onDismissDeletionError
+    )
+}
+
+@Composable
+private fun ProfileSettingsGroups(
+    onRequestDataExport: () -> Unit,
+    onInitiateAccountDeletion: () -> Unit
+) {
+    SettingsGroup(title = "Data & Privacy") {
+        SettingsRow(
+            icon = Icons.Filled.Download,
+            label = "Export My Data",
+            sublabel = "Request a full archive (up to 24 hours)",
+            onClick = onRequestDataExport,
+            contentDesc = "Request data export"
+        )
+        HorizontalDivider(
+            modifier = Modifier.padding(start = MaterialTheme.spacing.xxl),
+            color = MaterialTheme.colorScheme.outlineVariant
+        )
+        SettingsRow(
+            icon = Icons.Filled.Lock,
+            label = "Privacy Policy",
+            onClick = { },
+            contentDesc = "View privacy policy"
+        )
+    }
+
+    SettingsGroup(title = "Account") {
+        SettingsRow(
+            icon = Icons.Filled.Shield,
+            label = "Change Password",
+            onClick = { },
+            contentDesc = "Change password"
+        )
+        HorizontalDivider(
+            modifier = Modifier.padding(start = MaterialTheme.spacing.xxl),
+            color = MaterialTheme.colorScheme.outlineVariant
+        )
+        SettingsRow(
+            icon = Icons.Filled.PersonOff,
+            label = "Delete Account",
+            labelColor = MaterialTheme.colorScheme.error,
+            onClick = onInitiateAccountDeletion,
+            contentDesc = "Delete account"
+        )
+    }
+}
+
+@Composable
+private fun ProfileDialogs(
+    state: ProfileUiState.Content,
+    onUpdateEditContent: (String) -> Unit,
+    onSaveEdit: () -> Unit,
+    onCancelEdit: () -> Unit,
+    onUpdateDeletionInput: (String) -> Unit,
+    onConfirmAccountDeletion: () -> Unit,
+    onCancelAccountDeletion: () -> Unit,
+    onDismissDeletionError: () -> Unit
+) {
     if (state.editingMemory != null) {
         EditMemoryDialog(
             memory = state.editingMemory,
@@ -381,8 +397,6 @@ private fun AvatarCard(
     val isDark = isSystemInDarkTheme()
     val gradientStart = if (isDark) AppColors.gradientStartDark else AppColors.gradientStartLight
     val gradientEnd = if (isDark) AppColors.gradientEndDark else AppColors.gradientEndLight
-
-    // ── 2. Account tier chip ─────────────────────────────────────────────
     val isPremium = user?.role == com.aiassistant.domain.model.UserRole.PREMIUM
 
     AvatarCardContent(
@@ -400,8 +414,6 @@ private fun AvatarCard(
         gradientEnd = gradientEnd
     )
 }
-
-// ── 3. Memory summary card with FlowRow chip layout ───────────────────────────
 
 @Composable
 private fun AvatarCardContent(
@@ -431,44 +443,16 @@ private fun AvatarCardContent(
                 .padding(MaterialTheme.spacing.lg),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // ── Gradient avatar with edit badge ──────────────────────────
-            AvatarImageBox(user = user, gradientStart = gradientStart, gradientEnd = gradientEnd)
-
-            Spacer(Modifier.height(MaterialTheme.spacing.sm))
-
-            // ── Account tier chip ─────────────────────────────────────────
-            SuggestionChip(
-                onClick = { /* navigate to upgrade */ },
-                label = {
-                    Text(
-                        text = if (isPremium) "Premium" else "Free",
-                        style = MaterialTheme.typography.labelSmall
-                    )
-                },
-                colors = SuggestionChipDefaults.suggestionChipColors(
-                    containerColor = if (isPremium) {
-                        if (isDark) {
-                            AppColors.gradientStartDark.copy(alpha = 0.22f)
-                        } else {
-                            AppColors.gradientStartLight.copy(alpha = 0.15f)
-                        }
-                    } else {
-                        MaterialTheme.colorScheme.surfaceVariant
-                    },
-                    labelColor = if (isPremium) {
-                        if (isDark) AppColors.gradientStartDark else AppColors.gradientStartLight
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    }
-                ),
-                modifier = Modifier.semantics {
-                    contentDescription = if (isPremium) "Premium account" else "Free account"
-                }
+            AvatarProfileHeader(
+                user = user,
+                isPremium = isPremium,
+                isDark = isDark,
+                gradientStart = gradientStart,
+                gradientEnd = gradientEnd
             )
 
             Spacer(Modifier.height(MaterialTheme.spacing.xs))
 
-            // ── Display name ──────────────────────────────────────────────
             DisplayNameSection(
                 user = user,
                 isEditingName = isEditingName,
@@ -491,10 +475,57 @@ private fun AvatarCardContent(
     }
 }
 
-
+@Composable
+private fun AvatarProfileHeader(
+    user: User?,
+    isPremium: Boolean,
+    isDark: Boolean,
+    gradientStart: androidx.compose.ui.graphics.Color,
+    gradientEnd: androidx.compose.ui.graphics.Color
+) {
+    AvatarImageBox(user = user, gradientStart = gradientStart, gradientEnd = gradientEnd)
+    Spacer(Modifier.height(MaterialTheme.spacing.sm))
+    TierChip(isPremium = isPremium, isDark = isDark)
+}
 
 @Composable
-private fun AvatarImageBox(user: User?, gradientStart: androidx.compose.ui.graphics.Color, gradientEnd: androidx.compose.ui.graphics.Color) {
+private fun TierChip(isPremium: Boolean, isDark: Boolean) {
+    SuggestionChip(
+        onClick = { },
+        label = {
+            Text(
+                text = if (isPremium) "Premium" else "Free",
+                style = MaterialTheme.typography.labelSmall
+            )
+        },
+        colors = SuggestionChipDefaults.suggestionChipColors(
+            containerColor = if (isPremium) {
+                if (isDark) {
+                    AppColors.gradientStartDark.copy(alpha = 0.22f)
+                } else {
+                    AppColors.gradientStartLight.copy(alpha = 0.15f)
+                }
+            } else {
+                MaterialTheme.colorScheme.surfaceVariant
+            },
+            labelColor = if (isPremium) {
+                if (isDark) AppColors.gradientStartDark else AppColors.gradientStartLight
+            } else {
+                MaterialTheme.colorScheme.onSurfaceVariant
+            }
+        ),
+        modifier = Modifier.semantics {
+            contentDescription = if (isPremium) "Premium account" else "Free account"
+        }
+    )
+}
+
+@Composable
+private fun AvatarImageBox(
+    user: User?,
+    gradientStart: androidx.compose.ui.graphics.Color,
+    gradientEnd: androidx.compose.ui.graphics.Color
+) {
     Box(contentAlignment = Alignment.BottomEnd) {
         Box(
             modifier = Modifier
@@ -510,22 +541,10 @@ private fun AvatarImageBox(user: User?, gradientStart: androidx.compose.ui.graph
                     modifier = Modifier.fillMaxSize().clip(CircleShape)
                 )
             } else {
-                val initials = user?.displayName
-                    ?.split(" ")
-                    ?.take(2)
-                    ?.mapNotNull { it.firstOrNull()?.uppercaseChar() }
-                    ?.joinToString("")
-                    ?: "?"
-                Text(
-                    text = initials,
-                    style = MaterialTheme.typography.headlineMedium,
-                    color = Color.White,
-                    fontWeight = FontWeight.Bold
-                )
+                AvatarInitials(user = user)
             }
         }
 
-        // Edit badge (CameraAlt overlay)
         Surface(
             modifier = Modifier
                 .size(28.dp)
@@ -547,6 +566,22 @@ private fun AvatarImageBox(user: User?, gradientStart: androidx.compose.ui.graph
 }
 
 @Composable
+private fun AvatarInitials(user: User?) {
+    val initials = user?.displayName
+        ?.split(" ")
+        ?.take(2)
+        ?.mapNotNull { it.firstOrNull()?.uppercaseChar() }
+        ?.joinToString("")
+        ?: "?"
+    Text(
+        text = initials,
+        style = MaterialTheme.typography.headlineMedium,
+        color = Color.White,
+        fontWeight = FontWeight.Bold
+    )
+}
+
+@Composable
 private fun DisplayNameSection(
     user: User?,
     isEditingName: Boolean,
@@ -558,62 +593,84 @@ private fun DisplayNameSection(
     onSaveDisplayName: () -> Unit
 ) {
     if (isEditingName) {
-        OutlinedTextField(
-            value = editingName,
-            onValueChange = onUpdateEditingName,
-            label = { Text("Display name") },
-            singleLine = true,
-            enabled = !isSavingName,
-            modifier = Modifier.fillMaxWidth()
-                .semantics { contentDescription = "Display name input" }
+        DisplayNameEditor(
+            editingName = editingName,
+            isSavingName = isSavingName,
+            onUpdateEditingName = onUpdateEditingName,
+            onCancelEditName = onCancelEditName,
+            onSaveDisplayName = onSaveDisplayName
         )
-        Spacer(Modifier.height(MaterialTheme.spacing.xs))
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.End
-        ) {
-            TextButton(
-                onClick = onCancelEditName,
-                enabled = !isSavingName,
-                modifier = Modifier.semantics { contentDescription = "Cancel name edit" }
-            ) { Text("Cancel") }
-            Spacer(Modifier.width(MaterialTheme.spacing.xs))
-            Button(
-                onClick = onSaveDisplayName,
-                enabled = !isSavingName && editingName.isNotBlank(),
-                modifier = Modifier.semantics { contentDescription = "Save display name" }
-            ) {
-                if (isSavingName) {
-                    CircularProgressIndicator(Modifier.size(16.dp))
-                } else {
-                    Text("Save")
-                }
-            }
-        }
     } else {
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Text(
-                text = user?.displayName ?: "—",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
-            )
-            Spacer(Modifier.width(MaterialTheme.spacing.xs))
-            IconButton(
-                onClick = onStartEditName,
-                modifier = Modifier.size(24.dp)
-                    .semantics { contentDescription = "Edit display name" }
-            ) {
-                Icon(
-                    Icons.Filled.Edit,
-                    contentDescription = null,
-                    modifier = Modifier.size(16.dp)
-                )
+        DisplayNameDisplay(user = user, onStartEditName = onStartEditName)
+    }
+}
+
+@Composable
+private fun DisplayNameEditor(
+    editingName: String,
+    isSavingName: Boolean,
+    onUpdateEditingName: (String) -> Unit,
+    onCancelEditName: () -> Unit,
+    onSaveDisplayName: () -> Unit
+) {
+    OutlinedTextField(
+        value = editingName,
+        onValueChange = onUpdateEditingName,
+        label = { Text("Display name") },
+        singleLine = true,
+        enabled = !isSavingName,
+        modifier = Modifier.fillMaxWidth()
+            .semantics { contentDescription = "Display name input" }
+    )
+    Spacer(Modifier.height(MaterialTheme.spacing.xs))
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.End
+    ) {
+        TextButton(
+            onClick = onCancelEditName,
+            enabled = !isSavingName,
+            modifier = Modifier.semantics { contentDescription = "Cancel name edit" }
+        ) { Text("Cancel") }
+        Spacer(Modifier.width(MaterialTheme.spacing.xs))
+        Button(
+            onClick = onSaveDisplayName,
+            enabled = !isSavingName && editingName.isNotBlank(),
+            modifier = Modifier.semantics { contentDescription = "Save display name" }
+        ) {
+            if (isSavingName) {
+                CircularProgressIndicator(Modifier.size(16.dp))
+            } else {
+                Text("Save")
             }
         }
     }
 }
 
+@Composable
+private fun DisplayNameDisplay(user: User?, onStartEditName: () -> Unit) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Text(
+            text = user?.displayName ?: "—",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold
+        )
+        Spacer(Modifier.width(MaterialTheme.spacing.xs))
+        IconButton(
+            onClick = onStartEditName,
+            modifier = Modifier.size(24.dp)
+                .semantics { contentDescription = "Edit display name" }
+        ) {
+            Icon(
+                Icons.Filled.Edit,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp)
+            )
+        }
+    }
+}
 
+// ── 3. Memory summary card with FlowRow chip layout ───────────────────────────
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -666,16 +723,7 @@ private fun MemorySummaryCardContent(
             MemorySummaryHeader(memories = memories)
 
             if (memories.isNotEmpty()) {
-                Spacer(Modifier.height(MaterialTheme.spacing.sm))
-                MemoryChips(memories = memories, deletingIds = deletingIds, onDeleteMemory = onDeleteMemory)
-                if (memories.size > 6) {
-                    Spacer(Modifier.height(MaterialTheme.spacing.xs))
-                    Text(
-                        text = "+ ${memories.size - 6} more",
-                        style = AppType.sectionLabel,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
+                MemoryChipsSection(memories = memories, deletingIds = deletingIds, onDeleteMemory = onDeleteMemory)
             } else {
                 Spacer(Modifier.height(MaterialTheme.spacing.sm))
                 Text(
@@ -685,6 +733,20 @@ private fun MemorySummaryCardContent(
                 )
             }
         }
+    }
+}
+
+@Composable
+private fun MemoryChipsSection(memories: List<Memory>, deletingIds: Set<String>, onDeleteMemory: (String) -> Unit) {
+    Spacer(Modifier.height(MaterialTheme.spacing.sm))
+    MemoryChips(memories = memories, deletingIds = deletingIds, onDeleteMemory = onDeleteMemory)
+    if (memories.size > 6) {
+        Spacer(Modifier.height(MaterialTheme.spacing.xs))
+        Text(
+            text = "+ ${memories.size - 6} more",
+            style = AppType.sectionLabel,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
@@ -727,6 +789,7 @@ private fun MemorySummaryHeader(memories: List<Memory>) {
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun MemoryChips(memories: List<Memory>, deletingIds: Set<String>, onDeleteMemory: (String) -> Unit) {
     FlowRow(
@@ -734,51 +797,54 @@ private fun MemoryChips(memories: List<Memory>, deletingIds: Set<String>, onDele
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)
     ) {
         memories.take(6).forEach { memory ->
-            FilterChip(
-                selected = false,
-                onClick = { /* tap = view detail */ },
-                label = {
-                    Text(
-                        text = memory.content.take(30) +
-                            if (memory.content.length > 30) "…" else "",
-                        style = MaterialTheme.typography.labelSmall,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
-                },
-                trailingIcon = {
-                    if (memory.id in deletingIds) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(14.dp),
-                            strokeWidth = 2.dp
-                        )
-                    } else {
-                        IconButton(
-                            onClick = { onDeleteMemory(memory.id) },
-                            modifier = Modifier
-                                .size(18.dp)
-                                .semantics {
-                                    contentDescription = "Delete memory: ${memory.content.take(30)}"
-                                }
-                        ) {
-                            Icon(
-                                Icons.Filled.Delete,
-                                contentDescription = null,
-                                modifier = Modifier.size(12.dp),
-                                tint = MaterialTheme.colorScheme.error
-                            )
-                        }
-                    }
-                },
-                modifier = Modifier.semantics {
-                    contentDescription = "Memory: ${memory.content.take(30)}"
-                }
-            )
+            MemoryChip(memory = memory, isDeleting = memory.id in deletingIds, onDelete = { onDeleteMemory(memory.id) })
         }
     }
 }
 
-
+@Composable
+private fun MemoryChip(memory: Memory, isDeleting: Boolean, onDelete: () -> Unit) {
+    FilterChip(
+        selected = false,
+        onClick = { },
+        label = {
+            Text(
+                text = memory.content.take(30) +
+                    if (memory.content.length > 30) "…" else "",
+                style = MaterialTheme.typography.labelSmall,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        },
+        trailingIcon = {
+            if (isDeleting) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(14.dp),
+                    strokeWidth = 2.dp
+                )
+            } else {
+                IconButton(
+                    onClick = onDelete,
+                    modifier = Modifier
+                        .size(18.dp)
+                        .semantics {
+                            contentDescription = "Delete memory: ${memory.content.take(30)}"
+                        }
+                ) {
+                    Icon(
+                        Icons.Filled.Delete,
+                        contentDescription = null,
+                        modifier = Modifier.size(12.dp),
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+        },
+        modifier = Modifier.semantics {
+            contentDescription = "Memory: ${memory.content.take(30)}"
+        }
+    )
+}
 
 /**
  * Groups related settings rows under a labelled [ElevatedCard].
@@ -832,15 +898,12 @@ private fun SettingsRow(
             .fillMaxWidth()
             .pressScale()
             .semantics(mergeDescendants = true) { contentDescription = contentDesc }
-            // The Row is the tap target
-            .let { m ->
-                m.then(
-                    Modifier.padding(
-                        horizontal = MaterialTheme.spacing.md,
-                        vertical = MaterialTheme.spacing.sm
-                    )
-                )
-            },
+            .background(Color.Transparent)
+            .clickable { onClick() }
+            .padding(
+                horizontal = MaterialTheme.spacing.md,
+                vertical = MaterialTheme.spacing.sm
+            ),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md)
     ) {

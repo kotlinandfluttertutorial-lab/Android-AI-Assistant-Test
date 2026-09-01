@@ -624,8 +624,6 @@ private fun PillSendButton(
     }
 }
 
-
-
 @Composable
 private fun OnDeviceBanner() {
     Surface(
