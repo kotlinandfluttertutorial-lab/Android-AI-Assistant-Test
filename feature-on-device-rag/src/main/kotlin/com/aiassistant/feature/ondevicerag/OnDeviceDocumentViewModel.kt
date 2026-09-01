@@ -59,7 +59,7 @@ open class OnDeviceDocumentViewModel @Inject constructor(
     val uiState: StateFlow<OnDeviceDocumentUiState> = _uiState.asStateFlow()
 
     // Live document list from Room
-    private val _documents = MutableStateFlow<List<OnDeviceDocument>>(emptyList())
+    private val documentsFlow = MutableStateFlow<List<OnDeviceDocument>>(emptyList())
 
     init {
         observeDocuments()
@@ -88,7 +88,7 @@ open class OnDeviceDocumentViewModel @Inject constructor(
         if (isLowStorage()) {
             _uiState.update { current ->
                 val docs = (current as? OnDeviceDocumentUiState.DocumentList)?.documents
-                    ?: _documents.value
+                    ?: documentsFlow.value
                 OnDeviceDocumentUiState.DocumentList(
                     documents = docs,
                     ingestionInProgress = false,
@@ -128,7 +128,7 @@ open class OnDeviceDocumentViewModel @Inject constructor(
      */
     fun clearFileSizeRejection() {
         _uiState.value = OnDeviceDocumentUiState.DocumentList(
-            documents = _documents.value,
+            documents = documentsFlow.value,
             lowStorageWarning = false
         )
     }
@@ -138,7 +138,7 @@ open class OnDeviceDocumentViewModel @Inject constructor(
     private fun observeDocuments() {
         getDocumentsUseCase(userId)
             .onEach { docs ->
-                _documents.value = docs
+                documentsFlow.value = docs
                 // Only update to DocumentList when not currently ingesting
                 if (_uiState.value !is OnDeviceDocumentUiState.IngestionRunning) {
                     _uiState.value = OnDeviceDocumentUiState.DocumentList(
@@ -161,14 +161,14 @@ open class OnDeviceDocumentViewModel @Inject constructor(
             is IngestionProgress.Complete -> {
                 // Let the Room Flow update carry the final READY state
                 _uiState.value = OnDeviceDocumentUiState.DocumentList(
-                    documents = _documents.value,
+                    documents = documentsFlow.value,
                     ingestionInProgress = false,
                     lowStorageWarning = isLowStorage()
                 )
             }
             is IngestionProgress.Error -> {
                 _uiState.value = OnDeviceDocumentUiState.DocumentList(
-                    documents = _documents.value,
+                    documents = documentsFlow.value,
                     ingestionInProgress = false,
                     lowStorageWarning = isLowStorage()
                 )
@@ -178,7 +178,7 @@ open class OnDeviceDocumentViewModel @Inject constructor(
                     documentId = document.id,
                     fileName = document.fileName,
                     progress = progress,
-                    documents = _documents.value
+                    documents = documentsFlow.value
                 )
             }
         }

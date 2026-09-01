@@ -146,7 +146,10 @@ fun RemediationCard(
 
             // Safety notice
             Text(
-                text = "⚠️ Approval records your decision. No automated execution happens. Execute manually using the params shown.",
+                text = (
+                    "⚠️ Approval records your decision. No automated execution happens. " +
+                        "Execute manually using the params shown."
+                    ),
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

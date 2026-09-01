@@ -50,7 +50,13 @@ fun NavGraphBuilder.productivityNavGraph(
 
         composable(
             route = ProductivityRoute.TODO_EDITOR,
-            arguments = listOf(navArgument("todoId") { type = NavType.StringType; nullable = true; defaultValue = null })
+            arguments = listOf(
+                navArgument("todoId") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                }
+            )
         ) { backStackEntry ->
             val parentEntry = remember(backStackEntry) { navController.getBackStackEntry(ProductivityRoute.GRAPH) }
             val viewModel: ProductivityViewModel = hiltViewModel(parentEntry)
@@ -80,7 +86,9 @@ fun NavGraphBuilder.productivityNavGraph(
             val viewModel: ProductivityViewModel = hiltViewModel(parentEntry)
             val ticketId = backStackEntry.arguments?.getString("ticketId") ?: return@composable
             val uiState by viewModel.uiState.collectAsState()
-            val ticket = (uiState as? ProductivityUiState.TodoList)?.todos?.firstOrNull { it.id == ticketId } ?: return@composable
+            val ticket =
+                (uiState as? ProductivityUiState.TodoList)?.todos?.firstOrNull { it.id == ticketId }
+                    ?: return@composable
 
             TicketDetailScreen(
                 ticket = ticket,
@@ -98,7 +106,7 @@ fun NavGraphBuilder.productivityNavGraph(
                 },
                 onAiSummarise = { t -> viewModel.generateTodosFromPrompt("Summarise: ${'$'}{t.title}") },
                 onAiExpand = { t -> viewModel.generateTodosFromPrompt("Expand: ${'$'}{t.description}") },
-                onAiAddActionItems = { t -> viewModel.generateTodosFromPrompt("Action items for: ${'$'}{t.title}") },
+                onAiAddActionItems = { t -> viewModel.generateTodosFromPrompt("Action items for: ${'$'}{t.title}") }
             )
         }
 
@@ -122,7 +130,7 @@ fun NavGraphBuilder.productivityNavGraph(
                     }
                     viewModel.saveTodo(ticket.copy(isCompleted = newStatus == "closed", tags = updatedTags))
                 },
-                onApplyFilter = { filter -> viewModel.applyFilter(filter) },
+                onApplyFilter = { filter -> viewModel.applyFilter(filter) }
             )
         }
     }

@@ -146,7 +146,7 @@ fun AppTheme(themeMode: ThemeMode = ThemeMode.SYSTEM, dynamicColor: Boolean = tr
 
     // Task 50.8: Crossfade wraps the entire MaterialTheme so switching between
     // Light / Dark / System-default modes animates as a 400 ms fade rather than
-    // an instant cut.  The colorScheme is the key — a new scheme object triggers
+    // an instant cut.  The colorScheme is the key ï¿½ a new scheme object triggers
     // the transition.  When reduced motion is active the Crossfade duration
     // collapses to 0 ms (no animation) via the reducedMotion branch.
     val crossfadeDurationMs = if (reducedMotion) 0 else 400
@@ -154,18 +154,18 @@ fun AppTheme(themeMode: ThemeMode = ThemeMode.SYSTEM, dynamicColor: Boolean = tr
     CompositionLocalProvider(
         LocalSpacing provides Spacing.Default,
         LocalElevation provides Elevation.Default,
-        LocalReducedMotionEnabled provides reducedMotion,
+        LocalReducedMotionEnabled provides reducedMotion
     ) {
         Crossfade(
             targetState = colorScheme,
             animationSpec = tween(durationMillis = crossfadeDurationMs),
-            label = "themeColorSchemeCrossfade",
+            label = "themeColorSchemeCrossfade"
         ) { animatedColorScheme ->
             MaterialTheme(
                 colorScheme = animatedColorScheme,
                 typography = MaterialTypography,
                 shapes = MaterialShapes,
-                content = content,
+                content = content
             )
         }
     }

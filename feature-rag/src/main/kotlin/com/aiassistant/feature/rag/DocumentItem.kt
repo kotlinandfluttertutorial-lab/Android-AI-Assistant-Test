@@ -76,7 +76,7 @@ fun DocumentItem(
     document: Document,
     onDocumentClick: (String) -> Unit,
     onDeleteClick: (String) -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     val isDark = isSystemInDarkTheme()
     val cardColor = if (isDark) AppColors.surfaceTonal1Dark else AppColors.surfaceTonal1Light
@@ -97,15 +97,15 @@ fun DocumentItem(
                 onClick = { onDeleteClick(document.id) },
                 modifier = Modifier.semantics {
                     contentDescription = "Delete ${document.fileName}"
-                },
+                }
             ) {
                 Icon(
                     imageVector = Icons.Filled.Delete,
                     contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error,
+                    tint = MaterialTheme.colorScheme.error
                 )
             }
-        },
+        }
     ) {
         ElevatedCard(
             onClick = { onDocumentClick(document.id) },
@@ -114,26 +114,26 @@ fun DocumentItem(
                 .pressScale()
                 .semantics(mergeDescendants = true) { this.contentDescription = a11yLabel },
             elevation = CardDefaults.elevatedCardElevation(
-                defaultElevation = MaterialTheme.elevation.low,
+                defaultElevation = MaterialTheme.elevation.low
             ),
             shape = RoundedCornerShape(14.dp),
-            colors = CardDefaults.elevatedCardColors(containerColor = cardColor),
+            colors = CardDefaults.elevatedCardColors(containerColor = cardColor)
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(
                         horizontal = MaterialTheme.spacing.md,
-                        vertical = MaterialTheme.spacing.sm,
+                        vertical = MaterialTheme.spacing.sm
                     ),
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 // File icon
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.Article,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(36.dp),
+                    modifier = Modifier.size(36.dp)
                 )
 
                 Spacer(modifier = Modifier.width(MaterialTheme.spacing.sm))
@@ -141,32 +141,32 @@ fun DocumentItem(
                 // Metadata
                 Column(
                     modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
+                    verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)
                 ) {
                     Text(
                         text = document.fileName,
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
+                        maxLines = 1
                     )
                     Row(
                         horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
-                        verticalAlignment = Alignment.CenterVertically,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
                             text = document.sizeBytes.formatFileSize(),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
                             text = "·",
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
                             text = document.createdAt.formatDate(),
                             style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     Spacer(Modifier.height(MaterialTheme.spacing.xs))
@@ -175,7 +175,7 @@ fun DocumentItem(
                     AnimatedContent(
                         targetState = document.ingestionStatus,
                         transitionSpec = { fadeIn() togetherWith fadeOut() },
-                        label = "statusBadge_${document.id}",
+                        label = "statusBadge_${document.id}"
                     ) { status ->
                         IngestionStatusBadge(status = status)
                     }
@@ -191,7 +191,7 @@ private data class StatusChipConfig(
     val containerColor: Color,
     val contentColor: Color,
     val icon: ImageVector,
-    val label: String,
+    val label: String
 )
 
 @Composable
@@ -203,28 +203,37 @@ fun IngestionStatusBadge(status: IngestionStatus, modifier: Modifier = Modifier)
             containerColor = if (isDark) AppColors.surfaceTonal2Dark else AppColors.surfaceTonal2Light,
             contentColor = MaterialTheme.colorScheme.onSurfaceVariant,
             icon = Icons.Filled.HourglassEmpty,
-            label = "Pending",
+            label = "Pending"
         )
         IngestionStatus.PROCESSING -> StatusChipConfig(
-            containerColor = if (isDark) AppColors.ragAmberDark.copy(alpha = 0.25f)
-                             else AppColors.ragAmberLight.copy(alpha = 0.18f),
+            containerColor = if (isDark) {
+                AppColors.ragAmberDark.copy(alpha = 0.25f)
+            } else {
+                AppColors.ragAmberLight.copy(alpha = 0.18f)
+            },
             contentColor = if (isDark) AppColors.ragAmberDark else AppColors.ragAmberLight,
             icon = Icons.Filled.Sync,
-            label = "Processing",
+            label = "Processing"
         )
         IngestionStatus.READY -> StatusChipConfig(
-            containerColor = if (isDark) AppColors.ragGreenDark.copy(alpha = 0.22f)
-                             else AppColors.ragGreenLight.copy(alpha = 0.15f),
+            containerColor = if (isDark) {
+                AppColors.ragGreenDark.copy(alpha = 0.22f)
+            } else {
+                AppColors.ragGreenLight.copy(alpha = 0.15f)
+            },
             contentColor = if (isDark) AppColors.ragGreenDark else AppColors.ragGreenLight,
             icon = Icons.Filled.CheckCircle,
-            label = "Ready",
+            label = "Ready"
         )
         IngestionStatus.FAILED -> StatusChipConfig(
-            containerColor = if (isDark) AppColors.ragRedDark.copy(alpha = 0.22f)
-                             else AppColors.ragRedLight.copy(alpha = 0.15f),
+            containerColor = if (isDark) {
+                AppColors.ragRedDark.copy(alpha = 0.22f)
+            } else {
+                AppColors.ragRedLight.copy(alpha = 0.15f)
+            },
             contentColor = if (isDark) AppColors.ragRedDark else AppColors.ragRedLight,
             icon = Icons.Filled.Error,
-            label = "Failed",
+            label = "Failed"
         )
     }
 
@@ -234,7 +243,7 @@ fun IngestionStatusBadge(status: IngestionStatus, modifier: Modifier = Modifier)
             Text(
                 text = config.label,
                 style = MaterialTheme.typography.labelSmall,
-                color = config.contentColor,
+                color = config.contentColor
             )
         },
         leadingIcon = {
@@ -242,16 +251,16 @@ fun IngestionStatusBadge(status: IngestionStatus, modifier: Modifier = Modifier)
                 imageVector = config.icon,
                 contentDescription = null,
                 tint = config.contentColor,
-                modifier = Modifier.size(AssistChipDefaults.IconSize),
+                modifier = Modifier.size(AssistChipDefaults.IconSize)
             )
         },
         colors = AssistChipDefaults.assistChipColors(
             containerColor = config.containerColor,
             labelColor = config.contentColor,
-            leadingIconContentColor = config.contentColor,
+            leadingIconContentColor = config.contentColor
         ),
         border = AssistChipDefaults.assistChipBorder(enabled = false),
-        modifier = modifier.semantics { contentDescription = "Status: ${config.label}" },
+        modifier = modifier.semantics { contentDescription = "Status: ${config.label}" }
     )
 }
 
@@ -274,7 +283,6 @@ internal fun Long.formatFileSize(): String = when {
         "%.1f GB".format(this / (1_024.0 * 1_024.0 * 1_024.0))
 }
 
-private fun Long.formatDate(): String =
-    DateTimeFormatter.ofPattern("MMM d, yyyy")
-        .withZone(ZoneId.systemDefault())
-        .format(Instant.ofEpochMilli(this))
+private fun Long.formatDate(): String = DateTimeFormatter.ofPattern("MMM d, yyyy")
+    .withZone(ZoneId.systemDefault())
+    .format(Instant.ofEpochMilli(this))

@@ -28,7 +28,6 @@
 package com.aiassistant.core.ui
 
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Column
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
@@ -40,13 +39,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.assertIsDisplayed
 import androidx.compose.ui.test.assertIsNotDisplayed
 import androidx.compose.ui.test.assertIsSelected
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
-import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
 import androidx.compose.ui.test.performClick
 import androidx.test.ext.junit.runners.AndroidJUnit4
@@ -88,13 +85,13 @@ class AnimationSystemTest {
                     // "Streaming" text appears when first token arrives
                     AnimatedVisibility(visible = hasFirstToken) {
                         Text(
-                            text = "Streaming response…",
+                            text = "Streaming response…"
                         )
                     }
 
                     // Tap to simulate first token arrival
                     Text(
-                        text = "TRIGGER_TOKEN",
+                        text = "TRIGGER_TOKEN"
                         // Use content description as a tap target for the test
                     )
                 }
@@ -145,19 +142,19 @@ class AnimationSystemTest {
                         selected = selectedTab == 0,
                         onClick = { selectedTab = 0 },
                         icon = { },
-                        label = { Text("Chat") },
+                        label = { Text("Chat") }
                     )
                     NavigationBarItem(
                         selected = selectedTab == 1,
                         onClick = { selectedTab = 1 },
                         icon = { },
-                        label = { Text("History") },
+                        label = { Text("History") }
                     )
                     NavigationBarItem(
                         selected = selectedTab == 2,
                         onClick = { selectedTab = 2 },
                         icon = { },
-                        label = { Text("Settings") },
+                        label = { Text("Settings") }
                     )
                 }
             }
@@ -191,7 +188,7 @@ class AnimationSystemTest {
     @Test
     fun appTheme_crossfade_colorSchemeChangesOnThemeModeSwitch() {
         var capturedLightBg = Color.Unspecified
-        var capturedDarkBg  = Color.Unspecified
+        var capturedDarkBg = Color.Unspecified
 
         // Capture light-mode background
         composeTestRule.setContent {
@@ -217,12 +214,12 @@ class AnimationSystemTest {
         assertNotEquals(
             "Light and dark background tokens must differ after theme switch",
             lightBg,
-            darkBg,
+            darkBg
         )
 
         // Assert: dark background is darker than light (luminance check)
         val lightLuminance = lightBg.luminance()
-        val darkLuminance  = darkBg.luminance()
+        val darkLuminance = darkBg.luminance()
         assert(lightLuminance > darkLuminance) {
             "Light-mode background (lum=$lightLuminance) should have higher " +
                 "luminance than dark-mode background (lum=$darkLuminance)"
@@ -253,7 +250,7 @@ class AnimationSystemTest {
 
                         // A pressScale-decorated Text — must render normally
                         Text(
-                            text = "Reduced motion content",
+                            text = "Reduced motion content"
                         )
                     }
                 }

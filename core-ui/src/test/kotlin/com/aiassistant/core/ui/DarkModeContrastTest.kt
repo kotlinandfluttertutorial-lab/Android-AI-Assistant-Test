@@ -53,66 +53,67 @@ private const val SURFACE_TONAL2_DARK = 0xFF252740L
 /** surfaceTonal3Dark — used for input field backgrounds. */
 private const val SURFACE_TONAL3_DARK = 0xFF2C2F4AL
 
-class DarkModeContrastTest : DescribeSpec({
+class DarkModeContrastTest :
+    DescribeSpec({
 
-    // ── 1. OLED background is darker than the old Neutral10 ──────────────────
+        // ── 1. OLED background is darker than the old Neutral10 ──────────────────
 
-    describe("OledDark (#111318) is darker than the previous Neutral10 (#1A1B1F)") {
+        describe("OledDark (#111318) is darker than the previous Neutral10 (#1A1B1F)") {
 
-        it("OledDark luminance is lower than Neutral10 luminance") {
-            val oledLum = relativeLuminance(OLED_DARK)
-            val neutral10Lum = relativeLuminance(NEUTRAL10)
-            (oledLum < neutral10Lum) shouldBe true
+            it("OledDark luminance is lower than Neutral10 luminance") {
+                val oledLum = relativeLuminance(OLED_DARK)
+                val neutral10Lum = relativeLuminance(NEUTRAL10)
+                (oledLum < neutral10Lum) shouldBe true
+            }
         }
-    }
 
-    // ── 2. onBackground on OledDark ≥ 4.5:1 (WCAG AA normal text) ────────────
+        // ── 2. onBackground on OledDark ≥ 4.5:1 (WCAG AA normal text) ────────────
 
-    describe("Neutral90 text on OledDark meets WCAG AA 4.5:1") {
+        describe("Neutral90 text on OledDark meets WCAG AA 4.5:1") {
 
-        it("contrast ratio between Neutral90 (#E3E2E6) and OledDark (#111318)") {
-            val ratio = contrastRatio(NEUTRAL90, OLED_DARK)
-            ratio shouldBeGreaterThanOrEqual WCAG_AA_NORMAL
+            it("contrast ratio between Neutral90 (#E3E2E6) and OledDark (#111318)") {
+                val ratio = contrastRatio(NEUTRAL90, OLED_DARK)
+                ratio shouldBeGreaterThanOrEqual WCAG_AA_NORMAL
+            }
         }
-    }
 
-    // ── 3. surfaceTonal1Dark is visibly distinct from OledDark ──────────────
+        // ── 3. surfaceTonal1Dark is visibly distinct from OledDark ──────────────
 
-    describe("surfaceTonal1Dark is visibly lighter than OledDark (depth perception)") {
+        describe("surfaceTonal1Dark is visibly lighter than OledDark (depth perception)") {
 
-        it("surfaceTonal1Dark (#1E2030) luminance is higher than OledDark (#111318)") {
-            // Surface tonal levels are not text-on-background pairs, so WCAG text
-            // contrast ratios do not apply here.  What matters is that each tonal
-            // level has a HIGHER luminance than the one below it — giving visible
-            // depth differentiation on OLED displays.
-            val t1Lum = relativeLuminance(SURFACE_TONAL1_DARK)
-            val oledLum = relativeLuminance(OLED_DARK)
-            (t1Lum > oledLum) shouldBe true
+            it("surfaceTonal1Dark (#1E2030) luminance is higher than OledDark (#111318)") {
+                // Surface tonal levels are not text-on-background pairs, so WCAG text
+                // contrast ratios do not apply here.  What matters is that each tonal
+                // level has a HIGHER luminance than the one below it — giving visible
+                // depth differentiation on OLED displays.
+                val t1Lum = relativeLuminance(SURFACE_TONAL1_DARK)
+                val oledLum = relativeLuminance(OLED_DARK)
+                (t1Lum > oledLum) shouldBe true
+            }
         }
-    }
 
-    // ── 4. surfaceTonal2Dark is visibly distinct from surfaceTonal1Dark ───────
+        // ── 4. surfaceTonal2Dark is visibly distinct from surfaceTonal1Dark ───────
 
-    describe("surfaceTonal2Dark is visibly lighter than surfaceTonal1Dark") {
+        describe("surfaceTonal2Dark is visibly lighter than surfaceTonal1Dark") {
 
-        it("surfaceTonal2Dark (#252740) luminance is higher than surfaceTonal1Dark (#1E2030)") {
-            val t2Lum = relativeLuminance(SURFACE_TONAL2_DARK)
-            val t1Lum = relativeLuminance(SURFACE_TONAL1_DARK)
-            (t2Lum > t1Lum) shouldBe true
+            it("surfaceTonal2Dark (#252740) luminance is higher than surfaceTonal1Dark (#1E2030)") {
+                val t2Lum = relativeLuminance(SURFACE_TONAL2_DARK)
+                val t1Lum = relativeLuminance(SURFACE_TONAL1_DARK)
+                (t2Lum > t1Lum) shouldBe true
+            }
         }
-    }
 
-    // ── 5. surfaceTonal3Dark is visibly distinct from surfaceTonal2Dark ───────
+        // ── 5. surfaceTonal3Dark is visibly distinct from surfaceTonal2Dark ───────
 
-    describe("surfaceTonal3Dark is visibly lighter than surfaceTonal2Dark") {
+        describe("surfaceTonal3Dark is visibly lighter than surfaceTonal2Dark") {
 
-        it("surfaceTonal3Dark (#2C2F4A) luminance is higher than surfaceTonal2Dark (#252740)") {
-            val t3Lum = relativeLuminance(SURFACE_TONAL3_DARK)
-            val t2Lum = relativeLuminance(SURFACE_TONAL2_DARK)
-            (t3Lum > t2Lum) shouldBe true
+            it("surfaceTonal3Dark (#2C2F4A) luminance is higher than surfaceTonal2Dark (#252740)") {
+                val t3Lum = relativeLuminance(SURFACE_TONAL3_DARK)
+                val t2Lum = relativeLuminance(SURFACE_TONAL2_DARK)
+                (t3Lum > t2Lum) shouldBe true
+            }
         }
-    }
-})
+    })
 
 // ── WCAG luminance / contrast math ───────────────────────────────────────────
 
@@ -123,8 +124,8 @@ class DarkModeContrastTest : DescribeSpec({
  */
 private fun relativeLuminance(argb: Long): Double {
     val r = linearComponent(((argb shr 16) and 0xFF).toInt())
-    val g = linearComponent(((argb shr 8)  and 0xFF).toInt())
-    val b = linearComponent((argb         and 0xFF).toInt())
+    val g = linearComponent(((argb shr 8) and 0xFF).toInt())
+    val b = linearComponent((argb and 0xFF).toInt())
     return 0.2126 * r + 0.7152 * g + 0.0722 * b
 }
 

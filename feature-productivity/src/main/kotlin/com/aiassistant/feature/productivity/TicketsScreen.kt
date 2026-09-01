@@ -38,10 +38,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -130,7 +128,7 @@ fun TicketsScreen(
     onNewTicket: () -> Unit,
     onDeleteTicket: (String) -> Unit,
     onMoveTicket: (TodoItem, String) -> Unit,
-    onApplyFilter: (TodoFilterState) -> Unit,
+    onApplyFilter: (TodoFilterState) -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -138,37 +136,37 @@ fun TicketsScreen(
                 title = {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
+                        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)
                     ) {
                         Icon(
                             Icons.Outlined.ConfirmationNumber,
                             contentDescription = null,
                             modifier = Modifier.size(22.dp),
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = MaterialTheme.colorScheme.primary
                         )
                         Text("Tickets")
                     }
-                },
+                }
             )
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = onNewTicket,
-                modifier = Modifier.semantics { contentDescription = "Create new ticket" },
+                modifier = Modifier.semantics { contentDescription = "Create new ticket" }
             ) {
                 Icon(Icons.Filled.Add, contentDescription = null)
             }
-        },
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(innerPadding)
         ) {
             if (uiState is ProductivityUiState.Error) {
                 ErrorBanner(
                     message = uiState.message,
-                    modifier = Modifier.fillMaxWidth().padding(horizontal = MaterialTheme.spacing.md),
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = MaterialTheme.spacing.md)
                 )
             }
 
@@ -186,7 +184,7 @@ fun TicketsScreen(
             // ── FilterChipRow with count badges ───────────────────────────
             TicketFilterChipRow(
                 uiState = uiState,
-                onApplyFilter = onApplyFilter,
+                onApplyFilter = onApplyFilter
             )
 
             Spacer(Modifier.height(MaterialTheme.spacing.xs))
@@ -195,7 +193,7 @@ fun TicketsScreen(
             if (uiState.todos.isEmpty()) {
                 Box(
                     Modifier.fillMaxSize().padding(MaterialTheme.spacing.lg),
-                    contentAlignment = Alignment.Center,
+                    contentAlignment = Alignment.Center
                 ) {
                     Text(
                         text = "No tickets yet. Tap + to create one.",
@@ -203,23 +201,23 @@ fun TicketsScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         modifier = Modifier.semantics {
                             contentDescription = "No tickets yet. Tap + to create one."
-                        },
+                        }
                     )
                 }
             } else {
                 LazyColumn(
                     contentPadding = PaddingValues(
                         horizontal = MaterialTheme.spacing.md,
-                        vertical = MaterialTheme.spacing.sm,
+                        vertical = MaterialTheme.spacing.sm
                     ),
-                    verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
+                    verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm)
                 ) {
                     items(uiState.todos, key = { it.id }) { ticket ->
                         TicketCard(
                             ticket = ticket,
                             onClick = { onTicketClick(ticket) },
                             onDelete = { onDeleteTicket(ticket.id) },
-                            onMove = { onMoveTicket(ticket, ticket.nextStatus()) },
+                            onMove = { onMoveTicket(ticket, ticket.nextStatus()) }
                         )
                     }
                 }
@@ -232,10 +230,7 @@ fun TicketsScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun TicketFilterChipRow(
-    uiState: ProductivityUiState.TodoList,
-    onApplyFilter: (TodoFilterState) -> Unit,
-) {
+private fun TicketFilterChipRow(uiState: ProductivityUiState.TodoList, onApplyFilter: (TodoFilterState) -> Unit) {
     val todos = uiState.todos
     val openCount = todos.count { it.derivedStatus() == "open" }
     val inProgressCount = todos.count { it.derivedStatus() == "in_progress" }
@@ -244,7 +239,7 @@ private fun TicketFilterChipRow(
 
     LazyRow(
         contentPadding = PaddingValues(horizontal = MaterialTheme.spacing.md),
-        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
+        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)
     ) {
         // Status filters
         item {
@@ -255,7 +250,7 @@ private fun TicketFilterChipRow(
                 onClick = {
                     onApplyFilter(uiState.filterState.copy(showCompleted = true, priority = null))
                 },
-                badgeColor = if (isSystemInDarkTheme()) AppColors.ticketOpenDark else AppColors.ticketOpenLight,
+                badgeColor = if (isSystemInDarkTheme()) AppColors.ticketOpenDark else AppColors.ticketOpenLight
             )
         }
         item {
@@ -266,8 +261,11 @@ private fun TicketFilterChipRow(
                 onClick = {
                     onApplyFilter(uiState.filterState.copy(showCompleted = false))
                 },
-                badgeColor = if (isSystemInDarkTheme()) AppColors.ticketInProgressDark
-                             else AppColors.ticketInProgressLight,
+                badgeColor = if (isSystemInDarkTheme()) {
+                    AppColors.ticketInProgressDark
+                } else {
+                    AppColors.ticketInProgressLight
+                }
             )
         }
         item {
@@ -278,8 +276,11 @@ private fun TicketFilterChipRow(
                 onClick = {
                     onApplyFilter(uiState.filterState.copy(showCompleted = false))
                 },
-                badgeColor = if (isSystemInDarkTheme()) AppColors.ticketClosedDark
-                             else AppColors.ticketClosedLight,
+                badgeColor = if (isSystemInDarkTheme()) {
+                    AppColors.ticketClosedDark
+                } else {
+                    AppColors.ticketClosedLight
+                }
             )
         }
         item { Spacer(Modifier.width(MaterialTheme.spacing.xs)) }
@@ -290,12 +291,18 @@ private fun TicketFilterChipRow(
                 count = urgentCount,
                 selected = uiState.filterState.priority == Priority.HIGH,
                 onClick = {
-                    val newPriority = if (uiState.filterState.priority == Priority.HIGH) null
-                                     else Priority.HIGH
+                    val newPriority = if (uiState.filterState.priority == Priority.HIGH) {
+                        null
+                    } else {
+                        Priority.HIGH
+                    }
                     onApplyFilter(uiState.filterState.copy(priority = newPriority))
                 },
-                badgeColor = if (isSystemInDarkTheme()) AppColors.ticketUrgentDark
-                             else AppColors.ticketUrgentLight,
+                badgeColor = if (isSystemInDarkTheme()) {
+                    AppColors.ticketUrgentDark
+                } else {
+                    AppColors.ticketUrgentLight
+                }
             )
         }
         item {
@@ -303,7 +310,7 @@ private fun TicketFilterChipRow(
                 selected = uiState.filterState.priority == null,
                 onClick = { onApplyFilter(uiState.filterState.copy(priority = null)) },
                 label = { Text("All", style = MaterialTheme.typography.labelMedium) },
-                modifier = Modifier.semantics { contentDescription = "Show all priorities" },
+                modifier = Modifier.semantics { contentDescription = "Show all priorities" }
             )
         }
     }
@@ -317,7 +324,7 @@ private fun FilterChipWithBadge(
     selected: Boolean,
     onClick: () -> Unit,
     badgeColor: Color,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     BadgedBox(
         badge = {
@@ -326,18 +333,18 @@ private fun FilterChipWithBadge(
                     Text(
                         text = count.toString(),
                         style = MaterialTheme.typography.labelSmall,
-                        color = Color.White,
+                        color = Color.White
                     )
                 }
             }
         },
-        modifier = modifier,
+        modifier = modifier
     ) {
         FilterChip(
             selected = selected,
             onClick = onClick,
             label = { Text(label, style = MaterialTheme.typography.labelMedium) },
-            modifier = Modifier.semantics { contentDescription = "$label: $count tickets" },
+            modifier = Modifier.semantics { contentDescription = "$label: $count tickets" }
         )
     }
 }
@@ -357,14 +364,14 @@ fun TicketCard(
     onClick: () -> Unit,
     onDelete: () -> Unit,
     onMove: () -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     val isDark = isSystemInDarkTheme()
     val cardColor = if (isDark) AppColors.surfaceTonal1Dark else AppColors.surfaceTonal1Light
     val accentColor = when (ticket.priority) {
-        Priority.HIGH   -> if (isDark) AppColors.ticketUrgentDark else AppColors.ticketUrgentLight
+        Priority.HIGH -> if (isDark) AppColors.ticketUrgentDark else AppColors.ticketUrgentLight
         Priority.MEDIUM -> if (isDark) AppColors.ticketInProgressDark else AppColors.ticketInProgressLight
-        Priority.LOW    -> if (isDark) AppColors.ticketClosedDark else AppColors.ticketClosedLight
+        Priority.LOW -> if (isDark) AppColors.ticketClosedDark else AppColors.ticketClosedLight
     }
 
     SwipeRevealLayout(
@@ -373,12 +380,15 @@ fun TicketCard(
         actions = {
             IconButton(
                 onClick = onDelete,
-                modifier = Modifier.semantics { contentDescription = "Delete ticket: ${ticket.title}" },
+                modifier = Modifier.semantics { contentDescription = "Delete ticket: ${ticket.title}" }
             ) {
-                Icon(Icons.Filled.Delete, contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error)
+                Icon(
+                    Icons.Filled.Delete,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.error
+                )
             }
-        },
+        }
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
             ElevatedCard(
@@ -388,10 +398,10 @@ fun TicketCard(
                     .pressScale()
                     .semantics { contentDescription = "Ticket: ${ticket.title}" },
                 elevation = CardDefaults.elevatedCardElevation(
-                    defaultElevation = MaterialTheme.elevation.low,
+                    defaultElevation = MaterialTheme.elevation.low
                 ),
                 colors = CardDefaults.elevatedCardColors(containerColor = cardColor),
-                shape = RoundedCornerShape(12.dp),
+                shape = RoundedCornerShape(12.dp)
             ) {
                 Column(
                     modifier = Modifier
@@ -400,14 +410,14 @@ fun TicketCard(
                             start = MaterialTheme.spacing.md + 4.dp, // leave room for accent stripe
                             end = MaterialTheme.spacing.sm,
                             top = MaterialTheme.spacing.sm,
-                            bottom = MaterialTheme.spacing.sm,
+                            bottom = MaterialTheme.spacing.sm
                         ),
-                    verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
+                    verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)
                 ) {
                     // Title row
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
                             text = ticket.title.ifBlank { "Untitled ticket" },
@@ -415,7 +425,7 @@ fun TicketCard(
                             fontWeight = FontWeight.SemiBold,
                             maxLines = 2,
                             overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f),
+                            modifier = Modifier.weight(1f)
                         )
                         // Sync badge
                         TicketSyncBadge(ticket.syncStatus)
@@ -428,14 +438,14 @@ fun TicketCard(
                             style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
 
                     // Bottom row: priority + due date + quick-move
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalAlignment = Alignment.CenterVertically,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         // Priority label chip
                         AssistChip(
@@ -444,12 +454,12 @@ fun TicketCard(
                                 Text(
                                     text = ticket.priority.value
                                         .replaceFirstChar { it.uppercaseChar() },
-                                    style = MaterialTheme.typography.labelSmall,
+                                    style = MaterialTheme.typography.labelSmall
                                 )
                             },
                             modifier = Modifier.semantics {
                                 contentDescription = "${ticket.priority.value} priority"
-                            },
+                            }
                         )
 
                         ticket.dueDate?.let { dueMs ->
@@ -461,7 +471,7 @@ fun TicketCard(
                             Text(
                                 text = "Due $formatted",
                                 style = AppType.sectionLabel,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
 
@@ -472,27 +482,28 @@ fun TicketCard(
                             onClick = onMove,
                             contentPadding = PaddingValues(
                                 horizontal = MaterialTheme.spacing.sm,
-                                vertical = 4.dp,
+                                vertical = 4.dp
                             ),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = accentColor.copy(alpha = 0.15f),
-                                contentColor = accentColor,
+                                contentColor = accentColor
                             ),
                             modifier = Modifier.semantics {
                                 contentDescription = "Move ticket to ${ticket.nextStatus()}"
                             },
-                            elevation = ButtonDefaults.buttonElevation(0.dp),
+                            elevation = ButtonDefaults.buttonElevation(0.dp)
                         ) {
                             Icon(
-                                Icons.Filled.ArrowForward, contentDescription = null,
-                                modifier = Modifier.size(14.dp),
+                                Icons.Filled.ArrowForward,
+                                contentDescription = null,
+                                modifier = Modifier.size(14.dp)
                             )
                             Spacer(Modifier.width(4.dp))
                             Text(
                                 text = ticket.nextStatus()
                                     .replace("_", " ")
                                     .replaceFirstChar { it.uppercaseChar() },
-                                style = MaterialTheme.typography.labelSmall,
+                                style = MaterialTheme.typography.labelSmall
                             )
                         }
                     }
@@ -505,7 +516,7 @@ fun TicketCard(
                     .width(4.dp)
                     .matchParentSize()
                     .clip(RoundedCornerShape(topStart = 12.dp, bottomStart = 12.dp))
-                    .background(accentColor),
+                    .background(accentColor)
             )
         }
     }
@@ -516,14 +527,14 @@ fun TicketCard(
 @Composable
 private fun TicketSyncBadge(syncStatus: SyncStatus) {
     val (icon, desc, tint) = when (syncStatus) {
-        SyncStatus.SYNCED  -> Triple(Icons.Filled.CheckCircle,  "Synced", MaterialTheme.colorScheme.primary)
-        SyncStatus.PENDING -> Triple(Icons.Filled.Schedule,     "Sync pending", MaterialTheme.colorScheme.tertiary)
-        SyncStatus.FAILED  -> Triple(Icons.Filled.ErrorOutline, "Sync failed", MaterialTheme.colorScheme.error)
+        SyncStatus.SYNCED -> Triple(Icons.Filled.CheckCircle, "Synced", MaterialTheme.colorScheme.primary)
+        SyncStatus.PENDING -> Triple(Icons.Filled.Schedule, "Sync pending", MaterialTheme.colorScheme.tertiary)
+        SyncStatus.FAILED -> Triple(Icons.Filled.ErrorOutline, "Sync failed", MaterialTheme.colorScheme.error)
     }
     Icon(
         imageVector = icon,
         contentDescription = desc,
         tint = tint,
-        modifier = Modifier.size(16.dp).semantics { contentDescription = desc },
+        modifier = Modifier.size(16.dp).semantics { contentDescription = desc }
     )
 }

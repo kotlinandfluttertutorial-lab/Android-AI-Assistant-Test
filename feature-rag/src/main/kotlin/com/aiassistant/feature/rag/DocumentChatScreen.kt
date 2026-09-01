@@ -71,7 +71,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -80,7 +79,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
@@ -96,16 +94,13 @@ import com.aiassistant.core.ui.spacing
 // ── Screen entry point ────────────────────────────────────────────────────────
 
 @Composable
-fun DocumentChatScreen(
-    viewModel: DocumentChatViewModel,
-    onNavigateUp: () -> Unit,
-) {
+fun DocumentChatScreen(viewModel: DocumentChatViewModel, onNavigateUp: () -> Unit) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     DocumentChatScreenContent(
         uiState = uiState,
         onSubmitQuery = viewModel::submitQuery,
         onRetry = { viewModel.submitQuery((uiState as? DocumentChatUiState.Error)?.lastQuery ?: "") },
-        onNavigateUp = onNavigateUp,
+        onNavigateUp = onNavigateUp
     )
 }
 
@@ -117,7 +112,7 @@ internal fun DocumentChatScreenContent(
     uiState: DocumentChatUiState,
     onSubmitQuery: (String) -> Unit,
     onRetry: () -> Unit,
-    onNavigateUp: () -> Unit,
+    onNavigateUp: () -> Unit
 ) {
     val listState = rememberLazyListState()
     val isLoading = uiState is DocumentChatUiState.Loading
@@ -140,11 +135,11 @@ internal fun DocumentChatScreenContent(
                 navigationIcon = {
                     IconButton(
                         onClick = onNavigateUp,
-                        modifier = Modifier.semantics { contentDescription = "Navigate back" },
+                        modifier = Modifier.semantics { contentDescription = "Navigate back" }
                     ) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
                     }
-                },
+                }
             )
         },
         bottomBar = {
@@ -154,21 +149,21 @@ internal fun DocumentChatScreenContent(
                 modifier = Modifier
                     .fillMaxWidth()
                     .navigationBarsPadding()
-                    .imePadding(),
+                    .imePadding()
             )
-        },
+        }
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(innerPadding)
         ) {
             // Error banner
             if (uiState is DocumentChatUiState.Error) {
                 ErrorBanner(
                     message = uiState.message,
                     onRetry = onRetry,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth()
                 )
             }
 
@@ -177,7 +172,7 @@ internal fun DocumentChatScreenContent(
                 uiState is DocumentChatUiState.Idle -> {
                     Box(
                         Modifier.fillMaxSize().padding(MaterialTheme.spacing.lg),
-                        contentAlignment = Alignment.Center,
+                        contentAlignment = Alignment.Center
                     ) {
                         Text(
                             text = "Ask a question about this document.",
@@ -185,7 +180,7 @@ internal fun DocumentChatScreenContent(
                             color = MaterialTheme.colorScheme.onSurfaceVariant,
                             modifier = Modifier.semantics {
                                 contentDescription = "Ask a question about this document"
-                            },
+                            }
                         )
                     }
                 }
@@ -197,9 +192,9 @@ internal fun DocumentChatScreenContent(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(
                             horizontal = MaterialTheme.spacing.sm,
-                            vertical = MaterialTheme.spacing.sm,
+                            vertical = MaterialTheme.spacing.sm
                         ),
-                        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
+                        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm)
                     ) {
                         // Show submitted query as user bubble while waiting
                         item(key = "query") {
@@ -209,22 +204,22 @@ internal fun DocumentChatScreenContent(
                             Row(
                                 modifier = Modifier.fillMaxWidth().padding(
                                     start = MaterialTheme.spacing.sm,
-                                    top = MaterialTheme.spacing.xs,
+                                    top = MaterialTheme.spacing.xs
                                 ),
-                                horizontalArrangement = Arrangement.Start,
+                                horizontalArrangement = Arrangement.Start
                             ) {
                                 Surface(
                                     shape = MaterialTheme.shapes.medium,
                                     color = MaterialTheme.colorScheme.surfaceVariant,
                                     modifier = Modifier.semantics {
                                         contentDescription = "Searching document, please wait"
-                                    },
+                                    }
                                 ) {
                                     TypingIndicator(
                                         modifier = Modifier.padding(
                                             horizontal = MaterialTheme.spacing.md,
-                                            vertical = MaterialTheme.spacing.sm,
-                                        ),
+                                            vertical = MaterialTheme.spacing.sm
+                                        )
                                     )
                                 }
                             }
@@ -239,9 +234,9 @@ internal fun DocumentChatScreenContent(
                         modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(
                             horizontal = MaterialTheme.spacing.sm,
-                            vertical = MaterialTheme.spacing.sm,
+                            vertical = MaterialTheme.spacing.sm
                         ),
-                        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
+                        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm)
                     ) {
                         item(key = "userQuery") {
                             UserQueryBubble(text = uiState.exchange.userQuery)
@@ -249,7 +244,7 @@ internal fun DocumentChatScreenContent(
                         item(key = "answer") {
                             AssistantAnswerBubble(
                                 text = uiState.exchange.aiResponse,
-                                citations = uiState.exchange.citations,
+                                citations = uiState.exchange.citations
                             )
                         }
                     }
@@ -272,15 +267,17 @@ private fun UserQueryBubble(text: String) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(start = MaterialTheme.spacing.xl, end = MaterialTheme.spacing.xs),
-        horizontalArrangement = Arrangement.End,
+        horizontalArrangement = Arrangement.End
     ) {
         Surface(
             shape = RoundedCornerShape(
-                topStart = 18.dp, topEnd = 18.dp,
-                bottomStart = 18.dp, bottomEnd = 4.dp,
+                topStart = 18.dp,
+                topEnd = 18.dp,
+                bottomStart = 18.dp,
+                bottomEnd = 4.dp
             ),
             color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.semantics { contentDescription = "You: $text" },
+            modifier = Modifier.semantics { contentDescription = "You: $text" }
         ) {
             Text(
                 text = text,
@@ -288,8 +285,8 @@ private fun UserQueryBubble(text: String) {
                 color = Color.White,
                 modifier = Modifier.padding(
                     horizontal = MaterialTheme.spacing.md,
-                    vertical = MaterialTheme.spacing.sm,
-                ),
+                    vertical = MaterialTheme.spacing.sm
+                )
             )
         }
     }
@@ -304,10 +301,7 @@ private fun UserQueryBubble(text: String) {
  * - Collapsible [SourcesPanel] listing citation cards
  */
 @Composable
-private fun AssistantAnswerBubble(
-    text: String,
-    citations: List<Citation>,
-) {
+private fun AssistantAnswerBubble(text: String, citations: List<Citation>) {
     val isDark = isSystemInDarkTheme()
     val cardColor = if (isDark) AppColors.surfaceTonal2Dark else AppColors.surfaceTonal2Light
     val accentColor = if (isDark) AppColors.gradientStartDark else AppColors.gradientStartLight
@@ -315,20 +309,22 @@ private fun AssistantAnswerBubble(
     Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(end = MaterialTheme.spacing.xl),
+            .padding(end = MaterialTheme.spacing.xl)
     ) {
         ElevatedCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .semantics { contentDescription = "Assistant answer: $text" },
             elevation = CardDefaults.elevatedCardElevation(
-                defaultElevation = MaterialTheme.elevation.low,
+                defaultElevation = MaterialTheme.elevation.low
             ),
             colors = CardDefaults.elevatedCardColors(containerColor = cardColor),
             shape = RoundedCornerShape(
-                topStart = 4.dp, topEnd = 18.dp,
-                bottomStart = 18.dp, bottomEnd = 18.dp,
-            ),
+                topStart = 4.dp,
+                topEnd = 18.dp,
+                bottomStart = 18.dp,
+                bottomEnd = 18.dp
+            )
         ) {
             Column(
                 modifier = Modifier.padding(
@@ -336,13 +332,13 @@ private fun AssistantAnswerBubble(
                     start = MaterialTheme.spacing.md + 4.dp,
                     end = MaterialTheme.spacing.md,
                     top = MaterialTheme.spacing.sm,
-                    bottom = MaterialTheme.spacing.sm,
-                ),
+                    bottom = MaterialTheme.spacing.sm
+                )
             ) {
                 MarkdownText(
                     markdown = text,
                     contentDescription = text,
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth()
                 )
                 if (citations.isNotEmpty()) {
                     Spacer(Modifier.height(MaterialTheme.spacing.sm))
@@ -361,7 +357,7 @@ private fun AssistantAnswerBubble(
                 .clip(
                     RoundedCornerShape(topStart = 4.dp, bottomStart = 18.dp)
                 )
-                .background(accentColor),
+                .background(accentColor)
         )
     }
 }
@@ -372,41 +368,41 @@ private fun AssistantAnswerBubble(
  * Collapsible citation panel.  Collapsed by default; a "Show sources (N)" button expands it.
  */
 @Composable
-private fun SourcesPanel(
-    citations: List<Citation>,
-    modifier: Modifier = Modifier,
-) {
+private fun SourcesPanel(citations: List<Citation>, modifier: Modifier = Modifier) {
     var expanded by rememberSaveable { mutableStateOf(false) }
 
     Column(modifier = modifier) {
         TextButton(
             onClick = { expanded = !expanded },
             modifier = Modifier.semantics {
-                contentDescription = if (expanded) "Hide sources"
-                else "Show ${citations.size} source${if (citations.size != 1) "s" else ""}"
+                contentDescription = if (expanded) {
+                    "Hide sources"
+                } else {
+                    "Show ${citations.size} source${if (citations.size != 1) "s" else ""}"
+                }
             },
-            contentPadding = PaddingValues(horizontal = MaterialTheme.spacing.xs, vertical = 0.dp),
+            contentPadding = PaddingValues(horizontal = MaterialTheme.spacing.xs, vertical = 0.dp)
         ) {
             Icon(
                 imageVector = if (expanded) Icons.Filled.ExpandLess else Icons.Filled.ExpandMore,
                 contentDescription = null,
-                modifier = Modifier.size(16.dp),
+                modifier = Modifier.size(16.dp)
             )
             Spacer(Modifier.width(4.dp))
             Text(
                 text = if (expanded) "Hide sources" else "Show sources (${citations.size})",
-                style = MaterialTheme.typography.labelMedium,
+                style = MaterialTheme.typography.labelMedium
             )
         }
 
         AnimatedVisibility(
             visible = expanded,
             enter = expandVertically(),
-            exit = shrinkVertically(),
+            exit = shrinkVertically()
         ) {
             Column(
                 verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
-                modifier = Modifier.padding(top = MaterialTheme.spacing.xs),
+                modifier = Modifier.padding(top = MaterialTheme.spacing.xs)
             ) {
                 citations.forEach { citation ->
                     CitationCard(citation = citation)
@@ -429,24 +425,24 @@ private fun CitationCard(citation: Citation) {
             .semantics {
                 contentDescription =
                     "Source: ${citation.documentName}" +
-                        (citation.pageNumber?.let { ", page $it" } ?: "")
+                    (citation.pageNumber?.let { ", page $it" } ?: "")
             },
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp),
         colors = CardDefaults.elevatedCardColors(containerColor = bgColor),
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(8.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(MaterialTheme.spacing.sm),
             verticalAlignment = Alignment.Top,
-            horizontalArrangement = Arrangement.spacedBy(4.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Icon(
                 imageVector = Icons.Filled.FormatQuote,
                 contentDescription = null,
                 modifier = Modifier.size(14.dp).padding(top = 2.dp),
-                tint = MaterialTheme.colorScheme.primary,
+                tint = MaterialTheme.colorScheme.primary
             )
             Column {
                 Text(
@@ -455,7 +451,7 @@ private fun CitationCard(citation: Citation) {
                         citation.pageNumber?.let { append(" · p. $it") }
                     },
                     style = AppType.sectionLabel,
-                    color = MaterialTheme.colorScheme.primary,
+                    color = MaterialTheme.colorScheme.primary
                 )
             }
         }
@@ -465,15 +461,11 @@ private fun CitationCard(citation: Citation) {
 // ── Query input bar ───────────────────────────────────────────────────────────
 
 @Composable
-private fun DocumentQueryInputBar(
-    isQuerying: Boolean,
-    onSendQuery: (String) -> Unit,
-    modifier: Modifier = Modifier,
-) {
+private fun DocumentQueryInputBar(isQuerying: Boolean, onSendQuery: (String) -> Unit, modifier: Modifier = Modifier) {
     var query by rememberSaveable { mutableStateOf("") }
     val isDark = isSystemInDarkTheme()
     val gradientStart = if (isDark) AppColors.gradientStartDark else AppColors.gradientStartLight
-    val gradientEnd   = if (isDark) AppColors.gradientEndDark   else AppColors.gradientEndLight
+    val gradientEnd = if (isDark) AppColors.gradientEndDark else AppColors.gradientEndLight
     val canSend = query.isNotBlank() && !isQuerying
 
     Surface(modifier = modifier, tonalElevation = 3.dp) {
@@ -482,9 +474,9 @@ private fun DocumentQueryInputBar(
                 .fillMaxWidth()
                 .padding(
                     horizontal = MaterialTheme.spacing.sm,
-                    vertical = MaterialTheme.spacing.xs,
+                    vertical = MaterialTheme.spacing.xs
                 ),
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             TextField(
                 value = query,
@@ -499,13 +491,13 @@ private fun DocumentQueryInputBar(
                 maxLines = 4,
                 keyboardOptions = KeyboardOptions(
                     capitalization = KeyboardCapitalization.Sentences,
-                    imeAction = ImeAction.Default,
+                    imeAction = ImeAction.Default
                 ),
                 colors = TextFieldDefaults.colors(
                     focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
+                    unfocusedIndicatorColor = Color.Transparent
                 ),
-                shape = RoundedCornerShape(28.dp),
+                shape = RoundedCornerShape(28.dp)
             )
 
             Spacer(Modifier.width(MaterialTheme.spacing.xs))
@@ -516,42 +508,49 @@ private fun DocumentQueryInputBar(
                     .size(48.dp)
                     .clip(RoundedCornerShape(50))
                     .background(
-                        if (canSend)
+                        if (canSend) {
                             androidx.compose.ui.graphics.Brush.linearGradient(
                                 listOf(gradientStart, gradientEnd)
                             )
-                        else
+                        } else {
                             androidx.compose.ui.graphics.Brush.linearGradient(
                                 listOf(
                                     MaterialTheme.colorScheme.surfaceVariant,
-                                    MaterialTheme.colorScheme.surfaceVariant,
+                                    MaterialTheme.colorScheme.surfaceVariant
                                 )
-                            ),
+                            )
+                        }
                     ),
-                contentAlignment = Alignment.Center,
+                contentAlignment = Alignment.Center
             ) {
                 IconButton(
                     onClick = {
                         val trimmed = query.trim()
-                        if (trimmed.isNotEmpty()) { onSendQuery(trimmed); query = "" }
+                        if (trimmed.isNotEmpty()) {
+                            onSendQuery(trimmed)
+                            query = ""
+                        }
                     },
                     enabled = canSend,
                     modifier = Modifier
                         .matchParentSize()
-                        .semantics { contentDescription = "Send query" },
+                        .semantics { contentDescription = "Send query" }
                 ) {
                     if (isQuerying) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(20.dp),
                             strokeWidth = 2.dp,
-                            color = Color.White,
+                            color = Color.White
                         )
                     } else {
                         Icon(
                             Icons.AutoMirrored.Filled.Send,
                             contentDescription = null,
-                            tint = if (canSend) Color.White
-                                   else MaterialTheme.colorScheme.onSurfaceVariant,
+                            tint = if (canSend) {
+                                Color.White
+                            } else {
+                                MaterialTheme.colorScheme.onSurfaceVariant
+                            }
                         )
                     }
                 }

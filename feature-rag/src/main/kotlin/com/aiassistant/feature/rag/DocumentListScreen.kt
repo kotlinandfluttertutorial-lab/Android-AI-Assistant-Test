@@ -79,7 +79,6 @@ import com.aiassistant.core.ui.components.OfflineBanner
 import com.aiassistant.core.ui.elevation
 import com.aiassistant.core.ui.spacing
 import com.aiassistant.domain.model.Document
-import com.aiassistant.domain.model.IngestionStatus
 
 // ── Max storage limit shown in the progress meter (50 MB × 20 docs) ──────────
 private const val STORAGE_SOFT_LIMIT_BYTES = 50L * 1024 * 1024 * 20
@@ -99,7 +98,7 @@ fun DocumentListScreen(viewModel: RAGViewModel, onDocumentClick: (String) -> Uni
         onDocumentClick = onDocumentClick,
         onDeleteDocument = viewModel::deleteDocument,
         onUploadDocument = viewModel::uploadDocument,
-        onClearUploadError = viewModel::clearUploadError,
+        onClearUploadError = viewModel::clearUploadError
     )
 }
 
@@ -114,7 +113,7 @@ internal fun DocumentListScreenContent(
     onDocumentClick: (String) -> Unit,
     onDeleteDocument: (String) -> Unit,
     onUploadDocument: (uri: String, fileName: String, mimeType: String, sizeBytes: Long) -> Unit,
-    onClearUploadError: () -> Unit,
+    onClearUploadError: () -> Unit
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     var showFilePickerSheet by rememberSaveable { mutableStateOf(false) }
@@ -140,24 +139,24 @@ internal fun DocumentListScreenContent(
             TopAppBar(
                 title = { Text("Documents", style = MaterialTheme.typography.titleLarge) },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                ),
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
             )
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { showFilePickerSheet = true },
-                modifier = Modifier.semantics { contentDescription = "Upload a new document" },
+                modifier = Modifier.semantics { contentDescription = "Upload a new document" }
             ) {
                 Icon(Icons.Filled.Add, contentDescription = null)
             }
         },
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding),
+                .padding(innerPadding)
         ) {
             // ── Persistent offline banner ─────────────────────────────────
             if (isOffline) {
@@ -171,8 +170,8 @@ internal fun DocumentListScreenContent(
                     .fillMaxWidth()
                     .padding(
                         horizontal = MaterialTheme.spacing.md,
-                        vertical = MaterialTheme.spacing.xs,
-                    ),
+                        vertical = MaterialTheme.spacing.xs
+                    )
             )
 
             // ── Body ──────────────────────────────────────────────────────
@@ -180,13 +179,13 @@ internal fun DocumentListScreenContent(
                 is RAGUiState.Loading -> LoadingContent()
                 is RAGUiState.Error -> ErrorContent(
                     message = uiState.message,
-                    onRetry = null,
+                    onRetry = null
                 )
                 else -> {
                     PagedDocumentList(
                         pagedDocuments = pagedDocuments,
                         onDocumentClick = onDocumentClick,
-                        onDeleteRequest = { pendingDeleteId = it },
+                        onDeleteRequest = { pendingDeleteId = it }
                     )
                 }
             }
@@ -201,14 +200,17 @@ internal fun DocumentListScreenContent(
                 showFilePickerSheet = false
                 if (uiState is RAGUiState.UploadError) onClearUploadError()
             },
-            sheetState = sheetState,
+            sheetState = sheetState
         )
     }
 
     if (pendingDeleteId != null) {
         DeleteDocumentDialog(
-            onConfirm = { onDeleteDocument(pendingDeleteId!!); pendingDeleteId = null },
-            onDismiss = { pendingDeleteId = null },
+            onConfirm = {
+                onDeleteDocument(pendingDeleteId!!)
+                pendingDeleteId = null
+            },
+            onDismiss = { pendingDeleteId = null }
         )
     }
 }
@@ -223,10 +225,7 @@ internal fun DocumentListScreenContent(
  * turns red.  These thresholds are visual only — the backend enforces per-file limits.
  */
 @Composable
-private fun StorageSummaryCard(
-    pagedDocuments: LazyPagingItems<Document>,
-    modifier: Modifier = Modifier,
-) {
+private fun StorageSummaryCard(pagedDocuments: LazyPagingItems<Document>, modifier: Modifier = Modifier) {
     val isDark = isSystemInDarkTheme()
     val cardColor = if (isDark) AppColors.surfaceTonal1Dark else AppColors.surfaceTonal1Light
 
@@ -248,37 +247,37 @@ private fun StorageSummaryCard(
             contentDescription = "$totalDocs documents, ${totalBytes.formatFileSize()} used"
         },
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = MaterialTheme.elevation.low),
-        colors = CardDefaults.elevatedCardColors(containerColor = cardColor),
+        colors = CardDefaults.elevatedCardColors(containerColor = cardColor)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(horizontal = MaterialTheme.spacing.md, vertical = MaterialTheme.spacing.sm),
+                .padding(horizontal = MaterialTheme.spacing.md, vertical = MaterialTheme.spacing.sm)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
+                    horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Storage,
                         contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(18.dp),
+                        modifier = Modifier.size(18.dp)
                     )
                     Text(
                         text = "$totalDocs document${if (totalDocs != 1) "s" else ""}",
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodyMedium
                     )
                 }
                 Text(
                     text = "${totalBytes.formatFileSize()} used",
                     style = AppType.sectionLabel,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
             Spacer(Modifier.height(MaterialTheme.spacing.xs))
@@ -290,7 +289,7 @@ private fun StorageSummaryCard(
                         contentDescription =
                             "${(fraction * 100).toInt()}% of recommended storage used"
                     },
-                color = barColor,
+                color = barColor
             )
         }
     }
@@ -302,7 +301,7 @@ private fun StorageSummaryCard(
 private fun PagedDocumentList(
     pagedDocuments: LazyPagingItems<Document>,
     onDocumentClick: (String) -> Unit,
-    onDeleteRequest: (String) -> Unit,
+    onDeleteRequest: (String) -> Unit
 ) {
     when {
         pagedDocuments.loadState.refresh is LoadState.Loading &&
@@ -311,7 +310,7 @@ private fun PagedDocumentList(
             val error = pagedDocuments.loadState.refresh as LoadState.Error
             ErrorContent(
                 message = error.error.localizedMessage ?: "Failed to load documents.",
-                onRetry = { pagedDocuments.retry() },
+                onRetry = { pagedDocuments.retry() }
             )
         }
         pagedDocuments.itemCount == 0 &&
@@ -321,19 +320,19 @@ private fun PagedDocumentList(
                 modifier = Modifier.fillMaxSize(),
                 contentPadding = PaddingValues(
                     horizontal = MaterialTheme.spacing.md,
-                    vertical = MaterialTheme.spacing.sm,
+                    vertical = MaterialTheme.spacing.sm
                 ),
-                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
+                verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm)
             ) {
                 items(
                     count = pagedDocuments.itemCount,
-                    key = { idx -> pagedDocuments.peek(idx)?.id ?: "null:$idx" },
+                    key = { idx -> pagedDocuments.peek(idx)?.id ?: "null:$idx" }
                 ) { idx ->
                     pagedDocuments[idx]?.let { document ->
                         DocumentItem(
                             document = document,
                             onDocumentClick = onDocumentClick,
-                            onDeleteClick = onDeleteRequest,
+                            onDeleteClick = onDeleteRequest
                         )
                     }
                 }
@@ -342,7 +341,7 @@ private fun PagedDocumentList(
                     item {
                         Box(
                             Modifier.fillMaxWidth().padding(MaterialTheme.spacing.md),
-                            contentAlignment = Alignment.Center,
+                            contentAlignment = Alignment.Center
                         ) {
                             CircularProgressIndicator(modifier = Modifier.size(24.dp))
                         }
@@ -354,7 +353,7 @@ private fun PagedDocumentList(
                         ErrorBanner(
                             message = error.error.localizedMessage ?: "Failed to load more.",
                             onRetry = { pagedDocuments.retry() },
-                            modifier = Modifier.fillMaxWidth().padding(horizontal = MaterialTheme.spacing.md),
+                            modifier = Modifier.fillMaxWidth().padding(horizontal = MaterialTheme.spacing.md)
                         )
                     }
                 }
@@ -370,7 +369,7 @@ private fun LoadingContent() {
     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         LoadingIndicator(
             style = LoadingIndicatorStyle.CIRCULAR,
-            contentDescription = "Loading documents",
+            contentDescription = "Loading documents"
         )
     }
 }
@@ -379,7 +378,7 @@ private fun LoadingContent() {
 private fun ErrorContent(message: String, onRetry: (() -> Unit)?) {
     Box(
         Modifier.fillMaxSize().padding(MaterialTheme.spacing.md),
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.Center
     ) {
         ErrorBanner(message = message, onRetry = onRetry, modifier = Modifier.fillMaxWidth())
     }
@@ -389,28 +388,28 @@ private fun ErrorContent(message: String, onRetry: (() -> Unit)?) {
 private fun EmptyContent() {
     Box(
         Modifier.fillMaxSize().padding(MaterialTheme.spacing.md),
-        contentAlignment = Alignment.Center,
+        contentAlignment = Alignment.Center
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm)
         ) {
             Icon(
                 imageVector = Icons.Filled.FolderOff,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(64.dp),
+                modifier = Modifier.size(64.dp)
             )
             Spacer(Modifier.height(MaterialTheme.spacing.xs))
             Text(
                 "No documents yet",
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             Text(
                 "Tap + to upload a PDF, DOCX, TXT, or Markdown file.",
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
     }
@@ -426,13 +425,13 @@ private fun DeleteDocumentDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
         text = {
             Text(
                 "Delete this document? All associated data will be permanently removed from the RAG index.",
-                style = MaterialTheme.typography.bodyMedium,
+                style = MaterialTheme.typography.bodyMedium
             )
         },
         confirmButton = {
             TextButton(
                 onClick = onConfirm,
-                modifier = Modifier.semantics { contentDescription = "Confirm delete document" },
+                modifier = Modifier.semantics { contentDescription = "Confirm delete document" }
             ) {
                 Text("Delete", color = MaterialTheme.colorScheme.error)
             }
@@ -440,10 +439,10 @@ private fun DeleteDocumentDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
         dismissButton = {
             TextButton(
                 onClick = onDismiss,
-                modifier = Modifier.semantics { contentDescription = "Cancel delete document" },
+                modifier = Modifier.semantics { contentDescription = "Cancel delete document" }
             ) {
                 Text("Cancel")
             }
-        },
+        }
     )
 }

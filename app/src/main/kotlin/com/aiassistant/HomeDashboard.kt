@@ -160,7 +160,8 @@ private data class FeatureCardItem(
     val label: String,
     val icon: ImageVector,
     val route: String,
-    val accentColor: Color? = null // optional left-border or icon tint override
+    // optional left-border or icon tint override
+    val accentColor: Color? = null
 )
 
 private val featureCards = listOf(

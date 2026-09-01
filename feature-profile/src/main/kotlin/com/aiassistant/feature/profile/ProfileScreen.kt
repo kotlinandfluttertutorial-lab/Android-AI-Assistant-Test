@@ -53,11 +53,9 @@ import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Memory
-import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PersonOff
 import androidx.compose.material.icons.filled.Shield
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CardDefaults
@@ -102,7 +100,6 @@ import com.aiassistant.core.ui.motion.pressScale
 import com.aiassistant.core.ui.spacing
 import com.aiassistant.domain.model.Memory
 import com.aiassistant.domain.model.User
-import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
@@ -136,7 +133,7 @@ fun ProfileScreen(
     onDismissError: () -> Unit,
     onRetry: () -> Unit,
     // Logout callback wired to AuthViewModel
-    onLogout: () -> Unit = {},
+    onLogout: () -> Unit = {}
 ) {
     val snackbarHostState = remember { SnackbarHostState() }
     val errorMessage = (uiState as? ProfileUiState.Content)?.errorMessage
@@ -154,11 +151,11 @@ fun ProfileScreen(
                 navigationIcon = {
                     IconButton(
                         onClick = onNavigateUp,
-                        modifier = Modifier.semantics { contentDescription = "Navigate back" },
+                        modifier = Modifier.semantics { contentDescription = "Navigate back" }
                     ) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
                     }
-                },
+                }
             )
         },
         snackbarHost = {
@@ -167,16 +164,17 @@ fun ProfileScreen(
                     snackbarData = data,
                     modifier = Modifier.semantics {
                         contentDescription = "Notification: ${data.visuals.message}"
-                    },
+                    }
                 )
             }
-        },
+        }
     ) { innerPadding ->
         when (uiState) {
             is ProfileUiState.Loading -> LoadingContent(Modifier.padding(innerPadding))
             is ProfileUiState.Error -> ErrorContent(
-                message = uiState.message, onRetry = onRetry,
-                modifier = Modifier.padding(innerPadding),
+                message = uiState.message,
+                onRetry = onRetry,
+                modifier = Modifier.padding(innerPadding)
             )
             is ProfileUiState.Content -> ProfileBody(
                 state = uiState,
@@ -198,7 +196,7 @@ fun ProfileScreen(
                 onConfirmAccountDeletion = onConfirmAccountDeletion,
                 onDismissDeletionError = onDismissDeletionError,
                 onLogout = onLogout,
-                modifier = Modifier.padding(innerPadding),
+                modifier = Modifier.padding(innerPadding)
             )
         }
     }
@@ -220,16 +218,19 @@ private fun ErrorContent(message: String, onRetry: () -> Unit, modifier: Modifie
     Column(
         modifier = modifier.fillMaxSize().padding(MaterialTheme.spacing.md),
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text("Unable to load profile", style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(MaterialTheme.spacing.sm))
-        Text(message, style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.error)
+        Text(
+            message,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.error
+        )
         Spacer(Modifier.height(MaterialTheme.spacing.md))
         TextButton(
             onClick = onRetry,
-            modifier = Modifier.semantics { contentDescription = "Retry loading profile" },
+            modifier = Modifier.semantics { contentDescription = "Retry loading profile" }
         ) { Text("Retry") }
     }
 }
@@ -257,14 +258,14 @@ private fun ProfileBody(
     onConfirmAccountDeletion: () -> Unit,
     onDismissDeletionError: () -> Unit,
     onLogout: () -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     Column(
         modifier = modifier
             .fillMaxSize()
             .verticalScroll(rememberScrollState())
             .padding(horizontal = MaterialTheme.spacing.screenEdge),
-        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
+        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md)
     ) {
         Spacer(Modifier.height(MaterialTheme.spacing.xs))
 
@@ -277,7 +278,7 @@ private fun ProfileBody(
             onStartEditName = onStartEditName,
             onUpdateEditingName = onUpdateEditingName,
             onCancelEditName = onCancelEditName,
-            onSaveDisplayName = onSaveDisplayName,
+            onSaveDisplayName = onSaveDisplayName
         )
 
         // ── 3. Memory summary card with FlowRow chips ──────────────────────
@@ -285,7 +286,7 @@ private fun ProfileBody(
             memories = state.memories,
             deletingIds = state.deletingMemoryIds,
             onDeleteMemory = onDeleteMemory,
-            onViewAll = onNavigateToMemoryList,
+            onViewAll = onNavigateToMemoryList
         )
 
         // ── 4. Settings groups ─────────────────────────────────────────────
@@ -295,17 +296,17 @@ private fun ProfileBody(
                 label = "Export My Data",
                 sublabel = "Request a full archive (up to 24 hours)",
                 onClick = onRequestDataExport,
-                contentDesc = "Request data export",
+                contentDesc = "Request data export"
             )
             HorizontalDivider(
                 modifier = Modifier.padding(start = MaterialTheme.spacing.xxl),
-                color = MaterialTheme.colorScheme.outlineVariant,
+                color = MaterialTheme.colorScheme.outlineVariant
             )
             SettingsRow(
                 icon = Icons.Filled.Lock,
                 label = "Privacy Policy",
                 onClick = { /* navigate to privacy policy */ },
-                contentDesc = "View privacy policy",
+                contentDesc = "View privacy policy"
             )
         }
 
@@ -314,18 +315,18 @@ private fun ProfileBody(
                 icon = Icons.Filled.Shield,
                 label = "Change Password",
                 onClick = { /* navigate to change password */ },
-                contentDesc = "Change password",
+                contentDesc = "Change password"
             )
             HorizontalDivider(
                 modifier = Modifier.padding(start = MaterialTheme.spacing.xxl),
-                color = MaterialTheme.colorScheme.outlineVariant,
+                color = MaterialTheme.colorScheme.outlineVariant
             )
             SettingsRow(
                 icon = Icons.Filled.PersonOff,
                 label = "Delete Account",
                 labelColor = MaterialTheme.colorScheme.error,
                 onClick = onInitiateAccountDeletion,
-                contentDesc = "Delete account",
+                contentDesc = "Delete account"
             )
         }
 
@@ -343,7 +344,7 @@ private fun ProfileBody(
             isSaving = state.isSavingEdit,
             onContentChange = onUpdateEditContent,
             onConfirm = onSaveEdit,
-            onDismiss = onCancelEdit,
+            onDismiss = onCancelEdit
         )
     }
     if (state.accountDeletionState is AccountDeletionState.Confirming ||
@@ -353,13 +354,13 @@ private fun ProfileBody(
             state = state.accountDeletionState,
             onUpdateInput = onUpdateDeletionInput,
             onConfirm = onConfirmAccountDeletion,
-            onDismiss = onCancelAccountDeletion,
+            onDismiss = onCancelAccountDeletion
         )
     }
     if (state.accountDeletionState is AccountDeletionState.Failed) {
         AccountDeletionErrorDialog(
             message = (state.accountDeletionState as AccountDeletionState.Failed).message,
-            onDismiss = onDismissDeletionError,
+            onDismiss = onDismissDeletionError
         )
     }
 }
@@ -375,11 +376,11 @@ private fun AvatarCard(
     onStartEditName: () -> Unit,
     onUpdateEditingName: (String) -> Unit,
     onCancelEditName: () -> Unit,
-    onSaveDisplayName: () -> Unit,
+    onSaveDisplayName: () -> Unit
 ) {
     val isDark = isSystemInDarkTheme()
     val gradientStart = if (isDark) AppColors.gradientStartDark else AppColors.gradientStartLight
-    val gradientEnd   = if (isDark) AppColors.gradientEndDark   else AppColors.gradientEndLight
+    val gradientEnd = if (isDark) AppColors.gradientEndDark else AppColors.gradientEndLight
 
     // ── 2. Account tier chip ─────────────────────────────────────────────
     val isPremium = user?.role == com.aiassistant.domain.model.UserRole.PREMIUM
@@ -389,13 +390,13 @@ private fun AvatarCard(
             .fillMaxWidth()
             .semantics { contentDescription = "User profile: ${user?.displayName ?: "Unknown"}" },
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = MaterialTheme.elevation.mid),
-        shape = RoundedCornerShape(20.dp),
+        shape = RoundedCornerShape(20.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(MaterialTheme.spacing.lg),
-            horizontalAlignment = Alignment.CenterHorizontally,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // ── Gradient avatar with edit badge ──────────────────────────
             Box(contentAlignment = Alignment.BottomEnd) {
@@ -404,13 +405,13 @@ private fun AvatarCard(
                         .size(88.dp)
                         .clip(CircleShape)
                         .background(Brush.linearGradient(listOf(gradientStart, gradientEnd))),
-                    contentAlignment = Alignment.Center,
+                    contentAlignment = Alignment.Center
                 ) {
                     if (!user?.avatarUrl.isNullOrBlank()) {
                         AsyncImage(
                             model = user?.avatarUrl,
                             contentDescription = "Avatar for ${user?.displayName}",
-                            modifier = Modifier.fillMaxSize().clip(CircleShape),
+                            modifier = Modifier.fillMaxSize().clip(CircleShape)
                         )
                     } else {
                         val initials = user?.displayName
@@ -423,7 +424,7 @@ private fun AvatarCard(
                             text = initials,
                             style = MaterialTheme.typography.headlineMedium,
                             color = Color.White,
-                            fontWeight = FontWeight.Bold,
+                            fontWeight = FontWeight.Bold
                         )
                     }
                 }
@@ -435,14 +436,14 @@ private fun AvatarCard(
                         .offset(x = 4.dp, y = 4.dp)
                         .semantics { contentDescription = "Edit avatar" },
                     shape = CircleShape,
-                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    color = MaterialTheme.colorScheme.secondaryContainer
                 ) {
                     Box(contentAlignment = Alignment.Center) {
                         Icon(
                             imageVector = Icons.Filled.CameraAlt,
                             contentDescription = null,
                             modifier = Modifier.size(14.dp),
-                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer
                         )
                     }
                 }
@@ -456,21 +457,28 @@ private fun AvatarCard(
                 label = {
                     Text(
                         text = if (isPremium) "Premium" else "Free",
-                        style = MaterialTheme.typography.labelSmall,
+                        style = MaterialTheme.typography.labelSmall
                     )
                 },
                 colors = SuggestionChipDefaults.suggestionChipColors(
-                    containerColor = if (isPremium)
-                        if (isDark) AppColors.gradientStartDark.copy(alpha = 0.22f)
-                        else AppColors.gradientStartLight.copy(alpha = 0.15f)
-                    else MaterialTheme.colorScheme.surfaceVariant,
-                    labelColor = if (isPremium)
+                    containerColor = if (isPremium) {
+                        if (isDark) {
+                            AppColors.gradientStartDark.copy(alpha = 0.22f)
+                        } else {
+                            AppColors.gradientStartLight.copy(alpha = 0.15f)
+                        }
+                    } else {
+                        MaterialTheme.colorScheme.surfaceVariant
+                    },
+                    labelColor = if (isPremium) {
                         if (isDark) AppColors.gradientStartDark else AppColors.gradientStartLight
-                    else MaterialTheme.colorScheme.onSurfaceVariant,
+                    } else {
+                        MaterialTheme.colorScheme.onSurfaceVariant
+                    }
                 ),
                 modifier = Modifier.semantics {
                     contentDescription = if (isPremium) "Premium account" else "Free account"
-                },
+                }
             )
 
             Spacer(Modifier.height(MaterialTheme.spacing.xs))
@@ -484,25 +492,29 @@ private fun AvatarCard(
                     singleLine = true,
                     enabled = !isSavingName,
                     modifier = Modifier.fillMaxWidth()
-                        .semantics { contentDescription = "Display name input" },
+                        .semantics { contentDescription = "Display name input" }
                 )
                 Spacer(Modifier.height(MaterialTheme.spacing.xs))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End,
+                    horizontalArrangement = Arrangement.End
                 ) {
                     TextButton(
-                        onClick = onCancelEditName, enabled = !isSavingName,
-                        modifier = Modifier.semantics { contentDescription = "Cancel name edit" },
+                        onClick = onCancelEditName,
+                        enabled = !isSavingName,
+                        modifier = Modifier.semantics { contentDescription = "Cancel name edit" }
                     ) { Text("Cancel") }
                     Spacer(Modifier.width(MaterialTheme.spacing.xs))
                     Button(
                         onClick = onSaveDisplayName,
                         enabled = !isSavingName && editingName.isNotBlank(),
-                        modifier = Modifier.semantics { contentDescription = "Save display name" },
+                        modifier = Modifier.semantics { contentDescription = "Save display name" }
                     ) {
-                        if (isSavingName) CircularProgressIndicator(Modifier.size(16.dp))
-                        else Text("Save")
+                        if (isSavingName) {
+                            CircularProgressIndicator(Modifier.size(16.dp))
+                        } else {
+                            Text("Save")
+                        }
                     }
                 }
             } else {
@@ -510,16 +522,19 @@ private fun AvatarCard(
                     Text(
                         text = user?.displayName ?: "—",
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold,
+                        fontWeight = FontWeight.SemiBold
                     )
                     Spacer(Modifier.width(MaterialTheme.spacing.xs))
                     IconButton(
                         onClick = onStartEditName,
                         modifier = Modifier.size(24.dp)
-                            .semantics { contentDescription = "Edit display name" },
+                            .semantics { contentDescription = "Edit display name" }
                     ) {
-                        Icon(Icons.Filled.Edit, contentDescription = null,
-                            modifier = Modifier.size(16.dp))
+                        Icon(
+                            Icons.Filled.Edit,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
                     }
                 }
             }
@@ -528,7 +543,7 @@ private fun AvatarCard(
                 Text(
                     text = user?.email ?: "",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -543,7 +558,7 @@ private fun MemorySummaryCard(
     memories: List<Memory>,
     deletingIds: Set<String>,
     onDeleteMemory: (String) -> Unit,
-    onViewAll: () -> Unit,
+    onViewAll: () -> Unit
 ) {
     val isDark = isSystemInDarkTheme()
     val cardColor = if (isDark) AppColors.surfaceTonal1Dark else AppColors.surfaceTonal1Light
@@ -558,43 +573,45 @@ private fun MemorySummaryCard(
             },
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = MaterialTheme.elevation.low),
         colors = CardDefaults.elevatedCardColors(containerColor = cardColor),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(16.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(MaterialTheme.spacing.md),
+                .padding(MaterialTheme.spacing.md)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
+                    horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)
                 ) {
                     Icon(
-                        Icons.Filled.Memory, contentDescription = null,
+                        Icons.Filled.Memory,
+                        contentDescription = null,
                         tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(18.dp),
+                        modifier = Modifier.size(18.dp)
                     )
                     Text(
                         text = "Memories",
                         style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold,
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         text = "${memories.size}",
                         style = AppType.sectionLabel,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Icon(
-                        Icons.AutoMirrored.Filled.ArrowForward, contentDescription = null,
+                        Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = null,
                         modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
@@ -604,7 +621,7 @@ private fun MemorySummaryCard(
                 // FlowRow chip layout — first 6 memories as dismissible chips
                 FlowRow(
                     horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
-                    verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
+                    verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)
                 ) {
                     memories.take(6).forEach { memory ->
                         FilterChip(
@@ -616,14 +633,14 @@ private fun MemorySummaryCard(
                                         if (memory.content.length > 30) "…" else "",
                                     style = MaterialTheme.typography.labelSmall,
                                     maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis,
+                                    overflow = TextOverflow.Ellipsis
                                 )
                             },
                             trailingIcon = {
                                 if (memory.id in deletingIds) {
                                     CircularProgressIndicator(
                                         modifier = Modifier.size(14.dp),
-                                        strokeWidth = 2.dp,
+                                        strokeWidth = 2.dp
                                     )
                                 } else {
                                     IconButton(
@@ -632,19 +649,20 @@ private fun MemorySummaryCard(
                                             .size(18.dp)
                                             .semantics {
                                                 contentDescription = "Delete memory: ${memory.content.take(30)}"
-                                            },
+                                            }
                                     ) {
                                         Icon(
-                                            Icons.Filled.Delete, contentDescription = null,
+                                            Icons.Filled.Delete,
+                                            contentDescription = null,
                                             modifier = Modifier.size(12.dp),
-                                            tint = MaterialTheme.colorScheme.error,
+                                            tint = MaterialTheme.colorScheme.error
                                         )
                                     }
                                 }
                             },
                             modifier = Modifier.semantics {
                                 contentDescription = "Memory: ${memory.content.take(30)}"
-                            },
+                            }
                         )
                     }
                 }
@@ -653,7 +671,7 @@ private fun MemorySummaryCard(
                     Text(
                         text = "+ ${memories.size - 6} more",
                         style = AppType.sectionLabel,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             } else {
@@ -661,7 +679,7 @@ private fun MemorySummaryCard(
                 Text(
                     text = "No memories stored yet.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -675,11 +693,7 @@ private fun MemorySummaryCard(
  * Used for "Data & Privacy" and "Account" sections.
  */
 @Composable
-private fun SettingsGroup(
-    title: String,
-    modifier: Modifier = Modifier,
-    content: @Composable () -> Unit,
-) {
+private fun SettingsGroup(title: String, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
     val isDark = isSystemInDarkTheme()
     val cardColor = if (isDark) AppColors.surfaceTonal1Dark else AppColors.surfaceTonal1Light
 
@@ -687,12 +701,12 @@ private fun SettingsGroup(
         modifier = modifier.fillMaxWidth(),
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = MaterialTheme.elevation.low),
         colors = CardDefaults.elevatedCardColors(containerColor = cardColor),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(16.dp)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = MaterialTheme.spacing.xs),
+                .padding(vertical = MaterialTheme.spacing.xs)
         ) {
             Text(
                 text = title,
@@ -700,8 +714,8 @@ private fun SettingsGroup(
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(
                     horizontal = MaterialTheme.spacing.md,
-                    vertical = MaterialTheme.spacing.xs,
-                ),
+                    vertical = MaterialTheme.spacing.xs
+                )
             )
             content()
         }
@@ -719,7 +733,7 @@ private fun SettingsRow(
     modifier: Modifier = Modifier,
     sublabel: String? = null,
     labelColor: androidx.compose.ui.graphics.Color = MaterialTheme.colorScheme.onSurface,
-    contentDesc: String = label,
+    contentDesc: String = label
 ) {
     Row(
         modifier = modifier
@@ -731,12 +745,12 @@ private fun SettingsRow(
                 m.then(
                     Modifier.padding(
                         horizontal = MaterialTheme.spacing.md,
-                        vertical = MaterialTheme.spacing.sm,
+                        vertical = MaterialTheme.spacing.sm
                     )
                 )
             },
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
+        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md)
     ) {
         Icon(icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
         Column(modifier = Modifier.weight(1f)) {
@@ -745,7 +759,7 @@ private fun SettingsRow(
                 Text(
                     text = sublabel,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }
@@ -753,7 +767,7 @@ private fun SettingsRow(
             Icons.AutoMirrored.Filled.ArrowForward,
             contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.size(18.dp),
+            modifier = Modifier.size(18.dp)
         )
     }
 }
@@ -767,42 +781,42 @@ private fun SignOutCard(onLogout: () -> Unit) {
             .semantics { contentDescription = "Sign out section" },
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = MaterialTheme.elevation.low),
         colors = CardDefaults.elevatedCardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer,
+            containerColor = MaterialTheme.colorScheme.errorContainer
         ),
-        shape = RoundedCornerShape(16.dp),
+        shape = RoundedCornerShape(16.dp)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(MaterialTheme.spacing.md),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
+            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md)
         ) {
             Icon(
                 imageVector = Icons.Filled.Logout,
                 contentDescription = null,
-                tint = MaterialTheme.colorScheme.onErrorContainer,
+                tint = MaterialTheme.colorScheme.onErrorContainer
             )
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = "Sign Out",
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    color = MaterialTheme.colorScheme.onErrorContainer
                 )
                 Text(
                     text = "You will be returned to the login screen.",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.75f),
+                    color = MaterialTheme.colorScheme.onErrorContainer.copy(alpha = 0.75f)
                 )
             }
             Button(
                 onClick = onLogout,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.error,
-                    contentColor = MaterialTheme.colorScheme.onError,
+                    contentColor = MaterialTheme.colorScheme.onError
                 ),
-                modifier = Modifier.semantics { contentDescription = "Sign out" },
+                modifier = Modifier.semantics { contentDescription = "Sign out" }
             ) {
                 Text("Sign Out")
             }
@@ -819,7 +833,7 @@ private fun EditMemoryDialog(
     isSaving: Boolean,
     onContentChange: (String) -> Unit,
     onConfirm: () -> Unit,
-    onDismiss: () -> Unit,
+    onDismiss: () -> Unit
 ) {
     AlertDialog(
         onDismissRequest = { if (!isSaving) onDismiss() },
@@ -829,7 +843,7 @@ private fun EditMemoryDialog(
                 Text(
                     text = "Type: ${memoryTypeLabel(memory.memoryType)}",
                     style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(
@@ -839,7 +853,7 @@ private fun EditMemoryDialog(
                     enabled = !isSaving,
                     minLines = 3,
                     modifier = Modifier.fillMaxWidth()
-                        .semantics { contentDescription = "Edit memory content" },
+                        .semantics { contentDescription = "Edit memory content" }
                 )
             }
         },
@@ -847,18 +861,22 @@ private fun EditMemoryDialog(
             TextButton(
                 onClick = onConfirm,
                 enabled = !isSaving && editContent.isNotBlank(),
-                modifier = Modifier.semantics { contentDescription = "Save memory edit" },
+                modifier = Modifier.semantics { contentDescription = "Save memory edit" }
             ) {
-                if (isSaving) CircularProgressIndicator(Modifier.size(16.dp))
-                else Text("Save")
+                if (isSaving) {
+                    CircularProgressIndicator(Modifier.size(16.dp))
+                } else {
+                    Text("Save")
+                }
             }
         },
         dismissButton = {
             TextButton(
-                onClick = onDismiss, enabled = !isSaving,
-                modifier = Modifier.semantics { contentDescription = "Cancel memory edit" },
+                onClick = onDismiss,
+                enabled = !isSaving,
+                modifier = Modifier.semantics { contentDescription = "Cancel memory edit" }
             ) { Text("Cancel") }
-        },
+        }
     )
 }
 
@@ -867,7 +885,7 @@ private fun AccountDeletionDialog(
     state: AccountDeletionState,
     onUpdateInput: (String) -> Unit,
     onConfirm: () -> Unit,
-    onDismiss: () -> Unit,
+    onDismiss: () -> Unit
 ) {
     val isDeleting = state is AccountDeletionState.Deleting
     val inputValue = when (state) {
@@ -884,7 +902,7 @@ private fun AccountDeletionDialog(
                     "This action is permanent and cannot be undone. " +
                         "All your data will be deleted within 72 hours.",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.error,
+                    color = MaterialTheme.colorScheme.error
                 )
                 Spacer(Modifier.height(8.dp))
                 OutlinedTextField(
@@ -894,7 +912,7 @@ private fun AccountDeletionDialog(
                     enabled = !isDeleting,
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
-                        .semantics { contentDescription = "Type DELETE to confirm account deletion" },
+                        .semantics { contentDescription = "Type DELETE to confirm account deletion" }
                 )
             }
         },
@@ -903,20 +921,24 @@ private fun AccountDeletionDialog(
                 onClick = onConfirm,
                 enabled = !isDeleting && inputValue.trim().uppercase() == "DELETE",
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.error,
+                    containerColor = MaterialTheme.colorScheme.error
                 ),
-                modifier = Modifier.semantics { contentDescription = "Confirm account deletion" },
+                modifier = Modifier.semantics { contentDescription = "Confirm account deletion" }
             ) {
-                if (isDeleting) CircularProgressIndicator(Modifier.size(16.dp), color = Color.White)
-                else Text("Delete Account")
+                if (isDeleting) {
+                    CircularProgressIndicator(Modifier.size(16.dp), color = Color.White)
+                } else {
+                    Text("Delete Account")
+                }
             }
         },
         dismissButton = {
             TextButton(
-                onClick = onDismiss, enabled = !isDeleting,
-                modifier = Modifier.semantics { contentDescription = "Cancel account deletion" },
+                onClick = onDismiss,
+                enabled = !isDeleting,
+                modifier = Modifier.semantics { contentDescription = "Cancel account deletion" }
             ) { Text("Cancel") }
-        },
+        }
     )
 }
 
@@ -929,9 +951,9 @@ private fun AccountDeletionErrorDialog(message: String, onDismiss: () -> Unit) {
         confirmButton = {
             TextButton(
                 onClick = onDismiss,
-                modifier = Modifier.semantics { contentDescription = "Dismiss deletion error" },
+                modifier = Modifier.semantics { contentDescription = "Dismiss deletion error" }
             ) { Text("OK") }
-        },
+        }
     )
 }
 
