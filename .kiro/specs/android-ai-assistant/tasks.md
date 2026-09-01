@@ -865,6 +865,12 @@ Implementation follows Clean Architecture from the ground up: core modules first
       "description": "On-Device RAG — database entities, engine components, domain layer, feature module, property tests, documentation",
       "tasks": ["44", "45", "46", "47", "48", "49"],
       "dependsOn": ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "43"]
+    },
+    {
+      "wave": 12,
+      "description": "UI Redesign",
+      "tasks": ["50"],
+      "dependsOn": ["3", "11", "12", "14", "21", "20.5"]
     }
   ]
 }
@@ -2073,7 +2079,7 @@ When `LocalReducedMotionEnabled.current == true`:
   - Verify all contrast ratios in the checklist table (§50.8) by running Compose UI tests
   - _Requirements: 24.1, 24.2, 24.3_
 
-- [ ] 50.9 Implement animation system
+- [x] 50.9 Implement animation system
   - Implement `MeshGradientBackground` (§50.9.1) with reduced-motion fallback
   - Wire `SharedTransitionLayout` for Home?Chat and Profile?Memory transitions (§50.9.2)
   - Apply `AppTransition` specs to `NavHost` `enterTransition`/`exitTransition`/`popEnterTransition`/`popExitTransition` (§50.9.4)
@@ -2083,6 +2089,6 @@ When `LocalReducedMotionEnabled.current == true`:
   - Write Compose UI tests asserting: TypingIndicator is hidden after first streaming token; navigation indicator animates on tab switch; theme `Crossfade` is applied when `ThemeMode` changes; all animations are disabled when `LocalReducedMotionEnabled == true`
   - _Requirements: 23.1, 23.2, 24.1, 24.3_
 
-- [ ] 50.10 Update Task Dependency Graph wave entry for Task 50
+- [x] 50.10 Update Task Dependency Graph wave entry for Task 50
   - Wave 12: Task 50 (UI Redesign) — depends on Tasks 3, 11, 12, 14, 21, 20.5; can run in parallel with Tasks 44–49 as it touches only `core-ui` and feature-level composable files
   - _Requirements: 24.1, 24.2, 24.3_
