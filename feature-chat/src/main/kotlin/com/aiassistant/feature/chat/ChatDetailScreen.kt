@@ -452,55 +452,13 @@ private fun PillMessageInputBar(
             )
         ) {
             // ── Accessory row ──────────────────────────────────────────────
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(0.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(
-                    onClick = onCameraClick,
-                    modifier = Modifier.semantics { contentDescription = "Open camera" }
-                ) {
-                    Icon(
-                        Icons.Filled.CameraAlt,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                IconButton(
-                    onClick = onAttachClick,
-                    modifier = Modifier.semantics { contentDescription = "Attach file" }
-                ) {
-                    Icon(
-                        Icons.Filled.AttachFile,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                IconButton(
-                    onClick = onCompareClick,
-                    modifier = Modifier.semantics { contentDescription = "Compare models" }
-                ) {
-                    Icon(
-                        Icons.Filled.CompareArrows,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-                Spacer(Modifier.weight(1f))
-                // Character counter — visible when > 90% of limit
-                if (charCount > MAX_MESSAGE_LENGTH * 9 / 10) {
-                    Text(
-                        text = "$charCount / $MAX_MESSAGE_LENGTH",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = if (isOverLimit) {
-                            MaterialTheme.colorScheme.error
-                        } else {
-                            MaterialTheme.colorScheme.onSurfaceVariant
-                        },
-                        modifier = Modifier.padding(end = MaterialTheme.spacing.xs)
-                    )
-                }
-            }
+            PillAccessoryRow(
+                charCount = charCount,
+                isOverLimit = isOverLimit,
+                onCameraClick = onCameraClick,
+                onAttachClick = onAttachClick,
+                onCompareClick = onCompareClick
+            )
 
             // ── Pill input row ─────────────────────────────────────────────
             Row(
@@ -534,63 +492,139 @@ private fun PillMessageInputBar(
                 Spacer(Modifier.width(MaterialTheme.spacing.xs))
 
                 // ── Gradient send button ──────────────────────────────────
-                val canSend = inputText.isNotBlank() && !isStreaming && !isOverLimit
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(RoundedCornerShape(50))
-                        .background(
-                            if (canSend) {
-                                Brush.linearGradient(listOf(gradientStart, gradientEnd))
-                            } else {
-                                Brush.linearGradient(
-                                    listOf(
-                                        MaterialTheme.colorScheme.surfaceVariant,
-                                        MaterialTheme.colorScheme.surfaceVariant
-                                    )
-                                )
-                            }
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    IconButton(
-                        onClick = {
-                            val trimmed = inputText.trim()
-                            if (trimmed.isNotEmpty()) {
-                                onSendMessage(trimmed)
-                                inputText = ""
-                            }
-                        },
-                        enabled = canSend,
-                        modifier = Modifier
-                            .matchParentSize()
-                            .semantics { contentDescription = "Send message" }
-                    ) {
-                        if (isStreaming) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
-                                strokeWidth = 2.dp,
-                                color = Color.White
-                            )
-                        } else {
-                            Icon(
-                                Icons.AutoMirrored.Filled.Send,
-                                contentDescription = null,
-                                tint = if (canSend) {
-                                    Color.White
-                                } else {
-                                    MaterialTheme.colorScheme.onSurfaceVariant
-                                }
-                            )
-                        }
+                PillSendButton(
+                    inputText = inputText,
+                    isStreaming = isStreaming,
+                    isOverLimit = isOverLimit,
+                    gradientStart = gradientStart,
+                    gradientEnd = gradientEnd,
+                    onSend = { msg ->
+                        onSendMessage(msg)
+                        inputText = ""
                     }
-                }
+                )
             }
         }
     }
 }
 
 // ── Banners and chips (unchanged logic) ──────────────────────────────────────
+
+@Composable
+private fun PillAccessoryRow(
+    charCount: Int,
+    isOverLimit: Boolean,
+    onCameraClick: () -> Unit,
+    onAttachClick: () -> Unit,
+    onCompareClick: () -> Unit
+) {
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(0.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        IconButton(
+            onClick = onCameraClick,
+            modifier = Modifier.semantics { contentDescription = "Open camera" }
+        ) {
+            Icon(
+                Icons.Filled.CameraAlt,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        IconButton(
+            onClick = onAttachClick,
+            modifier = Modifier.semantics { contentDescription = "Attach file" }
+        ) {
+            Icon(
+                Icons.Filled.AttachFile,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        IconButton(
+            onClick = onCompareClick,
+            modifier = Modifier.semantics { contentDescription = "Compare models" }
+        ) {
+            Icon(
+                Icons.Filled.CompareArrows,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Spacer(Modifier.weight(1f))
+        // Character counter — visible when > 90% of limit
+        if (charCount > MAX_MESSAGE_LENGTH * 9 / 10) {
+            Text(
+                text = "$charCount / $MAX_MESSAGE_LENGTH",
+                style = MaterialTheme.typography.labelSmall,
+                color = if (isOverLimit) {
+                    MaterialTheme.colorScheme.error
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
+                modifier = Modifier.padding(end = MaterialTheme.spacing.xs)
+            )
+        }
+    }
+}
+
+@Composable
+private fun PillSendButton(
+    inputText: String,
+    isStreaming: Boolean,
+    isOverLimit: Boolean,
+    gradientStart: androidx.compose.ui.graphics.Color,
+    gradientEnd: androidx.compose.ui.graphics.Color,
+    onSend: (String) -> Unit
+) {
+    val canSend = inputText.isNotBlank() && !isStreaming && !isOverLimit
+    Box(
+        modifier = Modifier
+            .size(48.dp)
+            .clip(RoundedCornerShape(50))
+            .background(
+                if (canSend) {
+                    Brush.linearGradient(listOf(gradientStart, gradientEnd))
+                } else {
+                    Brush.linearGradient(
+                        listOf(
+                            MaterialTheme.colorScheme.surfaceVariant,
+                            MaterialTheme.colorScheme.surfaceVariant
+                        )
+                    )
+                }
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        IconButton(
+            onClick = {
+                val trimmed = inputText.trim()
+                if (trimmed.isNotEmpty()) onSend(trimmed)
+            },
+            enabled = canSend,
+            modifier = Modifier
+                .matchParentSize()
+                .semantics { contentDescription = "Send message" }
+        ) {
+            if (isStreaming) {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(20.dp),
+                    strokeWidth = 2.dp,
+                    color = Color.White
+                )
+            } else {
+                Icon(
+                    Icons.AutoMirrored.Filled.Send,
+                    contentDescription = null,
+                    tint = if (canSend) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
+
 
 @Composable
 private fun OnDeviceBanner() {

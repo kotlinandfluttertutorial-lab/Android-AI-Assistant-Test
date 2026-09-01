@@ -385,6 +385,39 @@ private fun AvatarCard(
     // ── 2. Account tier chip ─────────────────────────────────────────────
     val isPremium = user?.role == com.aiassistant.domain.model.UserRole.PREMIUM
 
+    AvatarCardContent(
+        user = user,
+        isPremium = isPremium,
+        isDark = isDark,
+        isEditingName = isEditingName,
+        editingName = editingName,
+        isSavingName = isSavingName,
+        onStartEditName = onStartEditName,
+        onUpdateEditingName = onUpdateEditingName,
+        onCancelEditName = onCancelEditName,
+        onSaveDisplayName = onSaveDisplayName,
+        gradientStart = gradientStart,
+        gradientEnd = gradientEnd
+    )
+}
+
+// ── 3. Memory summary card with FlowRow chip layout ───────────────────────────
+
+@Composable
+private fun AvatarCardContent(
+    user: User?,
+    isPremium: Boolean,
+    isDark: Boolean,
+    isEditingName: Boolean,
+    editingName: String,
+    isSavingName: Boolean,
+    onStartEditName: () -> Unit,
+    onUpdateEditingName: (String) -> Unit,
+    onCancelEditName: () -> Unit,
+    onSaveDisplayName: () -> Unit,
+    gradientStart: androidx.compose.ui.graphics.Color,
+    gradientEnd: androidx.compose.ui.graphics.Color
+) {
     ElevatedCard(
         modifier = Modifier
             .fillMaxWidth()
@@ -399,55 +432,7 @@ private fun AvatarCard(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             // ── Gradient avatar with edit badge ──────────────────────────
-            Box(contentAlignment = Alignment.BottomEnd) {
-                Box(
-                    modifier = Modifier
-                        .size(88.dp)
-                        .clip(CircleShape)
-                        .background(Brush.linearGradient(listOf(gradientStart, gradientEnd))),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (!user?.avatarUrl.isNullOrBlank()) {
-                        AsyncImage(
-                            model = user?.avatarUrl,
-                            contentDescription = "Avatar for ${user?.displayName}",
-                            modifier = Modifier.fillMaxSize().clip(CircleShape)
-                        )
-                    } else {
-                        val initials = user?.displayName
-                            ?.split(" ")
-                            ?.take(2)
-                            ?.mapNotNull { it.firstOrNull()?.uppercaseChar() }
-                            ?.joinToString("")
-                            ?: "?"
-                        Text(
-                            text = initials,
-                            style = MaterialTheme.typography.headlineMedium,
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-                }
-
-                // Edit badge (CameraAlt overlay)
-                Surface(
-                    modifier = Modifier
-                        .size(28.dp)
-                        .offset(x = 4.dp, y = 4.dp)
-                        .semantics { contentDescription = "Edit avatar" },
-                    shape = CircleShape,
-                    color = MaterialTheme.colorScheme.secondaryContainer
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = Icons.Filled.CameraAlt,
-                            contentDescription = null,
-                            modifier = Modifier.size(14.dp),
-                            tint = MaterialTheme.colorScheme.onSecondaryContainer
-                        )
-                    }
-                }
-            }
+            AvatarImageBox(user = user, gradientStart = gradientStart, gradientEnd = gradientEnd)
 
             Spacer(Modifier.height(MaterialTheme.spacing.sm))
 
@@ -484,60 +469,16 @@ private fun AvatarCard(
             Spacer(Modifier.height(MaterialTheme.spacing.xs))
 
             // ── Display name ──────────────────────────────────────────────
-            if (isEditingName) {
-                OutlinedTextField(
-                    value = editingName,
-                    onValueChange = onUpdateEditingName,
-                    label = { Text("Display name") },
-                    singleLine = true,
-                    enabled = !isSavingName,
-                    modifier = Modifier.fillMaxWidth()
-                        .semantics { contentDescription = "Display name input" }
-                )
-                Spacer(Modifier.height(MaterialTheme.spacing.xs))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    TextButton(
-                        onClick = onCancelEditName,
-                        enabled = !isSavingName,
-                        modifier = Modifier.semantics { contentDescription = "Cancel name edit" }
-                    ) { Text("Cancel") }
-                    Spacer(Modifier.width(MaterialTheme.spacing.xs))
-                    Button(
-                        onClick = onSaveDisplayName,
-                        enabled = !isSavingName && editingName.isNotBlank(),
-                        modifier = Modifier.semantics { contentDescription = "Save display name" }
-                    ) {
-                        if (isSavingName) {
-                            CircularProgressIndicator(Modifier.size(16.dp))
-                        } else {
-                            Text("Save")
-                        }
-                    }
-                }
-            } else {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = user?.displayName ?: "—",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Spacer(Modifier.width(MaterialTheme.spacing.xs))
-                    IconButton(
-                        onClick = onStartEditName,
-                        modifier = Modifier.size(24.dp)
-                            .semantics { contentDescription = "Edit display name" }
-                    ) {
-                        Icon(
-                            Icons.Filled.Edit,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
-                }
-            }
+            DisplayNameSection(
+                user = user,
+                isEditingName = isEditingName,
+                editingName = editingName,
+                isSavingName = isSavingName,
+                onStartEditName = onStartEditName,
+                onUpdateEditingName = onUpdateEditingName,
+                onCancelEditName = onCancelEditName,
+                onSaveDisplayName = onSaveDisplayName
+            )
 
             if (!user?.email.isNullOrBlank()) {
                 Text(
@@ -550,7 +491,129 @@ private fun AvatarCard(
     }
 }
 
-// ── 3. Memory summary card with FlowRow chip layout ───────────────────────────
+
+
+@Composable
+private fun AvatarImageBox(user: User?, gradientStart: androidx.compose.ui.graphics.Color, gradientEnd: androidx.compose.ui.graphics.Color) {
+    Box(contentAlignment = Alignment.BottomEnd) {
+        Box(
+            modifier = Modifier
+                .size(88.dp)
+                .clip(CircleShape)
+                .background(Brush.linearGradient(listOf(gradientStart, gradientEnd))),
+            contentAlignment = Alignment.Center
+        ) {
+            if (!user?.avatarUrl.isNullOrBlank()) {
+                AsyncImage(
+                    model = user?.avatarUrl,
+                    contentDescription = "Avatar for ${user?.displayName}",
+                    modifier = Modifier.fillMaxSize().clip(CircleShape)
+                )
+            } else {
+                val initials = user?.displayName
+                    ?.split(" ")
+                    ?.take(2)
+                    ?.mapNotNull { it.firstOrNull()?.uppercaseChar() }
+                    ?.joinToString("")
+                    ?: "?"
+                Text(
+                    text = initials,
+                    style = MaterialTheme.typography.headlineMedium,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
+
+        // Edit badge (CameraAlt overlay)
+        Surface(
+            modifier = Modifier
+                .size(28.dp)
+                .offset(x = 4.dp, y = 4.dp)
+                .semantics { contentDescription = "Edit avatar" },
+            shape = CircleShape,
+            color = MaterialTheme.colorScheme.secondaryContainer
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = Icons.Filled.CameraAlt,
+                    contentDescription = null,
+                    modifier = Modifier.size(14.dp),
+                    tint = MaterialTheme.colorScheme.onSecondaryContainer
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun DisplayNameSection(
+    user: User?,
+    isEditingName: Boolean,
+    editingName: String,
+    isSavingName: Boolean,
+    onStartEditName: () -> Unit,
+    onUpdateEditingName: (String) -> Unit,
+    onCancelEditName: () -> Unit,
+    onSaveDisplayName: () -> Unit
+) {
+    if (isEditingName) {
+        OutlinedTextField(
+            value = editingName,
+            onValueChange = onUpdateEditingName,
+            label = { Text("Display name") },
+            singleLine = true,
+            enabled = !isSavingName,
+            modifier = Modifier.fillMaxWidth()
+                .semantics { contentDescription = "Display name input" }
+        )
+        Spacer(Modifier.height(MaterialTheme.spacing.xs))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End
+        ) {
+            TextButton(
+                onClick = onCancelEditName,
+                enabled = !isSavingName,
+                modifier = Modifier.semantics { contentDescription = "Cancel name edit" }
+            ) { Text("Cancel") }
+            Spacer(Modifier.width(MaterialTheme.spacing.xs))
+            Button(
+                onClick = onSaveDisplayName,
+                enabled = !isSavingName && editingName.isNotBlank(),
+                modifier = Modifier.semantics { contentDescription = "Save display name" }
+            ) {
+                if (isSavingName) {
+                    CircularProgressIndicator(Modifier.size(16.dp))
+                } else {
+                    Text("Save")
+                }
+            }
+        }
+    } else {
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = user?.displayName ?: "—",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+            Spacer(Modifier.width(MaterialTheme.spacing.xs))
+            IconButton(
+                onClick = onStartEditName,
+                modifier = Modifier.size(24.dp)
+                    .semantics { contentDescription = "Edit display name" }
+            ) {
+                Icon(
+                    Icons.Filled.Edit,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+        }
+    }
+}
+
+
 
 @OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -563,6 +626,26 @@ private fun MemorySummaryCard(
     val isDark = isSystemInDarkTheme()
     val cardColor = if (isDark) AppColors.surfaceTonal1Dark else AppColors.surfaceTonal1Light
 
+    MemorySummaryCardContent(
+        memories = memories,
+        deletingIds = deletingIds,
+        onDeleteMemory = onDeleteMemory,
+        onViewAll = onViewAll,
+        cardColor = cardColor
+    )
+}
+
+// ── 4. SettingsGroup composable ───────────────────────────────────────────────
+
+@OptIn(ExperimentalLayoutApi::class, ExperimentalMaterial3Api::class)
+@Composable
+private fun MemorySummaryCardContent(
+    memories: List<Memory>,
+    deletingIds: Set<String>,
+    onDeleteMemory: (String) -> Unit,
+    onViewAll: () -> Unit,
+    cardColor: androidx.compose.ui.graphics.Color
+) {
     ElevatedCard(
         onClick = onViewAll,
         modifier = Modifier
@@ -580,92 +663,11 @@ private fun MemorySummaryCard(
                 .fillMaxWidth()
                 .padding(MaterialTheme.spacing.md)
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)
-                ) {
-                    Icon(
-                        Icons.Filled.Memory,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Text(
-                        text = "Memories",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                }
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "${memories.size}",
-                        style = AppType.sectionLabel,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    Icon(
-                        Icons.AutoMirrored.Filled.ArrowForward,
-                        contentDescription = null,
-                        modifier = Modifier.size(16.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
+            MemorySummaryHeader(memories = memories)
 
             if (memories.isNotEmpty()) {
                 Spacer(Modifier.height(MaterialTheme.spacing.sm))
-                // FlowRow chip layout — first 6 memories as dismissible chips
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
-                    verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)
-                ) {
-                    memories.take(6).forEach { memory ->
-                        FilterChip(
-                            selected = false,
-                            onClick = { /* tap = view detail */ },
-                            label = {
-                                Text(
-                                    text = memory.content.take(30) +
-                                        if (memory.content.length > 30) "…" else "",
-                                    style = MaterialTheme.typography.labelSmall,
-                                    maxLines = 1,
-                                    overflow = TextOverflow.Ellipsis
-                                )
-                            },
-                            trailingIcon = {
-                                if (memory.id in deletingIds) {
-                                    CircularProgressIndicator(
-                                        modifier = Modifier.size(14.dp),
-                                        strokeWidth = 2.dp
-                                    )
-                                } else {
-                                    IconButton(
-                                        onClick = { onDeleteMemory(memory.id) },
-                                        modifier = Modifier
-                                            .size(18.dp)
-                                            .semantics {
-                                                contentDescription = "Delete memory: ${memory.content.take(30)}"
-                                            }
-                                    ) {
-                                        Icon(
-                                            Icons.Filled.Delete,
-                                            contentDescription = null,
-                                            modifier = Modifier.size(12.dp),
-                                            tint = MaterialTheme.colorScheme.error
-                                        )
-                                    }
-                                }
-                            },
-                            modifier = Modifier.semantics {
-                                contentDescription = "Memory: ${memory.content.take(30)}"
-                            }
-                        )
-                    }
-                }
+                MemoryChips(memories = memories, deletingIds = deletingIds, onDeleteMemory = onDeleteMemory)
                 if (memories.size > 6) {
                     Spacer(Modifier.height(MaterialTheme.spacing.xs))
                     Text(
@@ -686,7 +688,97 @@ private fun MemorySummaryCard(
     }
 }
 
-// ── 4. SettingsGroup composable ───────────────────────────────────────────────
+@Composable
+private fun MemorySummaryHeader(memories: List<Memory>) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)
+        ) {
+            Icon(
+                Icons.Filled.Memory,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(18.dp)
+            )
+            Text(
+                text = "Memories",
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Text(
+                text = "${memories.size}",
+                style = AppType.sectionLabel,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Icon(
+                Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = null,
+                modifier = Modifier.size(16.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+private fun MemoryChips(memories: List<Memory>, deletingIds: Set<String>, onDeleteMemory: (String) -> Unit) {
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
+        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)
+    ) {
+        memories.take(6).forEach { memory ->
+            FilterChip(
+                selected = false,
+                onClick = { /* tap = view detail */ },
+                label = {
+                    Text(
+                        text = memory.content.take(30) +
+                            if (memory.content.length > 30) "…" else "",
+                        style = MaterialTheme.typography.labelSmall,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                },
+                trailingIcon = {
+                    if (memory.id in deletingIds) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(14.dp),
+                            strokeWidth = 2.dp
+                        )
+                    } else {
+                        IconButton(
+                            onClick = { onDeleteMemory(memory.id) },
+                            modifier = Modifier
+                                .size(18.dp)
+                                .semantics {
+                                    contentDescription = "Delete memory: ${memory.content.take(30)}"
+                                }
+                        ) {
+                            Icon(
+                                Icons.Filled.Delete,
+                                contentDescription = null,
+                                modifier = Modifier.size(12.dp),
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    }
+                },
+                modifier = Modifier.semantics {
+                    contentDescription = "Memory: ${memory.content.take(30)}"
+                }
+            )
+        }
+    }
+}
+
+
 
 /**
  * Groups related settings rows under a labelled [ElevatedCard].

@@ -353,30 +353,7 @@ private fun ConversationCard(
         modifier = Modifier.fillMaxWidth(),
         revealWidth = 128.dp,
         actions = {
-            // Pin / Unpin action
-            IconButton(
-                onClick = onPinClick,
-                modifier = Modifier.semantics {
-                    contentDescription = if (conversation.isPinned) "Unpin conversation" else "Pin conversation"
-                }
-            ) {
-                Icon(
-                    imageVector = if (conversation.isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
-            // Delete action
-            IconButton(
-                onClick = onDeleteClick,
-                modifier = Modifier.semantics { contentDescription = "Delete conversation" }
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Delete,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error
-                )
-            }
+            ConversationCardActions(conversation = conversation, onPinClick = onPinClick, onDeleteClick = onDeleteClick)
         }
     ) {
         ElevatedCard(
@@ -463,6 +440,34 @@ private fun ConversationCard(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun ConversationCardActions(conversation: Conversation, onPinClick: () -> Unit, onDeleteClick: () -> Unit) {
+    // Pin / Unpin action
+    IconButton(
+        onClick = onPinClick,
+        modifier = Modifier.semantics {
+            contentDescription = if (conversation.isPinned) "Unpin conversation" else "Pin conversation"
+        }
+    ) {
+        Icon(
+            imageVector = if (conversation.isPinned) Icons.Filled.PushPin else Icons.Outlined.PushPin,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary
+        )
+    }
+    // Delete action
+    IconButton(
+        onClick = onDeleteClick,
+        modifier = Modifier.semantics { contentDescription = "Delete conversation" }
+    ) {
+        Icon(
+            imageVector = Icons.Filled.Delete,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.error
+        )
     }
 }
 

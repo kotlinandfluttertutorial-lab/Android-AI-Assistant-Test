@@ -107,37 +107,12 @@ fun ChatBubble(
     val isUser = role == ChatBubbleRole.USER
     val isDark = isSystemInDarkTheme()
 
-    // ── Colours ───────────────────────────────────────────────────────────
-    val bubbleColor = if (isUser) {
-        MaterialTheme.colorScheme.primary.copy(alpha = if (isDark) 0.9f else 1f)
-    } else {
-        if (isDark) AppColors.surfaceTonal2Dark else AppColors.surfaceTonal2Light
-    }
-    val textColor = if (isUser) {
-        Color.White
-    } else {
-        MaterialTheme.colorScheme.onSurface
-    }
+    // ── Colours and shape (extracted helpers to reduce cognitive complexity) ──
+    val bubbleColor = chatBubbleColor(isUser, isDark)
+    val textColor = if (isUser) Color.White else MaterialTheme.colorScheme.onSurface
+    val bubbleShape = chatBubbleShape(isUser)
 
-    // ── Asymmetric shape (tail corner = 4dp) ──────────────────────────────
-    val bubbleShape = if (isUser) {
-        RoundedCornerShape(
-            topStart = BUBBLE_RADIUS_LARGE,
-            topEnd = BUBBLE_RADIUS_LARGE,
-            bottomStart = BUBBLE_RADIUS_LARGE,
-            bottomEnd = BUBBLE_RADIUS_TAIL // user "tail"
-        )
-    } else {
-        RoundedCornerShape(
-            topStart = BUBBLE_RADIUS_TAIL, // assistant "tail"
-            topEnd = BUBBLE_RADIUS_LARGE,
-            bottomStart = BUBBLE_RADIUS_LARGE,
-            bottomEnd = BUBBLE_RADIUS_LARGE
-        )
-    }
-
-    val a11yDesc = contentDescription
-        ?: if (isUser) "You: $text" else "Assistant: $text"
+    val a11yDesc = contentDescription ?: if (isUser) "You: $text" else "Assistant: $text"
 
     Row(
         modifier = modifier
@@ -209,6 +184,29 @@ private fun AssistantAvatar(providerLabel: String?) {
             )
         }
     }
+}
+
+// Helper extraction to reduce complexity in ChatBubble
+private fun chatBubbleColor(isUser: Boolean, isDark: Boolean) = if (isUser) {
+    MaterialTheme.colorScheme.primary.copy(alpha = if (isDark) 0.9f else 1f)
+} else {
+    if (isDark) AppColors.surfaceTonal2Dark else AppColors.surfaceTonal2Light
+}
+
+private fun chatBubbleShape(isUser: Boolean) = if (isUser) {
+    RoundedCornerShape(
+        topStart = BUBBLE_RADIUS_LARGE,
+        topEnd = BUBBLE_RADIUS_LARGE,
+        bottomStart = BUBBLE_RADIUS_LARGE,
+        bottomEnd = BUBBLE_RADIUS_TAIL // user "tail"
+    )
+} else {
+    RoundedCornerShape(
+        topStart = BUBBLE_RADIUS_TAIL, // assistant "tail"
+        topEnd = BUBBLE_RADIUS_LARGE,
+        bottomStart = BUBBLE_RADIUS_LARGE,
+        bottomEnd = BUBBLE_RADIUS_LARGE
+    )
 }
 
 // ── Previews ──────────────────────────────────────────────────────────────────
