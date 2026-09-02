@@ -16,18 +16,18 @@ Requirements: 4.2, 4.5
 
 from __future__ import annotations
 
+import ssl
 import sys
 
 from celery import Celery
 
 
 def _ensure_redis_tls_params(url: str) -> str:
-    """Append ssl_cert_reqs=CERT_REQUIRED to a rediss:// URL if not already set.
+    """Append ssl_cert_reqs=required to a rediss:// URL if not already set.
 
-    Celery's Redis result backend requires ssl_cert_reqs to be specified either
-    as a URL query parameter or via redis_backend_use_ssl.  Embedding it in the
-    URL is the most reliable approach because it works regardless of when
-    app.conf attributes are evaluated.
+    Celery's Redis result backend URL parser accepts: required, optional, none
+    (lowercase).  The ssl module constant ssl.CERT_REQUIRED is passed separately
+    via redis_backend_use_ssl for the result backend connection layer.
 
     Upstash uses a valid public CA certificate, so CERT_REQUIRED is correct.
     """
@@ -36,16 +36,11 @@ def _ensure_redis_tls_params(url: str) -> str:
     if "ssl_cert_reqs" in url:
         return url  # already present — don't duplicate
     separator = "&" if "?" in url else "?"
-    return f"{url}{separator}ssl_cert_reqs=CERT_REQUIRED"
+    return f"{url}{separator}ssl_cert_reqs=required"
 
 
 def _create_celery_app() -> Celery:
-    """Construct the Celery application from settings.
-
-    Settings are read lazily so that the Celery app object can be imported
-    before the .env file is fully initialised (e.g., during testing with
-    env-var overrides).
-    """
+    """Construct the Celery application from settings."""
     from app.config.settings import get_settings
 
     settings = get_settings()
@@ -58,6 +53,13 @@ def _create_celery_app() -> Celery:
         broker=broker,
         backend=backend,
     )
+
+    # For rediss:// URLs, also set ssl config via conf so the result backend
+    # connection layer gets it explicitly — belt and suspenders approach.
+    if broker.startswith("rediss://"):
+        app.conf.broker_use_ssl = {"ssl_cert_reqs": ssl.CERT_REQUIRED}
+    if backend.startswith("rediss://"):
+        app.conf.redis_backend_use_ssl = {"ssl_cert_reqs": ssl.CERT_REQUIRED}
 
     app.conf.update(
         task_serializer="json",
