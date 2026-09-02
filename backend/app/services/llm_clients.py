@@ -201,10 +201,8 @@ class _ProviderRateLimiter:
 
     @staticmethod
     async def _get_redis() -> Any:
-        import redis.asyncio as aioredis
-
-        settings = get_settings()
-        return aioredis.from_url(settings.REDIS_URL, decode_responses=True)  # type: ignore[no-untyped-call]
+        from app.database.redis import get_redis_client
+        return get_redis_client()
 
 
 # ---------------------------------------------------------------------------

@@ -42,13 +42,32 @@ Requirements: 1.5
 
 from __future__ import annotations
 
+import ssl
 from collections.abc import AsyncGenerator
 from functools import lru_cache
+from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
 
 import redis.asyncio as aioredis
 from redis.asyncio import Redis
 
 from app.config.settings import get_settings
+
+
+def _clean_redis_url(url: str) -> str:
+    """Strip ssl_cert_reqs query parameter from a Redis URL.
+
+    The redis-py ``from_url`` helper does not accept ``ssl_cert_reqs`` as a
+    URL query parameter — it must be passed as a keyword argument.  Celery's
+    kombu transport does accept it in the URL, so the Secret Manager value
+    may contain it.  This function removes it so redis-py doesn't choke.
+    """
+    parsed = urlparse(url)
+    if not parsed.query:
+        return url
+    params = parse_qs(parsed.query, keep_blank_values=True)
+    params.pop("ssl_cert_reqs", None)
+    new_query = urlencode({k: v[0] for k, v in params.items()})
+    return urlunparse(parsed._replace(query=new_query))
 
 
 @lru_cache(maxsize=1)
@@ -58,15 +77,28 @@ def get_redis_client() -> Redis:
     The client is created lazily on the first call.  Connection pooling is
     handled internally by the ``redis`` library (default pool size: 10).
 
+    For ``rediss://`` (TLS) URLs (e.g. Upstash), ssl_cert_reqs is passed as
+    a keyword argument using the ssl module constant rather than a URL query
+    parameter, which redis-py does not support.
+
     Returns:
         A connected :class:`redis.asyncio.Redis` instance.
     """
     settings = get_settings()
-    client: Redis = aioredis.from_url(  # type: ignore[no-untyped-call]
-        settings.REDIS_URL,
-        encoding="utf-8",
-        decode_responses=True,
-    )
+    url = _clean_redis_url(settings.REDIS_URL)
+
+    kwargs: dict = {
+        "encoding": "utf-8",
+        "decode_responses": True,
+    }
+
+    # TLS connections require explicit cert verification options.
+    # Upstash and other managed Redis providers present valid CA-signed certs,
+    # so CERT_REQUIRED is the secure and correct choice.
+    if url.startswith("rediss://"):
+        kwargs["ssl_cert_reqs"] = ssl.CERT_REQUIRED
+
+    client: Redis = aioredis.from_url(url, **kwargs)  # type: ignore[no-untyped-call]
     return client
 
 
