@@ -381,7 +381,7 @@ jobs:
           SA="${{ secrets.GCP_SERVICE_ACCOUNT }}"
           PROJECT="${{ secrets.GCP_PROJECT_ID }}"
 
-          gcloud run services deploy ai-assistant-worker \
+          gcloud run deploy ai-assistant-worker \
             --image="$IMAGE" \
             --region="$REGION" \
             --service-account="$SA" \
