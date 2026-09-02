@@ -325,6 +325,104 @@ jobs:
           echo "| Commit | \`${{ github.sha }}\` |" >> "$GITHUB_STEP_SUMMARY"
 
   # ──────────────────────────────────────────────────────────────────────────
+  # 3b. Deploy Celery worker as a second Cloud Run service
+  #
+  #     Same image as the API — entrypoint.sh reads APP_MODE=worker and runs
+  #     `celery ... worker` instead of uvicorn.
+  #
+  #     Key differences from the API service:
+  #       min-instances=1   — worker must always be running to drain the queue;
+  #                           a cold-start delay would leave jobs stuck "queued"
+  #       max-instances=1   — one worker is enough at this scale; increase later
+  #       no-cpu-throttling — Celery needs the CPU between requests (not just
+  #                           during HTTP handling), so throttling must be off
+  #       no HTTP port      — worker does not serve HTTP, but Cloud Run requires
+  #                           a port binding; we bind 8080 and the process does
+  #                           not listen on it (Cloud Run won't probe it because
+  #                           no-allow-unauthenticated services skip liveness
+  #                           probes by default on internal traffic)
+  #       --ingress=internal — worker is not reachable from the public internet
+  # ──────────────────────────────────────────────────────────────────────────
+  deploy-worker:
+    name: Deploy Celery Worker
+    runs-on: ubuntu-latest
+    needs: [build, migrate]
+    if: always() && needs.build.result == 'success'
+
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Authenticate to Google Cloud (WIF)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.GCP_WIF_PROVIDER }}
+          service_account: ${{ secrets.GCP_SERVICE_ACCOUNT }}
+
+      - name: Set up gcloud
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Get ChromaDB internal URL
+        id: chroma
+        run: |
+          HOST=$(gcloud run services describe "${{ secrets.CHROMA_SERVICE_NAME }}" \
+            --region="${{ secrets.GCP_REGION }}" \
+            --format="value(status.url)" \
+            --quiet 2>/dev/null \
+            | sed 's|https://||' \
+            || echo "chromadb-not-deployed")
+          echo "host=$HOST" >> "$GITHUB_OUTPUT"
+
+      - name: Deploy worker to Cloud Run
+        run: |
+          IMAGE="${{ needs.build.outputs.image }}"
+          REGION="${{ secrets.GCP_REGION }}"
+          SA="${{ secrets.GCP_SERVICE_ACCOUNT }}"
+          PROJECT="${{ secrets.GCP_PROJECT_ID }}"
+
+          gcloud run services deploy ai-assistant-worker \
+            --image="$IMAGE" \
+            --region="$REGION" \
+            --service-account="$SA" \
+            --set-secrets="\
+          SECRET_KEY=SECRET_KEY:latest,\
+          AES_ENCRYPTION_KEY=AES_ENCRYPTION_KEY:latest,\
+          DATABASE_URL=DATABASE_URL:latest,\
+          REDIS_URL=REDIS_URL:latest,\
+          OPENAI_API_KEY=OPENAI_API_KEY:latest,\
+          GEMINI_API_KEY=GEMINI_API_KEY:latest,\
+          ANTHROPIC_API_KEY=ANTHROPIC_API_KEY:latest" \
+            --set-env-vars="\
+          APP_MODE=worker,\
+          ENVIRONMENT=production,\
+          LOG_LEVEL=INFO,\
+          STORAGE_BACKEND=gcs,\
+          GCS_BUCKET_NAME=${PROJECT}-files,\
+          CHROMA_HOST=${{ steps.chroma.outputs.host }},\
+          CHROMA_PORT=8001,\
+          DEFAULT_LLM_PROVIDER=gemini,\
+          LLM_FALLBACK_PROVIDER=openai" \
+            --min-instances=1 \
+            --max-instances=1 \
+            --cpu=1 \
+            --memory=1Gi \
+            --no-cpu-throttling \
+            --port=8080 \
+            --ingress=internal \
+            --no-allow-unauthenticated \
+            --timeout=900 \
+            --quiet
+
+          echo "### 🔧 Celery Worker Deployed" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Service | \`ai-assistant-worker\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Image | \`$IMAGE\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Mode | \`APP_MODE=worker\` |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Min instances | 1 (always warm) |" >> "$GITHUB_STEP_SUMMARY"
+
+  # ──────────────────────────────────────────────────────────────────────────
   # 4. Smoke test — /health and /ready
   #
   #    /health → liveness: process is alive
@@ -334,7 +432,7 @@ jobs:
   smoke-test:
     name: Smoke Test
     runs-on: ubuntu-latest
-    needs: deploy
+    needs: [deploy, deploy-worker]
 
     steps:
       - name: Wait for revision to stabilise
