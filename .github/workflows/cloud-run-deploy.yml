@@ -385,24 +385,8 @@ jobs:
             --image="$IMAGE" \
             --region="$REGION" \
             --service-account="$SA" \
-            --set-secrets="\
-          SECRET_KEY=SECRET_KEY:latest,\
-          AES_ENCRYPTION_KEY=AES_ENCRYPTION_KEY:latest,\
-          DATABASE_URL=DATABASE_URL:latest,\
-          REDIS_URL=REDIS_URL:latest,\
-          OPENAI_API_KEY=OPENAI_API_KEY:latest,\
-          GEMINI_API_KEY=GEMINI_API_KEY:latest,\
-          ANTHROPIC_API_KEY=ANTHROPIC_API_KEY:latest" \
-            --set-env-vars="\
-          APP_MODE=worker,\
-          ENVIRONMENT=production,\
-          LOG_LEVEL=INFO,\
-          STORAGE_BACKEND=gcs,\
-          GCS_BUCKET_NAME=${PROJECT}-files,\
-          CHROMA_HOST=${{ steps.chroma.outputs.host }},\
-          CHROMA_PORT=8001,\
-          DEFAULT_LLM_PROVIDER=gemini,\
-          LLM_FALLBACK_PROVIDER=openai" \
+            --set-secrets="SECRET_KEY=SECRET_KEY:latest,AES_ENCRYPTION_KEY=AES_ENCRYPTION_KEY:latest,DATABASE_URL=DATABASE_URL:latest,REDIS_URL=REDIS_URL:latest,OPENAI_API_KEY=OPENAI_API_KEY:latest,GEMINI_API_KEY=GEMINI_API_KEY:latest" \
+            --set-env-vars="APP_MODE=worker,ENVIRONMENT=production,LOG_LEVEL=INFO,STORAGE_BACKEND=gcs,GCS_BUCKET_NAME=${PROJECT}-files,CHROMA_HOST=${{ steps.chroma.outputs.host }},CHROMA_PORT=8001,DEFAULT_LLM_PROVIDER=gemini,LLM_FALLBACK_PROVIDER=openai" \
             --min-instances=1 \
             --max-instances=1 \
             --cpu=1 \
