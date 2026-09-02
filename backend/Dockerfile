@@ -87,9 +87,12 @@ WORKDIR /app
 COPY app/ ./app/
 COPY alembic/ ./alembic/
 COPY alembic.ini .
+# Entrypoint selects API (uvicorn) or worker (celery) based on APP_MODE env var
+COPY entrypoint.sh ./entrypoint.sh
 
-# Ensure the non-root user owns the app directory
-RUN chown -R appuser:appgroup /app
+# Ensure the non-root user owns the app directory and entrypoint is executable
+RUN chown -R appuser:appgroup /app \
+    && chmod +x /app/entrypoint.sh
 
 # Point HuggingFace / sentence-transformers cache to a writable path.
 # HF_HOME overrides the default ~/.cache/huggingface location, so model
@@ -105,4 +108,8 @@ EXPOSE 8000
 HEALTHCHECK --interval=30s --timeout=10s --start-period=15s --retries=3 \
     CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
 
-CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]
+# APP_MODE=api  (default) → uvicorn FastAPI server
+# APP_MODE=worker         → celery worker (drains ingestion/notifications/gdpr queues)
+ENV APP_MODE=api
+
+CMD ["/app/entrypoint.sh"]

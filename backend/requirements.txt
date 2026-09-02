@@ -130,7 +130,9 @@ Pillow==12.3.0
 pytesseract==0.3.13
 # PYSEC-2026-1827/1828/1829/1830/1831/1832/1833/3004-3027/3610-3613/3655/3656,
 #   GHSA-jm82-fx9c-mx94 — fix: >=6.15.0
-pypdf==6.15.0
+# GHSA-jp53-mhqp-8xcg — fix: >=6.16.0
+# GHSA-23w6-3w8w-8484, GHSA-763m-79hh-57f2 — fix: >=6.16.1
+pypdf==6.16.1
 python-docx==1.1.2
 pdf2image==1.17.0
 
@@ -141,8 +143,9 @@ tiktoken==0.8.0
 # transformers is a transitive dep of sentence-transformers.
 # PYSEC-2025-217, PYSEC-2026-2288/2289/2290 — fix: >=5.3.0
 # CVE-2026-5241 — trust_remote_code bypass / arbitrary code execution; fix: >=5.5.0
+# GHSA-xrqw-3rrv-vx5w — fix: >=5.10.0
 # Pin explicitly to ensure no vulnerable version is resolved.
-transformers==5.5.0
+transformers==5.10.0
 # sentence-transformers 3.x pre-dates transformers 5.x; 5.x line adds explicit
 # transformers v5 compatibility and ships its own security fixes.
 sentence-transformers[cpu]==5.6.1
