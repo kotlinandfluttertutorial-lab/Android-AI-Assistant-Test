@@ -1,0 +1,50 @@
+# Cloud Build ignore file — keeps the source upload small.
+# Only the files needed to build the Docker image are sent to GCS.
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# Virtual environments
+.venv/
+venv/
+env/
+.env.local
+
+# Test artifacts
+.coverage
+htmlcov/
+.hypothesis/
+
+# Editor / IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Docker build artifacts
+*.dockerignore
+
+# Local secrets (never upload)
+.env
+secrets/
+
+# Large data / model files
+*.bin
+*.pt
+*.ckpt
+*.safetensors
+models/
+
+# Logs
+*.log
+logs/
