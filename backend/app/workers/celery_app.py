@@ -16,9 +16,29 @@ Requirements: 4.2, 4.5
 
 from __future__ import annotations
 
+import ssl
 import sys
 
 from celery import Celery
+
+
+def _celery_redis_tls_conf(url: str) -> dict:
+    """Return broker/backend SSL config for rediss:// (TLS) URLs.
+
+    Upstash Redis uses TLS and its URL scheme is rediss://.  Celery's Redis
+    transport requires explicit ssl_cert_reqs when connecting over TLS,
+    otherwise it raises:
+        "A rediss:// URL must have parameter ssl_cert_reqs and this must be
+         set to CERT_REQUIRED, CERT_OPTIONAL, or CERT_NONE"
+
+    For managed TLS endpoints (Upstash, Redis Cloud) CERT_REQUIRED is correct
+    because they present a valid certificate signed by a public CA.
+    """
+    if not url.startswith("rediss://"):
+        return {}
+    return {
+        "ssl_cert_reqs": ssl.CERT_REQUIRED,
+    }
 
 
 def _create_celery_app() -> Celery:
@@ -40,6 +60,16 @@ def _create_celery_app() -> Celery:
         broker=broker,
         backend=backend,
     )
+
+    # Configure TLS when broker/backend use rediss:// (e.g. Upstash Redis).
+    # broker_use_ssl / redis_backend_use_ssl must be set before app.conf.update
+    # so the transport layer picks them up during connection setup.
+    broker_tls = _celery_redis_tls_conf(broker)
+    backend_tls = _celery_redis_tls_conf(backend)
+    if broker_tls:
+        app.conf.broker_use_ssl = broker_tls
+    if backend_tls:
+        app.conf.redis_backend_use_ssl = backend_tls
 
     app.conf.update(
         task_serializer="json",
