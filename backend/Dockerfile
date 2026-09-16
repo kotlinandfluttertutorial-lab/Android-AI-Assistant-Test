@@ -63,10 +63,16 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 # Install only the runtime system libraries needed at execution time.
 # NO build tools (gcc, make, build-essential, pip, setuptools) are present
 # in this stage.
+# perl-base is upgraded explicitly to pull in the security patch for
+# CVE-2026-13221, CVE-2026-42496, and CVE-2026-8376 (all CRITICAL, fixed in
+# 5.40.1-6+deb13u1). perl-base ships in python:3.11-slim but is not needed
+# at runtime — upgrading rather than removing it to avoid breaking dpkg
+# dependency resolution.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libpq5 \
     tesseract-ocr \
     poppler-utils \
+    && apt-get upgrade -y --no-install-recommends perl-base \
     && rm -rf /var/lib/apt/lists/*
 
 # Copy installed Python packages from the builder stage.
