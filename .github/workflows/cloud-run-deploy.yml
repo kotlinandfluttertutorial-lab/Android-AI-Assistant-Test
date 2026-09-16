@@ -116,9 +116,17 @@ jobs:
         run: |
           REPO="${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPO }}/api"
           TAG="sha-${{ github.sha }}"
-          echo "ref=$REPO:$TAG" >> "$GITHUB_OUTPUT"
-          echo "repo=$REPO"     >> "$GITHUB_OUTPUT"
-          echo "tag=$TAG"       >> "$GITHUB_OUTPUT"
+          REF="$REPO:$TAG"
+          echo "ref=$REF" >> "$GITHUB_OUTPUT"
+          echo "repo=$REPO" >> "$GITHUB_OUTPUT"
+          echo "tag=$TAG" >> "$GITHUB_OUTPUT"
+          echo "Image reference: $REF"
+          # Fail immediately if GCP_ARTIFACT_REPO is not set — prevents silent empty output
+          if [[ "$REPO" == *"//"* ]]; then
+            echo "::error::GCP_ARTIFACT_REPO variable is not set — image path contains double slash: $REPO"
+            echo "Go to GitHub → Settings → Secrets and variables → Actions → Variables → add GCP_ARTIFACT_REPO=backend"
+            exit 1
+          fi
 
       - name: Build and push
         id: push
