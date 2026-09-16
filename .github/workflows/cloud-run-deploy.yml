@@ -183,6 +183,12 @@ jobs:
           REGION="${{ secrets.GCP_REGION }}"
           SA="${{ secrets.GCP_SERVICE_ACCOUNT }}"
 
+          if [[ -z "$IMAGE" ]]; then
+            echo "::error::IMAGE is empty — needs.build.outputs.image was not set."
+            echo "Trigger a fresh full workflow run instead of re-running individual failed jobs."
+            exit 1
+          fi
+
           # Try update first (fastest path on repeat deploys)
           gcloud run jobs update alembic-migrate \
             --image="$IMAGE" \
