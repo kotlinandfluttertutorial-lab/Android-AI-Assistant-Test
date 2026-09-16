@@ -19,13 +19,14 @@
 #   • TLS Pin Check    — certificate pin consistency across source files
 #
 # PR Required Status Checks (configure as branch-protection rules on main):
-#   • security-scanning / codeql (java-kotlin)
-#   • security-scanning / codeql (python)
+#   • security-scanning / CodeQL Analysis (java-kotlin)
+#   • security-scanning / CodeQL Analysis (python)
 #   • security-scanning / gitleaks
 #   • security-scanning / bandit
-#   • security-scanning / trivy-fs
+#   • security-scanning / Trivy Filesystem & IaC Scan
 #   • security-scanning / safety
-#   • security-scanning / verify-tls-pin
+#   • security-scanning / Verify TLS Certificate Pin Consistency
+#   • cloud-run-deploy / Build & Push Image
 #
 # Main-branch Jobs (push to main / schedule / workflow_dispatch):
 #   • security-scanning / trivy-image  — builds & scans Docker image
@@ -472,9 +473,11 @@ jobs:
           echo "| OWASP Dep-Check | schedule/manual only |" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Slack alert on scan failure
+        # secrets context is not available in if: expressions — check via env var instead.
         if: >-
-          (needs.gitleaks.result == 'failure' || needs.trivy-image.result == 'failure' || needs.safety.result == 'failure') &&
-          secrets.SLACK_WEBHOOK_URL != ''
+          needs.gitleaks.result == 'failure' ||
+          needs.trivy-image.result == 'failure' ||
+          needs.safety.result == 'failure'
         uses: slackapi/slack-github-action@v1.27.0
         with:
           payload: |
@@ -493,3 +496,4 @@ jobs:
         env:
           SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
           SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+        continue-on-error: true  # don't fail the job if SLACK_WEBHOOK_URL is not set
