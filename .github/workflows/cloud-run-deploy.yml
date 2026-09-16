@@ -68,7 +68,7 @@ on:
 
 concurrency:
   group: cloud-run-deploy-${{ github.ref }}
-  cancel-in-progress: true   # cancel an in-flight deploy when a newer push arrives
+  cancel-in-progress: false   # never cancel — a cancelled build loses its outputs and breaks downstream jobs
 
 env:
   PYTHON_VERSION: "3.11"
@@ -146,6 +146,13 @@ jobs:
           echo "| Image | \`${{ steps.image.outputs.ref }}\` |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Digest | \`${{ steps.push.outputs.digest }}\` |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Commit | \`${{ github.sha }}\` |" >> "$GITHUB_STEP_SUMMARY"
+          # Debug: verify output is non-empty before downstream jobs consume it
+          if [[ -z "${{ steps.image.outputs.ref }}" ]]; then
+            echo "::error::steps.image.outputs.ref is empty after build — downstream jobs will fail."
+            echo "Check that GCP_ARTIFACT_REPO variable is set in GitHub Actions variables."
+            exit 1
+          fi
+          echo "✅ Image output verified: ${{ steps.image.outputs.ref }}"
 
   # ──────────────────────────────────────────────────────────────────────────
   # 2. Run Alembic migrations as a Cloud Run Job
@@ -159,7 +166,7 @@ jobs:
     name: Alembic Migrate
     runs-on: ubuntu-latest
     needs: build
-    if: github.event.inputs.skip_migrations != 'true'
+    if: needs.build.result == 'success' && github.event.inputs.skip_migrations != 'true'
 
     permissions:
       contents: read
