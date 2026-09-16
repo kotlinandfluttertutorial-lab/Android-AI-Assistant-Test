@@ -106,7 +106,7 @@ jobs:
 
       - name: Authenticate Docker to Artifact Registry
         run: |
-          gcloud auth configure-docker ${{ secrets.GCP_REGION }}-docker.pkg.dev --quiet
+          gcloud auth configure-docker ${{ vars.GCP_REGION }}-docker.pkg.dev --quiet
 
       - name: Set up Docker Buildx (multi-arch)
         uses: docker/setup-buildx-action@v3
@@ -114,17 +114,21 @@ jobs:
       - name: Compute image reference
         id: image
         run: |
-          REPO="${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPO }}/api"
+          # Use vars.GCP_PROJECT_ID (not secrets) so the image reference is
+          # not redacted by GitHub Actions secret masking.
+          # GitHub suppresses job outputs that contain secret values, which
+          # caused IMAGE to be empty in downstream jobs (migrate/deploy/worker).
+          REPO="${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPO }}/api"
           TAG="sha-${{ github.sha }}"
           REF="$REPO:$TAG"
           echo "ref=$REF" >> "$GITHUB_OUTPUT"
           echo "repo=$REPO" >> "$GITHUB_OUTPUT"
           echo "tag=$TAG" >> "$GITHUB_OUTPUT"
           echo "Image reference: $REF"
-          # Fail immediately if GCP_ARTIFACT_REPO is not set — prevents silent empty output
+          # Fail immediately if variables are not set
           if [[ "$REPO" == *"//"* ]]; then
-            echo "::error::GCP_ARTIFACT_REPO variable is not set — image path contains double slash: $REPO"
-            echo "Go to GitHub → Settings → Secrets and variables → Actions → Variables → add GCP_ARTIFACT_REPO=backend"
+            echo "::error::Image path contains double slash: $REPO"
+            echo "Ensure GCP_PROJECT_ID and GCP_ARTIFACT_REPO are set as GitHub Actions Variables (not secrets)."
             exit 1
           fi
 
@@ -141,9 +145,9 @@ jobs:
           push: true
           tags: |
             ${{ steps.image.outputs.ref }}
-            ${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPO }}/api:latest
-          cache-from: type=registry,ref=${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPO }}/api:buildcache
-          cache-to: type=registry,ref=${{ secrets.GCP_REGION }}-docker.pkg.dev/${{ secrets.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPO }}/api:buildcache,mode=max
+            ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPO }}/api:latest
+          cache-from: type=registry,ref=${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPO }}/api:buildcache
+          cache-to: type=registry,ref=${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPO }}/api:buildcache,mode=max
           provenance: false   # keeps image manifest simple; enable when you need SLSA
 
       - name: Image summary
