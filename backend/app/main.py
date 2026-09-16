@@ -380,7 +380,11 @@ app.include_router(personas_router)
 app.include_router(suggestions_router)
 
 # Phase 10 — AI Error Analysis
-app.include_router(observability_router)
+# The observability router is mounted under /api/v1 to match the Android
+# client (ObservabilityUploadWorker calls /api/v1/observability/events).
+# All other routers have no version prefix — observability is the only one
+# the Android app calls without going through the standard API client.
+app.include_router(observability_router, prefix="/api/v1")
 app.include_router(analysis_router)
 
 # Phase 11 — Anomaly Detection
