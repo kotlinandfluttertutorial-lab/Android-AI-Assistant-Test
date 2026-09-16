@@ -303,6 +303,18 @@ jobs:
           fi
           echo "Deploying image: $IMAGE"
 
+      - name: Clear conflicting secret-type env vars from Cloud Run
+        # GOOGLE_CLIENT_ID and GOOGLE_ANDROID_CLIENT_ID were previously set as
+        # secret references. Cloud Run refuses to change a variable from secret-ref
+        # type to string literal via --update-env-vars. Remove them first so the
+        # deploy step can re-add them as plain string env vars.
+        run: |
+          gcloud run services update ${{ secrets.CLOUD_RUN_SERVICE }} \
+            --region=${{ secrets.GCP_REGION }} \
+            --remove-env-vars=GOOGLE_CLIENT_ID,GOOGLE_ANDROID_CLIENT_ID \
+            --quiet 2>/dev/null || true  # ignore error if vars don't exist yet
+        continue-on-error: true
+
       - name: Deploy to Cloud Run
         id: deploy
         uses: google-github-actions/deploy-cloudrun@v2
