@@ -194,11 +194,7 @@ jobs:
             --image="$IMAGE" \
             --region="$REGION" \
             --service-account="$SA" \
-            --set-secrets="\
-  DATABASE_URL=DATABASE_URL:latest,\
-  SECRET_KEY=SECRET_KEY:latest,\
-  REDIS_URL=REDIS_URL:latest,\
-  AES_ENCRYPTION_KEY=AES_ENCRYPTION_KEY:latest" \
+            --set-secrets="DATABASE_URL=DATABASE_URL:latest,SECRET_KEY=SECRET_KEY:latest,REDIS_URL=REDIS_URL:latest,AES_ENCRYPTION_KEY=AES_ENCRYPTION_KEY:latest" \
             --set-env-vars="STORAGE_BACKEND=gcs,ENVIRONMENT=production" \
             --command="python" \
             --args="-m,alembic,upgrade,head" \
