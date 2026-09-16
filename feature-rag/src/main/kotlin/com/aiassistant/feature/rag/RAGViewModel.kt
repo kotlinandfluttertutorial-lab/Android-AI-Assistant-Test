@@ -296,32 +296,25 @@ class RAGViewModel @Inject constructor(
 
     // â”€â”€â”€ Private helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-    /** Triggers an initial document load and transitions to [RAGUiState.DocumentList]. */
+    /**
+     * Triggers a single document fetch to resolve the initial [RAGUiState.Loading] state.
+     *
+     * Uses [first] to take only the first non-[ApiResult.Loading] emission and then
+     * cancels the upstream flow immediately. This avoids keeping a long-lived collector
+     * alive that would fire a second parallel GET /documents alongside the one already
+     * issued by [DocumentsPagingSource.load], and prevents the duplicate network call
+     * that was causing the Choreographer jank (33 skipped frames on navigation).
+     */
     private fun loadDocuments() {
-        viewModelScope.launch {
-            // Collect the repository flow to observe the initial state.
-            documentRepository.getDocuments().collect { result ->
-                when (result) {
-                    is ApiResult.Loading -> {
-                        if (_uiState.value is RAGUiState.Loading) {
-                            // Stay in loading state.
-                        }
-                    }
-                    is ApiResult.Success, is ApiResult.NetworkUnavailable -> {
-                        if (_uiState.value is RAGUiState.Loading) {
-                            _uiState.value = RAGUiState.DocumentList(
-                                isOffline = isOffline.value
-                            )
-                        }
-                    }
-                    is ApiResult.Error -> {
-                        if (_uiState.value is RAGUiState.Loading) {
-                            _uiState.value = RAGUiState.Error(
-                                message = result.error.message
-                            )
-                        }
-                    }
-                }
+        viewModelScope.launch(dispatchers.io) {
+            val result = documentRepository.getDocuments()
+                .first { it !is ApiResult.Loading }
+            _uiState.value = when (result) {
+                is ApiResult.Success, is ApiResult.NetworkUnavailable ->
+                    RAGUiState.DocumentList(isOffline = isOffline.value)
+                is ApiResult.Error ->
+                    RAGUiState.Error(message = result.error.message)
+                else -> RAGUiState.DocumentList(isOffline = isOffline.value)
             }
         }
     }

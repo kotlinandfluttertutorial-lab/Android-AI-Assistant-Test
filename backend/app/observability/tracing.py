@@ -88,7 +88,7 @@ def _configure_tracing(service_name: str | None) -> None:
     """Internal — assumes opentelemetry packages are available."""
     from opentelemetry import trace
     from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
-    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentation
+    from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
     from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentation
     from opentelemetry.instrumentation.redis import RedisInstrumentation
     from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentation
@@ -133,7 +133,7 @@ def _configure_tracing(service_name: str | None) -> None:
     # Each instrument() call patches the library at import time.
     # Uninstrument() is safe to call multiple times — idempotent.
 
-    FastAPIInstrumentation().instrument()
+    FastAPIInstrumentor().instrument()
     SQLAlchemyInstrumentation().instrument()
     HTTPXClientInstrumentation().instrument()
     RedisInstrumentation().instrument()

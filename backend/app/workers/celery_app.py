@@ -22,21 +22,30 @@ import sys
 from celery import Celery
 
 
-def _ensure_redis_tls_params(url: str) -> str:
-    """Append ssl_cert_reqs=required to a rediss:// URL if not already set.
+def _strip_ssl_cert_reqs_param(url: str) -> str:
+    """Remove any ssl_cert_reqs query parameter from a Redis URL.
 
-    Celery's Redis result backend URL parser accepts: required, optional, none
-    (lowercase).  The ssl module constant ssl.CERT_REQUIRED is passed separately
-    via redis_backend_use_ssl for the result backend connection layer.
+    Kombu's Redis transport does NOT accept ssl_cert_reqs as a URL query
+    parameter — it raises:
+        "A rediss:// URL must have parameter ssl_cert_reqs and this must be
+         set to CERT_REQUIRED, CERT_OPTIONAL, or CERT_NONE"
+    even when the value looks correct, because it expects the raw ssl module
+    constant name (CERT_REQUIRED), not a URL-encoded string.
 
-    Upstash uses a valid public CA certificate, so CERT_REQUIRED is correct.
+    The correct way to configure TLS for rediss:// in Celery is exclusively
+    via broker_use_ssl / redis_backend_use_ssl dicts (see _create_celery_app).
+    This helper ensures no stale ssl_cert_reqs param remains in the URL.
     """
     if not url.startswith("rediss://"):
         return url
-    if "ssl_cert_reqs" in url:
-        return url  # already present — don't duplicate
-    separator = "&" if "?" in url else "?"
-    return f"{url}{separator}ssl_cert_reqs=required"
+
+    from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
+
+    parsed = urlparse(url)
+    params = parse_qs(parsed.query, keep_blank_values=True)
+    params.pop("ssl_cert_reqs", None)
+    clean_query = urlencode(params, doseq=True)
+    return urlunparse(parsed._replace(query=clean_query))
 
 
 def _create_celery_app() -> Celery:
@@ -45,8 +54,20 @@ def _create_celery_app() -> Celery:
 
     settings = get_settings()
 
-    broker = _ensure_redis_tls_params(settings.celery_broker)
-    backend = _ensure_redis_tls_params(settings.celery_backend)
+    # Strip any ssl_cert_reqs query param — TLS is configured via conf dicts below.
+    broker = _strip_ssl_cert_reqs_param(settings.celery_broker)
+    backend = _strip_ssl_cert_reqs_param(settings.celery_backend)
+
+    # Build SSL conf dicts upfront so they are available before Celery
+    # establishes its first broker connection. Passing them through
+    # app.conf.update() *after* construction is too late — Kombu reads the
+    # broker URL at Celery() instantiation time and warns (then falls back to
+    # insecure SSL) if broker_use_ssl is absent at that point.
+    ssl_conf: dict = {}
+    if broker.startswith("rediss://"):
+        ssl_conf["broker_use_ssl"] = {"ssl_cert_reqs": ssl.CERT_REQUIRED}
+    if backend.startswith("rediss://"):
+        ssl_conf["redis_backend_use_ssl"] = {"ssl_cert_reqs": ssl.CERT_REQUIRED}
 
     app = Celery(
         "android_ai_assistant",
@@ -54,12 +75,10 @@ def _create_celery_app() -> Celery:
         backend=backend,
     )
 
-    # For rediss:// URLs, also set ssl config via conf so the result backend
-    # connection layer gets it explicitly — belt and suspenders approach.
-    if broker.startswith("rediss://"):
-        app.conf.broker_use_ssl = {"ssl_cert_reqs": ssl.CERT_REQUIRED}
-    if backend.startswith("rediss://"):
-        app.conf.redis_backend_use_ssl = {"ssl_cert_reqs": ssl.CERT_REQUIRED}
+    # Apply SSL conf immediately after construction, before any other conf
+    # update, so Kombu sees it on the first connection attempt.
+    if ssl_conf:
+        app.conf.update(ssl_conf)
 
     app.conf.update(
         task_serializer="json",
