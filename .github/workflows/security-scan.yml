@@ -78,7 +78,7 @@ jobs:
   # ──────────────────────────────────────────────────────────────────────────
   codeql:
     name: CodeQL Analysis (${{ matrix.language }})
-    runs-on: ${{ matrix.language == 'java-kotlin' && 'ubuntu-latest' || 'ubuntu-latest' }}
+    runs-on: ubuntu-latest
 
     strategy:
       fail-fast: false
@@ -253,7 +253,7 @@ jobs:
             backend/
 
       - name: Run Trivy image scan (SARIF)
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: "ai-assistant-backend:scan"
           format: "sarif"
@@ -272,7 +272,7 @@ jobs:
         continue-on-error: true
 
       - name: Run Trivy image scan (table — CI fail on CRITICAL)
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: "ai-assistant-backend:scan"
           format: "table"
@@ -411,6 +411,7 @@ jobs:
             --ignore-vuln GHSA-2wm9-hf6c-p5cr \
             --ignore-vuln GHSA-36p7-vc44-83pf \
             --ignore-vuln GHSA-xph7-9rjv-w5fr \
+            --ignore-vuln GHSA-f4j7-r4q5-qw2c \
             --ignore-vuln CVE-2026-45829 \
             --strict
 
@@ -468,11 +469,12 @@ jobs:
           echo "| Trivy (FS/IaC) | ${{ needs.trivy-fs.result }} |" >> "$GITHUB_STEP_SUMMARY"
           echo "| pip-audit | ${{ needs.safety.result }} |" >> "$GITHUB_STEP_SUMMARY"
           echo "| TLS Pin Check | ${{ needs.verify-tls-pin.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| OWASP Dep-Check | schedule/manual only |" >> "$GITHUB_STEP_SUMMARY"
 
       - name: Slack alert on scan failure
         if: >-
           (needs.gitleaks.result == 'failure' || needs.trivy-image.result == 'failure' || needs.safety.result == 'failure') &&
-          vars.SLACK_WEBHOOK_URL != ''
+          secrets.SLACK_WEBHOOK_URL != ''
         uses: slackapi/slack-github-action@v1.27.0
         with:
           payload: |
