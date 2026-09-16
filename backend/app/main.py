@@ -301,11 +301,12 @@ app = FastAPI(
         "endpoints for multi-model LLM orchestration, RAG document querying, "
         "memory management, MCP tool integration, and the full productivity suite."
     ),
-    docs_url="/docs",
-    redoc_url="/redoc",
-    openapi_url="/openapi.json",
-    # Disable automatic /docs in production to avoid leaking API shape
-    # (override per-environment when needed)
+    # Disable interactive docs in production — avoids leaking the full API
+    # shape to unauthenticated browsers and removes the /openapi.json cold-hit
+    # from production latency. Docs remain available in development/staging.
+    docs_url="/docs" if settings.ENVIRONMENT != "production" else None,
+    redoc_url="/redoc" if settings.ENVIRONMENT != "production" else None,
+    openapi_url="/openapi.json" if settings.ENVIRONMENT != "production" else None,
     lifespan=lifespan,
 )
 
