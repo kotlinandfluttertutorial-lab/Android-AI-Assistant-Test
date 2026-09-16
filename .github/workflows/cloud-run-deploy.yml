@@ -238,7 +238,7 @@ jobs:
 
     environment:
       name: production
-      url: ${{ secrets.CLOUD_RUN_SERVICE_URL }}
+      url: ${{ steps.deploy.outputs.url }}
 
     outputs:
       url: ${{ steps.deploy.outputs.url }}
