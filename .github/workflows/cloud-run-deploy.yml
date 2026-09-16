@@ -211,6 +211,7 @@ jobs:
 
       - name: Show migration logs on failure
         if: failure()
+        continue-on-error: true  # logging.viewer may not be granted — don't block on diagnostic step
         run: |
           gcloud logging read \
             'resource.type="cloud_run_job" AND resource.labels.job_name="alembic-migrate"' \
@@ -266,6 +267,16 @@ jobs:
             || echo "chromadb-not-deployed")
           echo "host=$HOST" >> "$GITHUB_OUTPUT"
           echo "ChromaDB host: $HOST"
+
+      - name: Validate image reference
+        run: |
+          IMAGE="${{ needs.build.outputs.image }}"
+          if [[ -z "$IMAGE" ]]; then
+            echo "::error::needs.build.outputs.image is empty — cannot deploy without an image."
+            echo "Trigger a fresh full workflow run instead of re-running individual failed jobs."
+            exit 1
+          fi
+          echo "Deploying image: $IMAGE"
 
       - name: Deploy to Cloud Run
         id: deploy
@@ -376,6 +387,14 @@ jobs:
           REGION="${{ secrets.GCP_REGION }}"
           SA="${{ secrets.GCP_SERVICE_ACCOUNT }}"
           PROJECT="${{ secrets.GCP_PROJECT_ID }}"
+
+          # Fail fast with a clear message rather than letting gcloud fail silently
+          if [[ -z "$IMAGE" ]]; then
+            echo "::error::IMAGE is empty — needs.build.outputs.image was not set."
+            echo "This usually means the workflow was re-run from a previously failed build job."
+            echo "Trigger a fresh full workflow run (push a commit or use 'Re-run all jobs')."
+            exit 1
+          fi
 
           gcloud run deploy ai-assistant-worker \
             --image="$IMAGE" \
