@@ -234,56 +234,66 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         # and the admin triggers POST /admin/rag/reindex
         logger.warning("STARTUP: knowledge base seeding failed (non-fatal): %s", _exc)
 
-    # Warm up the SentenceTransformer embedding model so the first real
-    # request doesn't pay the 30-40 s cold-start cost of loading the model
-    # from disk and running a JIT compilation pass.
-    try:
-        import asyncio as _asyncio
+    # Yield first so uvicorn can start accepting requests (including /health
+    # and Cloud Run's TCP startup probe) immediately. The embedding warmup
+    # and ChromaDB check run in the background after the server is live.
+    # This reduces the cold-start latency seen by the first request from
+    # ~60 s (blocking warmup) to ~14 s (uvicorn bind only).
+    import asyncio as _asyncio
 
-        from app.services.rag_service import rag_service as _rag_service
+    async def _background_warmup() -> None:
+        # Warm up the SentenceTransformer embedding model so the first real
+        # RAG request doesn't pay the 30-40 s model-load cost.
+        try:
+            from app.services.rag_service import rag_service as _rag_service
 
-        def _warmup() -> None:
-            model = _rag_service._get_embedding_model()
-            # Encode a short dummy sentence to trigger any lazy JIT compilation.
-            model.encode(["warmup"], show_progress_bar=False)
+            def _warmup() -> None:
+                model = _rag_service._get_embedding_model()
+                model.encode(["warmup"], show_progress_bar=False)
 
-        await _asyncio.to_thread(_warmup)
-        logger.info("STARTUP: embedding model warmed up successfully.")
-    except Exception as _exc:
-        # Non-fatal: the model will still load on the first real request.
-        logger.warning("STARTUP: embedding model warmup failed (non-fatal): %s", _exc)
+            await _asyncio.to_thread(_warmup)
+            logger.info("STARTUP: embedding model warmed up successfully.")
+        except Exception as _exc:
+            logger.warning("STARTUP: embedding model warmup failed (non-fatal): %s", _exc)
 
-    # Check ChromaDB connectivity and log a clear warning if unreachable.
-    # This surfaces misconfiguration (wrong host/port) immediately at startup
-    # rather than silently returning empty results on every query.
-    try:
-        import asyncio as _asyncio
+        # Check ChromaDB connectivity and log a clear warning if unreachable.
+        try:
+            from app.config.settings import get_settings as _get_settings
 
-        from app.config.settings import get_settings as _get_settings
+            def _check_chroma() -> None:
+                import chromadb
 
-        def _check_chroma() -> None:
-            import chromadb
+                s = _get_settings()
+                client = chromadb.HttpClient(host=s.CHROMA_HOST, port=s.CHROMA_PORT)
+                client.heartbeat()
 
-            s = _get_settings()
-            client = chromadb.HttpClient(host=s.CHROMA_HOST, port=s.CHROMA_PORT)
-            client.heartbeat()
+            await _asyncio.to_thread(_check_chroma)
+            logger.info(
+                "STARTUP: ChromaDB reachable at %s:%s.",
+                get_settings().CHROMA_HOST,
+                get_settings().CHROMA_PORT,
+            )
+        except Exception as _exc:
+            logger.warning(
+                "STARTUP: ChromaDB NOT reachable at %s:%s — RAG queries will return "
+                "empty results until ChromaDB is available. Error: %s",
+                get_settings().CHROMA_HOST,
+                get_settings().CHROMA_PORT,
+                _exc,
+            )
 
-        await _asyncio.to_thread(_check_chroma)
-        logger.info(
-            "STARTUP: ChromaDB reachable at %s:%s.",
-            get_settings().CHROMA_HOST,
-            get_settings().CHROMA_PORT,
-        )
-    except Exception as _exc:
-        logger.warning(
-            "STARTUP: ChromaDB NOT reachable at %s:%s — RAG queries will return "
-            "empty results until ChromaDB is available. Error: %s",
-            get_settings().CHROMA_HOST,
-            get_settings().CHROMA_PORT,
-            _exc,
-        )
+    _warmup_task = _asyncio.create_task(_background_warmup())
 
     yield
+
+    # Cancel the warmup task if the server shuts down before it finishes
+    # (e.g. during a rapid rolling deploy or a failed health check restart).
+    if not _warmup_task.done():
+        _warmup_task.cancel()
+        try:
+            await _warmup_task
+        except _asyncio.CancelledError:
+            pass
     # Shutdown cleanup (if needed in future) goes here.
 
 
