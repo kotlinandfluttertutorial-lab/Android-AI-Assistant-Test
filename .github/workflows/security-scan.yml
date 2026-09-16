@@ -19,6 +19,12 @@
 #   • TLS Pin Check    — certificate pin consistency across source files
 #
 # PR Required Status Checks (configure as branch-protection rules on main):
+#   • android-ci / validate
+#   • android-ci / android-lint
+#   • android-ci / android-unit-tests
+#   • android-ci / ktlint + Detekt
+#   • android-ci / backend-unit-tests
+#   • android-ci / Build & Sign Release APK
 #   • security-scanning / CodeQL Analysis (java-kotlin)
 #   • security-scanning / CodeQL Analysis (python)
 #   • security-scanning / gitleaks
@@ -254,7 +260,7 @@ jobs:
             backend/
 
       - name: Run Trivy image scan (SARIF)
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: "ai-assistant-backend:scan"
           format: "sarif"
@@ -273,7 +279,7 @@ jobs:
         continue-on-error: true
 
       - name: Run Trivy image scan (table — CI fail on CRITICAL)
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           image-ref: "ai-assistant-backend:scan"
           format: "table"
@@ -294,7 +300,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Run Trivy filesystem scan (SARIF)
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: "fs"
           scan-ref: "."
@@ -313,7 +319,7 @@ jobs:
         continue-on-error: true
 
       - name: Trivy Docker Compose / IaC check
-        uses: aquasecurity/trivy-action@master
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
           scan-type: "config"
           scan-ref: "."
@@ -478,8 +484,10 @@ jobs:
           needs.gitleaks.result == 'failure' ||
           needs.trivy-image.result == 'failure' ||
           needs.safety.result == 'failure'
-        uses: slackapi/slack-github-action@v1.27.0
+        uses: slackapi/slack-github-action@v2.0.0
         with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
           payload: |
             {
               "text": "🚨 Security scan failure detected on `${{ github.ref_name }}`",
@@ -493,7 +501,4 @@ jobs:
                 }
               ]
             }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
         continue-on-error: true  # don't fail the job if SLACK_WEBHOOK_URL is not set

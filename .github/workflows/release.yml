@@ -668,8 +668,10 @@ jobs:
 
       - name: Slack release announcement
         if: vars.SLACK_WEBHOOK_URL != ''
-        uses: slackapi/slack-github-action@v1.27.0
+        uses: slackapi/slack-github-action@v2.0.0
         with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
           payload: |
             {
               "text": "${{ needs.post-release-smoke.result == 'success' && format('🚀 Android AI Assistant v{0} shipped!', needs.validate-tag.outputs.version) || format('⚠️ Release v{0} completed with issues', needs.validate-tag.outputs.version) }}",
@@ -709,6 +711,4 @@ jobs:
                 }
               ]
             }
-        env:
-          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          SLACK_WEBHOOK_TYPE: INCOMING_WEBHOOK
+        
