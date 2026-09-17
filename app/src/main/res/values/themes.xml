@@ -1,7 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- Base application theme — Material3 via Compose; no legacy XML theme needed. -->
-    <style name="Theme.AIAssistant" parent="android:Theme.Material.Light.NoActionBar" />
+    <!-- Base application theme — Material3 via Compose; AppCompat-compatible parent
+         required for third-party views that extend AppCompatTextView (e.g. compose-markdown). -->
+    <style name="Theme.AIAssistant" parent="Theme.AppCompat.DayNight.NoActionBar" />
 
     <!-- Splash screen theme using AndroidX SplashScreen API (windowSplashScreenBackground). -->
     <style name="Theme.AIAssistant.SplashScreen" parent="Theme.SplashScreen">

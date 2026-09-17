@@ -1,4 +1,4 @@
-/*
+﻿/*
  * ============================================================
  * Android AI Assistant (Enterprise Edition)
  * ============================================================
@@ -62,6 +62,7 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -189,19 +190,19 @@ class DocumentChatViewModel @Inject constructor(
     private fun loadDocumentFileName() {
         viewModelScope.launch {
             try {
-                val documents = withContext(dispatchers.io) {
-                    documentRepository.getDocuments()
+                // .first() takes a single snapshot — avoids a persistent subscription
+                // that re-emits on every background refresh and causes duplicate
+                // GET /documents requests while the chat screen is open.
+                val result = withContext(dispatchers.io) {
+                    documentRepository.getDocuments().first()
                 }
-                documents.collect { result ->
-                    if (result is ApiResult.Success) {
-                        val doc = result.data.firstOrNull { it.id == documentId }
-                        val name = doc?.fileName ?: documentId
-                        // Update state with the resolved file name without changing the state type.
-                        updateDocumentFileName(name)
-                    }
+                if (result is ApiResult.Success) {
+                    val doc = result.data.firstOrNull { it.id == documentId }
+                    val name = doc?.fileName ?: documentId
+                    updateDocumentFileName(name)
                 }
             } catch (_: Exception) {
-                // Non-critical â€” the screen still works without the file name.
+                // Non-critical — the screen still works without the file name.
             }
         }
     }

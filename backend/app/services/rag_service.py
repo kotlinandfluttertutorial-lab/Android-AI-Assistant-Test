@@ -675,10 +675,12 @@ class RAGService:
                 return ids
             except Exception as exc:
                 logger.warning(
-                    "ChromaDB storage failed (graceful degradation): %s", exc
+                    "ChromaDB storage failed — will propagate for retry: %s", exc
                 )
-                # Return placeholder IDs so PostgreSQL rows are still created
-                return [f"{document_id}_{i}" for i in range(len(chunks))]
+                # Re-raise so embed_and_store propagates to the Celery task's
+                # retry handler. Swallowing this would mark the document ready
+                # with no vectors stored, causing every query to return empty.
+                raise
 
         chroma_ids = await asyncio.to_thread(_store_chroma)
 
