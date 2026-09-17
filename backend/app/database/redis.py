@@ -76,9 +76,11 @@ def get_redis_client() -> Redis:
     The client is created lazily on the first call.  Connection pooling is
     handled internally by the ``redis`` library (default pool size: 10).
 
-    For ``rediss://`` (TLS) URLs (e.g. Upstash), SSL is already implied by
-    the scheme.  We pass ``ssl_cert_reqs`` via the URL query string rather
-    than as a constructor keyword argument, which was removed in redis-py 5.x.
+    For ``rediss://`` (TLS) URLs (e.g. Upstash), the TLS context is inferred
+    from the scheme automatically.  We pass ``ssl_cert_reqs="required"`` as a
+    string so redis-py 5.x maps it through its internal ``CERT_REQS`` dict to
+    ``ssl.CERT_REQUIRED``.  Passing the integer constant directly causes:
+        'RedisSSLContext' object has no attribute 'cert_reqs'
 
     Returns:
         A connected :class:`redis.asyncio.Redis` instance.
@@ -91,18 +93,14 @@ def get_redis_client() -> Redis:
         "decode_responses": True,
     }
 
-    # redis-py 5.x removed the ssl= and ssl_cert_reqs= constructor kwargs from
-    # from_url().  For rediss:// URLs the TLS context is inferred from the scheme
-    # automatically; we only need to ensure certificate verification is enabled,
-    # which we do by passing ssl_cert_reqs=CERT_REQUIRED via the connection pool
-    # kwargs (supported in both 4.x and 5.x via the connection_class path).
-    # Passing ssl=True explicitly raises:
-    #   AbstractConnection.__init__() got an unexpected keyword argument 'ssl'
-    # on redis-py ≥ 5.0.
+    # redis-py 5.x (tested on 5.1.1) builds a RedisSSLContext internally and maps
+    # ssl_cert_reqs via a string lookup: "none" | "optional" | "required".
+    # Passing ssl.CERT_REQUIRED (integer 2) bypasses that mapping and causes:
+    #   'RedisSSLContext' object has no attribute 'cert_reqs'
+    # The correct value for full certificate verification is the string "required".
+    # This is the only change needed — the rediss:// scheme already implies TLS.
     if url.startswith("rediss://"):
-        import ssl as _ssl
-
-        kwargs["ssl_cert_reqs"] = _ssl.CERT_REQUIRED
+        kwargs["ssl_cert_reqs"] = "required"
 
     client: Redis = aioredis.from_url(url, **kwargs)  # type: ignore[no-untyped-call]
     return client

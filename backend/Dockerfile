@@ -87,6 +87,24 @@ RUN addgroup --system appgroup \
     && mkdir -p /home/appuser/.cache \
     && chown -R appuser:appgroup /home/appuser
 
+# Point HuggingFace / sentence-transformers cache to a writable path before
+# the model download step so they land in the right layer.
+ENV HF_HOME=/home/appuser/.cache/huggingface \
+    TRANSFORMERS_CACHE=/home/appuser/.cache/huggingface
+
+# Pre-download the SentenceTransformer embedding model into the image so
+# Cloud Run instances never hit HuggingFace Hub at runtime.  Without this,
+# every new instance downloads ~90 MB on first use, adding ~17 s of latency
+# to the first RAG query and triggering the 20-s embedding timeout.
+#
+# The download runs as root here so it writes into the system-wide cache dir
+# (/home/appuser/.cache) which is already owned by appuser.  The USER appuser
+# instruction below switches back to the non-root user for the actual process.
+RUN python -c "\
+from sentence_transformers import SentenceTransformer; \
+SentenceTransformer('sentence-transformers/all-MiniLM-L6-v2'); \
+print('Model cached successfully')"
+
 WORKDIR /app
 
 # Copy application source code and Alembic migration files
@@ -98,13 +116,10 @@ COPY entrypoint.sh ./entrypoint.sh
 
 # Ensure the non-root user owns the app directory and entrypoint is executable
 RUN chown -R appuser:appgroup /app \
+    && chown -R appuser:appgroup /home/appuser/.cache \
     && chmod +x /app/entrypoint.sh
 
-# Point HuggingFace / sentence-transformers cache to a writable path.
-# HF_HOME overrides the default ~/.cache/huggingface location, so model
-# downloads work even if $HOME resolution is unexpected.
-ENV HF_HOME=/home/appuser/.cache/huggingface \
-    TRANSFORMERS_CACHE=/home/appuser/.cache/huggingface
+# HF_HOME and TRANSFORMERS_CACHE are already set above the model download step.
 
 USER appuser
 

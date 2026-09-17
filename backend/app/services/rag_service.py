@@ -785,10 +785,10 @@ class RAGService:
         try:
             query_embedding = await asyncio.wait_for(
                 asyncio.to_thread(_encode_query),
-                timeout=20.0,
+                timeout=45.0,
             )
         except asyncio.TimeoutError:
-            logger.warning("Embedding timed out after 20 s for query=%r", query[:80])
+            logger.warning("Embedding timed out after 45 s for query=%r", query[:80])
             return QueryResult(query=query, retrieved_chunks=[], context="")
 
         # ----------------------------------------------------------------
@@ -1187,10 +1187,10 @@ class RAGService:
         try:
             query_embedding = await asyncio.wait_for(
                 asyncio.to_thread(_encode_query),
-                timeout=20.0,
+                timeout=45.0,
             )
         except asyncio.TimeoutError:
-            logger.warning("Knowledge-base embedding timed out after 20 s for query=%r", query[:80])
+            logger.warning("Knowledge-base embedding timed out after 45 s for query=%r", query[:80])
             return []
 
         def _query_chroma() -> list[dict]:
