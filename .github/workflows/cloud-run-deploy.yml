@@ -469,8 +469,32 @@ jobs:
     name: Smoke Test
     runs-on: ubuntu-latest
     needs: [deploy, deploy-worker]
+    # Run as long as the API deploy succeeded, even if the worker deploy failed.
+    if: always() && needs.deploy.result == 'success'
 
     steps:
+      - name: Resolve service URL
+        id: url
+        run: |
+          # Prefer the live URL emitted by the deploy step.
+          # Fall back to the static CLOUD_RUN_SERVICE_URL secret when the action
+          # output is empty (e.g. the step was skipped or the output was masked).
+          LIVE="${{ needs.deploy.outputs.url }}"
+          STATIC="${{ secrets.CLOUD_RUN_SERVICE_URL }}"
+          if [[ -n "$LIVE" ]]; then
+            SERVICE_URL="$LIVE"
+            echo "Using deploy-step URL: $SERVICE_URL"
+          elif [[ -n "$STATIC" ]]; then
+            SERVICE_URL="$STATIC"
+            echo "deploy-step URL was empty — using CLOUD_RUN_SERVICE_URL secret: $SERVICE_URL"
+          else
+            echo "::error::No service URL available. Set the CLOUD_RUN_SERVICE_URL secret."
+            exit 1
+          fi
+          # Strip trailing slash to avoid double-slash in endpoint paths.
+          SERVICE_URL="${SERVICE_URL%/}"
+          echo "service_url=$SERVICE_URL" >> "$GITHUB_OUTPUT"
+
       - name: Wait for revision to stabilise
         # Cloud Run cold-start with min-instances=0 can take 30-60 s on a fresh
         # deploy.  Give the service extra time before the first probe attempt.
@@ -484,7 +508,7 @@ jobs:
           # Total patience: 30 s initial wait + 8 attempts × 15 s delay = ~150 s.
           HTTP=$(curl -sSo /dev/null -w "%{http_code}" \
             --retry 8 --retry-delay 15 --retry-all-errors \
-            "${{ needs.deploy.outputs.url }}/health")
+            "${{ steps.url.outputs.service_url }}/health")
           echo "Health endpoint returned: $HTTP"
           if [[ "$HTTP" != "200" ]]; then
             echo "::error::Smoke test failed — /health returned $HTTP"
@@ -499,7 +523,7 @@ jobs:
         run: |
           RESPONSE=$(curl -sSo - -w "\nHTTP_STATUS:%{http_code}" \
             --retry 3 --retry-delay 5 \
-            "${{ needs.deploy.outputs.url }}/ready" 2>/dev/null || echo "HTTP_STATUS:000")
+            "${{ steps.url.outputs.service_url }}/ready" 2>/dev/null || echo "HTTP_STATUS:000")
           HTTP=$(echo "$RESPONSE" | grep -o "HTTP_STATUS:[0-9]*" | cut -d: -f2)
           BODY=$(echo "$RESPONSE" | grep -v "HTTP_STATUS:")
           echo "/ready → $HTTP"
@@ -514,6 +538,6 @@ jobs:
       - name: Full smoke summary
         run: |
           echo "### ✅ Smoke Test Complete" >> "$GITHUB_STEP_SUMMARY"
-          echo "Service URL: ${{ needs.deploy.outputs.url }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "Service URL: ${{ steps.url.outputs.service_url }}" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
-          echo "Docs: ${{ needs.deploy.outputs.url }}/docs" >> "$GITHUB_STEP_SUMMARY"
+          echo "Docs: ${{ steps.url.outputs.service_url }}/docs" >> "$GITHUB_STEP_SUMMARY"
