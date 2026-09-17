@@ -333,6 +333,7 @@ jobs:
             --port=8000
             --allow-unauthenticated
             --ingress=all
+            --timeout=60
           secrets: |-
             SECRET_KEY=SECRET_KEY:latest
             AES_ENCRYPTION_KEY=AES_ENCRYPTION_KEY:latest

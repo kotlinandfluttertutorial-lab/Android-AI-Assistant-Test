@@ -782,7 +782,14 @@ class RAGService:
             embedding = model.encode([query], show_progress_bar=False)
             return embedding[0].tolist()
 
-        query_embedding = await asyncio.to_thread(_encode_query)
+        try:
+            query_embedding = await asyncio.wait_for(
+                asyncio.to_thread(_encode_query),
+                timeout=20.0,
+            )
+        except asyncio.TimeoutError:
+            logger.warning("Embedding timed out after 20 s for query=%r", query[:80])
+            return QueryResult(query=query, retrieved_chunks=[], context="")
 
         # ----------------------------------------------------------------
         # Step 2 — query ChromaDB for top-K similar chunks (Property 8)
@@ -837,7 +844,14 @@ class RAGService:
                 logger.warning("ChromaDB query failed (graceful degradation): %s", exc)
                 return []
 
-        chroma_results = await asyncio.to_thread(_query_chroma)
+        try:
+            chroma_results = await asyncio.wait_for(
+                asyncio.to_thread(_query_chroma),
+                timeout=15.0,
+            )
+        except asyncio.TimeoutError:
+            logger.warning("ChromaDB query timed out after 15 s — returning empty results")
+            return QueryResult(query=query, retrieved_chunks=[], context="")
 
         if not chroma_results:
             return QueryResult(query=query, retrieved_chunks=[], context="")
@@ -1170,7 +1184,14 @@ class RAGService:
             model = self._get_embedding_model()
             return model.encode([query], show_progress_bar=False)[0].tolist()
 
-        query_embedding = await asyncio.to_thread(_encode_query)
+        try:
+            query_embedding = await asyncio.wait_for(
+                asyncio.to_thread(_encode_query),
+                timeout=20.0,
+            )
+        except asyncio.TimeoutError:
+            logger.warning("Knowledge-base embedding timed out after 20 s for query=%r", query[:80])
+            return []
 
         def _query_chroma() -> list[dict]:
             try:
@@ -1230,7 +1251,14 @@ class RAGService:
                 logger.warning("query_knowledge_base: ChromaDB error — %s", exc)
                 return []
 
-        return await asyncio.to_thread(_query_chroma)
+        try:
+            return await asyncio.wait_for(
+                asyncio.to_thread(_query_chroma),
+                timeout=15.0,
+            )
+        except asyncio.TimeoutError:
+            logger.warning("query_knowledge_base: ChromaDB timed out after 15 s")
+            return []
 
 # ---------------------------------------------------------------------------
 # Module-level singleton
