@@ -154,7 +154,7 @@ class Settings(BaseSettings):
     )
 
     CHROMA_PORT: int = Field(
-        default=8001,
+        default=8000,
         description="Port of the ChromaDB HTTP server.",
         ge=1,
         le=65535,

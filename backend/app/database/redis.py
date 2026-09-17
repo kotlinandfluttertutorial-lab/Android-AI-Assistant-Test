@@ -42,7 +42,6 @@ Requirements: 1.5
 
 from __future__ import annotations
 
-import ssl
 from collections.abc import AsyncGenerator
 from functools import lru_cache
 from urllib.parse import parse_qs, urlencode, urlparse, urlunparse
@@ -95,8 +94,14 @@ def get_redis_client() -> Redis:
     # TLS connections require explicit cert verification options.
     # Upstash and other managed Redis providers present valid CA-signed certs,
     # so CERT_REQUIRED is the secure and correct choice.
+    #
+    # redis-py 5.x changed TLS configuration: ssl_cert_reqs must be passed as
+    # the string "required" (not ssl.CERT_REQUIRED integer constant), and the
+    # ssl=True flag must be set explicitly. Passing the integer constant causes
+    # 'RedisSSLContext' object has no attribute 'cert_reqs' at runtime.
     if url.startswith("rediss://"):
-        kwargs["ssl_cert_reqs"] = ssl.CERT_REQUIRED
+        kwargs["ssl"] = True
+        kwargs["ssl_cert_reqs"] = "required"
 
     client: Redis = aioredis.from_url(url, **kwargs)  # type: ignore[no-untyped-call]
     return client
