@@ -234,11 +234,6 @@ class RAGViewModel @Inject constructor(
     /**
      * Deletes a document and all its RAG artefacts.
      *
-     * @param documentId The unique identifier of the document to delete.
-     */
-    /**
-     * Deletes a document and all its RAG artefacts.
-     *
      * Emits [RAGUiState.DeleteInProgress] while the operation runs, then:
      * - On success: returns to [RAGUiState.DocumentList] and sends a [DeleteEvent.Success]
      *   so the UI can show a confirmation snackbar.

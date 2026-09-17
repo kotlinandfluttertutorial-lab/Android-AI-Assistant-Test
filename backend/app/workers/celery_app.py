@@ -87,6 +87,21 @@ def _create_celery_app() -> Celery:
         timezone="UTC",
         enable_utc=True,
         task_track_started=True,
+        # Retry broker connection on startup — required for Upstash Redis which
+        # may reset idle connections. Without this Celery 5.x logs a deprecation
+        # warning and will default to False in Celery 6.0.
+        broker_connection_retry_on_startup=True,
+        # Heartbeat keeps the broker connection alive on Upstash Redis which
+        # resets idle TCP connections after ~60s. Set to 10s so we detect and
+        # recover dropped connections well within that window.
+        broker_heartbeat=10,
+        # Transport options for the Redis broker — reconnect on connection loss
+        # rather than crashing the worker process (Errno 104 Connection reset).
+        broker_transport_options={
+            "visibility_timeout": 3600,
+            "socket_keepalive": True,
+            "retry_on_timeout": True,
+        },
         # On Windows, prefork uses shared-memory semaphores that are blocked by
         # default security policy (WinError 5 / Access Denied).  Use the
         # "solo" pool so tasks run in-process without subprocess spawning.

@@ -163,7 +163,7 @@ fun DocumentItem(
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                             Text(
-                                text = document.createdAt.formatDate(),
+                                text = document.createdAt.formatDateTime(),
                                 style = MaterialTheme.typography.bodySmall,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
@@ -344,6 +344,6 @@ internal fun Long.formatFileSize(): String = when {
         "%.1f GB".format(this / (1_024.0 * 1_024.0 * 1_024.0))
 }
 
-private fun Long.formatDate(): String = DateTimeFormatter.ofPattern("MMM d, yyyy")
+private fun Long.formatDateTime(): String = DateTimeFormatter.ofPattern("MMM d, yyyy · h:mm a")
     .withZone(ZoneId.systemDefault())
     .format(Instant.ofEpochMilli(this))
