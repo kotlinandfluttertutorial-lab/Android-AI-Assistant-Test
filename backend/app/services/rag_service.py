@@ -850,10 +850,10 @@ class RAGService:
         try:
             chroma_results = await asyncio.wait_for(
                 asyncio.to_thread(_query_chroma),
-                timeout=60.0,  # raised from 15s — ChromaDB on Cloud Run can cold-start in 30-60s
+                timeout=45.0,  # ChromaDB cold-start budget; Cloud Run request timeout is 300s
             )
         except asyncio.TimeoutError:
-            logger.warning("ChromaDB query timed out after 60 s — returning empty results")
+            logger.warning("ChromaDB query timed out after 45 s — returning empty results")
             return QueryResult(query=query, retrieved_chunks=[], context="")
 
         if not chroma_results:
@@ -1258,10 +1258,10 @@ class RAGService:
         try:
             return await asyncio.wait_for(
                 asyncio.to_thread(_query_chroma),
-                timeout=60.0,  # raised from 15s — ChromaDB on Cloud Run can cold-start in 30-60s
+                timeout=45.0,  # ChromaDB cold-start budget; Cloud Run request timeout is 300s
             )
         except asyncio.TimeoutError:
-            logger.warning("query_knowledge_base: ChromaDB timed out after 60 s")
+            logger.warning("query_knowledge_base: ChromaDB timed out after 45 s")
             return []
 
 # ---------------------------------------------------------------------------

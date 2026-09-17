@@ -293,6 +293,21 @@ jobs:
           echo "host=$HOST" >> "$GITHUB_OUTPUT"
           echo "ChromaDB host: $HOST"
 
+      - name: Ensure ChromaDB min-instances=1 (keep warm)
+        # ChromaDB scaling to zero causes 30-60s cold starts which exceed the
+        # backend's query timeout. Keep at least one instance always warm.
+        # This is idempotent — safe to run on every deploy.
+        run: |
+          if [[ "${{ steps.chroma.outputs.host }}" != "chromadb-not-deployed" ]]; then
+            gcloud run services update "${{ secrets.CHROMA_SERVICE_NAME }}" \
+              --region="${{ secrets.GCP_REGION }}" \
+              --min-instances=1 \
+              --quiet \
+              2>/dev/null || echo "Warning: could not set ChromaDB min-instances (continuing)"
+          else
+            echo "ChromaDB not deployed — skipping min-instances update"
+          fi
+
       - name: Validate image reference
         run: |
           IMAGE="${{ needs.build.outputs.image }}"
@@ -333,7 +348,7 @@ jobs:
             --port=8000
             --allow-unauthenticated
             --ingress=all
-            --timeout=60
+            --timeout=300
           secrets: |-
             SECRET_KEY=SECRET_KEY:latest
             AES_ENCRYPTION_KEY=AES_ENCRYPTION_KEY:latest
