@@ -25,6 +25,7 @@ POST  /documents/upload         — alias for POST /documents (legacy/convenienc
 GET   /documents                — list user's documents
 POST  /documents/query          — semantic search with top-K retrieval and citations
 POST  /documents/{id}/query     — semantic search scoped to a single document with citations
+POST  /documents/{id}/reingest  — re-run ingestion pipeline for an existing document
 DELETE /documents/{document_id} — delete document, chunks, MinIO object, ChromaDB vectors
 GET   /jobs/{job_id}            — poll ingestion job status
 
@@ -625,6 +626,86 @@ async def query_document_by_id(
         answer=answer,
         citations=citations,
         context_used=result.context,
+    )
+
+
+# ---------------------------------------------------------------------------
+# POST /documents/{document_id}/reingest  — re-run ingestion pipeline
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/{document_id}/reingest",
+    status_code=status.HTTP_202_ACCEPTED,
+    response_model=DocumentUploadResponse,
+    summary="Re-run the ingestion pipeline for an existing document",
+    description=(
+        "Resets the document status to pending and re-dispatches the Celery "
+        "ingest_document_task. Useful when a previous ingestion completed with "
+        "ingestion_status=ready but ChromaDB vectors were not stored (e.g. due "
+        "to a connectivity issue during the initial ingest)."
+    ),
+)
+async def reingest_document(
+    document_id: uuid.UUID,
+    current_user: TokenPayload = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> DocumentUploadResponse:
+    """Re-ingest an existing document — reset status and re-dispatch Celery task."""
+    user_id = uuid.UUID(current_user.sub)
+    doc_repo = DocumentRepository(db)
+
+    document = await doc_repo.get_by_id(document_id, user_id=user_id)
+    if document is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Document {document_id} not found.",
+        )
+
+    from app.models.document import IngestionStatus
+
+    # Reset to pending so the worker picks it up fresh
+    await doc_repo.update_status(document_id, IngestionStatus.pending)
+
+    # Delete any stale ChromaDB embeddings from the previous (failed) run
+    try:
+        await rag_service.delete_embeddings(str(document_id), str(user_id))
+    except Exception:
+        logger.warning(
+            "Could not clear stale ChromaDB embeddings for %s (continuing)", document_id
+        )
+
+    # Create a new Job row for this re-ingestion attempt
+    job_id = await rag_service.create_ingestion_job(document_id, user_id, db)
+    await db.commit()
+
+    # Dispatch Celery task
+    try:
+        from app.workers.rag_worker import ingest_document_task
+
+        celery_result = ingest_document_task.delay(str(document_id), str(user_id))
+        logger.info(
+            "Re-dispatched ingest_document_task celery_task_id=%s document_id=%s",
+            celery_result.id,
+            document_id,
+        )
+
+        job_repo = JobRepository(db)
+        from app.models.job import JobStatus
+
+        await job_repo.update_status(
+            job_id,
+            JobStatus.queued,
+            celery_task_id=celery_result.id,
+        )
+        await db.commit()
+    except Exception as exc:
+        logger.warning("Failed to dispatch re-ingest Celery task: %s", exc)
+
+    return DocumentUploadResponse(
+        document_id=document_id,
+        job_id=job_id,
+        status="pending",
     )
 
 
