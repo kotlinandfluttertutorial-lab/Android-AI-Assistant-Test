@@ -103,4 +103,39 @@ sealed class RAGUiState {
      * @param isOffline When `true`, the device has no network connectivity.
      */
     data class UploadError(val message: String, val isOffline: Boolean = false) : RAGUiState()
+
+    /**
+     * A document deletion is currently in progress.
+     *
+     * The UI should show a loading state and prevent further user interaction
+     * on the affected item while the delete operation completes.
+     *
+     * @param documentId  The ID of the document being deleted.
+     * @param fileName    The display name of the document being deleted (for UI labels).
+     * @param isOffline   When `true`, the device has no network connectivity.
+     */
+    data class DeleteInProgress(
+        val documentId: String,
+        val fileName: String,
+        val isOffline: Boolean = false
+    ) : RAGUiState()
+
+    /**
+     * A document deletion failed on the remote backend.
+     *
+     * Because the local cache is always removed first (offline-first strategy),
+     * this state only fires when the remote call returns a hard error that the
+     * repository does not silently swallow (e.g. HTTP 403 Forbidden).
+     *
+     * @param documentId  The ID of the document whose deletion failed.
+     * @param fileName    The display name of the document (for error messaging).
+     * @param message     Human-readable description of the failure.
+     * @param isOffline   When `true`, the device has no network connectivity.
+     */
+    data class DeleteError(
+        val documentId: String,
+        val fileName: String,
+        val message: String,
+        val isOffline: Boolean = false
+    ) : RAGUiState()
 }

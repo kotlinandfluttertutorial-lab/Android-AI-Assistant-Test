@@ -1,4 +1,4 @@
-/*
+﻿/*
  * ============================================================
  * Android AI Assistant (Enterprise Edition)
  * ============================================================
@@ -49,6 +49,7 @@ import com.aiassistant.domain.usecase.document.UploadDocumentUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -57,6 +58,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -133,6 +135,19 @@ class RAGViewModel @Inject constructor(
         ),
         pagingSourceFactory = { DocumentsPagingSource(documentRepository) }
     ).flow.cachedIn(viewModelScope)
+
+    // --- One-shot delete events -----------------------------------------------------
+
+    /**
+     * Fired once after a successful delete so the UI can show a snackbar
+     * without baking the event into [uiState] (which would re-show on recomposition).
+     *
+     * The channel is buffered so events survive brief collector suspension.
+     */
+    private val _deleteEvents = Channel<DeleteEvent>(capacity = Channel.BUFFERED)
+
+    /** Collect this in the UI to receive one-shot delete lifecycle events. */
+    val deleteEvents = _deleteEvents.receiveAsFlow()
 
     // â”€â”€â”€ Polling â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -221,12 +236,61 @@ class RAGViewModel @Inject constructor(
      *
      * @param documentId The unique identifier of the document to delete.
      */
-    fun deleteDocument(documentId: String) {
+    /**
+     * Deletes a document and all its RAG artefacts.
+     *
+     * Emits [RAGUiState.DeleteInProgress] while the operation runs, then:
+     * - On success: returns to [RAGUiState.DocumentList] and sends a [DeleteEvent.Success]
+     *   so the UI can show a confirmation snackbar.
+     * - On failure: emits [RAGUiState.DeleteError] so the UI can surface the error.
+     *
+     * The Room [Flow] driving the paged list automatically removes the deleted item,
+     * so no manual list refresh is required.
+     *
+     * @param documentId The unique identifier of the document to delete.
+     * @param fileName   Display name of the document (used in UI feedback messages).
+     */
+    fun deleteDocument(documentId: String, fileName: String) {
         viewModelScope.launch {
-            withContext(dispatchers.io) {
+            _uiState.value = RAGUiState.DeleteInProgress(
+                documentId = documentId,
+                fileName = fileName,
+                isOffline = isOffline.value
+            )
+
+            val result = withContext(dispatchers.io) {
                 deleteDocumentUseCase(documentId)
             }
+
+            when (result) {
+                is ApiResult.Success -> {
+                    _uiState.value = RAGUiState.DocumentList(isOffline = isOffline.value)
+                    _deleteEvents.send(DeleteEvent.Success(fileName))
+                }
+                is ApiResult.Error -> {
+                    _uiState.value = RAGUiState.DeleteError(
+                        documentId = documentId,
+                        fileName = fileName,
+                        message = result.error.message,
+                        isOffline = isOffline.value
+                    )
+                }
+                else -> {
+                    // NetworkUnavailable / Loading — local delete already applied,
+                    // just return to the list.
+                    _uiState.value = RAGUiState.DocumentList(isOffline = isOffline.value)
+                    _deleteEvents.send(DeleteEvent.Success(fileName))
+                }
+            }
         }
+    }
+
+    /**
+     * Resets a [RAGUiState.DeleteError] back to [RAGUiState.DocumentList] after the
+     * user has acknowledged the error (e.g. dismissed the snackbar).
+     */
+    fun clearDeleteError() {
+        _uiState.value = RAGUiState.DocumentList(isOffline = isOffline.value)
     }
 
     /**
@@ -322,6 +386,7 @@ class RAGViewModel @Inject constructor(
     override fun onCleared() {
         super.onCleared()
         stopPolling()
+        _deleteEvents.close()
     }
 }
 
@@ -378,4 +443,22 @@ class DocumentsPagingSource(private val repository: DocumentRepository) : Paging
             LoadResult.Error(e)
         }
     }
+}
+
+// ─── One-shot delete event types ─────────────────────────────────────────────
+
+/**
+ * One-shot events emitted via [RAGViewModel.deleteEvents] after a delete operation.
+ *
+ * Using a [kotlinx.coroutines.channels.Channel] (rather than baking the event into
+ * [RAGUiState]) ensures the snackbar is shown exactly once and not re-shown on
+ * Compose recomposition.
+ */
+sealed class DeleteEvent {
+    /**
+     * The delete completed successfully (locally, and remotely where possible).
+     *
+     * @param fileName Display name of the deleted document, used in the snackbar message.
+     */
+    data class Success(val fileName: String) : DeleteEvent()
 }

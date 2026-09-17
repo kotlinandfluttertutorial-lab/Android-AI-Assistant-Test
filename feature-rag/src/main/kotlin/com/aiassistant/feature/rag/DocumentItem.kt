@@ -19,11 +19,13 @@
 package com.aiassistant.feature.rag
 
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -43,6 +45,7 @@ import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -70,13 +73,17 @@ import java.time.format.DateTimeFormatter
 /**
  * Redesigned document row with surfaceTonal1 card, SwipeRevealLayout delete,
  * and AnimatedContent status badge.
+ *
+ * When [isDeleting] is `true` the swipe action is disabled and a
+ * [CircularProgressIndicator] overlays the card to indicate the pending deletion.
  */
 @Composable
 fun DocumentItem(
     document: Document,
     onDocumentClick: (String) -> Unit,
     onDeleteClick: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    isDeleting: Boolean = false
 ) {
     val isDark = isSystemInDarkTheme()
     val cardColor = if (isDark) AppColors.surfaceTonal1Dark else AppColors.surfaceTonal1Light
@@ -87,100 +94,138 @@ fun DocumentItem(
         append(document.sizeBytes.formatFileSize())
         append(", ")
         append(document.ingestionStatus.displayLabel())
+        if (isDeleting) append(", deleting")
     }
 
-    SwipeRevealLayout(
-        modifier = modifier.fillMaxWidth(),
-        revealWidth = 72.dp,
-        actions = {
-            IconButton(
-                onClick = { onDeleteClick(document.id) },
-                modifier = Modifier.semantics {
-                    contentDescription = "Delete ${document.fileName}"
-                }
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.Delete,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.error
-                )
-            }
-        }
-    ) {
-        ElevatedCard(
-            onClick = { onDocumentClick(document.id) },
-            modifier = Modifier
-                .fillMaxWidth()
-                .pressScale()
-                .semantics(mergeDescendants = true) { this.contentDescription = a11yLabel },
-            elevation = CardDefaults.elevatedCardElevation(
-                defaultElevation = MaterialTheme.elevation.low
-            ),
-            shape = RoundedCornerShape(14.dp),
-            colors = CardDefaults.elevatedCardColors(containerColor = cardColor)
-        ) {
-            Row(
+    // The card content is extracted so it can be used both inside and outside
+    // SwipeRevealLayout without duplication.
+    val cardContent: @Composable () -> Unit = {
+        Box {
+            ElevatedCard(
+                onClick = { if (!isDeleting) onDocumentClick(document.id) },
+                enabled = !isDeleting,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(
-                        horizontal = MaterialTheme.spacing.md,
-                        vertical = MaterialTheme.spacing.sm
-                    ),
-                verticalAlignment = Alignment.CenterVertically
+                    .pressScale()
+                    .semantics(mergeDescendants = true) { this.contentDescription = a11yLabel },
+                elevation = CardDefaults.elevatedCardElevation(
+                    defaultElevation = MaterialTheme.elevation.low
+                ),
+                shape = RoundedCornerShape(14.dp),
+                colors = CardDefaults.elevatedCardColors(containerColor = cardColor)
             ) {
-                // File icon
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.Article,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(36.dp)
-                )
-
-                Spacer(modifier = Modifier.width(MaterialTheme.spacing.sm))
-
-                // Metadata
-                Column(
-                    modifier = Modifier.weight(1f),
-                    verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(
+                            horizontal = MaterialTheme.spacing.md,
+                            vertical = MaterialTheme.spacing.sm
+                        ),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text(
-                        text = document.fileName,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.Article,
+                        contentDescription = null,
+                        tint = if (isDeleting)
+                            MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                        else
+                            MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(36.dp)
                     )
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
-                        verticalAlignment = Alignment.CenterVertically
+
+                    Spacer(modifier = Modifier.width(MaterialTheme.spacing.sm))
+
+                    Column(
+                        modifier = Modifier.weight(1f),
+                        verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)
                     ) {
                         Text(
-                            text = document.sizeBytes.formatFileSize(),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            text = document.fileName,
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = if (isDeleting)
+                                MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f)
+                            else
+                                MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1
                         )
-                        Text(
-                            text = "·",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                        Text(
-                            text = document.createdAt.formatDate(),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    Spacer(Modifier.height(MaterialTheme.spacing.xs))
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = document.sizeBytes.formatFileSize(),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = "·",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = document.createdAt.formatDate(),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Spacer(Modifier.height(MaterialTheme.spacing.xs))
 
-                    // AnimatedContent status badge — crossfades between states
-                    AnimatedContent(
-                        targetState = document.ingestionStatus,
-                        transitionSpec = { fadeIn() togetherWith fadeOut() },
-                        label = "statusBadge_${document.id}"
-                    ) { status ->
-                        IngestionStatusBadge(status = status)
+                        AnimatedContent(
+                            targetState = document.ingestionStatus,
+                            transitionSpec = { fadeIn() togetherWith fadeOut() },
+                            label = "statusBadge_${document.id}"
+                        ) { status ->
+                            IngestionStatusBadge(status = status)
+                        }
                     }
                 }
             }
+
+            // Deletion in-progress spinner — overlays the card trailing edge.
+            AnimatedVisibility(
+                visible = isDeleting,
+                enter = fadeIn(),
+                exit = fadeOut()
+            ) {
+                Box(
+                    modifier = Modifier.matchParentSize(),
+                    contentAlignment = Alignment.CenterEnd
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier
+                            .padding(end = MaterialTheme.spacing.md)
+                            .size(20.dp),
+                        strokeWidth = 2.dp,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+        }
+    }
+
+    if (isDeleting) {
+        // Skip SwipeRevealLayout while deleting — no swipe gesture, no delete button.
+        Box(modifier = modifier.fillMaxWidth()) { cardContent() }
+    } else {
+        SwipeRevealLayout(
+            modifier = modifier.fillMaxWidth(),
+            revealWidth = 72.dp,
+            actions = {
+                IconButton(
+                    onClick = { onDeleteClick(document.id) },
+                    modifier = Modifier.semantics {
+                        contentDescription = "Delete ${document.fileName}"
+                    }
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Delete,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+        ) {
+            cardContent()
         }
     }
 }

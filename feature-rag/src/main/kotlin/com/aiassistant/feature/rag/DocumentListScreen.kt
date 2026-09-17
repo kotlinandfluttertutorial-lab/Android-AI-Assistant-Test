@@ -91,12 +91,27 @@ fun DocumentListScreen(viewModel: RAGViewModel, onDocumentClick: (String) -> Uni
     val isOffline by viewModel.isOffline.collectAsStateWithLifecycle()
     val pagedDocuments = viewModel.documents.collectAsLazyPagingItems()
 
+    // Hoist the snackbar state here so both the entry point and content can drive it.
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Collect one-shot delete events from the ViewModel channel.
+    LaunchedEffect(Unit) {
+        viewModel.deleteEvents.collect { event ->
+            when (event) {
+                is DeleteEvent.Success ->
+                    snackbarHostState.showSnackbar("\"${event.fileName}\" deleted.")
+            }
+        }
+    }
+
     DocumentListScreenContent(
         uiState = uiState,
         isOffline = isOffline,
         pagedDocuments = pagedDocuments,
+        snackbarHostState = snackbarHostState,
         onDocumentClick = onDocumentClick,
-        onDeleteDocument = viewModel::deleteDocument,
+        onDeleteDocument = { id, fileName -> viewModel.deleteDocument(id, fileName) },
+        onClearDeleteError = viewModel::clearDeleteError,
         onUploadDocument = viewModel::uploadDocument,
         onClearUploadError = viewModel::clearUploadError
     )
@@ -110,16 +125,19 @@ internal fun DocumentListScreenContent(
     uiState: RAGUiState,
     isOffline: Boolean,
     pagedDocuments: LazyPagingItems<Document>,
+    snackbarHostState: SnackbarHostState,
     onDocumentClick: (String) -> Unit,
-    onDeleteDocument: (String) -> Unit,
+    onDeleteDocument: (id: String, fileName: String) -> Unit,
+    onClearDeleteError: () -> Unit,
     onUploadDocument: (uri: String, fileName: String, mimeType: String, sizeBytes: Long) -> Unit,
     onClearUploadError: () -> Unit
 ) {
-    val snackbarHostState = remember { SnackbarHostState() }
     var showFilePickerSheet by rememberSaveable { mutableStateOf(false) }
-    var pendingDeleteId by remember { mutableStateOf<String?>(null) }
+    // Store the full Document so the confirmation dialog can show the filename.
+    var pendingDeleteDoc by remember { mutableStateOf<Document?>(null) }
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
 
+    // Upload lifecycle snackbars and delete-error snackbar.
     LaunchedEffect(uiState) {
         when (uiState) {
             is RAGUiState.UploadSuccess ->
@@ -130,9 +148,16 @@ internal fun DocumentListScreenContent(
                     onClearUploadError()
                 }
             }
+            is RAGUiState.DeleteError -> {
+                snackbarHostState.showSnackbar("Failed to delete \"${uiState.fileName}\": ${uiState.message}")
+                onClearDeleteError()
+            }
             else -> Unit
         }
     }
+
+    // Derive whether a deletion is currently in-flight.
+    val isDeletingId = (uiState as? RAGUiState.DeleteInProgress)?.documentId
 
     Scaffold(
         topBar = {
@@ -163,7 +188,7 @@ internal fun DocumentListScreenContent(
                 OfflineBanner(modifier = Modifier.fillMaxWidth())
             }
 
-            // ── Storage summary card (Task 50.5) ──────────────────────────
+            // ── Storage summary card ──────────────────────────────────────
             StorageSummaryCard(
                 pagedDocuments = pagedDocuments,
                 modifier = Modifier
@@ -184,8 +209,9 @@ internal fun DocumentListScreenContent(
                 else -> {
                     PagedDocumentList(
                         pagedDocuments = pagedDocuments,
+                        deletingDocumentId = isDeletingId,
                         onDocumentClick = onDocumentClick,
-                        onDeleteRequest = { pendingDeleteId = it }
+                        onDeleteRequest = { doc -> pendingDeleteDoc = doc }
                     )
                 }
             }
@@ -204,13 +230,15 @@ internal fun DocumentListScreenContent(
         )
     }
 
-    if (pendingDeleteId != null) {
+    if (pendingDeleteDoc != null) {
+        val doc = pendingDeleteDoc!!
         DeleteDocumentDialog(
+            fileName = doc.fileName,
             onConfirm = {
-                onDeleteDocument(pendingDeleteId!!)
-                pendingDeleteId = null
+                onDeleteDocument(doc.id, doc.fileName)
+                pendingDeleteDoc = null
             },
-            onDismiss = { pendingDeleteId = null }
+            onDismiss = { pendingDeleteDoc = null }
         )
     }
 }
@@ -300,8 +328,9 @@ private fun StorageSummaryCard(pagedDocuments: LazyPagingItems<Document>, modifi
 @Composable
 private fun PagedDocumentList(
     pagedDocuments: LazyPagingItems<Document>,
+    deletingDocumentId: String?,
     onDocumentClick: (String) -> Unit,
-    onDeleteRequest: (String) -> Unit
+    onDeleteRequest: (Document) -> Unit
 ) {
     when {
         pagedDocuments.loadState.refresh is LoadState.Loading &&
@@ -331,8 +360,9 @@ private fun PagedDocumentList(
                     pagedDocuments[idx]?.let { document ->
                         DocumentItem(
                             document = document,
+                            isDeleting = document.id == deletingDocumentId,
                             onDocumentClick = onDocumentClick,
-                            onDeleteClick = onDeleteRequest
+                            onDeleteClick = { onDeleteRequest(document) }
                         )
                     }
                 }
@@ -418,20 +448,24 @@ private fun EmptyContent() {
 // ── Delete dialog ─────────────────────────────────────────────────────────────
 
 @Composable
-private fun DeleteDocumentDialog(onConfirm: () -> Unit, onDismiss: () -> Unit) {
+private fun DeleteDocumentDialog(
+    fileName: String,
+    onConfirm: () -> Unit,
+    onDismiss: () -> Unit
+) {
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Delete Document") },
         text = {
             Text(
-                "Delete this document? All associated data will be permanently removed from the RAG index.",
+                "Delete \"$fileName\"? All associated data will be permanently removed from the RAG index.",
                 style = MaterialTheme.typography.bodyMedium
             )
         },
         confirmButton = {
             TextButton(
                 onClick = onConfirm,
-                modifier = Modifier.semantics { contentDescription = "Confirm delete document" }
+                modifier = Modifier.semantics { contentDescription = "Confirm delete $fileName" }
             ) {
                 Text("Delete", color = MaterialTheme.colorScheme.error)
             }
