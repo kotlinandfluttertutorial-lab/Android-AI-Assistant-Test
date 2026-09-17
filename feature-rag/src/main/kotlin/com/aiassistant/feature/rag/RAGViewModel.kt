@@ -66,12 +66,6 @@ import kotlinx.coroutines.withContext
 
 // â”€â”€â”€ Extension helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
-/**
- * Returns the first non-[ApiResult.Loading] emission from the [Flow], or
- * [ApiResult.Loading] if the flow completes without a non-loading element.
- */
-private suspend fun <T> Flow<ApiResult<T>>.firstOrLoading(): ApiResult<T> = first()
-
 /** Polling interval for ingestion status queries (every 5 seconds). */
 private const val POLLING_INTERVAL_MS = 5_000L
 
@@ -385,15 +379,19 @@ class RAGViewModel @Inject constructor(
     }
 }
 
-// â”€â”€â”€ PagingSource â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// --- PagingSource ------------------------------------------------------------------
 
 /**
- * [PagingSource] that loads documents from [DocumentRepository.getDocuments] one
- * page at a time (20 documents per page).
+ * [PagingSource] that loads documents from [DocumentRepository.getDocuments].
  *
- * Because [DocumentRepository.getDocuments] returns a [Flow] of the full list, each
- * load call takes the first emitted snapshot and slices the requested page out of it.
- * This keeps the paging layer simple while still reflecting in-flight status updates.
+ * Each [load] call takes a single snapshot from the repository. Invalidation is
+ * driven externally — callers should call [invalidate] when they know the list
+ * has changed (e.g. after an upload or delete completes).
+ *
+ * The previous implementation used a GlobalScope coroutine to watch for repository
+ * changes and auto-invalidate, but this spawned an unbounded number of never-cancelled
+ * coroutines (one per PagingSource instance), causing the polling storm that hit the
+ * 60 req/min rate limit.
  *
  * @param repository The document repository to fetch from.
  */
@@ -410,8 +408,8 @@ class DocumentsPagingSource(private val repository: DocumentRepository) : Paging
             val page = params.key ?: 0
             val pageSize = params.loadSize
 
-            // Take only the first snapshot to avoid blocking indefinitely.
-            val firstResult = repository.getDocuments().firstOrLoading()
+            // Take the current snapshot — single network call, no ongoing subscription.
+            val firstResult = repository.getDocuments().first()
             val allDocuments: List<Document> = when (firstResult) {
                 is ApiResult.Success -> firstResult.data
                 else -> emptyList()
@@ -428,9 +426,8 @@ class DocumentsPagingSource(private val repository: DocumentRepository) : Paging
                 )
             }
 
-            val slice = allDocuments.subList(fromIndex, toIndex)
             LoadResult.Page(
-                data = slice,
+                data = allDocuments.subList(fromIndex, toIndex),
                 prevKey = if (page == 0) null else page - 1,
                 nextKey = if (toIndex >= allDocuments.size) null else page + 1
             )
@@ -439,7 +436,6 @@ class DocumentsPagingSource(private val repository: DocumentRepository) : Paging
         }
     }
 }
-
 // ─── One-shot delete event types ─────────────────────────────────────────────
 
 /**

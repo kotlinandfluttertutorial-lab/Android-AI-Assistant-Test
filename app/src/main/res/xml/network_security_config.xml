@@ -29,15 +29,15 @@
         <domain includeSubdomains="true">ai-assistant-backend-106071012091.asia-south1.run.app</domain>
         <pin-set expiration="2029-02-01">
             <!--
-              Primary pin: SHA-256 of the leaf certificate SPKI (*.a.run.app)
-              Certificate: CN=*.a.run.app, issued by Google Trust Services WE2
-              Expires: 2026-10-29 — update before this date.
-            -->
-            <pin digest="SHA-256">evuynPanUbLc9BdXGwaHE/jtnb7PfIFHSNvWADWMq60=</pin>
-            <!--
+              Leaf certificate pin removed: Google Cloud Run auto-rotates TLS
+              certificates every 30-90 days without notice, making leaf pinning
+              impractical. Pinning the leaf caused SSLHandshakeException when the
+              cert rotated (2026-09-17).
+
               Backup pin: SHA-256 of the intermediate CA SPKI (Google Trust Services WE2)
-              Expires: 2029-02-20 — ensures the app works through leaf cert rotations
-              until the intermediate itself is replaced.
+              Expires: 2029-02-20 — provides trust chain validation at the CA level
+              which survives automatic leaf cert rotation on Cloud Run.
+              Update this pin only when Google rotates WE2 itself.
             -->
             <pin digest="SHA-256">vh78KSg1Ry4NaqGDV10w/cTb9VH3BQUZoCWNa93W/EY=</pin>
         </pin-set>
