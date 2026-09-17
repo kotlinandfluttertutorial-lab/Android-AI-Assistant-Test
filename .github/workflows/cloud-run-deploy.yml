@@ -1,5 +1,5 @@
-# ============================================================================
-# Cloud Run Deploy Pipeline — ₹0–₹1,000/month Budget Architecture
+﻿# ============================================================================
+# Cloud Run Deploy Pipeline â€” â‚¹0â€“â‚¹1,000/month Budget Architecture
 # ============================================================================
 #
 # Purpose:
@@ -8,10 +8,10 @@
 #   docs/CLOUD_RUN_DEPLOYMENT.md.
 #
 # Architecture:
-#   Cloud Run (FastAPI) → Neon PostgreSQL + ChromaDB on Cloud Run
-#                       → Cloud Storage (file uploads, replaces MinIO)
-#                       → Secret Manager (all secrets)
-#                       → OpenAI / Gemini (pay-per-token)
+#   Cloud Run (FastAPI) â†’ Neon PostgreSQL + ChromaDB on Cloud Run
+#                       â†’ Cloud Storage (file uploads, replaces MinIO)
+#                       â†’ Secret Manager (all secrets)
+#                       â†’ OpenAI / Gemini (pay-per-token)
 #
 # What this workflow does on every push to main:
 #   1. Builds a multi-arch Docker image from backend/Dockerfile
@@ -21,32 +21,32 @@
 #   5. Smoke-tests /health and /ready
 #
 # Authentication:
-#   Workload Identity Federation — no long-lived service account key files.
+#   Workload Identity Federation â€” no long-lived service account key files.
 #   See docs/CLOUD_RUN_DEPLOYMENT.md Step 11.1 for one-time WIF setup.
 #
-# Required GitHub Secrets (Settings → Secrets → Actions):
-#   GCP_PROJECT_ID         — GCP project ID, e.g. android-ai-assistant
-#   GCP_REGION             — Deploy region, e.g. asia-south1
-#   GCP_WIF_PROVIDER       — Full WIF provider resource name
-#   GCP_SERVICE_ACCOUNT    — SA email, e.g. ai-assistant-backend@PROJECT.iam.gserviceaccount.com
-#   CLOUD_RUN_SERVICE      — Cloud Run service name, e.g. ai-assistant-backend
-#   CLOUD_RUN_SERVICE_URL  — Full HTTPS URL of the Cloud Run service (set after first deploy)
-#   CHROMA_SERVICE_NAME    — Cloud Run service name for ChromaDB, e.g. chromadb
-#   SQL_CONN_NAME          — Cloud SQL connection name (only if/when you migrate to Cloud SQL)
+# Required GitHub Secrets (Settings â†’ Secrets â†’ Actions):
+#   GCP_PROJECT_ID         â€” GCP project ID, e.g. android-ai-assistant
+#   GCP_REGION             â€” Deploy region, e.g. asia-south1
+#   GCP_WIF_PROVIDER       â€” Full WIF provider resource name
+#   GCP_SERVICE_ACCOUNT    â€” SA email, e.g. ai-assistant-backend@PROJECT.iam.gserviceaccount.com
+#   CLOUD_RUN_SERVICE      â€” Cloud Run service name, e.g. ai-assistant-backend
+#   CLOUD_RUN_SERVICE_URL  â€” Full HTTPS URL of the Cloud Run service (set after first deploy)
+#   CHROMA_SERVICE_NAME    â€” Cloud Run service name for ChromaDB, e.g. chromadb
+#   SQL_CONN_NAME          â€” Cloud SQL connection name (only if/when you migrate to Cloud SQL)
 #
-# Optional — only needed when Cloud SQL is added later:
-#   SQL_CONN_NAME          — e.g. android-ai-assistant:asia-south1:ai-assistant-db
+# Optional â€” only needed when Cloud SQL is added later:
+#   SQL_CONN_NAME          â€” e.g. android-ai-assistant:asia-south1:ai-assistant-db
 #
-# Required GitHub Variables (Settings → Variables → Actions):
-#   GCP_ARTIFACT_REPO      — Artifact Registry repo name, e.g. backend
+# Required GitHub Variables (Settings â†’ Variables â†’ Actions):
+#   GCP_ARTIFACT_REPO      â€” Artifact Registry repo name, e.g. backend
 #
 # Cost guard:
-#   min-instances: 0  → service scales to zero when unused
-#   max-instances: 2  → hard cap on parallel instances
-#   concurrency: 40   → one instance handles 40 parallel requests before scaling
+#   min-instances: 0  â†’ service scales to zero when unused
+#   max-instances: 2  â†’ hard cap on parallel instances
+#   concurrency: 40   â†’ one instance handles 40 parallel requests before scaling
 #
 # Trigger:
-#   push → main (after tests pass in backend-ci.yml)
+#   push â†’ main (after tests pass in backend-ci.yml)
 #   workflow_dispatch (manual)
 # ============================================================================
 
@@ -68,16 +68,16 @@ on:
 
 concurrency:
   group: cloud-run-deploy-${{ github.ref }}
-  cancel-in-progress: false   # never cancel — a cancelled build loses its outputs and breaks downstream jobs
+  cancel-in-progress: false   # never cancel â€” a cancelled build loses its outputs and breaks downstream jobs
 
 env:
   PYTHON_VERSION: "3.11"
 
 jobs:
 
-  # ──────────────────────────────────────────────────────────────────────────
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   # 1. Build and push Docker image to Artifact Registry
-  # ──────────────────────────────────────────────────────────────────────────
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   build:
     name: Build & Push Image
     runs-on: ubuntu-latest
@@ -139,8 +139,8 @@ jobs:
           context: backend
           file: backend/Dockerfile
           target: production
-          # amd64 only — arm64 is slow on GitHub hosted runners and not needed yet
-          # Add linux/arm64 when you need it (costs 2× build time)
+          # amd64 only â€” arm64 is slow on GitHub hosted runners and not needed yet
+          # Add linux/arm64 when you need it (costs 2Ã— build time)
           platforms: linux/amd64
           push: true
           tags: |
@@ -152,7 +152,7 @@ jobs:
 
       - name: Image summary
         run: |
-          echo "### 🐳 Image pushed" >> "$GITHUB_STEP_SUMMARY"
+          echo "### ðŸ³ Image pushed" >> "$GITHUB_STEP_SUMMARY"
           echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
           echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
           echo "| Image | \`${{ steps.image.outputs.ref }}\` |" >> "$GITHUB_STEP_SUMMARY"
@@ -160,20 +160,20 @@ jobs:
           echo "| Commit | \`${{ github.sha }}\` |" >> "$GITHUB_STEP_SUMMARY"
           # Debug: verify output is non-empty before downstream jobs consume it
           if [[ -z "${{ steps.image.outputs.ref }}" ]]; then
-            echo "::error::steps.image.outputs.ref is empty after build — downstream jobs will fail."
+            echo "::error::steps.image.outputs.ref is empty after build â€” downstream jobs will fail."
             echo "Check that GCP_ARTIFACT_REPO variable is set in GitHub Actions variables."
             exit 1
           fi
-          echo "✅ Image output verified: ${{ steps.image.outputs.ref }}"
+          echo "âœ… Image output verified: ${{ steps.image.outputs.ref }}"
 
-  # ──────────────────────────────────────────────────────────────────────────
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   # 2. Run Alembic migrations as a Cloud Run Job
   #
   #    Creates the job on first run; updates it on subsequent runs.
-  #    Runs alembic upgrade head then exits — billed only for execution time.
+  #    Runs alembic upgrade head then exits â€” billed only for execution time.
   #    Skip with workflow_dispatch input skip_migrations=true when schema
   #    has not changed to save ~30 seconds of deploy time.
-  # ──────────────────────────────────────────────────────────────────────────
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   migrate:
     name: Alembic Migrate
     runs-on: ubuntu-latest
@@ -199,11 +199,11 @@ jobs:
         # the update path is taken on all subsequent runs.
         run: |
           IMAGE="${{ needs.build.outputs.image }}"
-          REGION="${{ secrets.GCP_REGION }}"
+          REGION="${{ vars.GCP_REGION }}"
           SA="${{ secrets.GCP_SERVICE_ACCOUNT }}"
 
           if [[ -z "$IMAGE" ]]; then
-            echo "::error::IMAGE is empty — needs.build.outputs.image was not set."
+            echo "::error::IMAGE is empty â€” needs.build.outputs.image was not set."
             echo "Trigger a fresh full workflow run instead of re-running individual failed jobs."
             exit 1
           fi
@@ -229,28 +229,28 @@ jobs:
       - name: Execute migration
         run: |
           gcloud run jobs execute alembic-migrate \
-            --region="${{ secrets.GCP_REGION }}" \
+            --region="${{ vars.GCP_REGION }}" \
             --wait \
             --quiet
-          echo "✅ Alembic migrations complete"
+          echo "âœ… Alembic migrations complete"
 
       - name: Show migration logs on failure
         if: failure()
-        continue-on-error: true  # logging.viewer may not be granted — don't block on diagnostic step
+        continue-on-error: true  # logging.viewer may not be granted â€” don't block on diagnostic step
         run: |
           gcloud logging read \
             'resource.type="cloud_run_job" AND resource.labels.job_name="alembic-migrate"' \
             --limit=50 \
             --format="value(textPayload)" \
-            --project="${{ secrets.GCP_PROJECT_ID }}"
+            --project="${{ vars.GCP_PROJECT_ID }}"
 
-  # ──────────────────────────────────────────────────────────────────────────
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   # 3. Deploy new revision to Cloud Run
   #
-  #    All secrets come from Secret Manager — no .env file on the container.
+  #    All secrets come from Secret Manager â€” no .env file on the container.
   #    Non-secret env vars are inlined here.
   #    Cost guards: min-instances=0, max-instances=2, concurrency=40.
-  # ──────────────────────────────────────────────────────────────────────────
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   deploy:
     name: Deploy to Cloud Run
     runs-on: ubuntu-latest
@@ -282,37 +282,60 @@ jobs:
       - name: Get ChromaDB internal URL
         id: chroma
         run: |
-          # ChromaDB runs as an internal Cloud Run service.
-          # Strip https:// since CHROMA_HOST is host only.
-          HOST=$(gcloud run services describe "${{ secrets.CHROMA_SERVICE_NAME }}" \
-            --region="${{ secrets.GCP_REGION }}" \
-            --format="value(status.url)" \
-            --quiet 2>/dev/null \
-            | sed 's|https://||' \
-            || echo "chromadb-not-deployed")
+          # ChromaDB runs with ingress=internal. Cloud Run service-to-service calls
+          # within the same project must use the project-number-based URL
+          # (e.g. chromadb-106071012091.asia-south1.run.app), NOT the external
+          # hash URL (chromadb-yyjr66r2zq-el.a.run.app).
+          # status.url returns the external URL; we extract the internal one from
+          # the urls annotation which lists both.
+          RAW=$(gcloud run services describe "${{ secrets.CHROMA_SERVICE_NAME }}" \
+            --region="${{ vars.GCP_REGION }}" \
+            --format='value(metadata.annotations["run.googleapis.com/urls"])' \
+            --quiet 2>/dev/null || echo "")
+
+          # The annotation is a JSON array like ["https://svc-PROJNUM.region.run.app","https://svc-hash.region.run.app"]
+          # Pick the entry that contains the project number (all digits segment).
+          PROJECT_NUM=$(gcloud projects describe "${{ vars.GCP_PROJECT_ID }}" \
+            --format="value(projectNumber)" --quiet 2>/dev/null || echo "")
+
+          if [[ -n "$PROJECT_NUM" && -n "$RAW" ]]; then
+            HOST=$(echo "$RAW" | tr ',' '\n' | tr -d '[]"' \
+              | grep "$PROJECT_NUM" | sed 's|https://||' | tr -d ' ' | head -1)
+          fi
+
+          # Fall back to stripping status.url if annotation parsing failed
+          if [[ -z "$HOST" ]]; then
+            HOST=$(gcloud run services describe "${{ secrets.CHROMA_SERVICE_NAME }}" \
+              --region="${{ vars.GCP_REGION }}" \
+              --format="value(status.url)" \
+              --quiet 2>/dev/null \
+              | sed 's|https://||' \
+              || echo "chromadb-not-deployed")
+          fi
+
           echo "host=$HOST" >> "$GITHUB_OUTPUT"
           echo "ChromaDB host: $HOST"
 
       - name: Ensure ChromaDB min-instances=1 (keep warm)
         # ChromaDB scaling to zero causes 30-60s cold starts which exceed the
         # backend's query timeout. Keep at least one instance always warm.
-        # This is idempotent — safe to run on every deploy.
+        # This is idempotent â€” safe to run on every deploy.
         run: |
           if [[ "${{ steps.chroma.outputs.host }}" != "chromadb-not-deployed" ]]; then
             gcloud run services update "${{ secrets.CHROMA_SERVICE_NAME }}" \
-              --region="${{ secrets.GCP_REGION }}" \
+              --region="${{ vars.GCP_REGION }}" \
               --min-instances=1 \
               --quiet \
               2>/dev/null || echo "Warning: could not set ChromaDB min-instances (continuing)"
           else
-            echo "ChromaDB not deployed — skipping min-instances update"
+            echo "ChromaDB not deployed â€” skipping min-instances update"
           fi
 
       - name: Validate image reference
         run: |
           IMAGE="${{ needs.build.outputs.image }}"
           if [[ -z "$IMAGE" ]]; then
-            echo "::error::needs.build.outputs.image is empty — cannot deploy without an image."
+            echo "::error::needs.build.outputs.image is empty â€” cannot deploy without an image."
             echo "Trigger a fresh full workflow run instead of re-running individual failed jobs."
             exit 1
           fi
@@ -326,7 +349,7 @@ jobs:
         # re-add them as plain string env vars.
         run: |
           gcloud run services update ${{ secrets.CLOUD_RUN_SERVICE }} \
-            --region=${{ secrets.GCP_REGION }} \
+            --region=${{ vars.GCP_REGION }} \
             --remove-secrets=GOOGLE_CLIENT_ID,GOOGLE_ANDROID_CLIENT_ID \
             --quiet || true  # ignore error if vars don't exist as secrets
         continue-on-error: true
@@ -336,7 +359,7 @@ jobs:
         uses: google-github-actions/deploy-cloudrun@v2
         with:
           service: ${{ secrets.CLOUD_RUN_SERVICE }}
-          region: ${{ secrets.GCP_REGION }}
+          region: ${{ vars.GCP_REGION }}
           image: ${{ needs.build.outputs.image }}
           flags: >-
             --service-account=${{ secrets.GCP_SERVICE_ACCOUNT }}
@@ -360,7 +383,7 @@ jobs:
             ENVIRONMENT=production
             LOG_LEVEL=INFO
             STORAGE_BACKEND=gcs
-            GCS_BUCKET_NAME=${{ secrets.GCP_PROJECT_ID }}-files
+            GCS_BUCKET_NAME=${{ vars.GCP_PROJECT_ID }}-files
             CHROMA_HOST=${{ steps.chroma.outputs.host }}
             CHROMA_PORT=8000
             CHROMA_SSL=true
@@ -377,7 +400,7 @@ jobs:
 
       - name: Deploy summary
         run: |
-          echo "### 🚀 Cloud Run Deploy" >> "$GITHUB_STEP_SUMMARY"
+          echo "### ðŸš€ Cloud Run Deploy" >> "$GITHUB_STEP_SUMMARY"
           echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
           echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
           echo "| Service | \`${{ secrets.CLOUD_RUN_SERVICE }}\` |" >> "$GITHUB_STEP_SUMMARY"
@@ -385,25 +408,25 @@ jobs:
           echo "| Image | \`${{ needs.build.outputs.image }}\` |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Commit | \`${{ github.sha }}\` |" >> "$GITHUB_STEP_SUMMARY"
 
-  # ──────────────────────────────────────────────────────────────────────────
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   # 3b. Deploy Celery worker as a second Cloud Run service
   #
-  #     Same image as the API — entrypoint.sh reads APP_MODE=worker and runs
+  #     Same image as the API â€” entrypoint.sh reads APP_MODE=worker and runs
   #     `celery ... worker` instead of uvicorn.
   #
   #     Key differences from the API service:
-  #       min-instances=1   — worker must always be running to drain the queue;
+  #       min-instances=1   â€” worker must always be running to drain the queue;
   #                           a cold-start delay would leave jobs stuck "queued"
-  #       max-instances=1   — one worker is enough at this scale; increase later
-  #       no-cpu-throttling — Celery needs the CPU between requests (not just
+  #       max-instances=1   â€” one worker is enough at this scale; increase later
+  #       no-cpu-throttling â€” Celery needs the CPU between requests (not just
   #                           during HTTP handling), so throttling must be off
-  #       no HTTP port      — worker does not serve HTTP, but Cloud Run requires
+  #       no HTTP port      â€” worker does not serve HTTP, but Cloud Run requires
   #                           a port binding; we bind 8080 and the process does
   #                           not listen on it (Cloud Run won't probe it because
   #                           no-allow-unauthenticated services skip liveness
   #                           probes by default on internal traffic)
-  #       --ingress=internal — worker is not reachable from the public internet
-  # ──────────────────────────────────────────────────────────────────────────
+  #       --ingress=internal â€” worker is not reachable from the public internet
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   deploy-worker:
     name: Deploy Celery Worker
     runs-on: ubuntu-latest
@@ -427,24 +450,36 @@ jobs:
       - name: Get ChromaDB internal URL
         id: chroma
         run: |
-          HOST=$(gcloud run services describe "${{ secrets.CHROMA_SERVICE_NAME }}" \
-            --region="${{ secrets.GCP_REGION }}" \
-            --format="value(status.url)" \
-            --quiet 2>/dev/null \
-            | sed 's|https://||' \
-            || echo "chromadb-not-deployed")
+          RAW=$(gcloud run services describe "${{ secrets.CHROMA_SERVICE_NAME }}" \
+            --region="${{ vars.GCP_REGION }}" \
+            --format='value(metadata.annotations["run.googleapis.com/urls"])' \
+            --quiet 2>/dev/null || echo "")
+          PROJECT_NUM=$(gcloud projects describe "${{ vars.GCP_PROJECT_ID }}" \
+            --format="value(projectNumber)" --quiet 2>/dev/null || echo "")
+          if [[ -n "$PROJECT_NUM" && -n "$RAW" ]]; then
+            HOST=$(echo "$RAW" | tr ',' '\n' | tr -d '[]"' \
+              | grep "$PROJECT_NUM" | sed 's|https://||' | tr -d ' ' | head -1)
+          fi
+          if [[ -z "$HOST" ]]; then
+            HOST=$(gcloud run services describe "${{ secrets.CHROMA_SERVICE_NAME }}" \
+              --region="${{ vars.GCP_REGION }}" \
+              --format="value(status.url)" \
+              --quiet 2>/dev/null \
+              | sed 's|https://||' \
+              || echo "chromadb-not-deployed")
+          fi
           echo "host=$HOST" >> "$GITHUB_OUTPUT"
 
       - name: Deploy worker to Cloud Run
         run: |
           IMAGE="${{ needs.build.outputs.image }}"
-          REGION="${{ secrets.GCP_REGION }}"
+          REGION="${{ vars.GCP_REGION }}"
           SA="${{ secrets.GCP_SERVICE_ACCOUNT }}"
-          PROJECT="${{ secrets.GCP_PROJECT_ID }}"
+          PROJECT="${{ vars.GCP_PROJECT_ID }}"
 
           # Fail fast with a clear message rather than letting gcloud fail silently
           if [[ -z "$IMAGE" ]]; then
-            echo "::error::IMAGE is empty — needs.build.outputs.image was not set."
+            echo "::error::IMAGE is empty â€” needs.build.outputs.image was not set."
             echo "This usually means the workflow was re-run from a previously failed build job."
             echo "Trigger a fresh full workflow run (push a commit or use 'Re-run all jobs')."
             exit 1
@@ -467,7 +502,7 @@ jobs:
             --timeout=900 \
             --quiet
 
-          echo "### 🔧 Celery Worker Deployed" >> "$GITHUB_STEP_SUMMARY"
+          echo "### ðŸ”§ Celery Worker Deployed" >> "$GITHUB_STEP_SUMMARY"
           echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
           echo "|---|---|" >> "$GITHUB_STEP_SUMMARY"
           echo "| Service | \`ai-assistant-worker\` |" >> "$GITHUB_STEP_SUMMARY"
@@ -475,13 +510,13 @@ jobs:
           echo "| Mode | \`APP_MODE=worker\` |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Min instances | 1 (always warm) |" >> "$GITHUB_STEP_SUMMARY"
 
-  # ──────────────────────────────────────────────────────────────────────────
-  # 4. Smoke test — /health and /ready
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  # 4. Smoke test â€” /health and /ready
   #
-  #    /health → liveness: process is alive
-  #    /ready  → readiness: DB + Redis reachable, all required env vars present
+  #    /health â†’ liveness: process is alive
+  #    /ready  â†’ readiness: DB + Redis reachable, all required env vars present
   #    Both endpoints are implemented in backend/app/main.py.
-  # ──────────────────────────────────────────────────────────────────────────
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   smoke-test:
     name: Smoke Test
     runs-on: ubuntu-latest
@@ -503,7 +538,7 @@ jobs:
             echo "Using deploy-step URL: $SERVICE_URL"
           elif [[ -n "$STATIC" ]]; then
             SERVICE_URL="$STATIC"
-            echo "deploy-step URL was empty — using CLOUD_RUN_SERVICE_URL secret: $SERVICE_URL"
+            echo "deploy-step URL was empty â€” using CLOUD_RUN_SERVICE_URL secret: $SERVICE_URL"
           else
             echo "::error::No service URL available. Set the CLOUD_RUN_SERVICE_URL secret."
             exit 1
@@ -522,20 +557,20 @@ jobs:
           # --retry-all-errors: retry on ANY non-zero exit OR non-2xx HTTP status,
           # including Cloudflare 530 (origin unreachable) which occurs while the
           # Cloud Run revision is still starting up.
-          # Total patience: 30 s initial wait + 8 attempts × 15 s delay = ~150 s.
+          # Total patience: 30 s initial wait + 8 attempts Ã— 15 s delay = ~150 s.
           HTTP=$(curl -sSo /dev/null -w "%{http_code}" \
             --retry 8 --retry-delay 15 --retry-all-errors \
             "${{ steps.url.outputs.service_url }}/health")
           echo "Health endpoint returned: $HTTP"
           if [[ "$HTTP" != "200" ]]; then
-            echo "::error::Smoke test failed — /health returned $HTTP"
+            echo "::error::Smoke test failed â€” /health returned $HTTP"
             exit 1
           fi
-          echo "✅ /health OK"
+          echo "âœ… /health OK"
 
       - name: /ready check
         # /ready checks DB + Redis + env vars.
-        # Redis is a placeholder until Upstash/Memorystore is added —
+        # Redis is a placeholder until Upstash/Memorystore is added â€”
         # a non-200 here is a warning, not a hard failure.
         run: |
           RESPONSE=$(curl -sSo - -w "\nHTTP_STATUS:%{http_code}" \
@@ -543,18 +578,18 @@ jobs:
             "${{ steps.url.outputs.service_url }}/ready" 2>/dev/null || echo "HTTP_STATUS:000")
           HTTP=$(echo "$RESPONSE" | grep -o "HTTP_STATUS:[0-9]*" | cut -d: -f2)
           BODY=$(echo "$RESPONSE" | grep -v "HTTP_STATUS:")
-          echo "/ready → $HTTP"
+          echo "/ready â†’ $HTTP"
           echo "$BODY" | python3 -m json.tool 2>/dev/null || echo "$BODY"
           if [[ "$HTTP" == "200" ]]; then
-            echo "✅ /ready OK — all dependencies reachable"
+            echo "âœ… /ready OK â€” all dependencies reachable"
           else
-            echo "⚠️  /ready returned $HTTP — check dependency status above"
-            echo "This is a warning, not a failure — Redis may not yet be configured"
+            echo "âš ï¸  /ready returned $HTTP â€” check dependency status above"
+            echo "This is a warning, not a failure â€” Redis may not yet be configured"
           fi
 
       - name: Full smoke summary
         run: |
-          echo "### ✅ Smoke Test Complete" >> "$GITHUB_STEP_SUMMARY"
+          echo "### âœ… Smoke Test Complete" >> "$GITHUB_STEP_SUMMARY"
           echo "Service URL: ${{ steps.url.outputs.service_url }}" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "Docs: ${{ steps.url.outputs.service_url }}/docs" >> "$GITHUB_STEP_SUMMARY"
