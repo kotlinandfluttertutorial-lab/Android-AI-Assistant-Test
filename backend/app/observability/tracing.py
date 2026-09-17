@@ -89,7 +89,7 @@ def _configure_tracing(service_name: str | None) -> None:
     from opentelemetry import trace
     from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
     from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
-    from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentation
+    from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
     from opentelemetry.instrumentation.redis import RedisInstrumentation
     from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentation
     from opentelemetry.sdk.resources import SERVICE_NAME, Resource
@@ -135,7 +135,7 @@ def _configure_tracing(service_name: str | None) -> None:
 
     FastAPIInstrumentor().instrument()
     SQLAlchemyInstrumentation().instrument()
-    HTTPXClientInstrumentation().instrument()
+    HTTPXClientInstrumentor().instrument()
     RedisInstrumentation().instrument()
 
     logger.info(

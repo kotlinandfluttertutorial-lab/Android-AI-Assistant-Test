@@ -46,6 +46,9 @@ import dagger.assisted.AssistedInject
 import java.util.concurrent.TimeUnit
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.encodeToJsonElement
+import kotlinx.serialization.json.put
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -135,7 +138,11 @@ class ObservabilityUploadWorker @AssistedInject constructor(
     }
 
     private fun uploadBatch(events: List<ObservabilityEvent>): BatchResult = try {
-        val body = JSON.encodeToString(events).toRequestBody(MEDIA_TYPE_JSON)
+        // Backend IngestRequest expects {"events": [...]} — wrap the list accordingly.
+        val payload = buildJsonObject {
+            put("events", JSON.encodeToJsonElement(events))
+        }
+        val body = JSON.encodeToString(payload).toRequestBody(MEDIA_TYPE_JSON)
         val request = Request.Builder()
             .url("${baseUrl}api/v1/observability/events")
             .post(body)
