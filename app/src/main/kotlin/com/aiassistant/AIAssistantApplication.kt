@@ -163,5 +163,10 @@ class AIAssistantApplication :
         applicationScope.launch {
             remoteConfigManager.fetchAndActivate()
         }
+
+        // Suppress known Android framework leaks in debug builds so LeakCanary
+        // categorises them as Library Leaks rather than Application Leaks.
+        // No-op in release builds (release stub in src/release).
+        LeakCanaryConfig.configure()
     }
 }
