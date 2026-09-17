@@ -2,7 +2,7 @@ package com.aiassistant
 
 import leakcanary.LeakCanary
 import shark.IgnoredReferenceMatcher
-import shark.InstanceFieldPattern
+import shark.ReferencePattern
 
 /**
  * LeakCanaryConfig.kt — debug-only LeakCanary customisation.
@@ -24,7 +24,7 @@ object LeakCanaryConfig {
                 // https://github.com/android/identity-samples/issues/56
                 // Not caused by app code — suppress to avoid noise.
                 IgnoredReferenceMatcher(
-                    pattern = InstanceFieldPattern(
+                    pattern = ReferencePattern.InstanceFieldPattern(
                         className = "android.credentials.CredentialManager\$GetCredentialTransport",
                         fieldName = "mContext"
                     )
