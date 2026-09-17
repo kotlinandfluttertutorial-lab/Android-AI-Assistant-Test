@@ -90,8 +90,8 @@ def _configure_tracing(service_name: str | None) -> None:
     from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
     from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
     from opentelemetry.instrumentation.httpx import HTTPXClientInstrumentor
-    from opentelemetry.instrumentation.redis import RedisInstrumentation
-    from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentation
+    from opentelemetry.instrumentation.redis import RedisInstrumentor
+    from opentelemetry.instrumentation.sqlalchemy import SQLAlchemyInstrumentor
     from opentelemetry.sdk.resources import SERVICE_NAME, Resource
     from opentelemetry.sdk.trace import TracerProvider
     from opentelemetry.sdk.trace.export import BatchSpanProcessor
@@ -134,9 +134,9 @@ def _configure_tracing(service_name: str | None) -> None:
     # Uninstrument() is safe to call multiple times — idempotent.
 
     FastAPIInstrumentor().instrument()
-    SQLAlchemyInstrumentation().instrument()
+    SQLAlchemyInstrumentor().instrument()
     HTTPXClientInstrumentor().instrument()
-    RedisInstrumentation().instrument()
+    RedisInstrumentor().instrument()
 
     logger.info(
         "OTEL: tracing configured — service=%s, provider=%s",

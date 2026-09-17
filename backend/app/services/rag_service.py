@@ -644,7 +644,8 @@ class RAGService:
 
                 client = chromadb.HttpClient(
                     host=self._settings.CHROMA_HOST,
-                    port=self._settings.CHROMA_PORT,
+                    port=443 if self._settings.CHROMA_SSL else self._settings.CHROMA_PORT,
+                    ssl=self._settings.CHROMA_SSL,
                 )
                 collection = client.get_or_create_collection(collection_name)
                 ids = [f"{document_id}_{i}" for i in range(len(chunks))]
@@ -715,7 +716,8 @@ class RAGService:
 
                 client = chromadb.HttpClient(
                     host=self._settings.CHROMA_HOST,
-                    port=self._settings.CHROMA_PORT,
+                    port=443 if self._settings.CHROMA_SSL else self._settings.CHROMA_PORT,
+                    ssl=self._settings.CHROMA_SSL,
                 )
                 try:
                     collection = client.get_collection(collection_name)
@@ -809,7 +811,8 @@ class RAGService:
 
                 client = chromadb.HttpClient(
                     host=self._settings.CHROMA_HOST,
-                    port=self._settings.CHROMA_PORT,
+                    port=443 if self._settings.CHROMA_SSL else self._settings.CHROMA_PORT,
+                    ssl=self._settings.CHROMA_SSL,
                 )
                 try:
                     collection = client.get_collection(collection_name)
@@ -1199,7 +1202,8 @@ class RAGService:
 
                 client = chromadb.HttpClient(
                     host=self._settings.CHROMA_HOST,
-                    port=self._settings.CHROMA_PORT,
+                    port=443 if self._settings.CHROMA_SSL else self._settings.CHROMA_PORT,
+                    ssl=self._settings.CHROMA_SSL,
                 )
                 try:
                     collection = client.get_collection(_KB_COLLECTION)

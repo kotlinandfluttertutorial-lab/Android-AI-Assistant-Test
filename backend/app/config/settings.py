@@ -160,6 +160,15 @@ class Settings(BaseSettings):
         le=65535,
     )
 
+    CHROMA_SSL: bool = Field(
+        default=False,
+        description=(
+            "Whether to connect to ChromaDB over HTTPS (TLS). "
+            "Set to true when ChromaDB is hosted on Cloud Run or any TLS-terminating proxy. "
+            "When true, CHROMA_PORT is automatically overridden to 443."
+        ),
+    )
+
     # -------------------------------------------------------------------------
     # Object Storage (MinIO local / GCS production)
     # -------------------------------------------------------------------------
