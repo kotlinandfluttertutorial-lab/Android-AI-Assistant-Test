@@ -4,28 +4,21 @@
  * ============================================================
  * Module     : app
  * File       : HomeDashboard.kt
- * Purpose    : Redesigned Home Dashboard (Task 50.3) — hub screen with a
- *              gradient hero "Ask AI" card, pressScale FeatureCards,
- *              QuickActionChip row, ConversationPreviewCard list (swipe-to-
- *              dismiss), and a redesigned NavigationBar with animated
- *              selected indicator.
+ * Purpose    : Production-quality Home Dashboard hub screen (Phase 3.4).
+ *
+ *              Changes from Phase 3.4 upgrade:
+ *              - Removed inline NavigationBar (now in AppNavigationShell)
+ *              - Added AI mode status row (Gemma / Cloud AI indicator)
+ *              - Replaced all emoji/text icons with AppIcons references
+ *              - Improved hero card with gradient accent + assistant icon
+ *              - Added meaningful empty state when no recent conversations
+ *              - Upgraded QuickAction chips with proper icons
+ *              - Added menu/drawer open button in top bar
+ *              - Consistent spacing using MaterialTheme.spacing tokens
  *
  * Architecture Layer : App — navigation shell + Compose UI.
- *                      Reads state from HomeDashboardViewModel; all navigation
+ *                      Reads state from HomeDashboardViewModel; navigation
  *                      is delegated via navController callbacks.
- *
- * Dependencies       : core-ui (AppColors, AppType, pressScale, spacing,
- *                      elevation), domain models, Hilt navigation-compose.
- *
- * Design Decision    : The hero card uses a Brush.linearGradient overlay on
- *                      an ElevatedCard so the gradient is rendered on the GPU
- *                      without a custom Canvas draw — compatible with M3
- *                      card semantics (click, accessibility, shape).
- *                      SwipeToDismiss wraps each ConversationPreviewCard so
- *                      the dismiss gesture is fully accessible via the
- *                      DismissState API (M3 SwipeToDismiss / experimental).
- *                      pressScale is applied to FeatureCards via the
- *                      core-ui motion modifier.
  *
  * Requirements       : 19.1, 24.1, 24.2, 24.3
  * ============================================================
@@ -33,10 +26,12 @@
 package com.aiassistant
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -59,48 +54,31 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
-import androidx.compose.material.icons.outlined.AutoAwesome
-import androidx.compose.material.icons.outlined.Camera
-import androidx.compose.material.icons.outlined.Chat
-import androidx.compose.material.icons.outlined.Code
-import androidx.compose.material.icons.outlined.ConfirmationNumber
-import androidx.compose.material.icons.outlined.Description
-import androidx.compose.material.icons.outlined.Email
-import androidx.compose.material.icons.outlined.Forum
-import androidx.compose.material.icons.outlined.GTranslate
-import androidx.compose.material.icons.outlined.History
-import androidx.compose.material.icons.outlined.MeetingRoom
-import androidx.compose.material.icons.outlined.Mic
-import androidx.compose.material.icons.outlined.MonitorHeart
-import androidx.compose.material.icons.outlined.NoteAlt
-import androidx.compose.material.icons.outlined.Person
-import androidx.compose.material.icons.outlined.Settings
+import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.SwipeToDismissBox
 import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -108,8 +86,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
-import androidx.navigation.compose.currentBackStackEntryAsState
 import com.aiassistant.core.ui.AppColors
+import com.aiassistant.core.ui.AppIcons
 import com.aiassistant.core.ui.AppType
 import com.aiassistant.core.ui.elevation
 import com.aiassistant.core.ui.motion.pressScale
@@ -131,50 +109,25 @@ import com.aiassistant.feature.settings.SettingsRoute
 import com.aiassistant.feature.translator.TRANSLATOR_ROUTE
 import com.aiassistant.feature.voice.VoiceRoute
 
-// ── Navigation bar items ──────────────────────────────────────────────────────
-
-private data class BottomNavItem(
-    val label: String,
-    val icon: ImageVector,
-    val route: String,
-    val contentDesc: String = label
-)
-
-private val bottomNavItems = listOf(
-    BottomNavItem("Chat", Icons.Outlined.Forum, ChatRoute.LIST),
-    BottomNavItem("History", Icons.Outlined.History, HistoryRoute.GRAPH),
-    BottomNavItem("Voice", Icons.Outlined.Mic, VoiceRoute.GRAPH),
-    BottomNavItem("Notes", Icons.Outlined.NoteAlt, NotesRoute.GRAPH),
-    // Renamed from "Tasks" → "Tickets" per Task 50.3 spec
-    BottomNavItem(
-        "Tickets",
-        Icons.Outlined.ConfirmationNumber,
-        ProductivityRoute.GRAPH,
-        contentDesc = "Tickets and productivity"
-    )
-)
-
 // ── Feature grid items ────────────────────────────────────────────────────────
 
 private data class FeatureCardItem(
     val label: String,
     val icon: ImageVector,
-    val route: String,
-    // optional left-border or icon tint override
-    val accentColor: Color? = null
+    val route: String
 )
 
 private val featureCards = listOf(
-    FeatureCardItem("Documents\n& RAG", Icons.AutoMirrored.Outlined.LibraryBooks, RAGRoute.DOCUMENT_LIST),
-    FeatureCardItem("Camera\n& Vision", Icons.Outlined.Camera, CAMERA_ROUTE),
-    FeatureCardItem("Code\nAssistant", Icons.Outlined.Code, CodeRoute.GRAPH),
-    FeatureCardItem("Resume\nBuilder", Icons.Outlined.Description, ResumeRoute.GRAPH),
-    FeatureCardItem("Email\nComposer", Icons.Outlined.Email, EmailRoute.GRAPH),
-    FeatureCardItem("Meeting\nRecorder", Icons.Outlined.MeetingRoom, meetingRoute()),
-    FeatureCardItem("Translator", Icons.Outlined.GTranslate, TRANSLATOR_ROUTE),
-    FeatureCardItem("Settings", Icons.Outlined.Settings, SettingsRoute.SCREEN),
-    FeatureCardItem("Profile", Icons.Outlined.Person, ProfileRoute.SCREEN),
-    FeatureCardItem("DevOps\nDashboard", Icons.Outlined.MonitorHeart, DashboardRoute.SCREEN)
+    FeatureCardItem("Documents & RAG",    AppIcons.Destinations.DocumentsFilled, RAGRoute.DOCUMENT_LIST),
+    FeatureCardItem("Camera & Vision",    AppIcons.Chat.Camera,                   CAMERA_ROUTE),
+    FeatureCardItem("Code Assistant",     AppIcons.Chat.Code,                     CodeRoute.GRAPH),
+    FeatureCardItem("Resume Builder",     AppIcons.Documents.Document,            ResumeRoute.GRAPH),
+    FeatureCardItem("Email Composer",     AppIcons.Destinations.DocumentsFilled,  EmailRoute.GRAPH),
+    FeatureCardItem("Meeting Recorder",   AppIcons.Chat.Mic,                      meetingRoute()),
+    FeatureCardItem("Translator",         AppIcons.Settings.About,                TRANSLATOR_ROUTE),
+    FeatureCardItem("Settings",           AppIcons.Destinations.SettingsFilled,   SettingsRoute.SCREEN),
+    FeatureCardItem("Profile",            AppIcons.Destinations.Profile,          ProfileRoute.SCREEN),
+    FeatureCardItem("DevOps Dashboard",   AppIcons.Status.Syncing,               DashboardRoute.SCREEN)
 )
 
 // ── Quick-action definitions ──────────────────────────────────────────────────
@@ -182,11 +135,11 @@ private val featureCards = listOf(
 private data class QuickAction(val label: String, val icon: ImageVector, val route: String)
 
 private val quickActions = listOf(
-    QuickAction("New Chat", Icons.Outlined.Chat, ChatRoute.LIST),
-    QuickAction("Voice", Icons.Outlined.Mic, VoiceRoute.GRAPH),
-    QuickAction("Translate", Icons.Outlined.GTranslate, TRANSLATOR_ROUTE),
-    QuickAction("Camera", Icons.Outlined.Camera, CAMERA_ROUTE),
-    QuickAction("Notes", Icons.Outlined.NoteAlt, NotesRoute.GRAPH)
+    QuickAction("New Chat",  AppIcons.Destinations.NewChat,        ChatRoute.LIST),
+    QuickAction("Voice",     AppIcons.Chat.Mic,                    VoiceRoute.GRAPH),
+    QuickAction("Documents", AppIcons.Documents.Document,          RAGRoute.DOCUMENT_LIST),
+    QuickAction("History",   AppIcons.Destinations.HistoryFilled,  HistoryRoute.GRAPH),
+    QuickAction("Notes",     AppIcons.Documents.Document,          NotesRoute.GRAPH)
 )
 
 // ── Route constant ────────────────────────────────────────────────────────────
@@ -196,29 +149,67 @@ const val HOME_ROUTE = "home"
 // ── Entry composable ──────────────────────────────────────────────────────────
 
 /**
- * Redesigned Home Dashboard hub composable.
+ * Home Dashboard hub composable.
+ *
+ * The [AppNavigationShell] in [MainActivity] provides the bottom/rail/drawer nav chrome.
+ * This composable owns only its own top bar and content.
  *
  * @param navController Root [NavHostController] for navigation dispatch.
  * @param viewModel     Hilt-injected [HomeDashboardViewModel].
+ * @param onOpenDrawer  Called when the menu icon is tapped (compact mode only).
  */
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun homeDashboard(navController: NavHostController, viewModel: HomeDashboardViewModel = hiltViewModel()) {
+fun homeDashboard(
+    navController: NavHostController,
+    viewModel: HomeDashboardViewModel = hiltViewModel(),
+    onOpenDrawer: (() -> Unit)? = null
+) {
     val uiState by viewModel.uiState.collectAsState()
-    val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route
     val isDark = isSystemInDarkTheme()
 
     Scaffold(
-        bottomBar = {
-            AppNavigationBar(
-                currentRoute = currentRoute,
-                onNavigate = { route ->
-                    navController.navigate(route) {
-                        popUpTo(HOME_ROUTE) { saveState = true }
-                        launchSingleTop = true
-                        restoreState = true
+        topBar = {
+            TopAppBar(
+                title = {
+                    Text(
+                        text = "AI Assistant",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                },
+                navigationIcon = {
+                    if (onOpenDrawer != null) {
+                        IconButton(
+                            onClick = onOpenDrawer,
+                            modifier = Modifier.semantics {
+                                contentDescription = "Open navigation menu"
+                            }
+                        ) {
+                            Icon(
+                                imageVector = AppIcons.Navigation.Menu,
+                                contentDescription = null
+                            )
+                        }
                     }
-                }
+                },
+                actions = {
+                    // Settings shortcut
+                    IconButton(
+                        onClick = { navController.navigate(SettingsRoute.SCREEN) },
+                        modifier = Modifier.semantics {
+                            contentDescription = "Open settings"
+                        }
+                    ) {
+                        Icon(
+                            imageVector = AppIcons.Destinations.SettingsOutlined,
+                            contentDescription = null
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                )
             )
         }
     ) { innerPadding ->
@@ -230,6 +221,14 @@ fun homeDashboard(navController: NavHostController, viewModel: HomeDashboardView
         ) {
             val ready = uiState as? HomeDashboardUiState.Ready
 
+            // ── AI mode status row ─────────────────────────────────────────
+            AiModeStatusRow(
+                modifier = Modifier.padding(
+                    horizontal = MaterialTheme.spacing.screenEdge,
+                    vertical = MaterialTheme.spacing.xs
+                )
+            )
+
             // ── Hero "Ask AI" card ─────────────────────────────────────────
             HeroAskAiCard(
                 userName = ready?.userName ?: "there",
@@ -240,7 +239,7 @@ fun homeDashboard(navController: NavHostController, viewModel: HomeDashboardView
                     .fillMaxWidth()
                     .padding(
                         horizontal = MaterialTheme.spacing.screenEdge,
-                        vertical = MaterialTheme.spacing.md
+                        vertical = MaterialTheme.spacing.sm
                     )
             )
 
@@ -254,32 +253,43 @@ fun homeDashboard(navController: NavHostController, viewModel: HomeDashboardView
                 )
             )
 
-            // ── Recent conversations (max 3) ──────────────────────────────
+            // ── Recent conversations ───────────────────────────────────────
             val conversations = ready?.recentConversations ?: emptyList()
-            AnimatedVisibility(
-                visible = conversations.isNotEmpty(),
-                enter = fadeIn(tween(300)),
-                exit = fadeOut(tween(200))
-            ) {
-                Column(
-                    modifier = Modifier.padding(horizontal = MaterialTheme.spacing.screenEdge)
+
+            if (conversations.isNotEmpty()) {
+                AnimatedVisibility(
+                    visible = true,
+                    enter = fadeIn() + slideInVertically(initialOffsetY = { it / 4 })
                 ) {
-                    Text(
-                        text = "RECENT",
-                        style = AppType.sectionLabel,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(bottom = MaterialTheme.spacing.xs)
-                    )
-                    conversations.take(3).forEach { conversation ->
-                        ConversationPreviewCard(
-                            conversation = conversation,
-                            onTap = { navController.navigate(ChatRoute.detail(conversation.id)) },
-                            onDismiss = { viewModel.dismissConversation(conversation.id) }
+                    Column(
+                        modifier = Modifier.padding(horizontal = MaterialTheme.spacing.screenEdge)
+                    ) {
+                        Text(
+                            text = "RECENT",
+                            style = AppType.sectionLabel,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(bottom = MaterialTheme.spacing.xs)
                         )
-                        Spacer(modifier = Modifier.height(MaterialTheme.spacing.xs))
+                        conversations.take(3).forEach { conversation ->
+                            ConversationPreviewCard(
+                                conversation = conversation,
+                                onTap = { navController.navigate(ChatRoute.detail(conversation.id)) },
+                                onDismiss = { viewModel.dismissConversation(conversation.id) }
+                            )
+                            Spacer(modifier = Modifier.height(MaterialTheme.spacing.xs))
+                        }
+                        Spacer(modifier = Modifier.height(MaterialTheme.spacing.sm))
                     }
-                    Spacer(modifier = Modifier.height(MaterialTheme.spacing.sm))
                 }
+            } else if (ready != null) {
+                // Empty state for recent conversations
+                EmptyRecentConversations(
+                    onStartChat = { navController.navigate(ChatRoute.LIST) },
+                    modifier = Modifier.padding(
+                        horizontal = MaterialTheme.spacing.screenEdge,
+                        vertical = MaterialTheme.spacing.sm
+                    )
+                )
             }
 
             // ── Feature cards grid ─────────────────────────────────────────
@@ -293,8 +303,6 @@ fun homeDashboard(navController: NavHostController, viewModel: HomeDashboardView
                 )
             )
 
-            // LazyVerticalGrid inside a scroll-able Column requires a fixed height.
-            // We use a 2-column grid and compute height: ceil(items/2) * rowHeight.
             val gridRowHeight = 110.dp
             val gridRows = (featureCards.size + 1) / 2
             val gridHeight = gridRowHeight * gridRows + MaterialTheme.spacing.sm * (gridRows - 1)
@@ -308,7 +316,7 @@ fun homeDashboard(navController: NavHostController, viewModel: HomeDashboardView
                 horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
                 verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm),
                 contentPadding = PaddingValues(bottom = MaterialTheme.spacing.sm),
-                userScrollEnabled = false // parent Column is the scroll container
+                userScrollEnabled = false
             ) {
                 items(featureCards, key = { it.label }) { card ->
                     FeatureCard(
@@ -325,6 +333,55 @@ fun homeDashboard(navController: NavHostController, viewModel: HomeDashboardView
     }
 }
 
+// ── AI mode status row ────────────────────────────────────────────────────────
+
+/**
+ * Compact row showing the current AI mode with a subtle chip indicator.
+ * Tapping opens the AI settings or mode selector.
+ */
+@Composable
+private fun AiModeStatusRow(modifier: Modifier = Modifier) {
+    val isDark = isSystemInDarkTheme()
+    val containerColor = if (isDark) AppColors.gemmaContainerDark else AppColors.gemmaContainerLight
+    val onContainerColor = if (isDark) AppColors.gemmaOnContainerDark else AppColors.gemmaOnContainerLight
+    val indicatorColor = if (isDark) AppColors.gemmaIndicatorDark else AppColors.gemmaIndicatorLight
+
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)
+    ) {
+        Surface(
+            color = containerColor,
+            shape = MaterialTheme.shapes.extraSmall,
+            modifier = Modifier.semantics {
+                contentDescription = "AI mode: On-device Gemma — tap to change"
+            }
+        ) {
+            Row(
+                modifier = Modifier.padding(
+                    horizontal = MaterialTheme.spacing.sm,
+                    vertical = MaterialTheme.spacing.xs
+                ),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    imageVector = AppIcons.Ai.Gemma,
+                    contentDescription = null,
+                    tint = indicatorColor,
+                    modifier = Modifier.size(14.dp)
+                )
+                Spacer(modifier = Modifier.width(4.dp))
+                Text(
+                    text = "On-device Gemma",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = onContainerColor
+                )
+            }
+        }
+    }
+}
+
 // ── Hero "Ask AI" card ────────────────────────────────────────────────────────
 
 @Composable
@@ -336,20 +393,18 @@ private fun HeroAskAiCard(
     modifier: Modifier = Modifier
 ) {
     val gradientStart = if (isDark) AppColors.gradientStartDark else AppColors.gradientStartLight
-    val gradientEnd = if (isDark) AppColors.gradientEndDark else AppColors.gradientEndLight
+    val gradientEnd   = if (isDark) AppColors.gradientEndDark   else AppColors.gradientEndLight
 
     ElevatedCard(
         onClick = onClick,
-        modifier = modifier
-            .pressScale()
-            .semantics { contentDescription = "Ask AI hero card — tap to start a new chat" },
-        elevation = CardDefaults.elevatedCardElevation(
-            defaultElevation = MaterialTheme.elevation.high
-        ),
+        modifier = modifier.pressScale().semantics {
+            contentDescription = "Start new AI conversation. Tap to open chat."
+        },
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = MaterialTheme.elevation.high),
         shape = RoundedCornerShape(20.dp)
     ) {
         Box(modifier = Modifier.fillMaxWidth()) {
-            // Gradient accent stripe (left edge)
+            // Left-edge gradient accent stripe
             Box(
                 modifier = Modifier
                     .width(6.dp)
@@ -381,14 +436,14 @@ private fun HeroAskAiCard(
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
-                        imageVector = Icons.Outlined.AutoAwesome,
+                        imageVector = AppIcons.Ai.Assistant,
                         contentDescription = null,
                         tint = gradientStart,
                         modifier = Modifier.size(16.dp)
                     )
                     Spacer(modifier = Modifier.width(6.dp))
                     Text(
-                        text = "Ask AI anything →",
+                        text = "Ask AI anything",
                         style = MaterialTheme.typography.bodyMedium,
                         color = gradientStart
                     )
@@ -400,7 +455,6 @@ private fun HeroAskAiCard(
 
 // ── Quick-action chip row ─────────────────────────────────────────────────────
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun QuickActionChipRow(
     actions: List<QuickAction>,
@@ -413,21 +467,64 @@ private fun QuickActionChipRow(
         horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)
     ) {
         items(actions, key = { it.label }) { action ->
-            FilterChip(
-                selected = false,
+            AssistChip(
                 onClick = { onActionClick(action.route) },
                 label = { Text(action.label, style = MaterialTheme.typography.labelMedium) },
                 leadingIcon = {
                     Icon(action.icon, contentDescription = null, modifier = Modifier.size(16.dp))
                 },
                 modifier = Modifier.semantics { contentDescription = action.label },
-                colors = FilterChipDefaults.filterChipColors(
+                colors = AssistChipDefaults.assistChipColors(
                     containerColor = MaterialTheme.colorScheme.secondaryContainer,
                     labelColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                    iconColor = MaterialTheme.colorScheme.onSecondaryContainer
+                    leadingIconContentColor = MaterialTheme.colorScheme.onSecondaryContainer
                 )
             )
         }
+    }
+}
+
+// ── Empty state for recent conversations ──────────────────────────────────────
+
+@Composable
+private fun EmptyRecentConversations(
+    onStartChat: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(
+            text = "No conversations yet",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(MaterialTheme.spacing.xs))
+        Text(
+            text = "Start your first conversation with the AI assistant.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Spacer(modifier = Modifier.height(MaterialTheme.spacing.sm))
+        FilterChip(
+            selected = false,
+            onClick = onStartChat,
+            label = { Text("Start chatting", style = MaterialTheme.typography.labelMedium) },
+            leadingIcon = {
+                Icon(
+                    imageVector = AppIcons.Destinations.NewChat,
+                    contentDescription = null,
+                    modifier = Modifier.size(16.dp)
+                )
+            },
+            colors = FilterChipDefaults.filterChipColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer,
+                labelColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                iconColor = MaterialTheme.colorScheme.onPrimaryContainer
+            ),
+            modifier = Modifier.semantics { contentDescription = "Start chatting button" }
+        )
     }
 }
 
@@ -446,16 +543,13 @@ private fun ConversationPreviewCard(
             if (value == SwipeToDismissBoxValue.EndToStart) {
                 onDismiss()
                 true
-            } else {
-                false
-            }
+            } else false
         }
     )
 
     SwipeToDismissBox(
         state = dismissState,
         backgroundContent = {
-            // Red dismiss background revealed on swipe
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -463,10 +557,10 @@ private fun ConversationPreviewCard(
                     .background(MaterialTheme.colorScheme.errorContainer),
                 contentAlignment = Alignment.CenterEnd
             ) {
-                Text(
-                    text = "Dismiss",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onErrorContainer,
+                Icon(
+                    imageVector = AppIcons.Chat.Delete,
+                    contentDescription = "Dismiss conversation",
+                    tint = MaterialTheme.colorScheme.onErrorContainer,
                     modifier = Modifier.padding(end = MaterialTheme.spacing.md)
                 )
             }
@@ -479,9 +573,7 @@ private fun ConversationPreviewCard(
             modifier = Modifier
                 .fillMaxWidth()
                 .pressScale()
-                .semantics {
-                    contentDescription = "Conversation: ${conversation.title}"
-                },
+                .semantics { contentDescription = "Conversation: ${conversation.title}" },
             elevation = CardDefaults.elevatedCardElevation(
                 defaultElevation = MaterialTheme.elevation.low
             ),
@@ -494,7 +586,7 @@ private fun ConversationPreviewCard(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    imageVector = Icons.Outlined.Chat,
+                    imageVector = AppIcons.Destinations.ChatOutlined,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.size(20.dp)
@@ -513,6 +605,12 @@ private fun ConversationPreviewCard(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
+                Icon(
+                    imageVector = AppIcons.Navigation.Forward,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(16.dp)
+                )
             }
         }
     }
@@ -530,13 +628,22 @@ private fun FeatureCard(
 ) {
     val containerColor = if (isDark) AppColors.surfaceTonal1Dark else AppColors.surfaceTonal1Light
 
+    val scaleAnim by animateFloatAsState(
+        targetValue = 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioMediumBouncy,
+            stiffness = Spring.StiffnessMedium
+        ),
+        label = "featureCardScale_$label"
+    )
+
     ElevatedCard(
         onClick = onClick,
         modifier = modifier
             .fillMaxWidth()
             .height(110.dp)
             .pressScale()
-            .semantics { contentDescription = label.replace("\n", " ") },
+            .semantics { contentDescription = label },
         elevation = CardDefaults.elevatedCardElevation(
             defaultElevation = MaterialTheme.elevation.low
         ),
@@ -563,51 +670,6 @@ private fun FeatureCard(
                 modifier = Modifier.padding(top = MaterialTheme.spacing.xs),
                 maxLines = 2,
                 overflow = TextOverflow.Ellipsis
-            )
-        }
-    }
-}
-
-// ── Redesigned NavigationBar with animated indicator ─────────────────────────
-
-@Composable
-private fun AppNavigationBar(currentRoute: String?, onNavigate: (String) -> Unit) {
-    val isDark = isSystemInDarkTheme()
-    val surfaceColor = if (isDark) AppColors.surfaceTonal1Dark else AppColors.surfaceTonal1Light
-
-    NavigationBar(
-        containerColor = surfaceColor,
-        tonalElevation = 0.dp // flat surface — tonal elevation handled by surfaceTonal1
-    ) {
-        bottomNavItems.forEach { item ->
-            val selected = currentRoute == item.route ||
-                currentRoute?.startsWith(item.route.substringBefore("/")) == true
-
-            // Animate icon scale for the selected indicator
-            val iconScale by animateFloatAsState(
-                targetValue = if (selected) 1.15f else 1f,
-                animationSpec = tween(durationMillis = 200),
-                label = "navIconScale_${item.label}"
-            )
-
-            NavigationBarItem(
-                selected = selected,
-                onClick = { onNavigate(item.route) },
-                icon = {
-                    Icon(
-                        imageVector = item.icon,
-                        contentDescription = item.contentDesc,
-                        modifier = Modifier.size((24 * iconScale).dp)
-                    )
-                },
-                label = { Text(item.label, style = MaterialTheme.typography.labelSmall) },
-                colors = NavigationBarItemDefaults.colors(
-                    selectedIconColor = MaterialTheme.colorScheme.primary,
-                    selectedTextColor = MaterialTheme.colorScheme.primary,
-                    indicatorColor = MaterialTheme.colorScheme.primaryContainer,
-                    unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                    unselectedTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-                )
             )
         }
     }

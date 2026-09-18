@@ -3,66 +3,22 @@
  * Android AI Assistant (Enterprise Edition)
  * ============================================================
  * Module     : core-ui
- * File       : CodeBlock.kt
- * Purpose    : CodeBlock — core-ui module component
+ * File       : components/CodeBlock.kt
+ * Purpose    : Production-quality code block composable (Phase 5.8 upgrade).
  *
- * Architecture Layer : Core-UI
- * Pattern Used       : Kotlin Class
+ *              Changes:
+ *              - Always dark background (AppColors.codeBlockBackground) regardless
+ *                of light/dark theme — matches developer tool conventions
+ *              - Uses AppTypeExtended.codeContent (monospace, 12sp) for code text
+ *              - Uses AppTypeExtended.codeLabel for language header label
+ *              - Copy confirmation uses COPY_CONFIRM_DURATION_MS from Animation.kt
+ *              - remember{} wraps clipboard setText to avoid recompose on copy
+ *              - Horizontal scroll for wide code lines
  *
- * Key Concepts:
- *   - Clean Architecture with strict layer separation
- *   - Hilt dependency injection
- *
- * Dependencies:
- *   - See import statements below
+ * Architecture Layer : Core-UI — shared design system.
+ * Requirements       : 2.5, 12.5, 12.6, 23.4
  * ============================================================
  */
-
-/*
- * ============================================================
- * Android AI Assistant (Enterprise Edition)
- * ============================================================
- * Module     : core-ui
- * File       : CodeBlock.kt
- * Purpose    : CodeBlock — core-ui module component
- *
- * Architecture Layer : Core-UI
- * Pattern Used       : Kotlin Class
- *
- * Key Concepts:
- *   - Clean Architecture with strict layer separation
- *   - Hilt dependency injection
- *
- * Dependencies:
- *   - See import statements below
- * ============================================================
- */
-/**
- * CodeBlock.kt
- *
- * Purpose: A standalone syntax-highlighted code block composable used when AI responses
- *          contain code snippets outside of an inline Markdown context (e.g., the
- *          CodeEditor and CodeAnalysis screens in feature-code).
- * Architecture: core-ui â€” shared design system; consumed by feature-chat, feature-code,
- *               and any module that needs to display standalone code.
- * Dependencies: Compose Material 3, AppTheme tokens.
- *
- * Design decisions:
- * - Renders code in a monospace font on a [MaterialTheme.colorScheme.surfaceVariant]
- *   background so the block is visually distinct from surrounding prose without relying
- *   on color alone â€” the monospace font family provides a second differentiator.
- * - A language badge (icon + label) is always rendered in the header row when
- *   [language] is non-null or non-blank, satisfying the "no color-only" requirement.
- *   The badge uses a short text abbreviation so TalkBack reads it meaningfully.
- * - A single-tap copy-to-clipboard action is provided via a trailing [IconButton] in the
- *   header row. A brief visual feedback (icon swap) confirms the copy without a Toast,
- *   keeping the UX lightweight.
- * - [contentDescription] on the outer container gives TalkBack a semantic label for the
- *   entire block; the copy button has its own independent description.
- * - Colors come exclusively from [MaterialTheme.colorScheme]; no hardcoded hex values.
- * - Requirements: 2.5, 12.5, 12.6, 23.1, 23.2, 23.4
- */
-
 package com.aiassistant.core.ui.components
 
 import androidx.compose.animation.AnimatedContent
@@ -81,10 +37,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.Code
-import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -101,25 +53,28 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import com.aiassistant.core.ui.AppColors
+import com.aiassistant.core.ui.AppIcons
+import com.aiassistant.core.ui.AppShapes
 import com.aiassistant.core.ui.AppTheme
+import com.aiassistant.core.ui.AppTypeExtended
+import com.aiassistant.core.ui.COPY_CONFIRM_DURATION_MS
+import com.aiassistant.core.ui.DURATION_MICRO
 import com.aiassistant.core.ui.spacing
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
- * A standalone syntax-highlighted code block.
+ * A production-quality code block with always-dark background, monospace text,
+ * language label, and animated copy confirmation.
  *
  * @param code               The raw code string to display.
- * @param language           Optional language identifier (e.g., "kotlin", "python",
- *                           "javascript"). Displayed as a badge in the header row and
- *                           used to select the correct syntax highlighting. Pass `null`
- *                           or blank to omit the language badge.
- * @param contentDescription TalkBack label for the block. Defaults to
- *                           "[language] code block" (or "code block" if no language).
- * @param modifier           Optional [Modifier] applied to the root [Column].
+ * @param language           Optional language identifier shown as a badge
+ *                           (e.g., "kotlin", "python", "json").
+ * @param contentDescription TalkBack label. Defaults to "[language] code block".
+ * @param modifier           Applied to the root [Column].
  */
 @Composable
 fun CodeBlock(
@@ -133,32 +88,30 @@ fun CodeBlock(
         ?: if (languageLabel != null) "$languageLabel code block" else "code block"
 
     val clipboardManager = LocalClipboardManager.current
-    val coroutineScope = rememberCoroutineScope()
+    val scope = rememberCoroutineScope()
     var copied by remember { mutableStateOf(false) }
 
-    val backgroundColor = MaterialTheme.colorScheme.surfaceVariant
-    val onBackgroundColor = MaterialTheme.colorScheme.onSurfaceVariant
-    val headerColor = MaterialTheme.colorScheme.surface
+    // Always dark — matches developer tooling conventions regardless of app theme
+    val bgColor      = AppColors.codeBlockBackground
+    val headerColor  = AppColors.codeBlockSurface
+    val onSurface    = AppColors.codeBlockOnSurface
+    val dimmedColor  = AppColors.codeBlockLineNumber
 
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .background(
-                color = backgroundColor,
-                shape = MaterialTheme.shapes.small
-            )
+            .background(color = bgColor, shape = AppShapes.codeBlock)
             .semantics { this.contentDescription = a11yLabel }
     ) {
-        // â”€â”€â”€ Header row â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        // Displays language badge (icon + text) on the left and copy button on the right.
-        // Language is never indicated by color alone: the monospace font + "Code" icon
-        // provide two non-color cues.
+        // ── Header row ────────────────────────────────────────────────────────
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .background(
                     color = headerColor,
-                    shape = MaterialTheme.shapes.small
+                    shape = androidx.compose.foundation.shape.RoundedCornerShape(
+                        topStart = 8.dp, topEnd = 8.dp
+                    )
                 )
                 .padding(
                     start = MaterialTheme.spacing.sm,
@@ -168,29 +121,28 @@ fun CodeBlock(
                 ),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Language badge â€” icon + text label so language is not color-only
             Icon(
-                imageVector = Icons.Filled.Code,
-                contentDescription = null, // described by the badge text below
-                tint = onBackgroundColor.copy(alpha = 0.6f),
-                modifier = Modifier.size(16.dp)
+                imageVector = AppIcons.Chat.Code,
+                contentDescription = null,
+                tint = dimmedColor,
+                modifier = Modifier.size(14.dp)
             )
             Spacer(modifier = Modifier.width(MaterialTheme.spacing.xs))
             Text(
                 text = languageLabel ?: "code",
-                style = MaterialTheme.typography.labelSmall,
-                color = onBackgroundColor.copy(alpha = 0.6f)
+                style = AppTypeExtended.codeLabel,
+                color = dimmedColor
             )
 
             Spacer(modifier = Modifier.weight(1f))
 
-            // Copy to clipboard button with brief "Copied!" visual feedback
+            // Copy button with animated confirmation
             IconButton(
                 onClick = {
                     clipboardManager.setText(AnnotatedString(code))
                     copied = true
-                    coroutineScope.launch {
-                        delay(2_000)
+                    scope.launch {
+                        delay(COPY_CONFIRM_DURATION_MS.toLong())
                         copied = false
                     }
                 },
@@ -201,32 +153,30 @@ fun CodeBlock(
                 AnimatedContent(
                     targetState = copied,
                     transitionSpec = {
-                        fadeIn(animationSpec = tween(150)) togetherWith
-                            fadeOut(animationSpec = tween(150))
+                        fadeIn(tween(DURATION_MICRO)) togetherWith fadeOut(tween(DURATION_MICRO))
                     },
-                    label = "copy_icon"
+                    label = "codeBlockCopyIcon"
                 ) { isCopied ->
                     if (isCopied) {
                         Icon(
-                            imageVector = Icons.Filled.Check,
+                            imageVector = AppIcons.Chat.CopyDone,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(18.dp)
+                            modifier = Modifier.size(16.dp)
                         )
                     } else {
                         Icon(
-                            imageVector = Icons.Filled.ContentCopy,
+                            imageVector = AppIcons.Chat.Copy,
                             contentDescription = null,
-                            tint = onBackgroundColor.copy(alpha = 0.7f),
-                            modifier = Modifier.size(18.dp)
+                            tint = onSurface.copy(alpha = 0.6f),
+                            modifier = Modifier.size(16.dp)
                         )
                     }
                 }
             }
         }
 
-        // â”€â”€â”€ Code body â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        // Horizontally scrollable so wide code lines do not wrap.
+        // ── Code body ─────────────────────────────────────────────────────────
         Box(
             modifier = Modifier
                 .fillMaxWidth()
@@ -235,18 +185,16 @@ fun CodeBlock(
         ) {
             Text(
                 text = code,
-                style = MaterialTheme.typography.bodySmall.copy(
-                    fontFamily = FontFamily.Monospace
-                ),
-                color = onBackgroundColor
+                style = AppTypeExtended.codeContent,
+                color = onSurface
             )
         }
     }
 }
 
-// â”€â”€â”€ Previews â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Previews ──────────────────────────────────────────────────────────────────
 
-@Preview(showBackground = true, name = "CodeBlock â€“ Kotlin")
+@Preview(showBackground = true, name = "CodeBlock — Kotlin")
 @Composable
 private fun CodeBlockKotlinPreview() {
     AppTheme(dynamicColor = false) {
@@ -258,32 +206,20 @@ private fun CodeBlockKotlinPreview() {
                     return fib(n, 0L, 1L)
                 }
             """.trimIndent(),
-            language = "kotlin"
+            language = "kotlin",
+            modifier = Modifier.padding(16.dp)
         )
     }
 }
 
-@Preview(showBackground = true, name = "CodeBlock â€“ No language")
+@Preview(showBackground = true, name = "CodeBlock — Python (light theme)")
 @Composable
-private fun CodeBlockNoLanguagePreview() {
+private fun CodeBlockPythonPreview() {
     AppTheme(dynamicColor = false) {
         CodeBlock(
-            code = "SELECT id, name FROM users WHERE active = 1;"
-        )
-    }
-}
-
-@Preview(
-    showBackground = true,
-    name = "CodeBlock â€“ Dark",
-    uiMode = android.content.res.Configuration.UI_MODE_NIGHT_YES
-)
-@Composable
-private fun CodeBlockDarkPreview() {
-    AppTheme(dynamicColor = false) {
-        CodeBlock(
-            code = "print('Hello, world!')",
-            language = "python"
+            code = "def hello():\n    print('Hello, world!')",
+            language = "python",
+            modifier = Modifier.padding(16.dp)
         )
     }
 }

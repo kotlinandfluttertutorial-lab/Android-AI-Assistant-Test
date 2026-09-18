@@ -28,12 +28,15 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navDeepLink
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 import com.aiassistant.core.ui.AppTheme
 import com.aiassistant.core.ui.motion.LocalReducedMotionEnabled
 import com.aiassistant.core.ui.motion.enterSlideIn
 import com.aiassistant.core.ui.motion.exitSlideOut
 import com.aiassistant.core.ui.motion.popEnterSlideIn
 import com.aiassistant.core.ui.motion.popExitSlideOut
+import com.aiassistant.navigation.AppNavigationShell
 import com.aiassistant.feature.auth.AuthRoute
 import com.aiassistant.feature.auth.authNavGraph
 import com.aiassistant.feature.camera.cameraNavGraph
@@ -69,6 +72,7 @@ private const val DEEP_LINK_BASE = "aiassistant://open"
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
+    @OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
@@ -76,15 +80,22 @@ class MainActivity : ComponentActivity() {
         setContent {
             AppTheme {
                 val navController = rememberNavController()
+                val windowSizeClass = calculateWindowSizeClass(this)
 
                 // Track screen_view events automatically on every destination change.
                 screenViewTracker(navController = navController)
 
                 // Also emit SCREEN_VIEW events to our own observability pipeline
-                // so the AI analysis layer can correlate errors with screen context.
                 observabilityNavTracker(navController = navController)
 
-                rootNavHost(navController = navController)
+                // Adaptive navigation shell wraps the NavHost with window-size-aware
+                // navigation chrome (BottomBar / Rail / Drawer).
+                AppNavigationShell(
+                    navController = navController,
+                    widthSizeClass = windowSizeClass.widthSizeClass
+                ) {
+                    rootNavHost(navController = navController)
+                }
             }
         }
     }

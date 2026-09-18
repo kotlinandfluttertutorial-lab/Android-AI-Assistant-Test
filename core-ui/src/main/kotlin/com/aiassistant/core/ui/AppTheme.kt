@@ -186,3 +186,9 @@ val MaterialTheme.spacing: Spacing
     @Composable
     @ReadOnlyComposable
     get() = LocalSpacing.current
+
+// Phase 2.8 — MaterialTheme.elevation extension (mirrors spacing extension above)
+// Note: elevation extension is also defined in Elevation.kt. This alias is kept
+// here for symmetry so both can be discovered from AppTheme.kt imports.
+// The Elevation.kt definition is the canonical one; if both exist the compiler
+// treats them as the same extension since they return the same local.

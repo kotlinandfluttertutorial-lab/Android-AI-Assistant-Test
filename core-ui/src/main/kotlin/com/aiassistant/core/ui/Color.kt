@@ -208,43 +208,100 @@ internal val DarkColorScheme = darkColorScheme(
     scrim = Neutral10
 )
 
-// ── Extended brand tokens (Task 50.1 — UI Redesign) ──────────────────────────
+// ── Extended brand tokens (Phase 2.1 — Production UI/UX Upgrade) ─────────────
 
 object AppColors {
 
     // ── Surface tonal hierarchy ───────────────────────────────────────────────
+    // Used for assistant message bubbles, cards, and elevated containers.
     val surfaceTonal1Light = Color(0xFFF4F6FF)
-    val surfaceTonal1Dark = Color(0xFF1E2030)
+    val surfaceTonal1Dark  = Color(0xFF1E2030)
     val surfaceTonal2Light = Color(0xFFEEF0FC)
-    val surfaceTonal2Dark = Color(0xFF252740)
+    val surfaceTonal2Dark  = Color(0xFF252740)
     val surfaceTonal3Light = Color(0xFFE5E8F9)
-    val surfaceTonal3Dark = Color(0xFF2C2F4A)
+    val surfaceTonal3Dark  = Color(0xFF2C2F4A)
 
     // ── Brand gradient (blue → purple) ───────────────────────────────────────
+    // Used on the HomeDashboard hero card and the send FAB gradient.
     val gradientStartLight = Color(0xFF1B6EF5)
-    val gradientStartDark = Color(0xFF5C8FFF)
-    val gradientEndLight = Color(0xFF705572)
-    val gradientEndDark = Color(0xFFDDB9DF)
+    val gradientStartDark  = Color(0xFF5C8FFF)
+    val gradientEndLight   = Color(0xFF705572)
+    val gradientEndDark    = Color(0xFFDDB9DF)
 
     // ── Accent glow (15% alpha primary) ──────────────────────────────────────
     val accentGlowLight = Color(0x261B6EF5)
-    val accentGlowDark = Color(0x265C8FFF)
+    val accentGlowDark  = Color(0x265C8FFF)
 
-    // ── RAG ingestion status ──────────────────────────────────────────────────
+    // ── AI mode semantic tokens ───────────────────────────────────────────────
+    // Each AI mode gets a distinct hue so AiModeIndicator chips are visually
+    // distinguishable without relying on labels alone (WCAG 1.4.1).
+    //
+    // Gemma (on-device) — Teal/Emerald: communicates local, private, offline.
+    val gemmaContainerLight     = Color(0xFFD1FAE5) // Emerald-100
+    val gemmaContainerDark      = Color(0xFF064E3B) // Emerald-900
+    val gemmaOnContainerLight   = Color(0xFF065F46) // Emerald-800
+    val gemmaOnContainerDark    = Color(0xFFA7F3D0) // Emerald-200
+    val gemmaIndicatorLight     = Color(0xFF10B981) // Emerald-500
+    val gemmaIndicatorDark      = Color(0xFF34D399) // Emerald-400
+
+    // Cloud AI — Sky blue: communicates remote, cloud, connected.
+    val cloudContainerLight     = Color(0xFFDBEAFE) // Blue-100
+    val cloudContainerDark      = Color(0xFF1E3A5F) // Blue-900
+    val cloudOnContainerLight   = Color(0xFF1E40AF) // Blue-800
+    val cloudOnContainerDark    = Color(0xFFBFDBFE) // Blue-200
+    val cloudIndicatorLight     = Color(0xFF3B82F6) // Blue-500
+    val cloudIndicatorDark      = Color(0xFF60A5FA) // Blue-400
+
+    // RAG (Retrieval-Augmented Generation) — Violet: communicates document
+    // grounding and knowledge retrieval.
+    val ragContainerLight       = Color(0xFFEDE9FE) // Violet-100
+    val ragContainerDark        = Color(0xFF2E1065) // Violet-900
+    val ragOnContainerLight     = Color(0xFF4C1D95) // Violet-900
+    val ragOnContainerDark      = Color(0xFFDDD6FE) // Violet-200
+    val ragIndicatorLight       = Color(0xFF8B5CF6) // Violet-500
+    val ragIndicatorDark        = Color(0xFFA78BFA) // Violet-400
+
+    // ── RAG document ingestion status ─────────────────────────────────────────
+    // Indexed (success) — Green
     val ragGreenLight = Color(0xFF10B981)
-    val ragGreenDark = Color(0xFF34D399)
+    val ragGreenDark  = Color(0xFF34D399)
+    // Processing (in-progress) — Amber
     val ragAmberLight = Color(0xFFF59E0B)
-    val ragAmberDark = Color(0xFFFCD34D)
-    val ragRedLight = Color(0xFFEF4444)
-    val ragRedDark = Color(0xFFF87171)
+    val ragAmberDark  = Color(0xFFFCD34D)
+    // Failed (error) — Red
+    val ragRedLight   = Color(0xFFEF4444)
+    val ragRedDark    = Color(0xFFF87171)
+
+    // ── Connectivity / cache status ───────────────────────────────────────────
+    // Offline banner uses tertiaryContainer (defined in M3 scheme above).
+    // Syncing indicator uses primary; cached uses secondaryContainer.
+    val cacheContainerLight   = Color(0xFFF1F5F9) // Slate-100
+    val cacheContainerDark    = Color(0xFF1E293B) // Slate-800
+    val cacheOnContainerLight = Color(0xFF475569) // Slate-600
+    val cacheOnContainerDark  = Color(0xFF94A3B8) // Slate-400
+
+    // ── Shimmer skeleton ─────────────────────────────────────────────────────
+    // Base and highlight colors for the shimmer loading animation.
+    val shimmerBaseLight      = Color(0xFFE2E8F0) // Slate-200
+    val shimmerHighlightLight = Color(0xFFF8FAFC) // Slate-50
+    val shimmerBaseDark       = Color(0xFF1E293B) // Slate-800
+    val shimmerHighlightDark  = Color(0xFF334155) // Slate-700
 
     // ── Ticket / issue status ─────────────────────────────────────────────────
-    val ticketOpenLight = Color(0xFF3B82F6)
-    val ticketOpenDark = Color(0xFF60A5FA)
+    val ticketOpenLight       = Color(0xFF3B82F6)
+    val ticketOpenDark        = Color(0xFF60A5FA)
     val ticketInProgressLight = Color(0xFF8B5CF6)
-    val ticketInProgressDark = Color(0xFFA78BFA)
-    val ticketClosedLight = Color(0xFF6B7280)
-    val ticketClosedDark = Color(0xFF9CA3AF)
-    val ticketUrgentLight = Color(0xFFEF4444)
-    val ticketUrgentDark = Color(0xFFF87171)
+    val ticketInProgressDark  = Color(0xFFA78BFA)
+    val ticketClosedLight     = Color(0xFF6B7280)
+    val ticketClosedDark      = Color(0xFF9CA3AF)
+    val ticketUrgentLight     = Color(0xFFEF4444)
+    val ticketUrgentDark      = Color(0xFFF87171)
+
+    // ── Code block ───────────────────────────────────────────────────────────
+    // Always dark regardless of theme — matches developer tool conventions and
+    // ensures consistent readability for syntax-highlighted code.
+    val codeBlockBackground   = Color(0xFF0F172A) // Slate-950
+    val codeBlockSurface      = Color(0xFF1E293B) // Slate-800 (header bar)
+    val codeBlockOnSurface    = Color(0xFFCBD5E1) // Slate-300
+    val codeBlockLineNumber   = Color(0xFF64748B) // Slate-500
 }

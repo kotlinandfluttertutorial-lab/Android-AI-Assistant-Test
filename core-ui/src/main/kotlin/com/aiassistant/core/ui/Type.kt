@@ -238,3 +238,86 @@ object AppType {
         letterSpacing = 0.4.sp
     )
 }
+
+// ── Additional AppType tokens (Phase 2.2 — Production UI/UX Upgrade) ─────────
+
+// Note: AppType.displayAI, sectionLabel, and chatTimestamp already exist above.
+// The following tokens extend it for new components added in the upgrade.
+
+/**
+ * Extended type tokens appended to the existing [AppType] object.
+ *
+ * These are defined as a separate extension rather than modifying the object
+ * body to avoid rewrite risk on the existing file.
+ */
+object AppTypeExtended {
+
+    /**
+     * 12 sp Medium Monospace — used in CodeBlock for code content display.
+     * Uses FontFamily.Monospace so code characters align in columns.
+     */
+    val codeContent = TextStyle(
+        fontFamily = FontFamily.Monospace,
+        fontWeight = FontWeight.Normal,
+        fontSize = 12.sp,
+        lineHeight = 18.sp,
+        letterSpacing = 0.sp
+    )
+
+    /**
+     * 11 sp Medium Monospace — used in CodeBlock header (language label, line count).
+     */
+    val codeLabel = TextStyle(
+        fontFamily = FontFamily.Monospace,
+        fontWeight = FontWeight.Medium,
+        fontSize = 11.sp,
+        lineHeight = 16.sp,
+        letterSpacing = 0.sp
+    )
+
+    /**
+     * 11 sp Medium — AI mode indicator label (e.g., "Gemma", "Cloud AI", "RAG").
+     * Uses increased letter spacing for small all-caps labels.
+     */
+    val aiModeLabel = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Medium,
+        fontSize = 11.sp,
+        lineHeight = 16.sp,
+        letterSpacing = 0.3.sp
+    )
+
+    /**
+     * 10 sp Normal — cache/sync timestamp label below chat list items.
+     * ("Cached · 3:42 PM")
+     */
+    val cacheTimestamp = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Normal,
+        fontSize = 10.sp,
+        lineHeight = 14.sp,
+        letterSpacing = 0.2.sp
+    )
+
+    /**
+     * 13 sp Normal — model status description line in ModelStatusCard.
+     */
+    val modelStatusBody = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Normal,
+        fontSize = 13.sp,
+        lineHeight = 18.sp,
+        letterSpacing = 0.2.sp
+    )
+
+    /**
+     * 14 sp SemiBold — document name in CitationCard and DocumentListScreen.
+     */
+    val documentTitle = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.1.sp
+    )
+}
