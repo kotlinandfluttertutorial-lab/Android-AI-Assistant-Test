@@ -3,8 +3,9 @@
 # Android AI Assistant — Container Entrypoint
 # =============================================================================
 #
-# APP_MODE=api    (default) — run FastAPI via uvicorn
-# APP_MODE=worker           — run Celery worker + background HTTP health server
+# APP_MODE=api     (default) — run FastAPI via uvicorn
+# APP_MODE=worker            — run Celery worker + background HTTP health server
+# APP_MODE=reingest          — one-shot: re-dispatch ingest tasks for stuck docs
 #
 # Cloud Run requires every container to listen on $PORT (default 8080/8000).
 # The Celery worker has no HTTP server, so in worker mode we start a tiny
@@ -75,6 +76,10 @@ t.join()
 import asyncio, os, sys
 os.environ.setdefault('ENVIRONMENT', 'production')
 
+# Force settings to load before importing app modules
+from app.config.settings import get_settings
+settings = get_settings()
+
 async def run():
     from app.database import AsyncSessionLocal
     from app.models.document import Document, IngestionStatus
@@ -105,5 +110,8 @@ asyncio.run(run())
     ;;
 
   *)
+    echo "[entrypoint] ERROR: Unknown APP_MODE='$APP_MODE'. Must be 'api', 'worker', or 'reingest'." >&2
+    exit 1
+    ;;
 
 esac
