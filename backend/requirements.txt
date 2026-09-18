@@ -61,15 +61,12 @@ python-multipart==0.0.31
 # ──────────────────────────────────────────────────────────────────────────────
 # Vector store
 # ──────────────────────────────────────────────────────────────────────────────
-# CVE-2026-45829 (CRITICAL) — pre-auth RCE in ChromaDB Python FastAPI server.
-# CVE-2026-45830 (HIGH)     — cross-tenant authorization bypass.
-# CVE-2026-45831 (HIGH)     — SimpleRBACAuthorizationProvider scope bug.
-# CVE-2026-45833 (HIGH)     — authenticated trust_remote_code code injection.
-# Affects all versions 1.0.0–1.5.9. NO patch available as of 2026-08-24.
-# Mitigation: ChromaDB port is NOT published to the host in docker-compose.yml
-# (internal Docker network only). Re-audit when a patched version is released.
-# Suppress in Trivy/Safety scans until a fix version exists.
-chromadb==1.5.9
+# chromadb 0.6.3 — uses Python FastAPI server (matching chromadb/chroma:0.6.3
+# docker image). The 1.x Rust server does not implement /api/v2/auth/identity
+# which the 1.x Python client calls unconditionally on construction, causing
+# 404 errors on every task. Server is kept internal (Cloud Run ingress=internal)
+# to mitigate CVE-2026-45829/45830/45831/45833 which only affect the Python server.
+chromadb==0.6.3
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Object storage

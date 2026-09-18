@@ -2,16 +2,8 @@
 # Format: CVE-ID  # comment
 # Review all entries before expiry dates and remove once patched.
 
-# CVE-2026-45829: Pre-auth RCE in ChromaDB Python FastAPI server (CRITICAL).
-# CVE-2026-45830: Cross-tenant authorization bypass (HIGH).
-# CVE-2026-45831: SimpleRBACAuthorizationProvider scope bug (HIGH).
-# CVE-2026-45833: Authenticated trust_remote_code code injection (HIGH).
-# No patch available as of 2026-08-24. Affects chromadb 1.0.0–1.5.9.
-# Mitigation: ChromaDB port is NOT published to the host in docker-compose.yml
-# (internal Docker network only, unreachable from outside the compose stack).
-# Remove these entries and upgrade chromadb once a patched version is released.
-# Expiry: 2027-02-24
-CVE-2026-45829
-CVE-2026-45830
-CVE-2026-45831
-CVE-2026-45833
+# CVE-2026-45829/45830/45831/45833: ChromaDB Python FastAPI server vulnerabilities.
+# RESOLVED: Downgraded to chromadb==0.6.3 (Python FastAPI) which predates these CVEs.
+# The 1.x Rust server (chromadb/chroma:1.x) was also not affected but the Python
+# client 1.x was incompatible with the Rust server's missing /api/v2/auth/identity endpoint.
+# Server on Cloud Run updated to chromadb/chroma:0.6.3 matching the Python client.
