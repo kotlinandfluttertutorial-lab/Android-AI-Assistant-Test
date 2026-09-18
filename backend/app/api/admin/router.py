@@ -622,3 +622,73 @@ async def reindex_knowledge_base() -> ReindexResponse:
         collection_size=result.get("collection_size", 0),
         errors=result.get("errors", []),
     )
+
+
+# ---------------------------------------------------------------------------
+# POST /admin/reingest-stuck
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/reingest-stuck",
+    summary="Re-dispatch Celery ingest tasks for stuck documents",
+    description=(
+        "Finds all documents with ingestion_status='processing' or 'pending' "
+        "and re-dispatches ingest_document_task for each. "
+        "Use after a worker OOM kill or ChromaDB connectivity outage that left "
+        "documents stuck. Safe to call multiple times (idempotent per document)."
+    ),
+)
+async def reingest_stuck_documents(
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Re-dispatch Celery tasks for all documents stuck in processing/pending state."""
+    from sqlalchemy import select, or_
+
+    from app.models.document import Document, IngestionStatus
+    from app.services.rag_service import rag_service
+
+    # Fetch all stuck documents across all users
+    result = await db.execute(
+        select(Document).where(
+            or_(
+                Document.ingestion_status == IngestionStatus.processing,
+                Document.ingestion_status == IngestionStatus.pending,
+            )
+        )
+    )
+    stuck_docs = result.scalars().all()
+
+    dispatched = []
+    errors = []
+
+    for doc in stuck_docs:
+        try:
+            # Reset to pending
+            doc.ingestion_status = IngestionStatus.pending
+            await db.flush()
+
+            # Create a new job
+            job_id = await rag_service.create_ingestion_job(doc.id, doc.user_id, db)
+            await db.commit()
+
+            # Dispatch Celery task
+            from app.workers.rag_worker import ingest_document_task
+
+            celery_result = ingest_document_task.delay(str(doc.id), str(doc.user_id))
+            logger.info(
+                "Admin reingest: dispatched task %s for document %s",
+                celery_result.id,
+                doc.id,
+            )
+            dispatched.append({"document_id": str(doc.id), "file_name": doc.file_name})
+        except Exception as exc:
+            logger.warning("Admin reingest: failed for document %s: %s", doc.id, exc)
+            errors.append({"document_id": str(doc.id), "error": str(exc)})
+
+    return {
+        "dispatched": len(dispatched),
+        "errors": len(errors),
+        "documents": dispatched,
+        "error_details": errors,
+    }
