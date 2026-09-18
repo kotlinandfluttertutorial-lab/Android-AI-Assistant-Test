@@ -38,6 +38,10 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 COPY requirements.txt .
 
+# Cache-bust ARG — increment when requirements change to force pip re-install.
+# chromadb downgrade: 1.5.9 -> 0.6.3 (2026-09-18)
+ARG CACHE_BUST=20260918-chromadb063
+
 # Compile all wheels and install into an isolated prefix directory so we can
 # copy only the installed packages to the final stage — no pip, no wheel
 # cache, no build artefacts carried forward.
