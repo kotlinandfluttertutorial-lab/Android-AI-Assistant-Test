@@ -66,7 +66,7 @@ python-multipart==0.0.31
 # which the 1.x Python client calls unconditionally on construction, causing
 # 404 errors on every task. Server is kept internal (Cloud Run ingress=internal)
 # to mitigate CVE-2026-45829/45830/45831/45833 which only affect the Python server.
-chromadb==0.6.3
+chromadb==0.5.20
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Object storage
