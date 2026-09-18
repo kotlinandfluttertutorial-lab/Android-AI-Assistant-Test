@@ -72,41 +72,7 @@ t.join()
 
   reingest)
     echo "[entrypoint] Running reingest-stuck script (APP_MODE=reingest)"
-    exec python3 -c "
-import asyncio, os, sys
-os.environ.setdefault('ENVIRONMENT', 'production')
-
-# Force settings to load before importing app modules
-from app.config.settings import get_settings
-settings = get_settings()
-
-async def run():
-    from app.database import AsyncSessionLocal
-    from app.models.document import Document, IngestionStatus
-    from sqlalchemy import select, or_
-    from app.workers.rag_worker import ingest_document_task
-
-    async with AsyncSessionLocal() as db:
-        result = await db.execute(
-            select(Document).where(
-                or_(
-                    Document.ingestion_status == IngestionStatus.processing,
-                    Document.ingestion_status == IngestionStatus.pending,
-                )
-            )
-        )
-        docs = result.scalars().all()
-        print(f'Found {len(docs)} stuck documents to reingest', flush=True)
-        for doc in docs:
-            doc.ingestion_status = IngestionStatus.pending
-            await db.flush()
-            ingest_document_task.delay(str(doc.id), str(doc.user_id))
-            print(f'  dispatched {doc.id} ({doc.file_name})', flush=True)
-        await db.commit()
-        print('All reingest tasks dispatched successfully', flush=True)
-
-asyncio.run(run())
-"
+    exec python3 /app/scripts/reingest_stuck.py
     ;;
 
   *)

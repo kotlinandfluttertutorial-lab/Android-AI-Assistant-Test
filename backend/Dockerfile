@@ -113,9 +113,10 @@ WORKDIR /app
 
 # Copy application source code and Alembic migration files
 COPY app/ ./app/
+COPY scripts/ ./scripts/
 COPY alembic/ ./alembic/
 COPY alembic.ini .
-# Entrypoint selects API (uvicorn) or worker (celery) based on APP_MODE env var
+# Entrypoint selects API (uvicorn), worker (celery), or reingest based on APP_MODE env var
 COPY entrypoint.sh ./entrypoint.sh
 
 # Ensure the non-root user owns the app directory and entrypoint is executable
