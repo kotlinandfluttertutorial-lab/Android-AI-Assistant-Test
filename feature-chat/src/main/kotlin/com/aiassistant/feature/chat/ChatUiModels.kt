@@ -81,17 +81,18 @@ data class StreamingState(
  *                        used to detect turn boundaries for AiModeIndicator.
  */
 fun Message.toUiModel(previousMessage: Message? = null): MessageUiModel {
-    val isAssistant = !isFromUser
+    val isUser      = role == "user"
+    val isAssistant = role == "assistant"
     val isFirstInTurn = isAssistant &&
-        (previousMessage == null || previousMessage.isFromUser)
+        (previousMessage == null || previousMessage.role == "user")
 
     return MessageUiModel(
         id            = id,
         text          = content,
-        isUser        = isFromUser,
-        aiMode        = if (isAssistant) provider?.toAiMode() else null,
+        isUser        = isUser,
+        aiMode        = if (isAssistant && provider.isNotBlank()) provider.toAiMode() else null,
         isFirstInTurn = isFirstInTurn,
-        timestamp     = timestamp?.toString() ?: "",
+        timestamp     = createdAt.toString(),
         isError       = false
     )
 }

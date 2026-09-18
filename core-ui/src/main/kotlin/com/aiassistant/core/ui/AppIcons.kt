@@ -149,6 +149,7 @@ object AppIcons {
 
         // Outlined (unselected state)
         val HomeOutlined      = Icons.Outlined.Home
+        @Suppress("DEPRECATION")
         val ChatOutlined      = Icons.Outlined.Chat
         val DocumentsOutlined = Icons.Outlined.Description
         val HistoryOutlined   = Icons.Outlined.History

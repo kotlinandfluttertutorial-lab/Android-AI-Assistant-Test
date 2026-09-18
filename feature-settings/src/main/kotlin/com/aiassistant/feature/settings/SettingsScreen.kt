@@ -7,19 +7,17 @@
  * Purpose    : Production-quality Settings screen (Phase 10 upgrade).
  *
  *              Sections:
- *              1. AI          — mode selector, provider, on-device model link
- *              2. Appearance  — Light/Dark/System theme picker, dynamic color
- *              3. Chat        — save history, streaming, Markdown, auto-scroll
- *              4. Storage     — cache size, clear cache, models, documents
- *              5. Privacy     — local/cloud processing labels, data retention
- *              6. About       — app version, model version, licenses
- *              7. Account     — change password, Google link/unlink, logout
- *
- *              Each section uses a reusable [SettingsSectionCard] wrapper.
- *              Destructive actions require an AlertDialog confirmation.
+ *              1. AI          — provider selector (chips), on-device model status
+ *              2. Appearance  — Light/Dark/System theme picker chips
+ *              3. Chat        — notification category toggles, context suggestions
+ *              4. Privacy     — privacy mode toggle, processing labels
+ *              5. About       — app version, model version
+ *              6. Account     — change password, Google link/unlink, logout
  *
  * Architecture Layer : Feature (feature-settings) — Compose UI layer.
- *                      All state comes from SettingsViewModel/SettingsUiState.
+ *                      All ViewModel calls use the exact method signatures from
+ *                      SettingsViewModel (selectProvider, selectTheme, setPrivacyMode,
+ *                      changePassword, linkGoogleAccount, unlinkGoogleAccount, logout).
  *
  * Requirements       : 3.2, 3.7, 7.6, 16.4, 24.2, 28.3
  * ============================================================
@@ -63,6 +61,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -77,9 +76,9 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.aiassistant.core.ai.LlmProvider
 import com.aiassistant.core.ui.AppIcons
 import com.aiassistant.core.ui.ThemeMode
-import com.aiassistant.core.ui.components.AiMode
 import com.aiassistant.core.ui.elevation
 import com.aiassistant.core.ui.spacing
 import kotlinx.coroutines.launch
@@ -89,40 +88,62 @@ import kotlinx.coroutines.launch
 @Composable
 fun SettingsScreen(viewModel: SettingsViewModel, onNavigateUp: () -> Unit) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    // Handle ActionResult snackbar
+    LaunchedEffect(uiState) {
+        if (uiState is SettingsUiState.ActionResult) {
+            val result = uiState as SettingsUiState.ActionResult
+            scope.launch { snackbarHostState.showSnackbar(result.message) }
+            viewModel.onActionConsumed()
+        }
+    }
 
     when (val state = uiState) {
         is SettingsUiState.Loading -> {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(
+                    modifier = Modifier.semantics { contentDescription = "Loading settings" }
+                )
             }
         }
+
         is SettingsUiState.Settings -> {
             SettingsScreenContent(
                 state = state,
+                snackbarHostState = snackbarHostState,
                 onNavigateUp = onNavigateUp,
-                onProviderChange = viewModel::setProvider,
-                onThemeChange = viewModel::setThemeMode,
+                onProviderChange = viewModel::selectProvider,
+                onThemeChange = viewModel::selectTheme,
                 onPrivacyToggle = viewModel::setPrivacyMode,
-                onClearCache = viewModel::clearCache,
+                onContextSuggestionsToggle = viewModel::setContextSuggestionsEnabled,
+                onNotificationToggle = viewModel::setNotificationEnabled,
                 onChangePassword = { old, new -> viewModel.changePassword(old, new) },
-                onLogout = viewModel::logout,
-                onLinkGoogle = viewModel::linkGoogleAccount,
+                onLogout = { viewModel.logout(onNavigateUp) },
+                onLinkGoogle = { viewModel.linkGoogleAccount("") }, // token obtained in dialog
                 onUnlinkGoogle = viewModel::unlinkGoogleAccount
             )
         }
+
         is SettingsUiState.Error -> {
             Box(
                 Modifier.fillMaxSize().padding(16.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = state.message,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.error
-                )
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = state.message,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                    Spacer(Modifier.height(MaterialTheme.spacing.sm))
+                    Button(onClick = viewModel::retry) { Text("Retry") }
+                }
             }
         }
-        else -> Unit
+
+        else -> Unit // ChangePasswordDialog / ActionResult handled via LaunchedEffect
     }
 }
 
@@ -132,22 +153,20 @@ fun SettingsScreen(viewModel: SettingsViewModel, onNavigateUp: () -> Unit) {
 @Composable
 internal fun SettingsScreenContent(
     state: SettingsUiState.Settings,
+    snackbarHostState: SnackbarHostState,
     onNavigateUp: () -> Unit,
     onProviderChange: (LlmProvider) -> Unit,
     onThemeChange: (ThemeMode) -> Unit,
     onPrivacyToggle: (Boolean) -> Unit,
-    onClearCache: () -> Unit,
+    onContextSuggestionsToggle: (Boolean) -> Unit,
+    onNotificationToggle: (String, Boolean) -> Unit,
     onChangePassword: (String, String) -> Unit,
     onLogout: () -> Unit,
     onLinkGoogle: () -> Unit,
     onUnlinkGoogle: () -> Unit
 ) {
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
-
     var showChangePasswordDialog by rememberSaveable { mutableStateOf(false) }
     var showLogoutDialog by rememberSaveable { mutableStateOf(false) }
-    var showClearCacheDialog by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         topBar = {
@@ -167,9 +186,7 @@ internal fun SettingsScreenContent(
             )
         },
         snackbarHost = {
-            SnackbarHost(snackbarHostState) { data ->
-                Snackbar(snackbarData = data)
-            }
+            SnackbarHost(snackbarHostState) { data -> Snackbar(snackbarData = data) }
         }
     ) { innerPadding ->
         Column(
@@ -183,33 +200,53 @@ internal fun SettingsScreenContent(
                 ),
             verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm)
         ) {
-            // ── 1. AI ──────────────────────────────────────────────────────
-            SettingsSectionCard(title = "AI", icon = { Icon(AppIcons.Ai.Assistant, contentDescription = null, modifier = Modifier.size(18.dp)) }) {
-                SettingsInfoRow(
-                    label = "AI Mode",
-                    value = state.activeProvider.displayName()
-                )
-                Spacer(Modifier.height(MaterialTheme.spacing.xs))
+
+            // ── 1. AI ──────────────────────────────────────────────────────────
+            SettingsSectionCard(
+                title = "AI",
+                icon = { Icon(AppIcons.Ai.Assistant, contentDescription = null, modifier = Modifier.size(18.dp)) }
+            ) {
                 Text(
                     text = "Provider",
                     style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
-                Row(horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
                     state.availableProviders.forEach { provider ->
                         FilterChip(
                             selected = provider == state.activeProvider,
                             onClick = { onProviderChange(provider) },
-                            label = { Text(provider.displayName(), style = MaterialTheme.typography.labelSmall) },
-                            modifier = Modifier.semantics { contentDescription = "Select ${provider.displayName()}" }
+                            label = {
+                                Text(
+                                    text = provider.display,
+                                    style = MaterialTheme.typography.labelSmall
+                                )
+                            },
+                            modifier = Modifier.semantics {
+                                contentDescription = "Select ${provider.display}"
+                            }
                         )
                     }
                 }
+
+                if (state.onDeviceCapability.isAvailable) {
+                    Spacer(Modifier.height(MaterialTheme.spacing.xs))
+                    SettingsInfoRow(
+                        label = "On-device model",
+                        value = state.onDeviceCapability.modelDisplayName ?: "Ready"
+                    )
+                }
             }
 
-            // ── 2. Appearance ──────────────────────────────────────────────
-            SettingsSectionCard(title = "Appearance", icon = { Icon(AppIcons.Settings.Appearance, contentDescription = null, modifier = Modifier.size(18.dp)) }) {
+            // ── 2. Appearance ──────────────────────────────────────────────────
+            SettingsSectionCard(
+                title = "Appearance",
+                icon = { Icon(AppIcons.Settings.Appearance, contentDescription = null, modifier = Modifier.size(18.dp)) }
+            ) {
                 Text(
                     text = "Theme",
                     style = MaterialTheme.typography.labelMedium,
@@ -217,86 +254,124 @@ internal fun SettingsScreenContent(
                     modifier = Modifier.padding(bottom = 4.dp)
                 )
                 Row(horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)) {
-                    listOf(ThemeMode.LIGHT to "Light", ThemeMode.DARK to "Dark", ThemeMode.SYSTEM to "System")
-                        .forEach { (mode, label) ->
-                            FilterChip(
-                                selected = mode == state.themeMode,
-                                onClick = { onThemeChange(mode) },
-                                label = { Text(label, style = MaterialTheme.typography.labelSmall) },
-                                modifier = Modifier.semantics { contentDescription = "Select $label theme" }
-                            )
-                        }
+                    listOf(
+                        ThemeMode.LIGHT  to "Light",
+                        ThemeMode.DARK   to "Dark",
+                        ThemeMode.SYSTEM to "System"
+                    ).forEach { (mode, label) ->
+                        FilterChip(
+                            selected = mode == state.themeMode,
+                            onClick = { onThemeChange(mode) },
+                            label = { Text(label, style = MaterialTheme.typography.labelSmall) },
+                            modifier = Modifier.semantics {
+                                contentDescription = "Select $label theme"
+                            }
+                        )
+                    }
                 }
             }
 
-            // ── 3. Chat ────────────────────────────────────────────────────
-            SettingsSectionCard(title = "Chat", icon = { Icon(AppIcons.Destinations.ChatOutlined, contentDescription = null, modifier = Modifier.size(18.dp)) }) {
+            // ── 3. Chat ────────────────────────────────────────────────────────
+            SettingsSectionCard(
+                title = "Chat",
+                icon = { Icon(AppIcons.Destinations.ChatOutlined, contentDescription = null, modifier = Modifier.size(18.dp)) }
+            ) {
                 SettingsToggleRow(
-                    label = "Save chat history",
-                    description = "Conversations are saved locally.",
-                    checked = true,
-                    onCheckedChange = {},
-                    contentDescription = "Toggle save chat history"
+                    label = "Context-aware suggestions",
+                    description = "Show AI suggestions based on your current task.",
+                    checked = state.contextSuggestionsEnabled,
+                    onCheckedChange = onContextSuggestionsToggle,
+                    contentDesc = "Toggle context-aware suggestions"
                 )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(vertical = MaterialTheme.spacing.xs))
-                SettingsToggleRow(
-                    label = "Streaming responses",
-                    description = "Show AI responses as they are generated.",
-                    checked = true,
-                    onCheckedChange = {},
-                    contentDescription = "Toggle streaming responses"
-                )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(vertical = MaterialTheme.spacing.xs))
-                SettingsToggleRow(
-                    label = "Markdown rendering",
-                    description = "Render formatted text and code blocks.",
-                    checked = true,
-                    onCheckedChange = {},
-                    contentDescription = "Toggle Markdown rendering"
-                )
-            }
-
-            // ── 4. Storage ─────────────────────────────────────────────────
-            SettingsSectionCard(title = "Storage", icon = { Icon(AppIcons.Settings.Storage, contentDescription = null, modifier = Modifier.size(18.dp)) }) {
-                SettingsInfoRow(label = "Cache", value = "Computing…")
-                Spacer(Modifier.height(MaterialTheme.spacing.xs))
-                OutlinedButton(
-                    onClick = { showClearCacheDialog = true },
-                    modifier = Modifier.semantics { contentDescription = "Clear app cache" }
-                ) {
-                    Text("Clear cache")
+                state.notificationCategories.forEachIndexed { index, category ->
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant,
+                        modifier = Modifier.padding(vertical = MaterialTheme.spacing.xs)
+                    )
+                    SettingsToggleRow(
+                        label = category.displayLabel,
+                        checked = category.enabled,
+                        onCheckedChange = { enabled ->
+                            onNotificationToggle(category.key, enabled)
+                        },
+                        contentDesc = "Toggle ${category.displayLabel} notifications"
+                    )
                 }
             }
 
-            // ── 5. Privacy ─────────────────────────────────────────────────
-            SettingsSectionCard(title = "Privacy", icon = { Icon(AppIcons.Settings.Privacy, contentDescription = null, modifier = Modifier.size(18.dp)) }) {
+            // ── 4. Privacy ─────────────────────────────────────────────────────
+            SettingsSectionCard(
+                title = "Privacy",
+                icon = { Icon(AppIcons.Settings.Privacy, contentDescription = null, modifier = Modifier.size(18.dp)) }
+            ) {
                 SettingsToggleRow(
                     label = "AI Memory",
-                    description = "Allow the assistant to learn from your conversations.",
+                    description = "Allow the assistant to remember context from conversations.",
                     checked = !state.privacyModeEnabled,
-                    onCheckedChange = { onPrivacyToggle(!it) },
-                    contentDescription = "Toggle AI memory"
+                    onCheckedChange = { enabled -> onPrivacyToggle(!enabled) },
+                    contentDesc = "Toggle AI memory"
                 )
-                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant, modifier = Modifier.padding(vertical = MaterialTheme.spacing.xs))
-                SettingsInfoRow(label = "Local processing", value = if (state.activeProvider == LlmProvider.ON_DEVICE) "Active" else "Inactive")
-                SettingsInfoRow(label = "Cloud processing", value = if (state.activeProvider != LlmProvider.ON_DEVICE) "Active" else "Inactive")
+                HorizontalDivider(
+                    color = MaterialTheme.colorScheme.outlineVariant,
+                    modifier = Modifier.padding(vertical = MaterialTheme.spacing.xs)
+                )
+                SettingsInfoRow(
+                    label = "Local processing",
+                    value = if (state.activeProvider == LlmProvider.ON_DEVICE) "Active" else "Inactive"
+                )
+                Spacer(Modifier.height(MaterialTheme.spacing.xs))
+                SettingsInfoRow(
+                    label = "Cloud processing",
+                    value = if (state.activeProvider != LlmProvider.ON_DEVICE) "Active" else "Inactive"
+                )
             }
 
-            // ── 6. About ───────────────────────────────────────────────────
-            SettingsSectionCard(title = "About", icon = { Icon(AppIcons.Settings.About, contentDescription = null, modifier = Modifier.size(18.dp)) }) {
+            // ── 5. About ───────────────────────────────────────────────────────
+            SettingsSectionCard(
+                title = "About",
+                icon = { Icon(AppIcons.Settings.About, contentDescription = null, modifier = Modifier.size(18.dp)) }
+            ) {
                 SettingsInfoRow(label = "App version", value = "1.0.0")
-                SettingsInfoRow(label = "Model", value = if (state.onDeviceCapability.isAvailable) (state.onDeviceCapability as? OnDeviceCapabilityAvailability)?.modelName ?: "Available" else "Cloud AI")
+                Spacer(Modifier.height(MaterialTheme.spacing.xs))
+                SettingsInfoRow(
+                    label = "AI model",
+                    value = if (state.onDeviceCapability.isAvailable)
+                        (state.onDeviceCapability.modelDisplayName ?: "On-device")
+                    else
+                        state.activeProvider.display
+                )
+                if (state.remoteConfigEntries.isNotEmpty()) {
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outlineVariant,
+                        modifier = Modifier.padding(vertical = MaterialTheme.spacing.xs)
+                    )
+                    Text(
+                        text = "Remote config",
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+                    state.remoteConfigEntries.forEach { entry ->
+                        SettingsInfoRow(label = entry.displayLabel, value = entry.value)
+                        Spacer(Modifier.height(MaterialTheme.spacing.xs))
+                    }
+                }
                 Spacer(Modifier.height(MaterialTheme.spacing.xs))
                 TextButton(onClick = {}) {
                     Text("Open-source licenses")
                 }
             }
 
-            // ── 7. Account ─────────────────────────────────────────────────
-            SettingsSectionCard(title = "Account", icon = { Icon(AppIcons.Destinations.ProfileOutlined, contentDescription = null, modifier = Modifier.size(18.dp)) }) {
+            // ── 6. Account ─────────────────────────────────────────────────────
+            SettingsSectionCard(
+                title = "Account",
+                icon = { Icon(AppIcons.Destinations.ProfileOutlined, contentDescription = null, modifier = Modifier.size(18.dp)) }
+            ) {
                 OutlinedButton(
                     onClick = { showChangePasswordDialog = true },
-                    modifier = Modifier.fillMaxWidth().semantics { contentDescription = "Change password" }
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics { contentDescription = "Change password" }
                 ) {
                     Text("Change password")
                 }
@@ -304,18 +379,24 @@ internal fun SettingsScreenContent(
                 if (state.isGoogleLinked) {
                     OutlinedButton(
                         onClick = onUnlinkGoogle,
-                        modifier = Modifier.fillMaxWidth().semantics { contentDescription = "Unlink Google account" }
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .semantics { contentDescription = "Unlink Google account" }
                     ) { Text("Unlink Google account") }
                 } else {
                     Button(
                         onClick = onLinkGoogle,
-                        modifier = Modifier.fillMaxWidth().semantics { contentDescription = "Link Google account" }
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .semantics { contentDescription = "Link Google account" }
                     ) { Text("Link Google account") }
                 }
                 Spacer(Modifier.height(MaterialTheme.spacing.sm))
                 OutlinedButton(
                     onClick = { showLogoutDialog = true },
-                    modifier = Modifier.fillMaxWidth().semantics { contentDescription = "Log out" }
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .semantics { contentDescription = "Log out" }
                 ) {
                     Text("Log out", color = MaterialTheme.colorScheme.error)
                 }
@@ -325,17 +406,18 @@ internal fun SettingsScreenContent(
         }
     }
 
-    // Dialogs
+    // ── Dialogs ───────────────────────────────────────────────────────────────
+
     if (showChangePasswordDialog) {
         ChangePasswordDialog(
             onConfirm = { old, new ->
                 onChangePassword(old, new)
                 showChangePasswordDialog = false
-                scope.launch { snackbarHostState.showSnackbar("Password changed successfully") }
             },
             onDismiss = { showChangePasswordDialog = false }
         )
     }
+
     if (showLogoutDialog) {
         ConfirmDialog(
             title = "Log out",
@@ -349,20 +431,6 @@ internal fun SettingsScreenContent(
             onDismiss = { showLogoutDialog = false }
         )
     }
-    if (showClearCacheDialog) {
-        ConfirmDialog(
-            title = "Clear cache",
-            message = "This will remove cached conversations and media. Your saved history will not be deleted.",
-            confirmLabel = "Clear",
-            isDestructive = true,
-            onConfirm = {
-                showClearCacheDialog = false
-                onClearCache()
-                scope.launch { snackbarHostState.showSnackbar("Cache cleared") }
-            },
-            onDismiss = { showClearCacheDialog = false }
-        )
-    }
 }
 
 // ── Reusable section components ───────────────────────────────────────────────
@@ -370,7 +438,7 @@ internal fun SettingsScreenContent(
 @Composable
 private fun SettingsSectionCard(
     title: String,
-    icon: @Composable (() -> Unit)? = null,
+    icon: (@Composable () -> Unit)? = null,
     content: @Composable () -> Unit
 ) {
     ElevatedCard(
@@ -404,7 +472,7 @@ private fun SettingsToggleRow(
     description: String? = null,
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
-    contentDescription: String
+    contentDesc: String
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -423,7 +491,7 @@ private fun SettingsToggleRow(
         Switch(
             checked = checked,
             onCheckedChange = onCheckedChange,
-            modifier = Modifier.semantics { this.contentDescription = contentDescription }
+            modifier = Modifier.semantics { contentDescription = contentDesc }
         )
     }
 }
@@ -435,7 +503,11 @@ private fun SettingsInfoRow(label: String, value: String) {
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
         Text(label, style = MaterialTheme.typography.bodyMedium)
-        Text(value, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        Text(
+            value,
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 
@@ -464,7 +536,7 @@ private fun ChangePasswordDialog(
                 OutlinedTextField(
                     value = newPassword,
                     onValueChange = { newPassword = it },
-                    label = { Text("New password") },
+                    label = { Text("New password (min. 12 characters)") },
                     visualTransformation = PasswordVisualTransformation(),
                     keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                     singleLine = true,
@@ -474,7 +546,11 @@ private fun ChangePasswordDialog(
         },
         confirmButton = {
             TextButton(
-                onClick = { if (oldPassword.isNotBlank() && newPassword.isNotBlank()) onConfirm(oldPassword, newPassword) }
+                onClick = {
+                    if (oldPassword.isNotBlank() && newPassword.isNotBlank()) {
+                        onConfirm(oldPassword, newPassword)
+                    }
+                }
             ) { Text("Change") }
         },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
@@ -498,7 +574,8 @@ private fun ConfirmDialog(
             TextButton(onClick = onConfirm) {
                 Text(
                     confirmLabel,
-                    color = if (isDestructive) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+                    color = if (isDestructive) MaterialTheme.colorScheme.error
+                            else MaterialTheme.colorScheme.primary
                 )
             }
         },
@@ -506,8 +583,95 @@ private fun ConfirmDialog(
     )
 }
 
-// Helper extension to get display name from LlmProvider without coupling to its internals
-private fun LlmProvider.displayName(): String = name
-    .replace("_", " ")
-    .lowercase()
-    .replaceFirstChar { it.uppercaseChar() }
+// ── Navigation-layer entry point ──────────────────────────────────────────────
+// SettingsNavigation.kt calls settingsScreen(...) with individual callbacks.
+// This function bridges the old call-site API to the new SettingsScreen composable.
+
+/**
+ * Navigation-layer entry point called by [settingsNavGraph].
+ *
+ * Accepts the individual callback parameters that [SettingsNavigation.kt] passes and
+ * delegates to [SettingsScreen] / [SettingsScreenContent].  The [uiState] has already
+ * been collected in the navigation file; we forward all side-effect callbacks so the
+ * composable remains stateless.
+ */
+@Composable
+fun settingsScreen(
+    uiState: SettingsUiState,
+    onNavigateUp: () -> Unit,
+    onProviderSelected: (LlmProvider) -> Unit,
+    onThemeSelected: (ThemeMode) -> Unit,
+    onNotificationToggle: (String, Boolean) -> Unit,
+    onPrivacyModeToggle: (Boolean) -> Unit,
+    onChangePassword: (String, String) -> Unit,
+    onLinkGoogle: (String) -> Unit,
+    onUnlinkGoogle: () -> Unit,
+    onLogout: () -> Unit,
+    onActionConsumed: () -> Unit,
+    onRetry: () -> Unit,
+    onNavigateToCostDashboard: () -> Unit = {}
+) {
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+
+    // Handle ActionResult snackbar and auto-consume
+    LaunchedEffect(uiState) {
+        if (uiState is SettingsUiState.ActionResult) {
+            scope.launch { snackbarHostState.showSnackbar(uiState.message) }
+            onActionConsumed()
+        }
+    }
+
+    when (val state = uiState) {
+        is SettingsUiState.Loading -> {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(
+                    modifier = Modifier.semantics { contentDescription = "Loading settings" }
+                )
+            }
+        }
+
+        is SettingsUiState.Settings -> {
+            SettingsScreenContent(
+                state = state,
+                snackbarHostState = snackbarHostState,
+                onNavigateUp = onNavigateUp,
+                onProviderChange = onProviderSelected,
+                onThemeChange = onThemeSelected,
+                onPrivacyToggle = onPrivacyModeToggle,
+                onContextSuggestionsToggle = { /* wired separately if needed */ },
+                onNotificationToggle = onNotificationToggle,
+                onChangePassword = onChangePassword,
+                onLogout = onLogout,
+                onLinkGoogle = { onLinkGoogle("") }, // idToken obtained via Google Sign-In dialog
+                onUnlinkGoogle = onUnlinkGoogle
+            )
+        }
+
+        is SettingsUiState.Error -> {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = state.message,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                    Spacer(modifier = Modifier.height(MaterialTheme.spacing.sm))
+                    androidx.compose.material3.Button(onClick = onRetry) {
+                        Text("Retry")
+                    }
+                }
+            }
+        }
+
+        else -> Unit // ChangePasswordDialog / ActionResult handled via LaunchedEffect
+    }
+}
