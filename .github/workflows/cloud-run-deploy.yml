@@ -146,8 +146,11 @@ jobs:
           tags: |
             ${{ steps.image.outputs.ref }}
             ${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPO }}/api:latest
-          cache-from: type=registry,ref=${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPO }}/api:buildcache
-          cache-to: type=registry,ref=${{ vars.GCP_REGION }}-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/${{ vars.GCP_ARTIFACT_REPO }}/api:buildcache,mode=max
+          # Cache disabled: force full rebuild to ensure chromadb==0.6.3 is installed fresh.
+          # Re-enable after verifying the pip layer is correct:
+          # cache-from: type=registry,ref=...
+          # cache-to: type=registry,ref=...,mode=max
+          no-cache: true
           provenance: false   # keeps image manifest simple; enable when you need SLSA
 
       - name: Image summary
