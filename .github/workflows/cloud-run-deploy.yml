@@ -311,10 +311,12 @@ jobs:
         # ChromaDB scaling to zero causes 30-60s cold starts which exceed the
         # backend's query timeout. Keep at least one instance always warm.
         # This is idempotent — safe to run on every deploy.
+        # Pin the image to the v7 build (app=server.app() — routes registered).
         run: |
           if [[ "${{ steps.chroma.outputs.host }}" != "chromadb-not-deployed" ]]; then
             gcloud run services update "${{ secrets.CHROMA_SERVICE_NAME }}" \
               --region="${{ vars.GCP_REGION }}" \
+              --image="asia-south1-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/backend/chromadb-server:0.5.20-v7" \
               --min-instances=1 \
               --quiet \
               2>/dev/null || echo "Warning: could not set ChromaDB min-instances (continuing)"
