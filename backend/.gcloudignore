@@ -39,12 +39,13 @@ htmlcov/
 .env
 secrets/
 
-# Large data / model files
+# Large ML model weight files (not the app/models/ Python package)
 *.bin
 *.pt
 *.ckpt
 *.safetensors
-models/
+# Exclude top-level models/ dir (ML weights) but NOT app/models/ (ORM package)
+/models/
 
 # Logs
 *.log
