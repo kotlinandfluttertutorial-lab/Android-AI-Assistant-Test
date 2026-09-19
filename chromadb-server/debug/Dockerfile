@@ -1,5 +1,5 @@
 FROM python:3.11-slim
-RUN pip install --no-cache-dir chromadb==0.5.20
+RUN pip install --no-cache-dir "fastapi==0.112.4" "chromadb==0.5.20"
 ENV IS_PERSISTENT=true
 ENV PERSIST_DIRECTORY=/tmp/chroma
 ENV ANONYMIZED_TELEMETRY=false
