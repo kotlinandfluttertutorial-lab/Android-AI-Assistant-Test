@@ -184,6 +184,77 @@ class RAGService:
         self._firebase_initialised = False
 
     # ------------------------------------------------------------------
+    # ChromaDB client factory with cold-start retry (internal)
+    # ------------------------------------------------------------------
+
+    def _make_chroma_client(self) -> "ChromaFastAPI":  # type: ignore[name-defined]
+        """Build a ChromaDB HTTP client pointed at the configured server.
+
+        Uses ``chromadb.api.fastapi.FastAPI`` directly (bypasses
+        ``SharedSystemClient`` which unconditionally calls
+        ``GET /api/v2/auth/identity`` — not implemented in our server image).
+
+        Returns the client without any connectivity check; callers should
+        wrap individual operations with ``_chroma_op_with_retry`` below.
+        """
+        from chromadb.config import Settings as _ChromaSettings, System as _ChromaSystem
+        from chromadb.api.fastapi import FastAPI as _ChromaFastAPI  # noqa: F401 (used by type hint)
+
+        _s = _ChromaSettings(
+            chroma_api_impl="chromadb.api.fastapi.FastAPI",
+            chroma_server_host=self._settings.CHROMA_HOST,
+            chroma_server_http_port=443 if self._settings.CHROMA_SSL else self._settings.CHROMA_PORT,
+            chroma_server_ssl_enabled=self._settings.CHROMA_SSL,
+            anonymized_telemetry=False,
+        )
+        return _ChromaFastAPI(_ChromaSystem(_s))
+
+    @staticmethod
+    def _chroma_op_with_retry(op_name: str, fn, max_attempts: int = 4, base_delay: float = 3.0):
+        """Execute a synchronous ChromaDB call ``fn()`` with cold-start retry.
+
+        Cloud Run returns an HTML ``404 Page not found`` page (from its own
+        ingress layer) during the ~5 s cold-start window when min-instances=0.
+        With min-instances=1 this should not happen, but we keep the retry as
+        a safety net for rolling deploys or transient infra hiccups.
+
+        Retries on:
+        - HTML body in the response (``<html>`` indicates Cloud Run 404 proxy)
+        - ``httpx.HTTPStatusError`` with status 404 or 503
+        - Any ``Exception`` whose str starts with ``<html``
+
+        Args:
+            op_name:      Label for log messages.
+            fn:           Zero-argument callable that performs the ChromaDB op.
+            max_attempts: Total attempts before re-raising (default 4 → up to ~27 s wait).
+            base_delay:   Initial wait between retries in seconds (doubles each time).
+        """
+        import time
+
+        last_exc: Exception | None = None
+        delay = base_delay
+        for attempt in range(1, max_attempts + 1):
+            try:
+                return fn()
+            except Exception as exc:
+                exc_str = str(exc)
+                # Detect Cloud Run HTML cold-start page in exception text
+                is_cold_start = "<html" in exc_str.lower()
+                if is_cold_start and attempt < max_attempts:
+                    logger.warning(
+                        "ChromaDB %s attempt %d/%d — Cloud Run cold-start HTML response, "
+                        "waiting %.1fs before retry",
+                        op_name, attempt, max_attempts, delay,
+                    )
+                    time.sleep(delay)
+                    delay = min(delay * 2, 15.0)
+                    last_exc = exc
+                    continue
+                raise
+        # Should be unreachable, but satisfy the type checker
+        raise last_exc  # type: ignore[misc]
+
+    # ------------------------------------------------------------------
     # Validation (Property 26)
     # ------------------------------------------------------------------
 
@@ -640,24 +711,11 @@ class RAGService:
 
         def _store_chroma() -> list[str]:
             try:
-                from chromadb.config import Settings, System
-                from chromadb.api.fastapi import FastAPI as ChromaFastAPI
-
-                # Instantiate FastAPI HTTP layer directly — this NEVER calls
-                # get_user_identity() which hits /api/v2/auth/identity.
-                # chromadb.HttpClient() and chromadb.Client() both go through
-                # SharedSystemClient.__init__ which unconditionally calls
-                # get_user_identity(), returning 404 on all chromadb/chroma
-                # Docker images regardless of version (Docker packaging bug).
-                _settings = Settings(
-                    chroma_api_impl="chromadb.api.fastapi.FastAPI",
-                    chroma_server_host=self._settings.CHROMA_HOST,
-                    chroma_server_http_port=443 if self._settings.CHROMA_SSL else self._settings.CHROMA_PORT,
-                    chroma_server_ssl_enabled=self._settings.CHROMA_SSL,
-                    anonymized_telemetry=False,
+                client = self._make_chroma_client()
+                collection = self._chroma_op_with_retry(
+                    "get_or_create_collection",
+                    lambda: client.get_or_create_collection(collection_name),
                 )
-                client = ChromaFastAPI(System(_settings))
-                collection = client.get_or_create_collection(collection_name)
                 ids = [f"{document_id}_{i}" for i in range(len(chunks))]
                 collection.add(
                     ids=ids,
@@ -724,18 +782,12 @@ class RAGService:
 
         def _delete() -> None:
             try:
-                from chromadb.config import Settings as ChromaSettings, System as ChromaSystem
-                from chromadb.api.fastapi import FastAPI as ChromaFastAPI
-                _settings_obj = ChromaSettings(
-                    chroma_api_impl="chromadb.api.fastapi.FastAPI",
-                    chroma_server_host=self._settings.CHROMA_HOST,
-                    chroma_server_http_port=443 if self._settings.CHROMA_SSL else self._settings.CHROMA_PORT,
-                    chroma_server_ssl_enabled=self._settings.CHROMA_SSL,
-                    anonymized_telemetry=False,
-                )
-                client = ChromaFastAPI(ChromaSystem(_settings_obj))
+                client = self._make_chroma_client()
                 try:
-                    collection = client.get_collection(collection_name)
+                    collection = self._chroma_op_with_retry(
+                        "get_collection(delete)",
+                        lambda: client.get_collection(collection_name),
+                    )
                     collection.delete(where={"document_id": {"$eq": document_id}})
                 except Exception:
                     # Collection may not exist if embedding storage previously failed
@@ -822,18 +874,12 @@ class RAGService:
         def _query_chroma() -> list[dict]:
             """Return list of result dicts with chroma_id, content, and metadata."""
             try:
-                from chromadb.config import Settings as ChromaSettings, System as ChromaSystem
-                from chromadb.api.fastapi import FastAPI as ChromaFastAPI
-                _settings_obj = ChromaSettings(
-                    chroma_api_impl="chromadb.api.fastapi.FastAPI",
-                    chroma_server_host=self._settings.CHROMA_HOST,
-                    chroma_server_http_port=443 if self._settings.CHROMA_SSL else self._settings.CHROMA_PORT,
-                    chroma_server_ssl_enabled=self._settings.CHROMA_SSL,
-                    anonymized_telemetry=False,
-                )
-                client = ChromaFastAPI(ChromaSystem(_settings_obj))
+                client = self._make_chroma_client()
                 try:
-                    collection = client.get_collection(collection_name)
+                    collection = self._chroma_op_with_retry(
+                        "get_collection(query)",
+                        lambda: client.get_collection(collection_name),
+                    )
                 except Exception:
                     # Collection does not exist — user has no ingested documents
                     return []
@@ -1216,18 +1262,12 @@ class RAGService:
 
         def _query_chroma() -> list[dict]:
             try:
-                from chromadb.config import Settings as ChromaSettings, System as ChromaSystem
-                from chromadb.api.fastapi import FastAPI as ChromaFastAPI
-                _settings_obj = ChromaSettings(
-                    chroma_api_impl="chromadb.api.fastapi.FastAPI",
-                    chroma_server_host=self._settings.CHROMA_HOST,
-                    chroma_server_http_port=443 if self._settings.CHROMA_SSL else self._settings.CHROMA_PORT,
-                    chroma_server_ssl_enabled=self._settings.CHROMA_SSL,
-                    anonymized_telemetry=False,
-                )
-                client = ChromaFastAPI(ChromaSystem(_settings_obj))
+                client = self._make_chroma_client()
                 try:
-                    collection = client.get_collection(_KB_COLLECTION)
+                    collection = self._chroma_op_with_retry(
+                        "get_collection(knowledge_base)",
+                        lambda: client.get_collection(_KB_COLLECTION),
+                    )
                 except Exception:
                     logger.warning(
                         "query_knowledge_base: collection '%s' not found — "
