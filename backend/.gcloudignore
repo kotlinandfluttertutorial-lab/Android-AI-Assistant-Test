@@ -13,9 +13,10 @@ dist/
 build/
 .eggs/
 
-# Virtual environments
+# Virtual environments (any venv directory)
 .venv/
 venv/
+venv*/
 env/
 .env.local
 
