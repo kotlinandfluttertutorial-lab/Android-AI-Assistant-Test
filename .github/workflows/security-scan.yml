@@ -405,11 +405,17 @@ jobs:
       - name: Run pip-audit (CRITICAL gate)
         # Fail the job on any vulnerability not listed below.
         # anyio==4.14.2 fixes GHSA-82r6-8w77-94w6 and GHSA-5p39-cfhj-2xmp.
-        # chromadb==0.5.20 predates CVE-2026-45829/45830/45831/45833 (those affect 1.0.0+).
-        # No active suppressions needed — all known vulns are fixed in current versions.
+        # chromadb CVEs (GHSA-2wm9/36p7/xph7/f4j7) affect 0.4.17 to latest Python.
+        # No patched version exists. Mitigation: ChromaDB only reachable internally
+        # (Cloud Run ingress=internal). Suppressed until a patch is released.
         run: |
           pip-audit \
             --requirement backend/requirements.txt \
+            --ignore-vuln GHSA-2wm9-hf6c-p5cr \
+            --ignore-vuln GHSA-36p7-vc44-83pf \
+            --ignore-vuln GHSA-xph7-9rjv-w5fr \
+            --ignore-vuln GHSA-f4j7-r4q5-qw2c \
+            --ignore-vuln CVE-2026-45829 \
             --strict
 
       - name: Upload pip-audit report

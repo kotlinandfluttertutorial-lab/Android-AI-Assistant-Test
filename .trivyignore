@@ -3,7 +3,11 @@
 # Review all entries before expiry dates and remove once patched.
 
 # CVE-2026-45829/45830/45831/45833: ChromaDB Python FastAPI server vulnerabilities.
-# RESOLVED: Downgraded to chromadb==0.6.3 (Python FastAPI) which predates these CVEs.
-# The 1.x Rust server (chromadb/chroma:1.x) was also not affected but the Python
-# client 1.x was incompatible with the Rust server's missing /api/v2/auth/identity endpoint.
-# Server on Cloud Run updated to chromadb/chroma:0.6.3 matching the Python client.
+# Affects chromadb versions 0.4.17 to latest Python release — no patched version exists.
+# Mitigation: ChromaDB service runs with ingress=internal on Cloud Run (unreachable
+# from public internet). Re-audit and remove when a patched chromadb version is released.
+# Expiry: 2027-06-01
+CVE-2026-45829
+CVE-2026-45830
+CVE-2026-45831
+CVE-2026-45833
