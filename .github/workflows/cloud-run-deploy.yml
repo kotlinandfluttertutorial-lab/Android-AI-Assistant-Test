@@ -308,20 +308,30 @@ jobs:
           echo "ChromaDB host: $HOST"
 
       - name: Ensure ChromaDB min-instances=1 (keep warm)
-        # ChromaDB scaling to zero causes 30-60s cold starts which exceed the
-        # backend's query timeout. Keep at least one instance always warm.
-        # This is idempotent — safe to run on every deploy.
-        # Pin the image to the v7 build (app=server.app() — routes registered).
+        # ChromaDB scaling to zero causes cold starts. Keep one instance always warm.
+        # IMPORTANT: Only update if the current image differs from the pinned v9 image
+        # to avoid creating unnecessary new revisions (each new revision has a brief
+        # cold-start window even with min-instances=1 during traffic switchover).
         run: |
           if [[ "${{ steps.chroma.outputs.host }}" != "chromadb-not-deployed" ]]; then
-            gcloud run services update "${{ secrets.CHROMA_SERVICE_NAME }}" \
+            PINNED_IMAGE="asia-south1-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/backend/chromadb-server:0.5.20-v9"
+            CURRENT_IMAGE=$(gcloud run services describe "${{ secrets.CHROMA_SERVICE_NAME }}" \
               --region="${{ vars.GCP_REGION }}" \
-              --image="asia-south1-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/backend/chromadb-server:0.5.20-v9" \
-              --min-instances=1 \
-              --quiet \
-              2>/dev/null || echo "Warning: could not set ChromaDB min-instances (continuing)"
+              --format="value(spec.template.spec.containers[0].image)" \
+              --quiet 2>/dev/null || echo "")
+            if [[ "$CURRENT_IMAGE" != "$PINNED_IMAGE"* ]]; then
+              echo "Updating ChromaDB image to $PINNED_IMAGE"
+              gcloud run services update "${{ secrets.CHROMA_SERVICE_NAME }}" \
+                --region="${{ vars.GCP_REGION }}" \
+                --image="$PINNED_IMAGE" \
+                --min-instances=1 \
+                --quiet \
+                2>/dev/null || echo "Warning: could not update ChromaDB (continuing)"
+            else
+              echo "ChromaDB already on correct image — skipping update to avoid cold-start window"
+            fi
           else
-            echo "ChromaDB not deployed — skipping min-instances update"
+            echo "ChromaDB not deployed — skipping"
           fi
 
       - name: Validate image reference
