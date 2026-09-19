@@ -640,24 +640,23 @@ class RAGService:
 
         def _store_chroma() -> list[str]:
             try:
-                import chromadb
-                from chromadb.config import Settings
+                from chromadb.config import Settings, System
                 from chromadb.api.fastapi import FastAPI as ChromaFastAPI
 
-                # Instantiate the FastAPI HTTP client directly to bypass
-                # SharedSystemClient.__init__ which calls get_user_identity()
-                # on construction. The /api/v2/auth/identity endpoint is not
-                # registered on the chromadb/chroma Docker image so that call
-                # returns 404, crashing every task. Building the client via
-                # Settings skips the identity check entirely.
-                settings = Settings(
+                # Instantiate FastAPI HTTP layer directly — this NEVER calls
+                # get_user_identity() which hits /api/v2/auth/identity.
+                # chromadb.HttpClient() and chromadb.Client() both go through
+                # SharedSystemClient.__init__ which unconditionally calls
+                # get_user_identity(), returning 404 on all chromadb/chroma
+                # Docker images regardless of version (Docker packaging bug).
+                _settings = Settings(
                     chroma_api_impl="chromadb.api.fastapi.FastAPI",
                     chroma_server_host=self._settings.CHROMA_HOST,
                     chroma_server_http_port=443 if self._settings.CHROMA_SSL else self._settings.CHROMA_PORT,
                     chroma_server_ssl_enabled=self._settings.CHROMA_SSL,
                     anonymized_telemetry=False,
                 )
-                client = chromadb.Client(settings=settings)
+                client = ChromaFastAPI(System(_settings))
                 collection = client.get_or_create_collection(collection_name)
                 ids = [f"{document_id}_{i}" for i in range(len(chunks))]
                 collection.add(
@@ -725,9 +724,8 @@ class RAGService:
 
         def _delete() -> None:
             try:
-                import chromadb
-
-                from chromadb.config import Settings as ChromaSettings
+                from chromadb.config import Settings as ChromaSettings, System as ChromaSystem
+                from chromadb.api.fastapi import FastAPI as ChromaFastAPI
                 _settings_obj = ChromaSettings(
                     chroma_api_impl="chromadb.api.fastapi.FastAPI",
                     chroma_server_host=self._settings.CHROMA_HOST,
@@ -735,7 +733,7 @@ class RAGService:
                     chroma_server_ssl_enabled=self._settings.CHROMA_SSL,
                     anonymized_telemetry=False,
                 )
-                client = chromadb.Client(settings=_settings_obj)
+                client = ChromaFastAPI(ChromaSystem(_settings_obj))
                 try:
                     collection = client.get_collection(collection_name)
                     collection.delete(where={"document_id": {"$eq": document_id}})
@@ -824,9 +822,8 @@ class RAGService:
         def _query_chroma() -> list[dict]:
             """Return list of result dicts with chroma_id, content, and metadata."""
             try:
-                import chromadb
-
-                from chromadb.config import Settings as ChromaSettings
+                from chromadb.config import Settings as ChromaSettings, System as ChromaSystem
+                from chromadb.api.fastapi import FastAPI as ChromaFastAPI
                 _settings_obj = ChromaSettings(
                     chroma_api_impl="chromadb.api.fastapi.FastAPI",
                     chroma_server_host=self._settings.CHROMA_HOST,
@@ -834,7 +831,7 @@ class RAGService:
                     chroma_server_ssl_enabled=self._settings.CHROMA_SSL,
                     anonymized_telemetry=False,
                 )
-                client = chromadb.Client(settings=_settings_obj)
+                client = ChromaFastAPI(ChromaSystem(_settings_obj))
                 try:
                     collection = client.get_collection(collection_name)
                 except Exception:
@@ -1219,9 +1216,8 @@ class RAGService:
 
         def _query_chroma() -> list[dict]:
             try:
-                import chromadb
-
-                from chromadb.config import Settings as ChromaSettings
+                from chromadb.config import Settings as ChromaSettings, System as ChromaSystem
+                from chromadb.api.fastapi import FastAPI as ChromaFastAPI
                 _settings_obj = ChromaSettings(
                     chroma_api_impl="chromadb.api.fastapi.FastAPI",
                     chroma_server_host=self._settings.CHROMA_HOST,
@@ -1229,7 +1225,7 @@ class RAGService:
                     chroma_server_ssl_enabled=self._settings.CHROMA_SSL,
                     anonymized_telemetry=False,
                 )
-                client = chromadb.Client(settings=_settings_obj)
+                client = ChromaFastAPI(ChromaSystem(_settings_obj))
                 try:
                     collection = client.get_collection(_KB_COLLECTION)
                 except Exception:

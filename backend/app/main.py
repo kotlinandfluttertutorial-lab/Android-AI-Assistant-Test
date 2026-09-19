@@ -261,8 +261,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             from app.config.settings import get_settings as _get_settings
 
             def _check_chroma() -> None:
-                import chromadb
-                from chromadb.config import Settings as ChromaSettings
+                from chromadb.config import Settings as ChromaSettings, System as ChromaSystem
+                from chromadb.api.fastapi import FastAPI as ChromaFastAPI
 
                 s = _get_settings()
                 _cs = ChromaSettings(
@@ -272,7 +272,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
                     chroma_server_ssl_enabled=s.CHROMA_SSL,
                     anonymized_telemetry=False,
                 )
-                client = chromadb.Client(settings=_cs)
+                client = ChromaFastAPI(ChromaSystem(_cs))
                 client.heartbeat()
 
             await _asyncio.to_thread(_check_chroma)
