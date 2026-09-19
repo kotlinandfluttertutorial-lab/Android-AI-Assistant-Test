@@ -1,10 +1,14 @@
 """
-ChromaDB server wrapper that exposes the v2 FastAPI app at module level.
-The chromadb.server.fastapi module contains a FastAPI class but no module-level
-`app` — this wrapper instantiates it so Uvicorn can serve it.
+ChromaDB server entry point — mirrors chromadb/app.py.
+
+Key points:
+- Import from chromadb.config directly (NOT `import chromadb`) to avoid
+  SharedSystemClient's class-level Settings() call during module import.
+- chromadb.server.fastapi.FastAPI takes a Settings object (not System).
+- Call server.app() (with parens) to get the inner fastapi.FastAPI ASGI app.
 """
 import os
-from chromadb.config import Settings, System
+from chromadb.config import Settings
 from chromadb.server.fastapi import FastAPI
 
 settings = Settings(
@@ -14,8 +18,8 @@ settings = Settings(
     allow_reset=True,
 )
 
-# Instantiate the v2 FastAPI server — this registers /api/v2/* routes
-_server = FastAPI(settings)
+server = FastAPI(settings)
 
-# Expose the underlying Starlette app for Uvicorn
-app = _server.app
+# Call .app() — this returns the inner fastapi.FastAPI instance with all routes.
+# Do NOT use server.app without () — that is the bound method itself, not the app.
+app = server.app()

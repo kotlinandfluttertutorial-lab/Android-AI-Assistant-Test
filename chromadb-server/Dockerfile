@@ -8,14 +8,14 @@ RUN mkdir -p /tmp/chroma && chmod 777 /tmp/chroma
 
 WORKDIR /app
 
-# Copy the server wrapper that exposes FastAPI v2 routes
+# Copy the server wrapper — mirrors chromadb/app.py exactly
 COPY server.py /app/server.py
 
+# Settings via env vars (read by chromadb.config.Settings via pydantic BaseSettings)
+ENV IS_PERSISTENT=true
+ENV PERSIST_DIRECTORY=/tmp/chroma
 ENV ANONYMIZED_TELEMETRY=false
 ENV ALLOW_RESET=true
-ENV PERSIST_DIRECTORY=/tmp/chroma
-
 EXPOSE 8000
 
-# Use our wrapper — exposes chromadb.server.fastapi which registers /api/v2/* routes
 CMD ["python", "-m", "uvicorn", "server:app", "--host", "0.0.0.0", "--port", "8000", "--log-level", "info"]
