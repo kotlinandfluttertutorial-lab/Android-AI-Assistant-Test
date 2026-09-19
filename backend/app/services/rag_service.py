@@ -207,7 +207,15 @@ class RAGService:
             chroma_server_ssl_enabled=self._settings.CHROMA_SSL,
             anonymized_telemetry=False,
         )
-        return _ChromaFastAPI(_ChromaSystem(_s))
+        client = _ChromaFastAPI(_ChromaSystem(_s))
+        logger.info(
+            "ChromaDB client base URL: %s (host=%s ssl=%s port=%s)",
+            client._api_url,
+            self._settings.CHROMA_HOST,
+            self._settings.CHROMA_SSL,
+            443 if self._settings.CHROMA_SSL else self._settings.CHROMA_PORT,
+        )
+        return client
 
     @staticmethod
     def _chroma_op_with_retry(op_name: str, fn, max_attempts: int = 4, base_delay: float = 3.0):
@@ -238,6 +246,11 @@ class RAGService:
                 return fn()
             except Exception as exc:
                 exc_str = str(exc)
+                # Log full exception details for diagnosis
+                logger.warning(
+                    "ChromaDB %s attempt %d/%d failed. exc_type=%s repr=%r",
+                    op_name, attempt, max_attempts, type(exc).__name__, exc_str[:500],
+                )
                 # Detect Cloud Run HTML cold-start page in exception text
                 is_cold_start = "<html" in exc_str.lower()
                 if is_cold_start and attempt < max_attempts:
@@ -712,6 +725,12 @@ class RAGService:
         def _store_chroma() -> list[str]:
             try:
                 client = self._make_chroma_client()
+                # Heartbeat check — confirms server is reachable and routes work
+                try:
+                    hb = client.heartbeat()
+                    logger.info("ChromaDB heartbeat OK: %s", hb)
+                except Exception as hb_exc:
+                    logger.warning("ChromaDB heartbeat FAILED: %s", hb_exc)
                 collection = self._chroma_op_with_retry(
                     "get_or_create_collection",
                     lambda: client.get_or_create_collection(collection_name),
