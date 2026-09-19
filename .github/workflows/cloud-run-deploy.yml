@@ -316,7 +316,7 @@ jobs:
           if [[ "${{ steps.chroma.outputs.host }}" != "chromadb-not-deployed" ]]; then
             gcloud run services update "${{ secrets.CHROMA_SERVICE_NAME }}" \
               --region="${{ vars.GCP_REGION }}" \
-              --image="asia-south1-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/backend/chromadb-server:0.5.20-v8" \
+              --image="asia-south1-docker.pkg.dev/${{ vars.GCP_PROJECT_ID }}/backend/chromadb-server:0.5.20-v9" \
               --min-instances=1 \
               --quiet \
               2>/dev/null || echo "Warning: could not set ChromaDB min-instances (continuing)"
