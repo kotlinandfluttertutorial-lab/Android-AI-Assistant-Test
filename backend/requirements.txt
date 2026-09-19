@@ -175,7 +175,7 @@ pytest==9.0.3
 # argument if any fixture previously relied on event_loop.
 pytest-asyncio==1.4.0
 pytest-cov==5.0.0
-anyio==4.6.2
+anyio==4.14.2
 # Parallel test execution — run test files across multiple workers
 pytest-xdist==3.6.1
 # Per-test timeout — kills any test that hangs beyond the limit
