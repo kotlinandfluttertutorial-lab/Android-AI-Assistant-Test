@@ -466,8 +466,7 @@ async def query_documents(
             except ValueError:
                 provider = LLMProvider.openai
 
-            # 30s hard timeout — prevents a slow/rate-limited provider from
-            # blocking the response for 50+ seconds (fail fast to context fallback).
+            # 60s hard timeout — Gemini flash is usually <15s; 60s covers cold starts.
             completion = await _asyncio.wait_for(
                 orchestrator.complete(
                     prompt=rag_prompt,
@@ -475,14 +474,17 @@ async def query_documents(
                     max_tokens=1024,
                     user_id=str(user_id),
                 ),
-                timeout=30.0,
+                timeout=60.0,
             )
             answer = completion.text
 
         except Exception as exc:
             logger.warning(
-                "AI Orchestrator unavailable for RAG query; returning context only. Error: %s",
-                exc,
+                "AI Orchestrator unavailable for RAG query; returning context only. "
+                "exc_type=%s repr=%r",
+                type(exc).__name__,
+                repr(exc),
+                exc_info=True,
             )
             # Graceful degradation: return the assembled context as the answer
             answer = result.context
@@ -599,8 +601,7 @@ async def query_document_by_id(
             except ValueError:
                 provider = LLMProvider.openai
 
-            # 30s hard timeout — prevents a slow/rate-limited provider from
-            # blocking the response for 50+ seconds (fail fast to context fallback).
+            # 60s hard timeout — Gemini flash is usually <15s; 60s covers cold starts.
             completion = await _asyncio.wait_for(
                 orchestrator.complete(
                     prompt=rag_prompt,
@@ -608,7 +609,7 @@ async def query_document_by_id(
                     max_tokens=1024,
                     user_id=str(user_id),
                 ),
-                timeout=30.0,
+                timeout=60.0,
             )
             answer = completion.text
 

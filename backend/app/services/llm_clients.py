@@ -530,8 +530,12 @@ class GeminiClient(BaseLLMClient):
         )
 
         for chunk in response:
-            if chunk.text:
-                yield chunk.text
+            try:
+                if chunk.text:
+                    yield chunk.text
+            except ValueError:
+                # Blocked chunk — skip silently
+                continue
 
     async def complete(self, context: PromptContext) -> str:
         """Generate full completion from Gemini 1.5 Pro.
@@ -551,9 +555,28 @@ class GeminiClient(BaseLLMClient):
             full_prompt,
             generation_config=generation_config,
             stream=False,
+            request_options={"timeout": 55},  # 55s < 60s router timeout
         )
 
-        return str(response.text)
+        # response.text raises ValueError("") when the model blocked the response
+        # (safety filter or no candidates). Fall back to parts inspection.
+        try:
+            text = response.text
+        except ValueError:
+            # Try extracting from candidates directly
+            try:
+                text = response.candidates[0].content.parts[0].text
+            except Exception:
+                finish = getattr(
+                    response.candidates[0] if response.candidates else None,
+                    "finish_reason", None
+                )
+                raise RuntimeError(
+                    f"Gemini [{self._model_name}] returned no text. "
+                    f"finish_reason={finish}, "
+                    f"prompt_feedback={getattr(response, 'prompt_feedback', None)}"
+                )
+        return str(text)
 
     @property
     def max_context_tokens(self) -> int:
