@@ -184,58 +184,38 @@ class RAGService:
         self._firebase_initialised = False
 
     # ------------------------------------------------------------------
-    # ChromaDB client factory with cold-start retry (internal)
+    # ChromaDB client factory — embedded in-process (no HTTP server needed)
     # ------------------------------------------------------------------
 
-    def _make_chroma_client(self) -> "ChromaFastAPI":  # type: ignore[name-defined]
-        """Build a ChromaDB HTTP client pointed at the configured server.
+    def _make_chroma_client(self):
+        """Build an embedded ChromaDB client (PersistentClient / SegmentAPI + SQLite).
 
-        Uses ``chromadb.api.fastapi.FastAPI`` directly (bypasses
-        ``SharedSystemClient`` which unconditionally calls
-        ``GET /api/v2/auth/identity`` — not implemented in our server image).
+        Uses chromadb.PersistentClient() which runs entirely in-process — no HTTP
+        round-trip to a separate service. With SegmentAPI as the backend,
+        get_user_identity() is a local no-op (returns empty UserIdentity).
 
-        Returns the client without any connectivity check; callers should
-        wrap individual operations with ``_chroma_op_with_retry`` below.
+        Data is stored in PERSIST_DIRECTORY (ephemeral /tmp/chroma on Cloud Run,
+        same as the previous separate chromadb service).
+
+        This replaces the previous HttpClient approach which was unreliable due to
+        Cloud Run's ingress returning HTML 404 pages for the chromadb service.
         """
-        from chromadb.config import Settings as _ChromaSettings, System as _ChromaSystem
-        from chromadb.api.fastapi import FastAPI as _ChromaFastAPI  # noqa: F401 (used by type hint)
+        import chromadb as _chromadb
 
-        _s = _ChromaSettings(
-            chroma_api_impl="chromadb.api.fastapi.FastAPI",
-            chroma_server_host=self._settings.CHROMA_HOST,
-            chroma_server_http_port=443 if self._settings.CHROMA_SSL else self._settings.CHROMA_PORT,
-            chroma_server_ssl_enabled=self._settings.CHROMA_SSL,
-            anonymized_telemetry=False,
-        )
-        client = _ChromaFastAPI(_ChromaSystem(_s))
-        logger.info(
-            "ChromaDB client base URL: %s (host=%s ssl=%s port=%s)",
-            client._api_url,
-            self._settings.CHROMA_HOST,
-            self._settings.CHROMA_SSL,
-            443 if self._settings.CHROMA_SSL else self._settings.CHROMA_PORT,
-        )
+        persist_dir = getattr(self._settings, "CHROMA_PERSIST_DIR", "/tmp/chroma")
+        import os as _os
+        _os.makedirs(persist_dir, exist_ok=True)
+
+        client = _chromadb.PersistentClient(path=persist_dir)
+        logger.info("ChromaDB PersistentClient ready (persist_dir=%s)", persist_dir)
         return client
 
     @staticmethod
-    def _chroma_op_with_retry(op_name: str, fn, max_attempts: int = 4, base_delay: float = 3.0):
-        """Execute a synchronous ChromaDB call ``fn()`` with cold-start retry.
+    def _chroma_op_with_retry(op_name: str, fn, max_attempts: int = 3, base_delay: float = 1.0):
+        """Execute a synchronous ChromaDB call ``fn()`` with retry on transient errors.
 
-        Cloud Run returns an HTML ``404 Page not found`` page (from its own
-        ingress layer) during the ~5 s cold-start window when min-instances=0.
-        With min-instances=1 this should not happen, but we keep the retry as
-        a safety net for rolling deploys or transient infra hiccups.
-
-        Retries on:
-        - HTML body in the response (``<html>`` indicates Cloud Run 404 proxy)
-        - ``httpx.HTTPStatusError`` with status 404 or 503
-        - Any ``Exception`` whose str starts with ``<html``
-
-        Args:
-            op_name:      Label for log messages.
-            fn:           Zero-argument callable that performs the ChromaDB op.
-            max_attempts: Total attempts before re-raising (default 4 → up to ~27 s wait).
-            base_delay:   Initial wait between retries in seconds (doubles each time).
+        With embedded PersistentClient, errors are local SQLite/filesystem errors,
+        not network HTML pages. Retries on any exception with short backoff.
         """
         import time
 
@@ -251,20 +231,12 @@ class RAGService:
                     "ChromaDB %s attempt %d/%d failed. exc_type=%s repr=%r",
                     op_name, attempt, max_attempts, type(exc).__name__, exc_str[:500],
                 )
-                # Detect Cloud Run HTML cold-start page in exception text
-                is_cold_start = "<html" in exc_str.lower()
-                if is_cold_start and attempt < max_attempts:
-                    logger.warning(
-                        "ChromaDB %s attempt %d/%d — Cloud Run cold-start HTML response, "
-                        "waiting %.1fs before retry",
-                        op_name, attempt, max_attempts, delay,
-                    )
+                if attempt < max_attempts:
                     time.sleep(delay)
-                    delay = min(delay * 2, 15.0)
+                    delay = min(delay * 2, 5.0)
                     last_exc = exc
                     continue
                 raise
-        # Should be unreachable, but satisfy the type checker
         raise last_exc  # type: ignore[misc]
 
     # ------------------------------------------------------------------
@@ -725,12 +697,6 @@ class RAGService:
         def _store_chroma() -> list[str]:
             try:
                 client = self._make_chroma_client()
-                # Heartbeat check — confirms server is reachable and routes work
-                try:
-                    hb = client.heartbeat()
-                    logger.info("ChromaDB heartbeat OK: %s", hb)
-                except Exception as hb_exc:
-                    logger.warning("ChromaDB heartbeat FAILED: %s", hb_exc)
                 collection = self._chroma_op_with_retry(
                     "get_or_create_collection",
                     lambda: client.get_or_create_collection(collection_name),

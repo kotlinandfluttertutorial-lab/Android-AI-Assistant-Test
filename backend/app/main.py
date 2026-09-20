@@ -263,21 +263,15 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             def _check_chroma() -> None:
                 from app.services.rag_service import rag_service as _rag_service
                 client = _rag_service._make_chroma_client()
-                _rag_service._chroma_op_with_retry("heartbeat", client.heartbeat, max_attempts=3, base_delay=5.0)
+                # Embedded client — heartbeat is just a no-op connectivity check
+                hb = client.heartbeat()
+                logger.info("STARTUP: ChromaDB embedded client ready, heartbeat=%s", hb)
 
             await _asyncio.to_thread(_check_chroma)
-            logger.info(
-                "STARTUP: ChromaDB reachable at %s:%s.",
-                get_settings().CHROMA_HOST,
-                get_settings().CHROMA_PORT,
-            )
+            logger.info("STARTUP: ChromaDB embedded in-process client initialised.")
         except Exception as _exc:
             logger.warning(
-                "STARTUP: ChromaDB NOT reachable at %s:%s — RAG queries will return "
-                "empty results until ChromaDB is available. Error: %s",
-                get_settings().CHROMA_HOST,
-                get_settings().CHROMA_PORT,
-                _exc,
+                "STARTUP: ChromaDB embedded client failed (non-fatal): %s", _exc,
             )
 
     _warmup_task = _asyncio.create_task(_background_warmup())
