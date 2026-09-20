@@ -553,7 +553,7 @@ class GeminiClient(BaseLLMClient):
 
         full_prompt = self._build_prompt(context)
         settings = get_settings()
-        api_key = settings.GEMINI_API_KEY
+        api_key = settings.GEMINI_API_KEY.strip()  # strip \r\n if secret was saved with Windows line endings
 
         url = (
             f"https://generativelanguage.googleapis.com/v1beta/models/"
