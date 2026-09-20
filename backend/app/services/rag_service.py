@@ -1120,8 +1120,6 @@ class RAGService:
                 "(replaced by pgvector; seed_knowledge.py not run in production)"
             )
             return []
-                documents_list = results.get("documents", [[]])[0] or []
-                metadatas_list = results.get("metadatas", [[]])[0] or []
 
         try:
             return await asyncio.wait_for(
