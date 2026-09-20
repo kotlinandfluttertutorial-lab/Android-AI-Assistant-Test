@@ -492,7 +492,9 @@ class GeminiClient(BaseLLMClient):
         settings = get_settings()
         if not settings.GEMINI_API_KEY:
             raise ValueError("GEMINI_API_KEY not configured")
-        genai.configure(api_key=settings.GEMINI_API_KEY)
+        # Force REST transport — gRPC may hang in Cloud Run asia-south1.
+        # REST uses standard HTTPS which is always available.
+        genai.configure(api_key=settings.GEMINI_API_KEY, transport="rest")
         model_name = settings.GEMINI_MODEL
         self.model = genai.GenerativeModel(model_name)
         self._model_name = model_name
@@ -538,44 +540,48 @@ class GeminiClient(BaseLLMClient):
                 continue
 
     async def complete(self, context: PromptContext) -> str:
-        """Generate full completion from Gemini 1.5 Pro.
+        """Generate full completion from Gemini via direct async REST call.
+
+        Uses httpx directly (not the SDK) to ensure:
+        - Proper async — no asyncio.to_thread blocking
+        - Explicit 55s timeout that actually fires
+        - Standard HTTPS/REST — avoids gRPC hang in Cloud Run asia-south1
 
         Requirements: 3.1, 3.4
         """
         await self._rate_limiter.check(context.user_id)
 
         full_prompt = self._build_prompt(context)
-        generation_config = genai.types.GenerationConfig(
-            max_output_tokens=context.max_tokens,
-            temperature=context.temperature,
-        )
+        settings = get_settings()
+        api_key = settings.GEMINI_API_KEY
 
-        response = await asyncio.to_thread(
-            self.model.generate_content,
-            full_prompt,
-            generation_config=generation_config,
-            stream=False,
-            request_options={"timeout": 55},  # 55s < 60s router timeout
+        url = (
+            f"https://generativelanguage.googleapis.com/v1beta/models/"
+            f"{self._model_name}:generateContent?key={api_key}"
         )
+        payload = {
+            "contents": [{"parts": [{"text": full_prompt}]}],
+            "generationConfig": {
+                "maxOutputTokens": context.max_tokens,
+                "temperature": context.temperature,
+            },
+        }
 
-        # response.text raises ValueError("") when the model blocked the response
-        # (safety filter or no candidates). Fall back to parts inspection.
+        async with httpx.AsyncClient(timeout=55.0) as http:
+            resp = await http.post(url, json=payload)
+            resp.raise_for_status()
+            data = resp.json()
+
         try:
-            text = response.text
-        except ValueError:
-            # Try extracting from candidates directly
-            try:
-                text = response.candidates[0].content.parts[0].text
-            except Exception:
-                finish = getattr(
-                    response.candidates[0] if response.candidates else None,
-                    "finish_reason", None
-                )
-                raise RuntimeError(
-                    f"Gemini [{self._model_name}] returned no text. "
-                    f"finish_reason={finish}, "
-                    f"prompt_feedback={getattr(response, 'prompt_feedback', None)}"
-                )
+            text = data["candidates"][0]["content"]["parts"][0]["text"]
+        except (KeyError, IndexError) as exc:
+            finish = (data.get("candidates") or [{}])[0].get("finishReason", "UNKNOWN")
+            raise RuntimeError(
+                f"Gemini [{self._model_name}] returned no text. "
+                f"finishReason={finish}, "
+                f"promptFeedback={data.get('promptFeedback')}"
+            ) from exc
+
         return str(text)
 
     @property
