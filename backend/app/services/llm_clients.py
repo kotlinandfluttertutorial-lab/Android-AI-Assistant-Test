@@ -493,7 +493,7 @@ class GeminiClient(BaseLLMClient):
         if not settings.GEMINI_API_KEY:
             raise ValueError("GEMINI_API_KEY not configured")
         genai.configure(api_key=settings.GEMINI_API_KEY)
-        self.model = genai.GenerativeModel("gemini-flash-latest")
+        self.model = genai.GenerativeModel("gemini-1.5-flash")
         self._rate_limiter = _ProviderRateLimiter(
             "gemini", settings.LLM_RATE_LIMIT_GEMINI
         )
