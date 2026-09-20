@@ -133,10 +133,10 @@ class Settings(BaseSettings):
     )
 
     GEMINI_MODEL: str = Field(
-        default="gemini-2.5-flash",
+        default="gemini-1.5-flash",
         description="Gemini model ID to use for completions and streaming. "
-        "Switch to newer models (e.g. gemini-3.6-flash, gemini-3.8-flash) "
-        "without changing code by updating this env var.",
+        "Switch to newer models (e.g. gemini-2.0-flash, gemini-2.5-flash) "
+        "without changing code by updating this env var or setting GEMINI_MODEL.",
     )
 
     ANTHROPIC_API_KEY: str = Field(
