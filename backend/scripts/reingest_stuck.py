@@ -48,6 +48,7 @@ async def run() -> None:
                 or_(
                     Document.ingestion_status == IngestionStatus.processing,
                     Document.ingestion_status == IngestionStatus.pending,
+                    Document.ingestion_status == IngestionStatus.failed,
                 )
             )
         )
