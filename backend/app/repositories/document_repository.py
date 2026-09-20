@@ -171,7 +171,8 @@ class DocumentRepository:
         chunk_index: int,
         page_number: int,
         content: str,
-        chroma_id: str,
+        chroma_id: str | None = None,
+        embedding: list[float] | None = None,
         citation_type: str = "page",
         char_offset_start: int | None = None,
         char_offset_end: int | None = None,
@@ -183,7 +184,8 @@ class DocumentRepository:
             chunk_index: Zero-based position of this chunk within the document.
             page_number: 1-based source page number (1 for plain-text).
             content: Raw chunk text.
-            chroma_id: ChromaDB document ID for the embedding vector.
+            chroma_id: Legacy ChromaDB document ID (optional, kept for compat).
+            embedding: 384-dim sentence embedding vector for pgvector search.
             citation_type: ``"page"`` for PDF/DOCX; ``"char_offset"`` for TXT/MD.
             char_offset_start: Character offset of chunk start (TXT/MD only).
             char_offset_end: Character offset of chunk end (TXT/MD only).
@@ -197,6 +199,7 @@ class DocumentRepository:
             page_number=page_number,
             content=content,
             chroma_id=chroma_id,
+            embedding=embedding,
             citation_type=citation_type,
             char_offset_start=char_offset_start,
             char_offset_end=char_offset_end,
@@ -215,3 +218,45 @@ class DocumentRepository:
             delete(DocumentChunk).where(DocumentChunk.document_id == document_id)
         )
         return result.rowcount  # type: ignore[return-value]
+
+    async def search_chunks_by_embedding(
+        self,
+        user_id: uuid.UUID,
+        query_embedding: list[float],
+        top_k: int = 5,
+        document_ids: list[uuid.UUID] | None = None,
+    ) -> list[DocumentChunk]:
+        """Return the top-K most similar chunks using pgvector cosine distance.
+
+        Filters to chunks owned by ``user_id`` (via the parent document).
+        Optionally restricts to a specific set of document IDs.
+
+        Args:
+            user_id: UUID of the querying user.
+            query_embedding: 384-dim query vector.
+            top_k: Maximum number of chunks to return.
+            document_ids: Optional list of document UUIDs to filter by.
+
+        Returns:
+            List of :class:`DocumentChunk` rows ordered by cosine similarity.
+        """
+        from pgvector.sqlalchemy import Vector
+        from sqlalchemy import func as sa_func
+
+        stmt = (
+            select(DocumentChunk)
+            .join(DocumentChunk.document)
+            .where(DocumentChunk.document.has(user_id=user_id))
+            .where(DocumentChunk.embedding.isnot(None))
+        )
+
+        if document_ids:
+            stmt = stmt.where(DocumentChunk.document_id.in_(document_ids))
+
+        # Order by cosine distance ascending (most similar first)
+        stmt = stmt.order_by(
+            DocumentChunk.embedding.cosine_distance(query_embedding)
+        ).limit(top_k)
+
+        result = await self._db.execute(stmt)
+        return list(result.scalars().all())

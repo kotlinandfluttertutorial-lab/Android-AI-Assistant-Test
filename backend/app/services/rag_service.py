@@ -690,100 +690,42 @@ class RAGService:
 
         embeddings = await asyncio.to_thread(_encode)
 
-        # Store in ChromaDB (Property 8: per-user collection)
-        collection_name = f"documents_{user_id}"
-        chroma_ids: list[str] = []
-
-        def _store_chroma() -> list[str]:
-            try:
-                client = self._make_chroma_client()
-                collection = self._chroma_op_with_retry(
-                    "get_or_create_collection",
-                    lambda: client.get_or_create_collection(collection_name),
-                )
-                ids = [f"{document_id}_{i}" for i in range(len(chunks))]
-                collection.add(
-                    ids=ids,
-                    embeddings=embeddings,
-                    documents=texts,
-                    metadatas=[
-                        {
-                            "document_id": document_id,
-                            "chunk_index": i,
-                            "page_number": chunks[i].page_number,
-                            "citation_type": chunks[i].citation_type,
-                            **(
-                                {
-                                    "char_offset_start": chunks[i].char_offset_start,
-                                    "char_offset_end": chunks[i].char_offset_end,
-                                }
-                                if chunks[i].citation_type == "char_offset"
-                                and chunks[i].char_offset_start is not None
-                                else {}
-                            ),
-                        }
-                        for i in range(len(chunks))
-                    ],
-                )
-                return ids
-            except Exception as exc:
-                logger.warning(
-                    "ChromaDB storage failed — will propagate for retry: %s", exc
-                )
-                # Re-raise so embed_and_store propagates to the Celery task's
-                # retry handler. Swallowing this would mark the document ready
-                # with no vectors stored, causing every query to return empty.
-                raise
-
-        chroma_ids = await asyncio.to_thread(_store_chroma)
-
-        # Persist DocumentChunk rows in PostgreSQL
+        # Persist DocumentChunk rows with embeddings in PostgreSQL (pgvector)
         from app.repositories.document_repository import (
             DocumentRepository,
         )
 
         repo = DocumentRepository(db)
         doc_uuid = uuid.UUID(document_id)
-        for i, (chunk, chroma_id) in enumerate(zip(chunks, chroma_ids, strict=True)):
+        for i, chunk in enumerate(chunks):
             await repo.create_chunk(
                 document_id=doc_uuid,
                 chunk_index=i,
                 page_number=chunk.page_number,
                 content=chunk.text,
-                chroma_id=chroma_id,
+                embedding=embeddings[i] if i < len(embeddings) else None,
                 citation_type=chunk.citation_type,
                 char_offset_start=chunk.char_offset_start,
                 char_offset_end=chunk.char_offset_end,
             )
+        logger.info(
+            "Stored %d chunks with pgvector embeddings for document %s",
+            len(chunks), document_id,
+        )
 
     async def delete_embeddings(self, document_id: str, user_id: str) -> None:
-        """Remove all embedding vectors for a document from ChromaDB.
+        """Remove all embedding vectors for a document.
 
-        Args:
-            document_id: String UUID of the document.
-            user_id: String UUID of the owning user (determines collection name).
+        With pgvector, embeddings live in the document_chunks table and are
+        removed by the CASCADE delete on the parent document row. This method
+        is kept for API compatibility but is a no-op — the repository's
+        delete_chunks_by_document handles it when the document is deleted.
         """
-        collection_name = f"documents_{user_id}"
-
-        def _delete() -> None:
-            try:
-                client = self._make_chroma_client()
-                try:
-                    collection = self._chroma_op_with_retry(
-                        "get_collection(delete)",
-                        lambda: client.get_collection(collection_name),
-                    )
-                    collection.delete(where={"document_id": {"$eq": document_id}})
-                except Exception:
-                    # Collection may not exist if embedding storage previously failed
-                    pass
-            except Exception as exc:
-                logger.warning("ChromaDB delete failed (graceful degradation): %s", exc)
-
-        try:
-            await asyncio.to_thread(_delete)
-        except Exception as exc:
-            logger.warning("ChromaDB delete failed (graceful degradation): %s", exc)
+        logger.debug(
+            "delete_embeddings called for document %s — pgvector embeddings "
+            "are removed by document_chunks CASCADE; no separate action needed.",
+            document_id,
+        )
 
     # ------------------------------------------------------------------
     # RAG Query — semantic retrieval and citation assembly (Requirements 4.6, 4.7)
@@ -826,8 +768,6 @@ class RAGService:
                       and page number.
         Requirements: 4.6, 4.7
         """
-        collection_name = f"documents_{user_id}"
-
         # ----------------------------------------------------------------
         # Step 1 — generate query embedding
         # ----------------------------------------------------------------
@@ -846,136 +786,61 @@ class RAGService:
             return QueryResult(query=query, retrieved_chunks=[], context="")
 
         # ----------------------------------------------------------------
-        # Step 2 — query ChromaDB for top-K similar chunks (Property 8)
+        # Step 2 — pgvector cosine similarity search in PostgreSQL
         # ----------------------------------------------------------------
-        # Build a ChromaDB where-filter if document_ids are specified
-        chroma_where: dict | None = None
-        if document_ids:
-            if len(document_ids) == 1:
-                chroma_where = {"document_id": {"$eq": document_ids[0]}}
-            else:
-                chroma_where = {"document_id": {"$in": document_ids}}
+        if db is None:
+            logger.warning("query_documents called without a DB session — returning empty")
+            return QueryResult(query=query, retrieved_chunks=[], context="")
 
-        def _query_chroma() -> list[dict]:
-            """Return list of result dicts with chroma_id, content, and metadata."""
-            try:
-                client = self._make_chroma_client()
-                try:
-                    collection = self._chroma_op_with_retry(
-                        "get_collection(query)",
-                        lambda: client.get_collection(collection_name),
-                    )
-                except Exception:
-                    # Collection does not exist — user has no ingested documents
-                    return []
+        from app.repositories.document_repository import DocumentRepository
+        from app.models.document import Document
 
-                query_kwargs: dict = {
-                    "query_embeddings": [query_embedding],
-                    "n_results": top_k,
-                    "include": ["documents", "metadatas", "distances"],
-                }
-                if chroma_where is not None:
-                    query_kwargs["where"] = chroma_where
-
-                results = collection.query(**query_kwargs)
-
-                # Unpack results — chromadb returns nested lists (one per query)
-                ids = results.get("ids", [[]])[0]
-                documents = results.get("documents", [[]])[0] or []
-                metadatas = results.get("metadatas", [[]])[0] or []
-
-                return [
-                    {
-                        "chroma_id": ids[i] if i < len(ids) else f"unknown_{i}",
-                        "content": documents[i] if i < len(documents) else "",
-                        "metadata": metadatas[i] if i < len(metadatas) else {},
-                    }
-                    for i in range(len(ids))
-                ]
-            except Exception as exc:
-                logger.warning("ChromaDB query failed (graceful degradation): %s", exc)
-                return []
+        repo = DocumentRepository(db)
+        doc_uuid_list = (
+            [uuid.UUID(d) for d in document_ids] if document_ids else None
+        )
 
         try:
-            chroma_results = await asyncio.wait_for(
-                asyncio.to_thread(_query_chroma),
-                timeout=45.0,  # ChromaDB cold-start budget; Cloud Run request timeout is 300s
+            chunks_rows = await repo.search_chunks_by_embedding(
+                user_id=user_id,
+                query_embedding=query_embedding,
+                top_k=top_k,
+                document_ids=doc_uuid_list,
             )
-        except asyncio.TimeoutError:
-            logger.warning("ChromaDB query timed out after 45 s — returning empty results")
+        except Exception as exc:
+            logger.warning("pgvector query failed (graceful degradation): %s", exc)
             return QueryResult(query=query, retrieved_chunks=[], context="")
 
-        if not chroma_results:
+        if not chunks_rows:
             return QueryResult(query=query, retrieved_chunks=[], context="")
 
         # ----------------------------------------------------------------
-        # Step 3 — enrich with PostgreSQL metadata when a session is provided
+        # Step 3 — enrich with document metadata and assemble citations
         # ----------------------------------------------------------------
+        # Load parent documents for file names
+        from sqlalchemy import select as sa_select
+
+        doc_ids = list({row.document_id for row in chunks_rows})
+        doc_result = await db.execute(
+            sa_select(Document).where(Document.id.in_(doc_ids))
+        )
+        doc_map: dict[uuid.UUID, Document] = {
+            d.id: d for d in doc_result.scalars().all()
+        }
+
         retrieved_chunks: list[RetrievedChunk] = []
-
-        if db is not None:
-            # Authoritative path: fetch chunk rows (content + document metadata)
-            chroma_ids = [r["chroma_id"] for r in chroma_results]
-            from sqlalchemy import select
-
-            from app.models.document import Document
-            from app.models.document_chunk import DocumentChunk
-
-            result = await db.execute(
-                select(DocumentChunk, Document)
-                .join(Document, DocumentChunk.document_id == Document.id)
-                .where(DocumentChunk.chroma_id.in_(chroma_ids))
-                .where(Document.user_id == user_id)  # enforces user isolation
-            )
-            rows = result.all()
-
-            # Build a mapping from chroma_id → (chunk, document) for ordering
-            chroma_map: dict[str, tuple] = {
-                chunk.chroma_id: (chunk, document) for chunk, document in rows
-            }
-
-            # Preserve ChromaDB ranking order
-            for chroma_result in chroma_results:
-                cid = chroma_result["chroma_id"]
-                if cid in chroma_map:
-                    chunk, document = chroma_map[cid]
-                    retrieved_chunks.append(
-                        RetrievedChunk(
-                            content=chunk.content,
-                            document_name=document.file_name,
-                            page_number=chunk.page_number,
-                            citation_type=getattr(chunk, "citation_type", "page"),
-                            char_offset_start=getattr(chunk, "char_offset_start", None),
-                            char_offset_end=getattr(chunk, "char_offset_end", None),
-                        )
-                    )
-                else:
-                    # Chunk not found in PostgreSQL — use ChromaDB metadata as fallback
-                    meta = chroma_result.get("metadata", {})
-                    retrieved_chunks.append(
-                        RetrievedChunk(
-                            content=chroma_result.get("content", ""),
-                            document_name=meta.get("document_name", "unknown"),
-                            page_number=int(meta.get("page_number", 1)),
-                            citation_type=meta.get("citation_type", "page"),
-                            char_offset_start=meta.get("char_offset_start"),
-                            char_offset_end=meta.get("char_offset_end"),
-                        )
-                    )
-        else:
-            # Fallback path: use ChromaDB metadata directly (no DB session)
-            for chroma_result in chroma_results:
-                meta = chroma_result.get("metadata", {})
-                retrieved_chunks.append(
-                    RetrievedChunk(
-                        content=chroma_result.get("content", ""),
-                        document_name=meta.get("document_name", "unknown"),
-                        page_number=int(meta.get("page_number", 1)),
-                        citation_type=meta.get("citation_type", "page"),
-                        char_offset_start=meta.get("char_offset_start"),
-                        char_offset_end=meta.get("char_offset_end"),
-                    )
+        for chunk in chunks_rows:
+            doc = doc_map.get(chunk.document_id)
+            retrieved_chunks.append(
+                RetrievedChunk(
+                    content=chunk.content,
+                    document_name=doc.file_name if doc else "unknown",
+                    page_number=chunk.page_number,
+                    citation_type=getattr(chunk, "citation_type", "page"),
+                    char_offset_start=getattr(chunk, "char_offset_start", None),
+                    char_offset_end=getattr(chunk, "char_offset_end", None),
                 )
+            )
 
         # ----------------------------------------------------------------
         # Step 4 — assemble context string with citations (Property 9)
@@ -1246,68 +1111,25 @@ class RAGService:
             return []
 
         def _query_chroma() -> list[dict]:
-            try:
-                client = self._make_chroma_client()
-                try:
-                    collection = self._chroma_op_with_retry(
-                        "get_collection(knowledge_base)",
-                        lambda: client.get_collection(_KB_COLLECTION),
-                    )
-                except Exception:
-                    logger.warning(
-                        "query_knowledge_base: collection '%s' not found — "
-                        "has seed_knowledge.py been run?",
-                        _KB_COLLECTION,
-                    )
-                    return []
-
-                # Build category filter if requested
-                where: dict | None = None
-                if categories:
-                    if len(categories) == 1:
-                        where = {"category": {"$eq": categories[0]}}
-                    else:
-                        where = {"category": {"$in": categories}}
-
-                query_kwargs: dict = {
-                    "query_embeddings": [query_embedding],
-                    "n_results": top_k,
-                    "include": ["documents", "metadatas", "distances"],
-                }
-                if where is not None:
-                    query_kwargs["where"] = where
-
-                results = collection.query(**query_kwargs)
-
-                ids_list       = results.get("ids", [[]])[0]
+            # Knowledge base search via ChromaDB is no longer supported
+            # (ChromaDB replaced by pgvector for user document search).
+            # The knowledge base seeder hasn't been run in production.
+            # Return empty so the error analysis pipeline degrades gracefully.
+            logger.debug(
+                "query_knowledge_base: ChromaDB knowledge base not available "
+                "(replaced by pgvector; seed_knowledge.py not run in production)"
+            )
+            return []
                 documents_list = results.get("documents", [[]])[0] or []
                 metadatas_list = results.get("metadatas", [[]])[0] or []
-
-                chunks = []
-                for i in range(len(ids_list)):
-                    meta = metadatas_list[i] if i < len(metadatas_list) else {}
-                    chunks.append(
-                        {
-                            "content":       documents_list[i] if i < len(documents_list) else "",
-                            "source":        meta.get("source", ""),
-                            "document_name": meta.get("document_name", ""),
-                            "category":      meta.get("category", ""),
-                            "chunk_index":   meta.get("chunk_index", i),
-                        }
-                    )
-                return chunks
-
-            except Exception as exc:
-                logger.warning("query_knowledge_base: ChromaDB error — %s", exc)
-                return []
 
         try:
             return await asyncio.wait_for(
                 asyncio.to_thread(_query_chroma),
-                timeout=45.0,  # ChromaDB cold-start budget; Cloud Run request timeout is 300s
+                timeout=10.0,
             )
         except asyncio.TimeoutError:
-            logger.warning("query_knowledge_base: ChromaDB timed out after 45 s")
+            logger.warning("query_knowledge_base: timed out")
             return []
 
 # ---------------------------------------------------------------------------

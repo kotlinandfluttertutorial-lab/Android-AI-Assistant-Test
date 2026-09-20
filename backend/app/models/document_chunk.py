@@ -37,6 +37,7 @@ import uuid
 from datetime import datetime
 from typing import TYPE_CHECKING
 
+from pgvector.sqlalchemy import Vector
 from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -44,6 +45,8 @@ from app.models.base import Base, uuid_pk
 
 if TYPE_CHECKING:
     from app.models.document import Document
+
+EMBEDDING_DIM = 384  # sentence-transformers/all-MiniLM-L6-v2 output dimension
 
 
 class DocumentChunk(Base):
@@ -72,11 +75,11 @@ class DocumentChunk(Base):
         nullable=False,
         comment="Raw extracted text of the chunk (up to RAG_CHUNK_SIZE tokens)",
     )
-    chroma_id: Mapped[str] = mapped_column(
+    chroma_id: Mapped[str | None] = mapped_column(
         String(512),
-        nullable=False,
+        nullable=True,
         index=True,
-        comment="ChromaDB document ID used to look up the corresponding embedding vector",
+        comment="Legacy ChromaDB document ID — kept for backwards compat, unused when pgvector is active",
     )
     citation_type: Mapped[str] = mapped_column(
         String(16),
@@ -93,6 +96,11 @@ class DocumentChunk(Base):
         Integer,
         nullable=True,
         comment="Character offset of the end of the chunk within the source text (TXT/MD only)",
+    )
+    embedding: Mapped[list[float] | None] = mapped_column(
+        Vector(EMBEDDING_DIM),
+        nullable=True,
+        comment=f"{EMBEDDING_DIM}-dim sentence embedding for cosine similarity search (pgvector)",
     )
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
