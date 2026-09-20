@@ -477,14 +477,14 @@ class OpenAIClient(BaseLLMClient):
 
 
 class GeminiClient(BaseLLMClient):
-    """Google Gemini 1.5 Pro client using google-generativeai SDK.
+    """Google Gemini client (google-generativeai SDK).
 
-    Pricing (as of 2024-01):
-    - Input:  $0.00125 / 1K tokens = $0.00000125 per token
-    - Output: $0.00375 / 1K tokens = $0.00000375 per token
+    The model is configurable via the GEMINI_MODEL environment variable
+    (default: gemini-2.5-flash). Switch to newer models without code changes:
+      GEMINI_MODEL=gemini-3.6-flash
+      GEMINI_MODEL=gemini-3.8-flash
 
-    Context window: 1,000,000 tokens (Pro model)
-
+    Context window: 1M tokens (Flash models)
     Requirements: 3.1, 3.4, 3.6
     """
 
@@ -493,7 +493,9 @@ class GeminiClient(BaseLLMClient):
         if not settings.GEMINI_API_KEY:
             raise ValueError("GEMINI_API_KEY not configured")
         genai.configure(api_key=settings.GEMINI_API_KEY)
-        self.model = genai.GenerativeModel("gemini-1.5-flash")
+        model_name = settings.GEMINI_MODEL
+        self.model = genai.GenerativeModel(model_name)
+        self._model_name = model_name
         self._rate_limiter = _ProviderRateLimiter(
             "gemini", settings.LLM_RATE_LIMIT_GEMINI
         )

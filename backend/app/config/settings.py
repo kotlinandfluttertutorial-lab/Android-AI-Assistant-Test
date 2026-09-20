@@ -132,6 +132,13 @@ class Settings(BaseSettings):
         "Leave blank to disable the Gemini provider.",
     )
 
+    GEMINI_MODEL: str = Field(
+        default="gemini-2.5-flash",
+        description="Gemini model ID to use for completions and streaming. "
+        "Switch to newer models (e.g. gemini-3.6-flash, gemini-3.8-flash) "
+        "without changing code by updating this env var.",
+    )
+
     ANTHROPIC_API_KEY: str = Field(
         default="",
         description="Anthropic API key for Claude 3.5 Sonnet and other Claude models. "
