@@ -103,10 +103,17 @@ fun MarkdownText(markdown: String, contentDescription: String? = null, modifier:
     Box(
         modifier = modifier.semantics { this.contentDescription = a11yLabel }
     ) {
-        ComposeMarkdown(
-            markdown = markdown,
-            style = MaterialTheme.typography.bodyMedium.copy(color = textColor)
-        )
+        // Wrap in CompositionLocalProvider so ComposeMarkdown inherits the correct text color
+        // via LocalContentColor — the library uses LocalContentColor internally for some
+        // node types and ignores style.color for others.
+        androidx.compose.runtime.CompositionLocalProvider(
+            androidx.compose.material3.LocalContentColor provides textColor
+        ) {
+            ComposeMarkdown(
+                markdown = markdown,
+                style = MaterialTheme.typography.bodyMedium.copy(color = textColor)
+            )
+        }
     }
 }
 

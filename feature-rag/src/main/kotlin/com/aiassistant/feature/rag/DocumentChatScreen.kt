@@ -81,7 +81,9 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.tooling.preview.Preview
 import com.aiassistant.core.ui.AppColors
+import com.aiassistant.core.ui.AppTheme
 import com.aiassistant.core.ui.AppType
 import com.aiassistant.core.ui.components.ErrorBanner
 import com.aiassistant.core.ui.components.MarkdownText
@@ -280,7 +282,7 @@ private fun UserQueryBubble(text: String) {
             Text(
                 text = text,
                 style = MaterialTheme.typography.bodyMedium,
-                color = Color.White,
+                color = MaterialTheme.colorScheme.onPrimary, // adapts to light/dark theme
                 modifier = Modifier.padding(
                     horizontal = MaterialTheme.spacing.md,
                     vertical = MaterialTheme.spacing.sm
@@ -517,3 +519,76 @@ private fun DocumentQueryInputBar(isQuerying: Boolean, onSendQuery: (String) -> 
         }
     }
 }
+
+// ─── Previews ────────────────────────────────────────────────────────────────
+
+@Preview(showBackground = true, name = "DocumentChatScreen — Idle")
+@Composable
+private fun DocumentChatScreenIdlePreview() {
+    AppTheme(dynamicColor = false) {
+        DocumentChatScreenContent(
+            uiState = DocumentChatUiState.Idle(documentFileName = "AnnualReport2023.pdf"),
+            onSubmitQuery = {},
+            onRetry = {},
+            onNavigateUp = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "DocumentChatScreen — Loading")
+@Composable
+private fun DocumentChatScreenLoadingPreview() {
+    AppTheme(dynamicColor = false) {
+        DocumentChatScreenContent(
+            uiState = DocumentChatUiState.Loading(
+                query = "What is the net profit for Q4?",
+                documentFileName = "AnnualReport2023.pdf"
+            ),
+            onSubmitQuery = {},
+            onRetry = {},
+            onNavigateUp = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "DocumentChatScreen — Success")
+@Composable
+private fun DocumentChatScreenSuccessPreview() {
+    val exchange = RAGExchange(
+        userQuery = "What is the net profit for Q4?",
+        aiResponse = "The net profit for Q4 was **$12.5 million**, a significant increase from Q3. This was driven by cost optimizations and strong holiday sales.",
+        citations = listOf(
+            Citation("AnnualReport2023.pdf", 12),
+            Citation("AnnualReport2023.pdf", 14)
+        )
+    )
+    AppTheme(dynamicColor = false) {
+        DocumentChatScreenContent(
+            uiState = DocumentChatUiState.Success(
+                exchange = exchange,
+                documentFileName = "AnnualReport2023.pdf"
+            ),
+            onSubmitQuery = {},
+            onRetry = {},
+            onNavigateUp = {}
+        )
+    }
+}
+
+@Preview(showBackground = true, name = "DocumentChatScreen — Error")
+@Composable
+private fun DocumentChatScreenErrorPreview() {
+    AppTheme(dynamicColor = false) {
+        DocumentChatScreenContent(
+            uiState = DocumentChatUiState.Error(
+                message = "The AI Orchestrator is currently unavailable. Please try again later.",
+                lastQuery = "What is the net profit for Q4?",
+                documentFileName = "AnnualReport2023.pdf"
+            ),
+            onSubmitQuery = {},
+            onRetry = {},
+            onNavigateUp = {}
+        )
+    }
+}
+
