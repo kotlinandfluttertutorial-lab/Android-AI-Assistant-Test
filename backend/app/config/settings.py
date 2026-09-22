@@ -134,9 +134,27 @@ class Settings(BaseSettings):
 
     GEMINI_MODEL: str = Field(
         default="gemini-3.6-flash",
-        description="Gemini model ID to use for completions and streaming. "
-        "Switch to newer models (e.g. gemini-3.7-flash, gemini-3.8-flash) "
-        "without changing code by updating this env var or setting GEMINI_MODEL.",
+        description=(
+            "Primary Gemini model ID for completions and streaming. "
+            "Switch models without code changes by updating this variable. "
+            "Verified stable models as of September 2026: "
+            "gemini-3.8-flash (most intelligent), gemini-3.7-flash, "
+            "gemini-3.6-flash (improved efficiency), gemini-3.5-flash (best price/perf), "
+            "gemini-3.5-flash-lite (ultra-low-latency), gemini-3.1-flash-lite (cost-efficient). "
+            "NOTE: gemini-2.0-flash was shut down June 1 2026; "
+            "gemini-2.5-flash retires October 20 2026."
+        ),
+    )
+
+    GEMINI_FALLBACK_MODEL: str = Field(
+        default="gemini-3.1-flash-lite",
+        description=(
+            "Fallback Gemini model used when the primary model encounters a "
+            "temporary availability or quota error. Must be a different, typically "
+            "cheaper/faster model. Only used when LLM_ENABLE_FALLBACK=true and "
+            "LLM_PROVIDER=gemini (or DEFAULT_LLM_PROVIDER=gemini). "
+            "Example: gemini-3.1-flash-lite"
+        ),
     )
 
     ANTHROPIC_API_KEY: str = Field(
@@ -410,8 +428,95 @@ class Settings(BaseSettings):
     DEFAULT_LLM_PROVIDER: str = Field(
         default="gemini",
         description="Default LLM provider used for RAG queries and general completions. "
-        "One of: openai, gemini, claude, ollama, llama, mistral. "
+        "One of: openai, gemini, claude, ollama, llama, mistral, gemma. "
         "Defaults to gemini.",
+    )
+
+    LLM_ENABLE_FALLBACK: bool = Field(
+        default=True,
+        description=(
+            "Enable automatic fallback when the primary LLM provider fails. "
+            "When true and LLM_PROVIDER=gemini, the GeminiProvider will attempt "
+            "GEMINI_FALLBACK_MODEL on transient errors before raising. "
+            "When false, errors are raised immediately. "
+            "Provider-level fallback (LLM_FALLBACK_PROVIDER) is separate from "
+            "model-level fallback (GEMINI_FALLBACK_MODEL)."
+        ),
+    )
+
+    LLM_TEMPERATURE: float = Field(
+        default=0.3,
+        description=(
+            "Default sampling temperature for LLM generations. "
+            "Range: 0.0 (deterministic) to 1.0 (creative). "
+            "Lower values produce more consistent, factual responses. "
+            "Can be overridden per-request. Default: 0.3"
+        ),
+        ge=0.0,
+        le=2.0,
+    )
+
+    LLM_MAX_OUTPUT_TOKENS: int = Field(
+        default=2048,
+        description=(
+            "Default maximum output tokens for any LLM request that does not "
+            "specify a per-provider cap. Individual provider caps "
+            "(LLM_MAX_OUTPUT_TOKENS_GEMINI, etc.) take precedence when set."
+        ),
+        ge=1,
+    )
+
+    LLM_MAX_RETRY_ATTEMPTS: int = Field(
+        default=3,
+        description=(
+            "Maximum number of retry attempts for transient LLM errors "
+            "(network failures, 5xx server errors, timeouts). "
+            "Permanent errors (invalid API key, 400 bad request) are NOT retried. "
+            "Set to 0 to disable retries."
+        ),
+        ge=0,
+        le=10,
+    )
+
+    LLM_RETRY_BASE_DELAY_SECONDS: float = Field(
+        default=1.0,
+        description=(
+            "Base delay in seconds for exponential backoff between retry attempts. "
+            "Actual delay = base_delay * (2 ** attempt_number). "
+            "Example with base=1.0: attempt 1 → 1s, attempt 2 → 2s, attempt 3 → 4s."
+        ),
+        ge=0.1,
+        le=30.0,
+    )
+
+    LLM_LOG_PROMPTS: bool = Field(
+        default=False,
+        description=(
+            "Whether to log full prompt content in structured logs. "
+            "SECURITY WARNING: Enabling this will write user messages and RAG "
+            "context to logs — never enable in production without data-handling "
+            "compliance review. Default: false."
+        ),
+    )
+
+    LLM_PROMPT_MAX_CHARS: int = Field(
+        default=32_000,
+        description=(
+            "Maximum total character length of a prompt (system + history + user message). "
+            "Prompts exceeding this limit are truncated before the LLM call to prevent "
+            "excessive token usage and cost. Approximately 8000 tokens at 4 chars/token."
+        ),
+        ge=1_000,
+    )
+
+    RUN_LLM_INTEGRATION_TESTS: bool = Field(
+        default=False,
+        description=(
+            "When true, integration tests in tests/integration/test_llm_integration.py "
+            "will execute real API calls against the configured Gemini endpoint. "
+            "NEVER set to true in CI unless you have explicitly allocated API quota. "
+            "Default: false."
+        ),
     )
 
     # Per-provider rate limits (requests per minute, 0 = disabled / unlimited)

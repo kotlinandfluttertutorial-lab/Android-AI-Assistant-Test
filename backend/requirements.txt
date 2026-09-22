@@ -81,7 +81,10 @@ google-cloud-storage==2.18.2
 # LLM providers
 # ──────────────────────────────────────────────────────────────────────────────
 openai==1.51.2
-google-generativeai==0.8.2
+# google-generativeai (old SDK) reached end-of-life on November 30, 2025.
+# Replaced by the official Google Gen AI SDK (google-genai).
+# Migration guide: https://ai.google.dev/gemini-api/docs/migrate
+google-genai==1.68.0
 anthropic==0.35.0
 
 # ──────────────────────────────────────────────────────────────────────────────
