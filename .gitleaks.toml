@@ -90,4 +90,8 @@ regexes = [
 paths = [
     '''(?i)^docs/.*\.md$''',
     '''(?i)^knowledge/.*\.md$''',
+    # Test files use placeholder / dummy values — not real secrets.
+    # The AES_ENCRYPTION_KEY in conftest.py and test_* files is a 32-byte
+    # all-zeros base64 string used only for unit test env setup.
+    '''(?i)^backend/tests/.*\.py$''',
 ]

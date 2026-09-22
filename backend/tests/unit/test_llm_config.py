@@ -24,7 +24,7 @@ import pytest
 os.environ.setdefault("SECRET_KEY", "test-secret-32-chars-long-minimum!")
 os.environ.setdefault("DATABASE_URL", "postgresql+asyncpg://test:test@localhost/test")
 os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
-os.environ.setdefault("AES_ENCRYPTION_KEY", "dGVzdGtleXRlc3RrZXl0ZXN0a2V5dGVzdA==")
+# AES_ENCRYPTION_KEY is set by conftest.py — not repeated here to avoid false-positive secret scans.
 
 
 class TestNewLLMSettings:

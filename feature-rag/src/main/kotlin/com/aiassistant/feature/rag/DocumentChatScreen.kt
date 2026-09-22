@@ -131,13 +131,24 @@ internal fun DocumentChatScreenContent(
                 is DocumentChatUiState.Error -> uiState.documentFileName
             }.ifBlank { "Document Q&A" }
             TopAppBar(
-                title = { Text(docName, maxLines = 1) },
+                title = {
+                    Text(
+                        text = docName,
+                        maxLines = 1,
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                },
                 navigationIcon = {
                     IconButton(
                         onClick = onNavigateUp,
                         modifier = Modifier.semantics { contentDescription = "Navigate back" }
                     ) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
+                        Icon(
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 }
             )
@@ -318,7 +329,10 @@ private fun AssistantAnswerBubble(text: String, citations: List<Citation>) {
             elevation = CardDefaults.elevatedCardElevation(
                 defaultElevation = MaterialTheme.elevation.low
             ),
-            colors = CardDefaults.elevatedCardColors(containerColor = cardColor),
+            colors = CardDefaults.elevatedCardColors(
+                containerColor = cardColor,
+                contentColor = MaterialTheme.colorScheme.onSurface
+            ),
             shape = RoundedCornerShape(
                 topStart = 4.dp,
                 topEnd = 18.dp,
@@ -391,7 +405,8 @@ private fun SourcesPanel(citations: List<Citation>, modifier: Modifier = Modifie
             Spacer(Modifier.width(4.dp))
             Text(
                 text = if (expanded) "Hide sources" else "Show sources (${citations.size})",
-                style = MaterialTheme.typography.labelMedium
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.primary
             )
         }
 
@@ -428,7 +443,10 @@ private fun CitationCard(citation: Citation) {
                     (citation.pageNumber?.let { ", page $it" } ?: "")
             },
         elevation = CardDefaults.elevatedCardElevation(defaultElevation = 0.dp),
-        colors = CardDefaults.elevatedCardColors(containerColor = bgColor),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = bgColor,
+            contentColor = MaterialTheme.colorScheme.onSurface
+        ),
         shape = RoundedCornerShape(8.dp)
     ) {
         Row(
@@ -485,7 +503,13 @@ private fun DocumentQueryInputBar(isQuerying: Boolean, onSendQuery: (String) -> 
                     .weight(1f)
                     .clip(RoundedCornerShape(28.dp))
                     .semantics { contentDescription = "Ask about this document" },
-                placeholder = { Text("Ask about this document…") },
+                placeholder = {
+                    Text(
+                        text = "Ask about this document…",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                },
                 enabled = !isQuerying,
                 singleLine = false,
                 maxLines = 4,
@@ -494,8 +518,18 @@ private fun DocumentQueryInputBar(isQuerying: Boolean, onSendQuery: (String) -> 
                     imeAction = ImeAction.Default
                 ),
                 colors = TextFieldDefaults.colors(
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    disabledTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                    focusedContainerColor = Color.Transparent,
+                    unfocusedContainerColor = Color.Transparent,
+                    disabledContainerColor = Color.Transparent,
                     focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent
+                    unfocusedIndicatorColor = Color.Transparent,
+                    disabledIndicatorColor = Color.Transparent
+                ),
+                textStyle = MaterialTheme.typography.bodyMedium.copy(
+                    color = MaterialTheme.colorScheme.onSurface
                 ),
                 shape = RoundedCornerShape(28.dp)
             )

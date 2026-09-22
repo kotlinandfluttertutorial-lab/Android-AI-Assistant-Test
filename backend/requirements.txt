@@ -19,7 +19,7 @@ starlette>=1.3.1,<2.0.0
 pydantic==2.9.2
 pydantic-settings==2.5.2
 email-validator==2.2.0
-typing_extensions>=4.8.0
+typing_extensions>=4.14.0
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Database (SQLAlchemy + PostgreSQL drivers + migrations)
@@ -55,7 +55,7 @@ cryptography==50.0.0
 # ──────────────────────────────────────────────────────────────────────────────
 # HTTP client & multipart uploads
 # ──────────────────────────────────────────────────────────────────────────────
-httpx==0.27.2
+httpx==0.28.1
 # PYSEC-2026-1852/3038/3037/3036/3040/3039 — fix: >=0.0.31
 python-multipart==0.0.31
 
