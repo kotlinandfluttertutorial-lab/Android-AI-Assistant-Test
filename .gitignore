@@ -32,9 +32,15 @@ backend/.coverage
 backend/coverage.json
 backend/coverage_fresh.json
 
-# Environment secrets
+# Environment secrets — NEVER commit real credentials
 .env
 *.env.local
+# API keys and secrets — safety net (backend/.env is already above)
+backend/**/.env
+backend/.env.*
+!backend/.env.example
+# Integration test output (may contain API response snippets)
+backend/.llm_test_cache/
 
 # OS
 Thumbs.db

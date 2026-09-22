@@ -19,6 +19,11 @@ os.environ.setdefault("LOG_LEVEL", "INFO")
 os.environ.setdefault("GOOGLE_CLIENT_ID", "test-google-client-id")
 os.environ.setdefault("GOOGLE_ANDROID_CLIENT_ID", "test-google-client-id")
 os.environ.setdefault("ALLOWED_GOOGLE_CLIENT_IDS", "test-google-client-id")
+# AES_ENCRYPTION_KEY: 32-byte test-only value, base64-encoded.
+# This is NOT a real key — it is only used in unit tests.
+# gitleaks: allowlist path=tests/
+_TEST_AES_KEY = "dGVzdGtleXRlc3RrZXl0ZXN0a2V5dGVzdA=="
+os.environ.setdefault("AES_ENCRYPTION_KEY", _TEST_AES_KEY)
 
 import pytest
 from unittest.mock import AsyncMock, MagicMock

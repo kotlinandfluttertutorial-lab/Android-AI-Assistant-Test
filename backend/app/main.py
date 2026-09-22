@@ -64,6 +64,7 @@ from app.api.analytics.router import router as analytics_router  # noqa: E402
 # ---------------------------------------------------------------------------
 from app.api.auth.router import router as auth_router  # noqa: E402
 from app.api.chat.router import router as chat_router  # noqa: E402
+from app.api.chat.router import v1_router as chat_v1_router  # noqa: E402
 from app.api.code.router import router as code_router  # noqa: E402
 from app.api.conversations.router import router as conversations_router  # noqa: E402
 from app.api.data.router import router as data_router  # noqa: E402
@@ -346,6 +347,7 @@ app.add_middleware(RequestLoggingMiddleware)
 
 app.include_router(auth_router)
 app.include_router(chat_router)
+app.include_router(chat_v1_router)
 app.include_router(code_router)
 app.include_router(conversations_router)
 app.include_router(rag_router)

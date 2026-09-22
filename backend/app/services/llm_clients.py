@@ -22,7 +22,7 @@ This module defines the abstract base class `BaseLLMClient` and six concrete
 provider implementations:
 
 - OpenAIClient  — OpenAI GPT-4o via the OpenAI Python SDK
-- GeminiClient  — Google Gemini 1.5 Pro via google-generativeai
+- GeminiClient  — Google Gemini via google-genai (new SDK)
 - ClaudeClient  — Anthropic Claude 3.5 Sonnet via the Anthropic SDK
 - OllamaClient  — Local Ollama endpoint; NO external network calls
 - LlamaClient   — Llama 3.x via local Ollama endpoint
@@ -63,7 +63,9 @@ from collections.abc import AsyncIterator
 from decimal import Decimal
 from typing import Any, cast
 
-import google.generativeai as genai
+from google import genai
+from google.genai import errors as genai_errors
+from google.genai import types as genai_types
 import httpx
 from anthropic import AsyncAnthropic
 from anthropic.types import TextBlock
@@ -477,12 +479,29 @@ class OpenAIClient(BaseLLMClient):
 
 
 class GeminiClient(BaseLLMClient):
-    """Google Gemini client (google-generativeai SDK).
+    """Google Gemini client using the official Google Gen AI SDK (google-genai).
+
+    SDK package : ``google-genai`` (``from google import genai``)
+    NOT         : ``google-generativeai`` (EOL November 30, 2025)
 
     The model is configurable via the GEMINI_MODEL environment variable
-    (default: gemini-2.5-flash). Switch to newer models without code changes:
-      GEMINI_MODEL=gemini-3.6-flash
+    (default: gemini-3.6-flash). Switch to newer models without code changes:
+
       GEMINI_MODEL=gemini-3.8-flash
+      GEMINI_MODEL=gemini-3.7-flash
+      GEMINI_MODEL=gemini-3.6-flash   ← default (GA July 21 2026)
+      GEMINI_MODEL=gemini-3.5-flash   ← best price/perf alias
+
+    Verified stable models (September 2026):
+      gemini-3.8-flash  — most intelligent Flash (GA Sept 2 2026)
+      gemini-3.7-flash  — coding/agents (GA Aug 13 2026)
+      gemini-3.6-flash  — token efficiency (GA July 21 2026)
+      gemini-3.5-flash  — price/performance (GA May 19 2026)
+      gemini-3.5-flash-lite — ultra-low-latency (GA July 21 2026)
+      gemini-3.1-flash-lite — cost-efficient (GA May 7 2026)
+
+    NOTE: gemini-2.0-flash was SHUT DOWN June 1 2026.
+          gemini-1.5-flash was SHUT DOWN September 29 2025.
 
     Context window: 1M tokens (Flash models)
     Requirements: 3.1, 3.4, 3.6
@@ -492,12 +511,14 @@ class GeminiClient(BaseLLMClient):
         settings = get_settings()
         if not settings.GEMINI_API_KEY:
             raise ValueError("GEMINI_API_KEY not configured")
-        # Force REST transport — gRPC may hang in Cloud Run asia-south1.
-        # REST uses standard HTTPS which is always available.
-        genai.configure(api_key=settings.GEMINI_API_KEY, transport="rest")
-        model_name = settings.GEMINI_MODEL
-        self.model = genai.GenerativeModel(model_name)
-        self._model_name = model_name
+
+        # Strip whitespace — Cloud Run secrets may include a trailing newline.
+        api_key = settings.GEMINI_API_KEY.strip()
+
+        # Initialise the new SDK client.
+        # API key is stored inside the client — never held in a plain attribute.
+        self._genai_client = genai.Client(api_key=api_key)
+        self._model_name = settings.GEMINI_MODEL
         self._rate_limiter = _ProviderRateLimiter(
             "gemini", settings.LLM_RATE_LIMIT_GEMINI
         )
@@ -505,88 +526,105 @@ class GeminiClient(BaseLLMClient):
     def get_provider_name(self) -> str:
         return "gemini"
 
-    def _build_prompt(self, context: PromptContext) -> str:
-        parts = [context.system_prompt]
-        for role, content in context.messages:
-            parts.append(f"{role}: {content}")
-        return "\n\n".join(parts)
+    def _build_contents(self, context: PromptContext) -> list[genai_types.Content]:
+        """Build the ``contents`` list from a ``PromptContext``.
+
+        Maps the flat message list to typed ``Content`` objects.  The system
+        prompt is passed via ``GenerateContentConfig.system_instruction``
+        rather than being included in ``contents``.
+
+        Args:
+            context: The prompt context from the orchestrator.
+
+        Returns:
+            A list of ``Content`` objects for the SDK call.
+        """
+        contents: list[genai_types.Content] = []
+        for role, text in context.messages:
+            sdk_role = "model" if role == "assistant" else "user"
+            contents.append(
+                genai_types.Content(
+                    role=sdk_role,
+                    parts=[genai_types.Part.from_text(text=text)],
+                )
+            )
+        return contents
 
     async def stream(self, context: PromptContext) -> AsyncIterator[str]:
-        """Stream tokens from Gemini 1.5 Pro.
+        """Stream tokens from Gemini using the new Google Gen AI SDK.
 
         Requirements: 3.1, 3.4
         """
         await self._rate_limiter.check(context.user_id)
 
-        full_prompt = self._build_prompt(context)
-        generation_config = genai.types.GenerationConfig(
+        contents = self._build_contents(context)
+        config = genai_types.GenerateContentConfig(
+            system_instruction=context.system_prompt or None,
             max_output_tokens=context.max_tokens,
             temperature=context.temperature,
         )
 
-        response = await asyncio.to_thread(
-            self.model.generate_content,
-            full_prompt,
-            generation_config=generation_config,
-            stream=True,
-        )
-
-        for chunk in response:
-            try:
-                if chunk.text:
-                    yield chunk.text
-            except ValueError:
-                # Blocked chunk — skip silently
-                continue
+        try:
+            async for chunk in await self._genai_client.aio.models.generate_content_stream(
+                model=self._model_name,
+                contents=contents,
+                config=config,
+            ):
+                token_text = chunk.text
+                if token_text:
+                    yield token_text
+        except genai_errors.APIError as exc:
+            status_code: int = getattr(exc, "code", 0) or 0
+            raise RuntimeError(
+                f"Gemini stream error (HTTP {status_code}) "
+                f"[model={self._model_name}]: {exc}"
+            ) from exc
 
     async def complete(self, context: PromptContext) -> str:
-        """Generate full completion from Gemini via direct async REST call.
-
-        Uses httpx directly (not the SDK) to ensure:
-        - Proper async — no asyncio.to_thread blocking
-        - Explicit 55s timeout that actually fires
-        - Standard HTTPS/REST — avoids gRPC hang in Cloud Run asia-south1
+        """Generate a full completion from Gemini using the new Google Gen AI SDK.
 
         Requirements: 3.1, 3.4
         """
         await self._rate_limiter.check(context.user_id)
 
-        full_prompt = self._build_prompt(context)
-        settings = get_settings()
-        api_key = settings.GEMINI_API_KEY.strip()  # strip \r\n if secret was saved with Windows line endings
-
-        url = (
-            f"https://generativelanguage.googleapis.com/v1beta/models/"
-            f"{self._model_name}:generateContent?key={api_key}"
+        contents = self._build_contents(context)
+        config = genai_types.GenerateContentConfig(
+            system_instruction=context.system_prompt or None,
+            max_output_tokens=context.max_tokens,
+            temperature=context.temperature,
         )
-        payload = {
-            "contents": [{"parts": [{"text": full_prompt}]}],
-            "generationConfig": {
-                "maxOutputTokens": context.max_tokens,
-                "temperature": context.temperature,
-            },
-        }
-
-        async with httpx.AsyncClient(timeout=55.0) as http:
-            resp = await http.post(url, json=payload)
-            resp.raise_for_status()
-            data = resp.json()
 
         try:
-            text = data["candidates"][0]["content"]["parts"][0]["text"]
-        except (KeyError, IndexError) as exc:
-            finish = (data.get("candidates") or [{}])[0].get("finishReason", "UNKNOWN")
+            response = await self._genai_client.aio.models.generate_content(
+                model=self._model_name,
+                contents=contents,
+                config=config,
+            )
+        except genai_errors.APIError as exc:
+            status_code = getattr(exc, "code", 0) or 0
+            raise RuntimeError(
+                f"Gemini complete error (HTTP {status_code}) "
+                f"[model={self._model_name}]: {exc}"
+            ) from exc
+
+        text = response.text
+        if text is None:
+            # Blocked or empty response — surface a descriptive error.
+            candidates = getattr(response, "candidates", None) or []
+            finish_reason = (
+                candidates[0].finish_reason if candidates else "UNKNOWN"
+            )
             raise RuntimeError(
                 f"Gemini [{self._model_name}] returned no text. "
-                f"finishReason={finish}, "
-                f"promptFeedback={data.get('promptFeedback')}"
-            ) from exc
+                f"finishReason={finish_reason}, "
+                f"promptFeedback={getattr(response, 'prompt_feedback', None)}"
+            )
 
         return str(text)
 
     @property
     def max_context_tokens(self) -> int:
-        """Gemini 1.5 Pro supports 1M tokens."""
+        """Gemini Flash models support 1M token context window."""
         return 1_000_000
 
     @property
@@ -599,12 +637,12 @@ class GeminiClient(BaseLLMClient):
 
     @property
     def cost_per_input_token(self) -> Decimal:
-        """Gemini 1.5 Pro input: $0.00125 / 1K tokens."""
+        """Gemini 1.5 Flash input pricing: $1.25 / 1M tokens."""
         return Decimal("0.00000125")
 
     @property
     def cost_per_output_token(self) -> Decimal:
-        """Gemini 1.5 Pro output: $0.00375 / 1K tokens."""
+        """Gemini 1.5 Flash output pricing: $3.75 / 1M tokens."""
         return Decimal("0.00000375")
 
 

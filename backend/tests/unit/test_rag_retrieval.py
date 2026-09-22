@@ -22,7 +22,7 @@ import os
 import sys
 import types
 import uuid
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -128,6 +128,62 @@ def _make_retrieved_chunk(
         document_name=document_name,
         page_number=page_number,
     )
+
+
+# ---------------------------------------------------------------------------
+# Pgvector test helpers
+# ---------------------------------------------------------------------------
+
+
+def _make_chunk_row(
+    document_id: str = "doc-uuid-1",
+    content: str = "Sample chunk content.",
+    page_number: int = 1,
+    file_name: str = "report.pdf",
+    chunk_index: int = 0,
+) -> MagicMock:
+    """Return a mock DocumentChunk ORM row as returned by search_chunks_by_embedding."""
+    row = MagicMock()
+    row.document_id = uuid.UUID(document_id) if len(document_id) == 36 else uuid.uuid4()
+    row.content = content
+    row.page_number = page_number
+    row.citation_type = "page"
+    row.char_offset_start = None
+    row.char_offset_end = None
+    return row
+
+
+def _make_doc_mock(doc_id: uuid.UUID, file_name: str = "report.pdf") -> MagicMock:
+    """Return a mock Document ORM row."""
+    doc = MagicMock()
+    doc.id = doc_id
+    doc.file_name = file_name
+    return doc
+
+
+def _make_pgvector_db(chunk_rows: list, doc_rows: list | None = None) -> AsyncMock:
+    """Build a mock AsyncSession whose execute() returns Document rows for the name lookup.
+
+    chunk_rows are returned by the mocked DocumentRepository, not directly by db.execute.
+    db.execute is only called for the Document name-enrichment SELECT.
+    """
+    mock_db = AsyncMock()
+    if doc_rows is None:
+        # Default: one Document per distinct document_id in chunk_rows
+        doc_rows = []
+        seen: set = set()
+        for row in chunk_rows:
+            if row.document_id not in seen:
+                seen.add(row.document_id)
+                doc_rows.append(_make_doc_mock(row.document_id))
+
+    # db.execute(...) → scalars().all() → doc_rows
+    mock_scalars = MagicMock()
+    mock_scalars.all.return_value = doc_rows
+    mock_result = MagicMock()
+    mock_result.scalars.return_value = mock_scalars
+    mock_db.execute = AsyncMock(return_value=mock_result)
+    return mock_db
 
 
 # ---------------------------------------------------------------------------
@@ -308,60 +364,45 @@ class TestQueryDocumentsTopKLimit:
 
     @pytest.mark.asyncio
     async def test_top_k_5_limit_enforced_when_chroma_returns_more(self) -> None:
-        """Even if ChromaDB is configured to return more, only top_k=5 should be used.
-
-        Validates: Requirements 4.6
-        """
+        """search_chunks_by_embedding is called with top_k=5 (Requirement 4.6)."""
         service = _make_service()
         user_id = uuid.uuid4()
 
-        # Simulate ChromaDB returning 8 chunks
-        num_results = 8
-        chroma_ids = [f"doc1_{i}" for i in range(num_results)]
-        chroma_docs = [f"Chunk content {i}." for i in range(num_results)]
-        chroma_metas = [
-            {"document_id": "doc1", "chunk_index": i, "page_number": i + 1}
-            for i in range(num_results)
+        # Repository returns 5 chunks (pgvector honours top_k at SQL level)
+        chunk_rows = [
+            _make_chunk_row(
+                document_id=str(uuid.uuid4()),
+                content=f"Chunk {i}",
+                page_number=i + 1,
+            )
+            for i in range(5)
         ]
+        mock_db = _make_pgvector_db(chunk_rows)
+        mock_repo = AsyncMock()
+        mock_repo.search_chunks_by_embedding = AsyncMock(return_value=chunk_rows)
 
-        mock_collection = MagicMock()
-        mock_collection.query.return_value = {
-            "ids": [chroma_ids],
-            "documents": [chroma_docs],
-            "metadatas": [chroma_metas],
-            "distances": [[0.1] * num_results],
-        }
-        mock_chroma_client = MagicMock()
-        mock_chroma_client.get_collection.return_value = mock_collection
+        with (
+            patch.object(
+                service,
+                "_get_embedding_model",
+                return_value=MagicMock(encode=_make_mock_encode()),
+            ),
+            patch(
+                "app.repositories.document_repository.DocumentRepository",
+                return_value=mock_repo,
+            ),
+        ):
+            result = await service.query_documents(
+                user_id=user_id,
+                query="test query",
+                top_k=5,
+                db=mock_db,
+            )
 
-        def _mock_encode(texts, show_progress_bar=False):
-            import numpy as np
-
-            return np.zeros((len(texts), 384))
-
-        with patch.object(service, "_get_embedding_model") as mock_model_getter:
-            mock_model = MagicMock()
-            mock_model.encode = _mock_encode
-            mock_model_getter.return_value = mock_model
-
-            with patch("chromadb.HttpClient", return_value=mock_chroma_client):
-                # Request top_k=5 — ChromaDB mock returns 8 but n_results=5 is passed
-                result = await service.query_documents(
-                    user_id=user_id,
-                    query="test query",
-                    top_k=5,
-                    db=None,
-                )
-
-        # When no db session is provided, chunks come from ChromaDB metadata.
-        # ChromaDB is called with n_results=top_k=5, so at most 5 results.
-        assert mock_collection.query.called
-        call_kwargs = mock_collection.query.call_args
-        assert (
-            call_kwargs.kwargs.get("n_results") == 5
-            or (call_kwargs.args and call_kwargs.args[1] == 5)
-            or call_kwargs.kwargs.get("n_results") == 5
-        )
+        mock_repo.search_chunks_by_embedding.assert_called_once()
+        call_kwargs = mock_repo.search_chunks_by_embedding.call_args.kwargs
+        assert call_kwargs.get("top_k") == 5
+        assert len(result.retrieved_chunks) == 5
 
     @pytest.mark.asyncio
     async def test_default_top_k_is_5(self) -> None:
@@ -369,32 +410,25 @@ class TestQueryDocumentsTopKLimit:
         service = _make_service()
         user_id = uuid.uuid4()
 
-        mock_collection = MagicMock()
-        mock_collection.query.return_value = {
-            "ids": [[]],
-            "documents": [[]],
-            "metadatas": [[]],
-        }
-        mock_chroma_client = MagicMock()
-        mock_chroma_client.get_collection.return_value = mock_collection
+        mock_db = _make_pgvector_db([])
+        mock_repo = AsyncMock()
+        mock_repo.search_chunks_by_embedding = AsyncMock(return_value=[])
 
-        def _mock_encode(texts, show_progress_bar=False):
-            import numpy as np
+        with (
+            patch.object(
+                service,
+                "_get_embedding_model",
+                return_value=MagicMock(encode=_make_mock_encode()),
+            ),
+            patch(
+                "app.repositories.document_repository.DocumentRepository",
+                return_value=mock_repo,
+            ),
+        ):
+            await service.query_documents(user_id=user_id, query="default k test", db=mock_db)
 
-            return np.zeros((len(texts), 384))
-
-        with patch.object(service, "_get_embedding_model") as mock_model_getter:
-            mock_model = MagicMock()
-            mock_model.encode = _mock_encode
-            mock_model_getter.return_value = mock_model
-
-            with patch("chromadb.HttpClient", return_value=mock_chroma_client):
-                await service.query_documents(user_id=user_id, query="default k test")
-
-        # Verify ChromaDB was called with n_results=5
-        call_kwargs = mock_collection.query.call_args
-        n_results_value = call_kwargs.kwargs.get("n_results")
-        assert n_results_value == 5
+        call_kwargs = mock_repo.search_chunks_by_embedding.call_args.kwargs
+        assert call_kwargs.get("top_k") == 5
 
 
 # ---------------------------------------------------------------------------
@@ -403,53 +437,49 @@ class TestQueryDocumentsTopKLimit:
 
 
 class TestQueryDocumentsChromaFallback:
-    """Tests for the ChromaDB-only path (no db session provided)."""
+    """Tests for chunk retrieval via pgvector (db session provided)."""
 
     @pytest.mark.asyncio
     async def test_retrieved_chunks_have_correct_document_name(self) -> None:
-        """Chunks returned by query_documents must carry the correct document_name.
+        """Chunks returned by query_documents carry the correct document_name.
 
         Property 9: citation must include document name.
         Validates: Requirements 4.7
         """
         service = _make_service()
         user_id = uuid.uuid4()
+        doc_id = uuid.uuid4()
 
-        mock_collection = MagicMock()
-        mock_collection.query.return_value = {
-            "ids": [["doc1_0"]],
-            "documents": [["This is the chunk text."]],
-            "metadatas": [
-                [
-                    {
-                        "document_id": "doc1",
-                        "chunk_index": 0,
-                        "page_number": 3,
-                        "document_name": "annual_report.pdf",
-                    }
-                ]
-            ],
-        }
-        mock_chroma_client = MagicMock()
-        mock_chroma_client.get_collection.return_value = mock_collection
+        chunk_row = MagicMock()
+        chunk_row.document_id = doc_id
+        chunk_row.content = "This is the chunk text."
+        chunk_row.page_number = 3
+        chunk_row.citation_type = "page"
+        chunk_row.char_offset_start = None
+        chunk_row.char_offset_end = None
 
-        def _mock_encode(texts, show_progress_bar=False):
-            import numpy as np
+        doc_mock = _make_doc_mock(doc_id, "annual_report.pdf")
+        mock_db = _make_pgvector_db([chunk_row], [doc_mock])
+        mock_repo = AsyncMock()
+        mock_repo.search_chunks_by_embedding = AsyncMock(return_value=[chunk_row])
 
-            return np.zeros((len(texts), 384))
-
-        with patch.object(service, "_get_embedding_model") as mock_model_getter:
-            mock_model = MagicMock()
-            mock_model.encode = _mock_encode
-            mock_model_getter.return_value = mock_model
-
-            with patch("chromadb.HttpClient", return_value=mock_chroma_client):
-                result = await service.query_documents(
-                    user_id=user_id,
-                    query="annual results",
-                    top_k=5,
-                    db=None,
-                )
+        with (
+            patch.object(
+                service,
+                "_get_embedding_model",
+                return_value=MagicMock(encode=_make_mock_encode()),
+            ),
+            patch(
+                "app.repositories.document_repository.DocumentRepository",
+                return_value=mock_repo,
+            ),
+        ):
+            result = await service.query_documents(
+                user_id=user_id,
+                query="annual results",
+                top_k=5,
+                db=mock_db,
+            )
 
         assert len(result.retrieved_chunks) == 1
         chunk = result.retrieved_chunks[0]
@@ -464,35 +494,38 @@ class TestQueryDocumentsChromaFallback:
         """
         service = _make_service()
         user_id = uuid.uuid4()
+        doc_id = uuid.uuid4()
 
-        mock_collection = MagicMock()
-        mock_collection.query.return_value = {
-            "ids": [["doc_42"]],
-            "documents": [["Page 7 content."]],
-            "metadatas": [
-                [{"document_id": "uuid-doc", "chunk_index": 0, "page_number": 7}]
-            ],
-        }
-        mock_chroma_client = MagicMock()
-        mock_chroma_client.get_collection.return_value = mock_collection
+        chunk_row = MagicMock()
+        chunk_row.document_id = doc_id
+        chunk_row.content = "Page 7 content."
+        chunk_row.page_number = 7
+        chunk_row.citation_type = "page"
+        chunk_row.char_offset_start = None
+        chunk_row.char_offset_end = None
 
-        def _mock_encode(texts, show_progress_bar=False):
-            import numpy as np
+        doc_mock = _make_doc_mock(doc_id, "report.pdf")
+        mock_db = _make_pgvector_db([chunk_row], [doc_mock])
+        mock_repo = AsyncMock()
+        mock_repo.search_chunks_by_embedding = AsyncMock(return_value=[chunk_row])
 
-            return np.zeros((len(texts), 384))
-
-        with patch.object(service, "_get_embedding_model") as mock_model_getter:
-            mock_model = MagicMock()
-            mock_model.encode = _mock_encode
-            mock_model_getter.return_value = mock_model
-
-            with patch("chromadb.HttpClient", return_value=mock_chroma_client):
-                result = await service.query_documents(
-                    user_id=user_id,
-                    query="something on page 7",
-                    top_k=5,
-                    db=None,
-                )
+        with (
+            patch.object(
+                service,
+                "_get_embedding_model",
+                return_value=MagicMock(encode=_make_mock_encode()),
+            ),
+            patch(
+                "app.repositories.document_repository.DocumentRepository",
+                return_value=mock_repo,
+            ),
+        ):
+            result = await service.query_documents(
+                user_id=user_id,
+                query="something on page 7",
+                top_k=5,
+                db=mock_db,
+            )
 
         assert result.retrieved_chunks[0].page_number == 7
 
@@ -505,55 +538,51 @@ class TestQueryDocumentsChromaFallback:
         service = _make_service()
         user_id = uuid.uuid4()
 
-        mock_collection = MagicMock()
-        mock_collection.query.return_value = {
-            "ids": [["doc_0", "doc_1", "doc_2"]],
-            "documents": [["Content A.", "Content B.", "Content C."]],
-            "metadatas": [
-                [
-                    {
-                        "document_id": "d1",
-                        "chunk_index": 0,
-                        "page_number": 1,
-                        "document_name": "file1.pdf",
-                    },
-                    {
-                        "document_id": "d2",
-                        "chunk_index": 0,
-                        "page_number": 5,
-                        "document_name": "file2.pdf",
-                    },
-                    {
-                        "document_id": "d3",
-                        "chunk_index": 0,
-                        "page_number": 10,
-                        "document_name": "file3.pdf",
-                    },
-                ]
-            ],
-        }
-        mock_chroma_client = MagicMock()
-        mock_chroma_client.get_collection.return_value = mock_collection
+        doc_ids = [uuid.uuid4() for _ in range(3)]
+        chunk_data = [
+            (doc_ids[0], "Content A.", 1, "file1.pdf"),
+            (doc_ids[1], "Content B.", 5, "file2.pdf"),
+            (doc_ids[2], "Content C.", 10, "file3.pdf"),
+        ]
+        chunk_rows = []
+        doc_mocks = []
+        for doc_id, content, page, fname in chunk_data:
+            row = MagicMock()
+            row.document_id = doc_id
+            row.content = content
+            row.page_number = page
+            row.citation_type = "page"
+            row.char_offset_start = None
+            row.char_offset_end = None
+            chunk_rows.append(row)
+            doc_mocks.append(_make_doc_mock(doc_id, fname))
 
-        def _mock_encode(texts, show_progress_bar=False):
-            import numpy as np
+        mock_db = _make_pgvector_db(chunk_rows, doc_mocks)
+        mock_repo = AsyncMock()
+        mock_repo.search_chunks_by_embedding = AsyncMock(return_value=chunk_rows)
 
-            return np.zeros((len(texts), 384))
-
-        with patch.object(service, "_get_embedding_model") as mock_model_getter:
-            mock_model = MagicMock()
-            mock_model.encode = _mock_encode
-            mock_model_getter.return_value = mock_model
-
-            with patch("chromadb.HttpClient", return_value=mock_chroma_client):
-                result = await service.query_documents(
-                    user_id=user_id,
-                    query="multi-chunk query",
-                    top_k=5,
-                    db=None,
-                )
+        with (
+            patch.object(
+                service,
+                "_get_embedding_model",
+                return_value=MagicMock(encode=_make_mock_encode()),
+            ),
+            patch(
+                "app.repositories.document_repository.DocumentRepository",
+                return_value=mock_repo,
+            ),
+        ):
+            result = await service.query_documents(
+                user_id=user_id,
+                query="multi-chunk query",
+                top_k=5,
+                db=mock_db,
+            )
 
         # Verify 3 chunks were retrieved
+        assert len(result.retrieved_chunks) == 3
+        # Verify context contains at least one citation marker per chunk
+        assert result.context.count("[Source:") == 3
         assert len(result.retrieved_chunks) == 3
         # Verify context contains at least one citation marker per chunk
         assert result.context.count("[Source:") == 3
@@ -787,11 +816,11 @@ class TestFormatCitations:
 
 
 class TestQueryDocumentsDocumentIdsFilter:
-    """Tests that document_ids filtering is passed through to ChromaDB."""
+    """Tests that document_ids filtering is passed through to the pgvector repository."""
 
     @pytest.mark.asyncio
     async def test_document_ids_single_filter_passed_to_chroma(self) -> None:
-        """When one document_id is specified, a $eq where clause should be used.
+        """When one document_id is specified, it is passed to search_chunks_by_embedding.
 
         Validates: Requirements 4.6
         """
@@ -799,47 +828,40 @@ class TestQueryDocumentsDocumentIdsFilter:
         user_id = uuid.uuid4()
         doc_id = str(uuid.uuid4())
 
-        captured_where: list[dict] = []
+        mock_db = _make_pgvector_db([])
+        mock_repo = AsyncMock()
+        mock_repo.search_chunks_by_embedding = AsyncMock(return_value=[])
 
-        mock_collection = MagicMock()
+        with (
+            patch.object(
+                service,
+                "_get_embedding_model",
+                return_value=MagicMock(encode=_make_mock_encode()),
+            ),
+            patch(
+                "app.repositories.document_repository.DocumentRepository",
+                return_value=mock_repo,
+            ),
+        ):
+            await service.query_documents(
+                user_id=user_id,
+                query="filter by doc id",
+                document_ids=[doc_id],
+                top_k=5,
+                db=mock_db,
+            )
 
-        def _mock_query(**kwargs):
-            if "where" in kwargs:
-                captured_where.append(kwargs["where"])
-            return {"ids": [[]], "documents": [[]], "metadatas": [[]]}
-
-        mock_collection.query.side_effect = _mock_query
-        mock_chroma_client = MagicMock()
-        mock_chroma_client.get_collection.return_value = mock_collection
-
-        def _mock_encode(texts, show_progress_bar=False):
-            import numpy as np
-
-            return np.zeros((len(texts), 384))
-
-        with patch.object(service, "_get_embedding_model") as mock_model_getter:
-            mock_model = MagicMock()
-            mock_model.encode = _mock_encode
-            mock_model_getter.return_value = mock_model
-
-            with patch("chromadb.HttpClient", return_value=mock_chroma_client):
-                await service.query_documents(
-                    user_id=user_id,
-                    query="filter by doc id",
-                    document_ids=[doc_id],
-                    top_k=5,
-                    db=None,
-                )
-
-        # The where clause should have been captured
-        assert len(captured_where) == 1
-        where = captured_where[0]
-        assert "document_id" in where
-        assert where["document_id"] == {"$eq": doc_id}
+        mock_repo.search_chunks_by_embedding.assert_called_once()
+        call_kwargs = mock_repo.search_chunks_by_embedding.call_args.kwargs
+        # document_ids is converted to a list of UUIDs before being passed
+        passed_ids = call_kwargs.get("document_ids")
+        assert passed_ids is not None
+        assert len(passed_ids) == 1
+        assert str(passed_ids[0]) == doc_id
 
     @pytest.mark.asyncio
     async def test_document_ids_multiple_filter_uses_in_operator(self) -> None:
-        """When multiple document_ids are specified, a $in where clause should be used.
+        """When multiple document_ids are specified, all are passed to the repo.
 
         Validates: Requirements 4.6
         """
@@ -847,128 +869,108 @@ class TestQueryDocumentsDocumentIdsFilter:
         user_id = uuid.uuid4()
         doc_ids = [str(uuid.uuid4()), str(uuid.uuid4())]
 
-        captured_where: list[dict] = []
+        mock_db = _make_pgvector_db([])
+        mock_repo = AsyncMock()
+        mock_repo.search_chunks_by_embedding = AsyncMock(return_value=[])
 
-        mock_collection = MagicMock()
+        with (
+            patch.object(
+                service,
+                "_get_embedding_model",
+                return_value=MagicMock(encode=_make_mock_encode()),
+            ),
+            patch(
+                "app.repositories.document_repository.DocumentRepository",
+                return_value=mock_repo,
+            ),
+        ):
+            await service.query_documents(
+                user_id=user_id,
+                query="filter by multiple doc ids",
+                document_ids=doc_ids,
+                top_k=5,
+                db=mock_db,
+            )
 
-        def _mock_query(**kwargs):
-            if "where" in kwargs:
-                captured_where.append(kwargs["where"])
-            return {"ids": [[]], "documents": [[]], "metadatas": [[]]}
-
-        mock_collection.query.side_effect = _mock_query
-        mock_chroma_client = MagicMock()
-        mock_chroma_client.get_collection.return_value = mock_collection
-
-        def _mock_encode(texts, show_progress_bar=False):
-            import numpy as np
-
-            return np.zeros((len(texts), 384))
-
-        with patch.object(service, "_get_embedding_model") as mock_model_getter:
-            mock_model = MagicMock()
-            mock_model.encode = _mock_encode
-            mock_model_getter.return_value = mock_model
-
-            with patch("chromadb.HttpClient", return_value=mock_chroma_client):
-                await service.query_documents(
-                    user_id=user_id,
-                    query="filter by multiple doc ids",
-                    document_ids=doc_ids,
-                    top_k=5,
-                    db=None,
-                )
-
-        assert len(captured_where) == 1
-        where = captured_where[0]
-        assert "document_id" in where
-        assert where["document_id"] == {"$in": doc_ids}
+        mock_repo.search_chunks_by_embedding.assert_called_once()
+        call_kwargs = mock_repo.search_chunks_by_embedding.call_args.kwargs
+        passed_ids = call_kwargs.get("document_ids")
+        assert passed_ids is not None
+        assert len(passed_ids) == 2
+        assert {str(i) for i in passed_ids} == set(doc_ids)
 
     @pytest.mark.asyncio
     async def test_no_document_ids_sends_no_where_filter(self) -> None:
-        """When document_ids is None, no where clause should be passed to ChromaDB.
+        """When document_ids is None, None is passed to search_chunks_by_embedding.
 
         Validates: Requirements 4.6
         """
         service = _make_service()
         user_id = uuid.uuid4()
 
-        captured_kwargs: list[dict] = []
+        mock_db = _make_pgvector_db([])
+        mock_repo = AsyncMock()
+        mock_repo.search_chunks_by_embedding = AsyncMock(return_value=[])
 
-        mock_collection = MagicMock()
+        with (
+            patch.object(
+                service,
+                "_get_embedding_model",
+                return_value=MagicMock(encode=_make_mock_encode()),
+            ),
+            patch(
+                "app.repositories.document_repository.DocumentRepository",
+                return_value=mock_repo,
+            ),
+        ):
+            await service.query_documents(
+                user_id=user_id,
+                query="no filter",
+                document_ids=None,
+                top_k=5,
+                db=mock_db,
+            )
 
-        def _mock_query(**kwargs):
-            captured_kwargs.append(kwargs)
-            return {"ids": [[]], "documents": [[]], "metadatas": [[]]}
-
-        mock_collection.query.side_effect = _mock_query
-        mock_chroma_client = MagicMock()
-        mock_chroma_client.get_collection.return_value = mock_collection
-
-        def _mock_encode(texts, show_progress_bar=False):
-            import numpy as np
-
-            return np.zeros((len(texts), 384))
-
-        with patch.object(service, "_get_embedding_model") as mock_model_getter:
-            mock_model = MagicMock()
-            mock_model.encode = _mock_encode
-            mock_model_getter.return_value = mock_model
-
-            with patch("chromadb.HttpClient", return_value=mock_chroma_client):
-                await service.query_documents(
-                    user_id=user_id,
-                    query="no filter",
-                    document_ids=None,
-                    top_k=5,
-                    db=None,
-                )
-
-        assert len(captured_kwargs) == 1
-        assert "where" not in captured_kwargs[0]
+        mock_repo.search_chunks_by_embedding.assert_called_once()
+        call_kwargs = mock_repo.search_chunks_by_embedding.call_args.kwargs
+        assert call_kwargs.get("document_ids") is None
 
     @pytest.mark.asyncio
     async def test_empty_document_ids_list_sends_no_where_filter(self) -> None:
-        """When document_ids is an empty list, no where clause should be sent.
+        """When document_ids is an empty list, None is passed to search_chunks_by_embedding.
 
         Validates: Requirements 4.6
         """
         service = _make_service()
         user_id = uuid.uuid4()
 
-        captured_kwargs: list[dict] = []
+        mock_db = _make_pgvector_db([])
+        mock_repo = AsyncMock()
+        mock_repo.search_chunks_by_embedding = AsyncMock(return_value=[])
 
-        mock_collection = MagicMock()
+        with (
+            patch.object(
+                service,
+                "_get_embedding_model",
+                return_value=MagicMock(encode=_make_mock_encode()),
+            ),
+            patch(
+                "app.repositories.document_repository.DocumentRepository",
+                return_value=mock_repo,
+            ),
+        ):
+            await service.query_documents(
+                user_id=user_id,
+                query="empty list filter",
+                document_ids=[],
+                top_k=5,
+                db=mock_db,
+            )
 
-        def _mock_query(**kwargs):
-            captured_kwargs.append(kwargs)
-            return {"ids": [[]], "documents": [[]], "metadatas": [[]]}
-
-        mock_collection.query.side_effect = _mock_query
-        mock_chroma_client = MagicMock()
-        mock_chroma_client.get_collection.return_value = mock_collection
-
-        def _mock_encode(texts, show_progress_bar=False):
-            import numpy as np
-
-            return np.zeros((len(texts), 384))
-
-        with patch.object(service, "_get_embedding_model") as mock_model_getter:
-            mock_model = MagicMock()
-            mock_model.encode = _mock_encode
-            mock_model_getter.return_value = mock_model
-
-            with patch("chromadb.HttpClient", return_value=mock_chroma_client):
-                await service.query_documents(
-                    user_id=user_id,
-                    query="empty list filter",
-                    document_ids=[],
-                    top_k=5,
-                    db=None,
-                )
-
-        assert len(captured_kwargs) == 1
-        assert "where" not in captured_kwargs[0]
+        mock_repo.search_chunks_by_embedding.assert_called_once()
+        call_kwargs = mock_repo.search_chunks_by_embedding.call_args.kwargs
+        # Empty list → converted to None (falsy) so no filter is applied
+        assert not call_kwargs.get("document_ids")
 
 
 # ---------------------------------------------------------------------------

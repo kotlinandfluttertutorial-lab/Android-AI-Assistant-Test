@@ -18,6 +18,7 @@
  */
 package com.aiassistant.feature.rag
 
+import android.content.res.Configuration
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -58,8 +59,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.aiassistant.core.ui.AppColors
+import com.aiassistant.core.ui.AppTheme
 import com.aiassistant.core.ui.components.SwipeRevealLayout
 import com.aiassistant.core.ui.elevation
 import com.aiassistant.core.ui.motion.pressScale
@@ -347,3 +350,66 @@ internal fun Long.formatFileSize(): String = when {
 private fun Long.formatDateTime(): String = DateTimeFormatter.ofPattern("MMM d, yyyy · h:mm a")
     .withZone(ZoneId.systemDefault())
     .format(Instant.ofEpochMilli(this))
+
+@Preview(showBackground = true, name = "Light Mode")
+@Preview(showBackground = true, name = "Dark Mode", uiMode = Configuration.UI_MODE_NIGHT_YES)
+@Composable
+private fun DocumentItemPreview() {
+    val sampleDocument = Document(
+        id = "doc1",
+        userId = "user123",
+        fileName = "Annual_Report_2023.pdf",
+        mimeType = "application/pdf",
+        sizeBytes = 1024L * 1024L * 3 + 512 * 1024, // 3.5 MB
+        ingestionStatus = IngestionStatus.READY,
+        createdAt = System.currentTimeMillis() - (1000 * 60 * 60 * 24) // 1 day ago
+    )
+
+    AppTheme(dynamicColor = false) {
+        Column(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            DocumentItem(
+                document = sampleDocument,
+                onDocumentClick = {},
+                onDeleteClick = {}
+            )
+            DocumentItem(
+                document = sampleDocument.copy(
+                    id = "doc2",
+                    fileName = "Knowledge_Base.docx",
+                    ingestionStatus = IngestionStatus.PROCESSING
+                ),
+                onDocumentClick = {},
+                onDeleteClick = {}
+            )
+            DocumentItem(
+                document = sampleDocument.copy(
+                    id = "doc3",
+                    fileName = "Budget_Draft.pdf",
+                    ingestionStatus = IngestionStatus.FAILED
+                ),
+                onDocumentClick = {},
+                onDeleteClick = {}
+            )
+            DocumentItem(
+                document = sampleDocument.copy(
+                    id = "doc4",
+                    fileName = "System_Logs.txt",
+                    ingestionStatus = IngestionStatus.PENDING
+                ),
+                onDocumentClick = {},
+                onDeleteClick = {}
+            )
+            DocumentItem(
+                document = sampleDocument,
+                onDocumentClick = {},
+                onDeleteClick = {},
+                isDeleting = true
+            )
+        }
+    }
+}
