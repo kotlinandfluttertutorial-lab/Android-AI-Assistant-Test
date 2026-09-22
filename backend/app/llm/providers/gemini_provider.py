@@ -501,6 +501,10 @@ class GeminiProvider(LLMProvider):
                     is_transient=False,
                 ) from exc
 
+            except (LLMQuotaError, LLMConfigurationError, LLMRateLimitError, LLMTimeoutError):
+                # Our own typed exceptions must propagate unchanged — do not retry them.
+                raise
+
             except Exception as exc:
                 # Unexpected exception type (network, DNS, etc.) — retry.
                 last_exc = exc
@@ -597,6 +601,11 @@ class GeminiProvider(LLMProvider):
                 status_code=status_code,
                 is_transient=status_code in _TRANSIENT_STATUS_CODES,
             ) from exc
+
+        except (LLMQuotaError, LLMConfigurationError, LLMRateLimitError, LLMTimeoutError):
+            # Our own typed exceptions must propagate unchanged so callers
+            # (e.g. stream() → fallback logic) can catch them specifically.
+            raise
 
         except Exception as exc:
             raise LLMProviderError(
