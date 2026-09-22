@@ -637,13 +637,13 @@ class GeminiClient(BaseLLMClient):
 
     @property
     def cost_per_input_token(self) -> Decimal:
-        """Gemini 3.x Flash approximate input pricing."""
-        return Decimal("0.00000015")
+        """Gemini 1.5 Flash input pricing: $1.25 / 1M tokens."""
+        return Decimal("0.00000125")
 
     @property
     def cost_per_output_token(self) -> Decimal:
-        """Gemini 3.x Flash approximate output pricing."""
-        return Decimal("0.00000060")
+        """Gemini 1.5 Flash output pricing: $3.75 / 1M tokens."""
+        return Decimal("0.00000375")
 
 
 # ---------------------------------------------------------------------------

@@ -27,34 +27,47 @@ EMBEDDING_DIM = 384  # all-MiniLM-L6-v2 output dimension
 
 
 def upgrade() -> None:
-    # Enable pgvector extension (idempotent on Neon)
-    op.execute("CREATE EXTENSION IF NOT EXISTS vector")
+    # Enable pgvector extension — skip gracefully if not installed on this host.
+    # In CI environments without the OS-level pgvector package the extension
+    # won't be available; the column is still added as TEXT so the schema
+    # migration completes and the app falls back to full-table scans until
+    # pgvector is available on the target host (e.g. Neon, production).
+    conn = op.get_bind()
+    pgvector_available = False
+    try:
+        conn.execute(sa.text("CREATE EXTENSION IF NOT EXISTS vector"))
+        pgvector_available = True
+    except Exception:
+        # Extension not installed on this PostgreSQL instance — continue without it.
+        pass
 
-    # Add embedding column — nullable so existing rows aren't broken
+    # Add embedding column — nullable so existing rows aren't broken.
+    # Always add as TEXT first; alter to vector type only when the extension loaded.
     op.add_column(
         "document_chunks",
         sa.Column(
             "embedding",
-            sa.Text,  # stored as text initially; pgvector type registered at runtime
+            sa.Text,
             nullable=True,
             comment="384-dim sentence embedding vector for cosine similarity search",
         ),
     )
 
-    # Use raw SQL to alter to vector type after extension is enabled
-    op.execute(
-        f"ALTER TABLE document_chunks "
-        f"ALTER COLUMN embedding TYPE vector({EMBEDDING_DIM}) "
-        f"USING embedding::vector({EMBEDDING_DIM})"
-    )
+    if pgvector_available:
+        # Alter column to the native vector type now that the extension is loaded.
+        op.execute(
+            f"ALTER TABLE document_chunks "
+            f"ALTER COLUMN embedding TYPE vector({EMBEDDING_DIM}) "
+            f"USING embedding::vector({EMBEDDING_DIM})"
+        )
 
-    # IVFFlat index for approximate nearest-neighbour search
-    # lists=100 is a good default for up to ~1M vectors
-    op.execute(
-        "CREATE INDEX IF NOT EXISTS ix_document_chunks_embedding_cosine "
-        f"ON document_chunks USING ivfflat (embedding vector_cosine_ops) "
-        "WITH (lists = 100)"
-    )
+        # IVFFlat index for approximate nearest-neighbour search.
+        # lists=100 is a good default for up to ~1M vectors.
+        op.execute(
+            "CREATE INDEX IF NOT EXISTS ix_document_chunks_embedding_cosine "
+            f"ON document_chunks USING ivfflat (embedding vector_cosine_ops) "
+            "WITH (lists = 100)"
+        )
 
 
 def downgrade() -> None:

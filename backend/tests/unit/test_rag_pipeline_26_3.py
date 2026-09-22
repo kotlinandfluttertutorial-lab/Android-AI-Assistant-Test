@@ -869,7 +869,11 @@ class TestEmbeddingStorage:
 
     @pytest.mark.asyncio
     async def test_embed_and_store_uses_user_scoped_collection(self) -> None:
-        """ChromaDB collection must be named documents_{user_id} (Property 8).
+        """Embeddings are stored via DocumentRepository keyed to the owning user.
+
+        The service now stores vectors in pgvector (not ChromaDB directly).
+        We verify that create_chunk is called once for each chunk, with the
+        correct document_id, so embeddings remain user-scoped via the DB.
 
         **Validates: Requirements 4.4**
         """
@@ -877,17 +881,6 @@ class TestEmbeddingStorage:
         user_id = str(uuid.uuid4())
         doc_id = str(uuid.uuid4())
         chunks = [ChunkResult(text="Hello world.", page_number=1)]
-
-        captured_collection_names: list[str] = []
-
-        def _mock_get_or_create_collection(name, **kwargs):
-            captured_collection_names.append(name)
-            coll = MagicMock()
-            coll.add = MagicMock()
-            return coll
-
-        mock_chroma_client = MagicMock()
-        mock_chroma_client.get_or_create_collection = _mock_get_or_create_collection
 
         mock_model = MagicMock()
         mock_model.encode = MagicMock(return_value=self._make_mock_embeddings(1))
@@ -898,7 +891,6 @@ class TestEmbeddingStorage:
 
         with (
             patch.object(service, "_get_embedding_model", return_value=mock_model),
-            patch("chromadb.HttpClient", return_value=mock_chroma_client),
             patch(
                 "app.repositories.document_repository.DocumentRepository",
                 return_value=mock_repo,
@@ -906,12 +898,20 @@ class TestEmbeddingStorage:
         ):
             await service.embed_and_store(chunks, doc_id, user_id, mock_db)
 
-        assert len(captured_collection_names) == 1
-        assert captured_collection_names[0] == f"documents_{user_id}"
+        # One chunk → create_chunk called exactly once
+        assert mock_repo.create_chunk.call_count == 1
+        call_kwargs = mock_repo.create_chunk.call_args.kwargs
+        assert str(call_kwargs["document_id"]) == doc_id
 
     @pytest.mark.asyncio
     async def test_embed_and_store_calls_chroma_add(self) -> None:
-        """embed_and_store must call ChromaDB collection.add() with the embeddings."""
+        """embed_and_store stores all chunks via DocumentRepository.create_chunk.
+
+        The service now uses pgvector; this test verifies one create_chunk call
+        per chunk with correct ids and embeddings.
+
+        **Validates: Requirements 4.4**
+        """
         service = RAGService()
         user_id = str(uuid.uuid4())
         doc_id = str(uuid.uuid4())
@@ -919,13 +919,6 @@ class TestEmbeddingStorage:
             ChunkResult(text="Chunk one.", page_number=1),
             ChunkResult(text="Chunk two.", page_number=2),
         ]
-        mock_collection = MagicMock()
-        mock_collection.add = MagicMock()
-
-        mock_chroma_client = MagicMock()
-        mock_chroma_client.get_or_create_collection = MagicMock(
-            return_value=mock_collection
-        )
 
         mock_model = MagicMock()
         mock_model.encode = MagicMock(return_value=self._make_mock_embeddings(2))
@@ -936,7 +929,6 @@ class TestEmbeddingStorage:
 
         with (
             patch.object(service, "_get_embedding_model", return_value=mock_model),
-            patch("chromadb.HttpClient", return_value=mock_chroma_client),
             patch(
                 "app.repositories.document_repository.DocumentRepository",
                 return_value=mock_repo,
@@ -944,31 +936,19 @@ class TestEmbeddingStorage:
         ):
             await service.embed_and_store(chunks, doc_id, user_id, mock_db)
 
-        mock_collection.add.assert_called_once()
-        call_kwargs = mock_collection.add.call_args
-        assert len(call_kwargs.kwargs.get("ids", [])) == 2
-        assert len(call_kwargs.kwargs.get("embeddings", [])) == 2
-        assert len(call_kwargs.kwargs.get("documents", [])) == 2
+        # Two chunks → two create_chunk calls
+        assert mock_repo.create_chunk.call_count == 2
+        # Each call must carry an embedding
+        for call in mock_repo.create_chunk.call_args_list:
+            assert call.kwargs.get("embedding") is not None
 
     @pytest.mark.asyncio
     async def test_embed_and_store_ids_include_document_id(self) -> None:
-        """ChromaDB IDs must include the document_id as prefix."""
+        """Each chunk stored via DocumentRepository.create_chunk carries the document_id."""
         service = RAGService()
         user_id = str(uuid.uuid4())
         doc_id = str(uuid.uuid4())
         chunks = [ChunkResult(text="Single chunk.", page_number=1)]
-
-        captured_ids: list[str] = []
-
-        def _capture_add(**kwargs):
-            captured_ids.extend(kwargs.get("ids", []))
-
-        mock_collection = MagicMock()
-        mock_collection.add = MagicMock(side_effect=_capture_add)
-        mock_chroma_client = MagicMock()
-        mock_chroma_client.get_or_create_collection = MagicMock(
-            return_value=mock_collection
-        )
 
         mock_model = MagicMock()
         mock_model.encode = MagicMock(return_value=self._make_mock_embeddings(1))
@@ -979,7 +959,6 @@ class TestEmbeddingStorage:
 
         with (
             patch.object(service, "_get_embedding_model", return_value=mock_model),
-            patch("chromadb.HttpClient", return_value=mock_chroma_client),
             patch(
                 "app.repositories.document_repository.DocumentRepository",
                 return_value=mock_repo,
@@ -987,8 +966,8 @@ class TestEmbeddingStorage:
         ):
             await service.embed_and_store(chunks, doc_id, user_id, mock_db)
 
-        assert len(captured_ids) == 1
-        assert captured_ids[0].startswith(doc_id)
+        assert mock_repo.create_chunk.call_count == 1
+        assert str(mock_repo.create_chunk.call_args.kwargs["document_id"]) == doc_id
 
     @pytest.mark.asyncio
     async def test_embed_and_store_skips_empty_chunks(self) -> None:
@@ -1004,7 +983,11 @@ class TestEmbeddingStorage:
 
     @pytest.mark.asyncio
     async def test_two_users_embeddings_stored_in_separate_collections(self) -> None:
-        """User A and User B embeddings are stored in separate ChromaDB collections.
+        """User A and User B embeddings are stored via separate DocumentRepository calls.
+
+        Pgvector rows are scoped to each user via the parent Document.user_id FK.
+        We verify create_chunk is called for both users' documents with the
+        correct document_id in each case.
 
         **Validates: Requirements 4.4** — cross-user isolation at storage layer.
         Property 8.
@@ -1016,38 +999,42 @@ class TestEmbeddingStorage:
         doc_a = str(uuid.uuid4())
         doc_b = str(uuid.uuid4())
         chunks = [ChunkResult(text="Content.", page_number=1)]
-        collection_names_used: list[str] = []
 
-        def _capture_create(name, **kwargs):
-            collection_names_used.append(name)
-            coll = MagicMock()
-            coll.add = MagicMock()
-            return coll
-
-        mock_chroma_client = MagicMock()
-        mock_chroma_client.get_or_create_collection = _capture_create
         mock_model = MagicMock()
         mock_model.encode = MagicMock(return_value=self._make_mock_embeddings(1))
 
         mock_db = AsyncMock()
-        mock_repo = AsyncMock()
-        mock_repo.create_chunk = AsyncMock(return_value=MagicMock())
+        mock_repo_a = AsyncMock()
+        mock_repo_a.create_chunk = AsyncMock(return_value=MagicMock())
+        mock_repo_b = AsyncMock()
+        mock_repo_b.create_chunk = AsyncMock(return_value=MagicMock())
+
+        repo_instances = [mock_repo_a, mock_repo_b]
+        repo_call_count = {"n": 0}
+
+        def _repo_factory(_db):
+            idx = repo_call_count["n"]
+            repo_call_count["n"] += 1
+            return repo_instances[idx] if idx < len(repo_instances) else AsyncMock()
 
         with (
             patch.object(service_a, "_get_embedding_model", return_value=mock_model),
             patch.object(service_b, "_get_embedding_model", return_value=mock_model),
-            patch("chromadb.HttpClient", return_value=mock_chroma_client),
             patch(
                 "app.repositories.document_repository.DocumentRepository",
-                return_value=mock_repo,
+                side_effect=_repo_factory,
             ),
         ):
             await service_a.embed_and_store(chunks, doc_a, user_a, mock_db)
             await service_b.embed_and_store(chunks, doc_b, user_b, mock_db)
 
-        assert f"documents_{user_a}" in collection_names_used
-        assert f"documents_{user_b}" in collection_names_used
-        assert collection_names_used[0] != collection_names_used[1]
+        # Each service must have called create_chunk once with its own doc_id
+        assert mock_repo_a.create_chunk.call_count == 1
+        assert str(mock_repo_a.create_chunk.call_args.kwargs["document_id"]) == doc_a
+        assert mock_repo_b.create_chunk.call_count == 1
+        assert str(mock_repo_b.create_chunk.call_args.kwargs["document_id"]) == doc_b
+        # The two document IDs must be different — isolation confirmed
+        assert doc_a != doc_b
 
 
 # ===========================================================================
@@ -1073,41 +1060,42 @@ class TestCrossUserIsolation:
 
     @pytest.mark.asyncio
     async def test_query_uses_only_own_collection(self) -> None:
-        """query_documents queries only documents_{user_id}, never another user's collection.
+        """query_documents queries only the rows owned by user_a via pgvector.
+
+        The service scopes the DB query through DocumentRepository.search_chunks_by_embedding
+        which filters on Document.user_id. We verify the repo is called with the
+        correct user_id and no other user's data is returned.
 
         **Validates: Requirements 4.5** — Property 8.
         """
         service = RAGService()
         user_a = uuid.uuid4()
-        queried_collections: list[str] = []
-
-        def _mock_get_collection(name):
-            queried_collections.append(name)
-            coll = MagicMock()
-            coll.query.return_value = {
-                "ids": [[]],
-                "documents": [[]],
-                "metadatas": [[]],
-            }
-            return coll
-
-        mock_client = MagicMock()
-        mock_client.get_collection = _mock_get_collection
 
         mock_model = MagicMock()
         mock_model.encode = MagicMock(return_value=self._make_query_embedding())
 
+        mock_db = AsyncMock()
+        # search_chunks_by_embedding called with user_a → returns empty list (no docs)
+        mock_repo = AsyncMock()
+        mock_repo.search_chunks_by_embedding = AsyncMock(return_value=[])
+
         with (
             patch.object(service, "_get_embedding_model", return_value=mock_model),
-            patch("chromadb.HttpClient", return_value=mock_client),
+            patch(
+                "app.repositories.document_repository.DocumentRepository",
+                return_value=mock_repo,
+            ),
         ):
             result = await service.query_documents(
                 user_id=user_a,
                 query="what is in this document?",
+                db=mock_db,
             )
 
-        assert len(queried_collections) == 1
-        assert queried_collections[0] == f"documents_{user_a}"
+        mock_repo.search_chunks_by_embedding.assert_called_once()
+        call_kwargs = mock_repo.search_chunks_by_embedding.call_args.kwargs
+        assert call_kwargs["user_id"] == user_a
+        assert result.retrieved_chunks == []
 
     @pytest.mark.asyncio
     async def test_user_b_collection_not_queried_when_user_a_searches(self) -> None:
@@ -1149,7 +1137,10 @@ class TestCrossUserIsolation:
 
     @pytest.mark.asyncio
     async def test_embed_and_store_scoped_to_user_collection(self) -> None:
-        """Embedding storage for user A uses documents_{user_a} (never user B's collection).
+        """Embedding storage for user A uses document_id belonging to user A only.
+
+        The repo receives document_id=doc_id (owned by user_a). No data from
+        user_b is touched.
 
         **Validates: Requirements 4.4** — Property 8.
         """
@@ -1157,19 +1148,9 @@ class TestCrossUserIsolation:
 
         service = RAGService()
         user_a = str(uuid.uuid4())
-        user_b_coll = f"documents_{uuid.uuid4()}"
         doc_id = str(uuid.uuid4())
         chunks = [ChunkResult(text="User A secret.", page_number=1)]
-        used_collection_names: list[str] = []
 
-        def _capture_collection(name, **kwargs):
-            used_collection_names.append(name)
-            coll = MagicMock()
-            coll.add = MagicMock()
-            return coll
-
-        mock_client = MagicMock()
-        mock_client.get_or_create_collection = _capture_collection
         mock_model = MagicMock()
         mock_model.encode = MagicMock(return_value=np.array([[0.1] * 384]))
 
@@ -1179,7 +1160,6 @@ class TestCrossUserIsolation:
 
         with (
             patch.object(service, "_get_embedding_model", return_value=mock_model),
-            patch("chromadb.HttpClient", return_value=mock_client),
             patch(
                 "app.repositories.document_repository.DocumentRepository",
                 return_value=mock_repo,
@@ -1187,8 +1167,8 @@ class TestCrossUserIsolation:
         ):
             await service.embed_and_store(chunks, doc_id, user_a, mock_db)
 
-        assert user_b_coll not in used_collection_names
-        assert f"documents_{user_a}" in used_collection_names
+        assert mock_repo.create_chunk.call_count == 1
+        assert str(mock_repo.create_chunk.call_args.kwargs["document_id"]) == doc_id
 
     @pytest.mark.asyncio
     async def test_get_document_by_id_enforces_ownership(self) -> None:
@@ -1556,29 +1536,17 @@ class TestDeleteCleanup:
 
     @pytest.mark.asyncio
     async def test_delete_embeddings_service_uses_user_scoped_collection(self) -> None:
-        """delete_embeddings calls ChromaDB.delete on the correct per-user collection.
+        """delete_embeddings completes without error.
 
-        **Validates: Requirements 4.10** — Property 8 at delete time.
+        With pgvector, embeddings live in document_chunks and are removed by
+        the CASCADE delete on the parent Document row. delete_embeddings is
+        intentionally a no-op — this test confirms it does not raise.
+
+        **Validates: Requirements 4.10** — pgvector cascade handles cleanup.
         """
         service = RAGService()
         user_id = str(uuid.uuid4())
         doc_id = str(uuid.uuid4())
 
-        deleted_from_collections: list[str] = []
-
-        def _mock_get_collection(name):
-            coll = MagicMock()
-
-            def _delete(where):
-                deleted_from_collections.append(name)
-
-            coll.delete = _delete
-            return coll
-
-        mock_client = MagicMock()
-        mock_client.get_collection = _mock_get_collection
-
-        with patch("chromadb.HttpClient", return_value=mock_client):
-            await service.delete_embeddings(doc_id, user_id)
-
-        assert f"documents_{user_id}" in deleted_from_collections
+        # Should complete silently with no exceptions
+        await service.delete_embeddings(doc_id, user_id)

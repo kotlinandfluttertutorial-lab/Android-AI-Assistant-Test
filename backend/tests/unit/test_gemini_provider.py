@@ -31,7 +31,7 @@ os.environ.setdefault("SECRET_KEY", "test-secret-32-chars-long-minimum!")
 os.environ.setdefault("DATABASE_URL", "postgresql+asyncpg://test:test@localhost/test")
 os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
 os.environ.setdefault("GEMINI_API_KEY", "test-gemini-key")
-# AES_ENCRYPTION_KEY is set by conftest.py — not repeated here to avoid false-positive secret scans.
+# AES_ENCRYPTION_KEY is set by conftest.py ï¿½ not repeated here to avoid false-positive secret scans.
 
 from app.llm.base import LLMRequest
 from app.llm.exceptions import (
@@ -78,10 +78,22 @@ def _make_sdk_response(text: str = "Test response.", input_tokens: int = 10, out
 
 
 def _make_api_error(code: int, message: str = "API error") -> Exception:
-    """Build a mock google.genai APIError with a .code attribute."""
+    """Build a real google.genai APIError subclass instance with a .code attribute.
+
+    Using MagicMock(spec=APIError) does NOT satisfy isinstance(exc, APIError) checks
+    in the production retry loop, so we construct a genuine subclass instead.
+    """
     from google.genai import errors as genai_errors  # type: ignore[import]
-    exc = MagicMock(spec=genai_errors.APIError)
+
+    class _FakeAPIError(genai_errors.APIError):  # type: ignore[misc]
+        pass
+
+    exc = _FakeAPIError.__new__(_FakeAPIError)
     exc.code = code
+    exc.message = message
+    exc.status = None
+    exc.details = []
+    # Ensure str(exc) returns the message so assertion messages are readable.
     exc.__str__ = lambda self: message  # noqa: E731
     return exc
 

@@ -351,7 +351,7 @@ private fun AssistantAnswerBubble(text: String, citations: List<Citation>) {
             ) {
                 MarkdownText(
                     markdown = text,
-                    contentDescription = text,
+                    contentDescription = text ,
                     modifier = Modifier.fillMaxWidth()
                 )
                 if (citations.isNotEmpty()) {
