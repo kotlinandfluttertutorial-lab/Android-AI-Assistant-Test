@@ -25,13 +25,53 @@ android {
 
     flavorDimensions += "environment"
     productFlavors {
-        create("local") {
+        // ── Stage ─────────────────────────────────────────────────────────────
+        // Connects to the Stage GCP environment.
+        // PLACEHOLDER URLs below — replace with real Stage Cloud Run URLs before deploying.
+        // See docs/environment-configuration.md for the full configuration checklist.
+        create("stage") {
             dimension = "environment"
-            buildConfigField("String", "BASE_URL", "\"http://api.handsonandroid.com/\"")
+            applicationIdSuffix = ".stage"
+            versionNameSuffix = "-stage"
+
+            // REST API base URL for the Stage Cloud Run service.
+            // TODO: Replace placeholder with the real Stage Cloud Run URL.
+            buildConfigField(
+                "String",
+                "API_BASE_URL",
+                "\"https://api-stage.aiassistant.example.com/\""
+            )
+            // WebSocket base URL for the Stage WebSocket service.
+            // TODO: Replace placeholder with the real Stage WebSocket URL.
+            buildConfigField(
+                "String",
+                "WS_BASE_URL",
+                "\"wss://ws-stage.aiassistant.example.com\""
+            )
+            buildConfigField("Boolean", "IS_PRODUCTION", "false")
         }
-        create("cloud") {
+
+        // ── Production ────────────────────────────────────────────────────────
+        // Connects to the Production GCP environment.
+        // The existing Cloud Run URL is preserved as the Production API URL.
+        create("production") {
             dimension = "environment"
-            buildConfigField("String", "BASE_URL", "\"https://ai-assistant-backend-106071012091.asia-south1.run.app/\"")
+            // No applicationIdSuffix — production uses the base applicationId.
+
+            // REST API base URL for the Production Cloud Run service.
+            buildConfigField(
+                "String",
+                "API_BASE_URL",
+                "\"https://ai-assistant-backend-106071012091.asia-south1.run.app/\""
+            )
+            // WebSocket base URL for the Production WebSocket service.
+            // TODO: Replace placeholder with the real Production WebSocket URL.
+            buildConfigField(
+                "String",
+                "WS_BASE_URL",
+                "\"wss://ws.aiassistant.example.com\""
+            )
+            buildConfigField("Boolean", "IS_PRODUCTION", "true")
         }
     }
 

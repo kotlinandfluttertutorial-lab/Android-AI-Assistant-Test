@@ -34,6 +34,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -366,13 +367,19 @@ private fun AssistantAnswerBubble(text: String, citations: List<Citation>) {
         // 4 dp blockquote accent stripe overlaid on the card's left edge
         Box(
             modifier = Modifier
-                .width(4.dp)
-                .matchParentSize()
-                .clip(
-                    RoundedCornerShape(topStart = 4.dp, bottomStart = 18.dp)
-                )
-                .background(accentColor)
-        )
+                .matchParentSize(),
+            contentAlignment = Alignment.CenterStart
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(4.dp)
+                    .fillMaxHeight()
+                    .clip(
+                        RoundedCornerShape(topStart = 4.dp, bottomStart = 18.dp)
+                    )
+                    .background(accentColor)
+            )
+        }
     }
 }
 

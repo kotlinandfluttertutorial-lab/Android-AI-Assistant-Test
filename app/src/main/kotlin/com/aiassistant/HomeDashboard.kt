@@ -89,6 +89,7 @@ import androidx.navigation.NavHostController
 import com.aiassistant.core.ui.AppColors
 import com.aiassistant.core.ui.AppIcons
 import com.aiassistant.core.ui.AppType
+import com.aiassistant.core.ui.components.EnvironmentIndicator
 import com.aiassistant.core.ui.elevation
 import com.aiassistant.core.ui.motion.pressScale
 import com.aiassistant.core.ui.spacing
@@ -172,10 +173,17 @@ fun homeDashboard(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = "AI Assistant",
-                        style = MaterialTheme.typography.titleMedium
-                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)
+                    ) {
+                        Text(
+                            text = "AI Assistant",
+                            style = MaterialTheme.typography.titleMedium
+                        )
+                        // Visible only in stage builds — zero cost in production.
+                        EnvironmentIndicator(isStage = !viewModel.isProduction)
+                    }
                 },
                 navigationIcon = {
                     if (onOpenDrawer != null) {

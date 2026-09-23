@@ -29,6 +29,7 @@ package com.aiassistant
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.aiassistant.core.network.EnvironmentConfig
 import com.aiassistant.domain.model.Conversation
 import com.aiassistant.domain.usecase.conversation.GetConversationsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -55,11 +56,24 @@ sealed class HomeDashboardUiState {
 // ── ViewModel ─────────────────────────────────────────────────────────────────
 
 @HiltViewModel
-class HomeDashboardViewModel @Inject constructor(private val getConversationsUseCase: GetConversationsUseCase) :
-    ViewModel() {
+class HomeDashboardViewModel @Inject constructor(
+    private val getConversationsUseCase: GetConversationsUseCase,
+    environmentConfig: EnvironmentConfig
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow<HomeDashboardUiState>(HomeDashboardUiState.Loading)
     val uiState: StateFlow<HomeDashboardUiState> = _uiState.asStateFlow()
+
+    /**
+     * Whether the running build is Production.
+     *
+     * Derived from [EnvironmentConfig.isProduction] at construction time.
+     * Passed to [EnvironmentIndicator] so UI code does not access BuildConfig directly.
+     *
+     * `true`  → production build, indicator is hidden.
+     * `false` → stage build, amber STAGE badge is visible.
+     */
+    val isProduction: Boolean = environmentConfig.isProduction
 
     /** Formatted date for the hero card greeting (e.g. "Tuesday, 25 Aug"). */
     private val todayDate: String = LocalDate.now().format(

@@ -29,13 +29,40 @@ android {
 
     flavorDimensions += "environment"
     productFlavors {
-        create("local") {
+        // ── Stage ─────────────────────────────────────────────────────────────
+        // Must mirror the flavor names declared in the :app module so AGP can
+        // produce a matching BuildConfig per variant for this library module.
+        create("stage") {
             dimension = "environment"
-            buildConfigField("String", "BASE_URL", "\"http://api.handsonandroid.com/\"")
+
+            buildConfigField(
+                "String",
+                "API_BASE_URL",
+                "\"https://api-stage.aiassistant.example.com/\""
+            )
+            buildConfigField(
+                "String",
+                "WS_BASE_URL",
+                "\"wss://ws-stage.aiassistant.example.com\""
+            )
+            buildConfigField("Boolean", "IS_PRODUCTION", "false")
         }
-        create("cloud") {
+
+        // ── Production ────────────────────────────────────────────────────────
+        create("production") {
             dimension = "environment"
-            buildConfigField("String", "BASE_URL", "\"https://ai-assistant-backend-106071012091.asia-south1.run.app/\"")
+
+            buildConfigField(
+                "String",
+                "API_BASE_URL",
+                "\"https://ai-assistant-backend-106071012091.asia-south1.run.app/\""
+            )
+            buildConfigField(
+                "String",
+                "WS_BASE_URL",
+                "\"wss://ws.aiassistant.example.com\""
+            )
+            buildConfigField("Boolean", "IS_PRODUCTION", "true")
         }
     }
 

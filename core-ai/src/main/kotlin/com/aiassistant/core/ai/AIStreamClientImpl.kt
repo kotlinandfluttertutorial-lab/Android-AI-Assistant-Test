@@ -66,6 +66,7 @@ package com.aiassistant.core.ai
 
 import com.aiassistant.core.common.DispatcherProvider
 import javax.inject.Inject
+import javax.inject.Named
 import javax.inject.Singleton
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.delay
@@ -88,19 +89,22 @@ private const val MAX_RECONNECT_ATTEMPTS = 5
 private const val INITIAL_BACKOFF_MS = 1_000L
 private const val MAX_BACKOFF_MS = 30_000L
 
-/**
- * WebSocket base URL used by core-ai.
- *
- * Matches the backend host defined in `core-network`'s [NetworkModule] but uses the `wss`
- * scheme required for WebSocket connections. Adjust per environment via a Hilt qualifier or
- * BuildConfig field as the project evolves.
- */
-private const val WS_BASE_URL = "ws://192.168.0.158:8000"
-
 @Singleton
 class AIStreamClientImpl @Inject constructor(
     private val okHttpClient: OkHttpClient,
-    private val dispatcherProvider: DispatcherProvider
+    private val dispatcherProvider: DispatcherProvider,
+    /**
+     * WebSocket base URL injected by NetworkModule via @Named("wsBaseUrl").
+     *
+     * Stage:      wss://ws-stage.aiassistant.example.com
+     * Production: wss://ws.aiassistant.example.com
+     *
+     * Provided by [com.aiassistant.core.network.di.NetworkModule.provideWsBaseUrl] which
+     * reads it from [com.aiassistant.core.network.EnvironmentConfig.websocketUrl].
+     * core-ai does not depend on core-network directly; it receives the resolved String
+     * so that the Clean Architecture layer boundary is respected.
+     */
+    @Named("wsBaseUrl") private val wsBaseUrl: String
 ) : AIStreamClient {
 
     /** Active WebSocket connection, or `null` when disconnected. */
@@ -140,7 +144,7 @@ class AIStreamClientImpl @Inject constructor(
         suspend fun openConnection(): Boolean {
             var completedNormally = false
 
-            val url = "$WS_BASE_URL/ws/chat/$conversationId?token=$jwt"
+            val url = "$wsBaseUrl/ws/chat/$conversationId?token=$jwt"
             val request = Request.Builder().url(url).build()
 
             val listener = object : WebSocketListener() {
