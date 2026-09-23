@@ -487,11 +487,19 @@ jobs:
 
       - name: Health check — /health endpoint
         run: |
-          HTTP=$(curl -sSo /dev/null -w "%{http_code}" \
-            --retry 5 --retry-delay 10 --retry-connrefused \
-            http://localhost:8000/health)
-          echo "/health → $HTTP"
-          [[ "$HTTP" == "200" ]] || (echo "::error::Health check failed ($HTTP)" && exit 1)
+          echo "Polling /health (up to 60 s)…"
+          for i in {1..12}; do
+            HTTP=$(curl -sSo /dev/null -w "%{http_code}" \
+              --retry 2 --retry-delay 3 --retry-all-errors \
+              --max-time 10 \
+              http://localhost:8000/health 2>/dev/null || echo "000")
+            echo "  Attempt $i/12: /health → $HTTP"
+            [[ "$HTTP" == "200" ]] && { echo "✅ Backend healthy"; exit 0; }
+            sleep 5
+          done
+          echo "::error::Health check failed after 60 s — last status: $HTTP"
+          docker compose logs backend --tail=50 || true
+          exit 1
 
       - name: Verify Prometheus is scraping
         run: |
