@@ -181,8 +181,8 @@ fun homeDashboard(
                             text = "AI Assistant",
                             style = MaterialTheme.typography.titleMedium
                         )
-                        // Visible only in stage builds — zero cost in production.
-                        EnvironmentIndicator(isStage = !viewModel.isProduction)
+                        // Visible in local and stage builds — zero cost in production.
+                        EnvironmentIndicator(environmentName = viewModel.environmentName)
                     }
                 },
                 navigationIcon = {

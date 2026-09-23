@@ -147,7 +147,7 @@ jobs:
           fi
 
       - name: Run KSP Hilt code generation (debug)
-        run: ./gradlew :app:kspLocalDebugKotlin :app:kspCloudDebugKotlin --stacktrace
+        run: ./gradlew :app:kspStageDebugKotlin :app:kspProductionDebugKotlin --stacktrace
 
       - name: Confirm zero Hilt binding errors
         run: |
@@ -196,7 +196,7 @@ jobs:
           fi
 
       - name: Run KSP code generation for Hilt (debug)
-        run: ./gradlew :app:kspLocalDebugKotlin :app:kspCloudDebugKotlin --stacktrace
+        run: ./gradlew :app:kspStageDebugKotlin :app:kspProductionDebugKotlin --stacktrace
 
       - name: Confirm zero Hilt binding errors
         run: |
@@ -693,7 +693,7 @@ jobs:
           fi
 
       - name: Run Hilt binding check (KSP)
-        run: ./gradlew :app:kspLocalDebugKotlin :app:kspCloudDebugKotlin --stacktrace
+        run: ./gradlew :app:kspStageDebugKotlin :app:kspProductionDebugKotlin --stacktrace
 
   # ──────────────────────────────────────────────────────────────────────────
   # 7. Backend Unit Tests — pytest backend/tests/unit/
@@ -965,7 +965,7 @@ jobs:
             EFFECTIVE_STORE_PASSWORD="android"
           fi
 
-          ./gradlew :app:assembleCloudRelease \
+          ./gradlew :app:assembleProductionRelease \
             -PversionCode="${{ steps.version.outputs.version_code }}" \
             -PversionName="${{ steps.version.outputs.version_name }}" \
             -Pandroid.injected.signing.store.file="$GITHUB_WORKSPACE/app/release.keystore" \
@@ -977,7 +977,7 @@ jobs:
       - name: Locate signed APK
         id: apk
         run: |
-          APK_PATH=$(find app/build/outputs/apk/cloud/release -name "*.apk" | head -1)
+          APK_PATH=$(find app/build/outputs/apk/production/release -name "*.apk" | head -1)
           echo "path=$APK_PATH" >> "$GITHUB_OUTPUT"
           echo "Found APK: $APK_PATH"
 
@@ -985,7 +985,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: release-apk-${{ steps.version.outputs.version_name }}
-          path: app/build/outputs/apk/cloud/release/*.apk
+          path: app/build/outputs/apk/production/release/*.apk
           retention-days: 30
           if-no-files-found: error
 

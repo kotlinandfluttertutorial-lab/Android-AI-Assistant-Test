@@ -80,10 +80,12 @@ class StreamEventSchemaPropertyTest :
             unmockkAll()
         }
 
-        // Build the system-under-test once; OkHttpClient is never called in these tests.
+        // Build the system-under-test once; OkHttpClient and wsBaseUrl are never used
+        // in these parseEvent tests — only the JSON parsing logic is exercised.
         val client = AIStreamClientImpl(
             okHttpClient = mockk<OkHttpClient>(),
-            dispatcherProvider = TestDispatcherProvider()
+            dispatcherProvider = TestDispatcherProvider(),
+            wsBaseUrl = "ws://localhost"
         )
 
         // ── Case A: valid `token` frames → StreamEvent.Token ──────────────────────

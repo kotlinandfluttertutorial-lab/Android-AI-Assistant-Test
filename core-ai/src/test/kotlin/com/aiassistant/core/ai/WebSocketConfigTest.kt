@@ -112,7 +112,22 @@ class WebSocketConfigTest : DescribeSpec({
 
     // ── Stage vs Production isolation ─────────────────────────────────────────
 
-    describe("Stage and Production WebSocket URL isolation") {
+    describe("Three-environment WebSocket URL isolation") {
+
+        it("local wsBaseUrl uses plain ws:// (no TLS — Docker Compose)") {
+            val localWsUrl = "ws://10.0.2.2:8080"
+            localWsUrl shouldStartWith "ws://"
+        }
+
+        it("local wsBaseUrl targets Android Emulator host 10.0.2.2") {
+            val localWsUrl = "ws://10.0.2.2:8080"
+            localWsUrl shouldContain "10.0.2.2"
+        }
+
+        it("local wsBaseUrl uses port 8080 (Nginx gateway)") {
+            val localWsUrl = "ws://10.0.2.2:8080"
+            localWsUrl shouldContain "8080"
+        }
 
         it("stage and production wsBaseUrl values are different") {
             val stageWsUrl = "wss://ws-stage.aiassistant.example.com"
@@ -120,15 +135,22 @@ class WebSocketConfigTest : DescribeSpec({
             (stageWsUrl == prodWsUrl) shouldBe false
         }
 
-        it("no hardcoded local IP address in stage wsBaseUrl") {
+        it("all three wsBaseUrl values are distinct") {
+            val localWsUrl = "ws://10.0.2.2:8080"
+            val stageWsUrl = "wss://ws-stage.aiassistant.example.com"
+            val prodWsUrl  = "wss://ws.aiassistant.example.com"
+            val urls = setOf(localWsUrl, stageWsUrl, prodWsUrl)
+            urls.size shouldBe 3
+        }
+
+        it("no hardcoded old local IP in stage wsBaseUrl") {
             val stageWsUrl = "wss://ws-stage.aiassistant.example.com"
             stageWsUrl shouldNotContain "192.168"
-            stageWsUrl shouldNotContain "10.0.2.2"
             stageWsUrl shouldNotContain "localhost"
             stageWsUrl shouldNotContain "127.0.0.1"
         }
 
-        it("no hardcoded local IP address in production wsBaseUrl") {
+        it("no hardcoded local IP in production wsBaseUrl") {
             val prodWsUrl = "wss://ws.aiassistant.example.com"
             prodWsUrl shouldNotContain "192.168"
             prodWsUrl shouldNotContain "10.0.2.2"

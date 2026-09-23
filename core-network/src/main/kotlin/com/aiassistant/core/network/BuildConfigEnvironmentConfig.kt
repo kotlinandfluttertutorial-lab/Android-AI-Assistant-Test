@@ -24,15 +24,16 @@ package com.aiassistant.core.network
  *
  * The `BuildConfig` fields are set per product flavor in Gradle:
  *
- * | Flavor     | API_BASE_URL                                              | WS_BASE_URL                          | IS_PRODUCTION |
- * |------------|-----------------------------------------------------------|--------------------------------------|---------------|
- * | stage      | https://api-stage.aiassistant.example.com/                | wss://ws-stage.aiassistant.example.com | false         |
- * | production | https://ai-assistant-backend-106071012091.../             | wss://ws.aiassistant.example.com     | true          |
+ * | Flavor     | API_BASE_URL                               | WS_BASE_URL                            | IS_PRODUCTION | IS_LOCAL |
+ * |------------|--------------------------------------------|----------------------------------------|---------------|----------|
+ * | local      | http://10.0.2.2:8080/                      | ws://10.0.2.2:8080                     | false         | true     |
+ * | stage      | https://api-stage.aiassistant.example.com/ | wss://ws-stage.aiassistant.example.com | false         | false    |
+ * | production | https://ai-assistant-backend-106071012091..| wss://ws.aiassistant.example.com       | true          | false    |
  *
- * Constructor is `internal` — the only production entry-point is the Hilt module.
- * Tests instantiate this directly with their own [BuildConfig] values.
+ * Constructor is package-accessible — instantiated only by the Hilt EnvironmentModule in :app.
+ * Tests instantiate [FakeEnvironmentConfig] (in core-network test sources) instead.
  */
-internal class BuildConfigEnvironmentConfig : EnvironmentConfig {
+class BuildConfigEnvironmentConfig : EnvironmentConfig {
 
     override val apiBaseUrl: String
         get() = BuildConfig.API_BASE_URL
@@ -40,9 +41,19 @@ internal class BuildConfigEnvironmentConfig : EnvironmentConfig {
     override val websocketUrl: String
         get() = BuildConfig.WS_BASE_URL
 
-    override val environmentName: String
-        get() = if (BuildConfig.IS_PRODUCTION) "production" else "stage"
-
     override val isProduction: Boolean
         get() = BuildConfig.IS_PRODUCTION
+
+    override val isLocal: Boolean
+        get() = BuildConfig.IS_LOCAL
+
+    override val isStage: Boolean
+        get() = !BuildConfig.IS_PRODUCTION && !BuildConfig.IS_LOCAL
+
+    override val environmentName: String
+        get() = when {
+            BuildConfig.IS_LOCAL      -> "local"
+            BuildConfig.IS_PRODUCTION -> "production"
+            else                      -> "stage"
+        }
 }

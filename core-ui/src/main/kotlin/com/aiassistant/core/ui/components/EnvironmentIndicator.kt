@@ -1,33 +1,31 @@
 /**
  * EnvironmentIndicator.kt — core-ui module
  *
- * Purpose: Reusable Compose component that displays a small, prominent STAGE badge
- *          so testers and developers can immediately distinguish a Stage build from
- *          a Production build when looking at the running app.
+ * Purpose: Reusable Compose component that displays a small, prominent environment
+ *          badge so testers and developers can immediately distinguish Local / Stage
+ *          builds from a Production build.
+ *
+ * Supported badges:
+ *   "local"      → blue  [ LOCAL ] badge — Docker Compose stack
+ *   "stage"      → amber [ STAGE ] badge — GCP Stage environment
+ *   "production" → nothing is rendered   — zero layout cost
  *
  * Design decisions:
- * - Uses the existing Warning amber tokens from [Color.kt] — visually distinct from
- *   all AI-mode chips (teal/blue/violet) and from error red, so it cannot be confused
- *   with functional UI feedback.
- * - The component is a pure Compose function with no ViewModel/DI dependency. The
- *   caller decides whether to show it; in practice only stage-flavor code paths pass
- *   `isStage = true`.
- * - Accessibility: the Surface has a `contentDescription` of "Stage build indicator"
- *   so screen readers announce the context correctly.
- * - Animation: the badge uses `AnimatedVisibility` with a short fade so it does not
- *   flash abruptly on first composition.
- * - Production: when `isStage = false` the composable emits zero layout nodes so it
- *   has no performance cost in production builds.
+ * - Accepts [environmentName] string from [EnvironmentConfig.environmentName] so the
+ *   caller passes a single value rather than computing booleans in the UI layer.
+ * - Local uses the existing Cloud blue tokens (cloudContainer*) — visually distinct
+ *   from Stage amber and clearly communicates "connected to a backend".
+ * - Stage uses the existing Warning amber tokens from [Color.kt].
+ * - AnimatedVisibility fades the badge in/out; Production emits zero layout nodes.
+ * - contentDescription announces the environment context to screen readers.
  *
- * Usage in HomeDashboard:
+ * Usage:
  * ```kotlin
- * EnvironmentIndicator(isStage = BuildConfig.IS_PRODUCTION.not())
- * ```
+ * // In a ViewModel:
+ * val environmentName: String = environmentConfig.environmentName
  *
- * Prefer injecting the value from [EnvironmentConfig] via a ViewModel rather than
- * accessing BuildConfig directly from UI code:
- * ```kotlin
- * EnvironmentIndicator(isStage = !uiState.isProduction)
+ * // In a Composable:
+ * EnvironmentIndicator(environmentName = viewModel.environmentName)
  * ```
  */
 package com.aiassistant.core.ui.components
@@ -51,6 +49,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import com.aiassistant.core.ui.AppColors
 import com.aiassistant.core.ui.AppIcons
 import com.aiassistant.core.ui.Warning20
 import com.aiassistant.core.ui.Warning40
@@ -60,38 +59,58 @@ import com.aiassistant.core.ui.WarningDark
 import com.aiassistant.core.ui.spacing
 
 /**
- * Displays an amber "STAGE" badge when [isStage] is `true`.
+ * Displays an environment badge when the build is not Production.
  *
- * Emits nothing when [isStage] is `false`, so it is safe to unconditionally include
- * this composable in any screen that may be rendered across both flavors.
+ * | [environmentName] | Badge        | Colour       |
+ * |-------------------|--------------|--------------|
+ * | `"local"`         | `[ LOCAL ]`  | Blue         |
+ * | `"stage"`         | `[ STAGE ]`  | Amber        |
+ * | `"production"`    | *(nothing)*  | —            |
  *
- * @param isStage  Whether the running build is the Stage variant.
- *                 Derive from [com.aiassistant.core.network.EnvironmentConfig.isProduction]:
- *                 `isStage = !environmentConfig.isProduction`.
- * @param modifier Optional [Modifier] applied to the outermost visible container.
- *                 Ignored in production (nothing is composed).
+ * Emits zero layout nodes in production — safe to include unconditionally in
+ * any screen that may be rendered across all three flavors.
+ *
+ * @param environmentName  Value from [com.aiassistant.core.network.EnvironmentConfig.environmentName].
+ *                         One of `"local"`, `"stage"`, or `"production"`.
+ * @param modifier         Optional [Modifier] for the outermost visible container.
+ *                         Ignored in production (nothing is composed).
  */
 @Composable
 fun EnvironmentIndicator(
-    isStage: Boolean,
+    environmentName: String,
     modifier: Modifier = Modifier
 ) {
+    val isVisible = environmentName == "local" || environmentName == "stage"
+
     AnimatedVisibility(
-        visible = isStage,
+        visible = isVisible,
         enter = fadeIn(),
         exit = fadeOut()
     ) {
         val isDark = isSystemInDarkTheme()
 
-        val containerColor = if (isDark) WarningDark    else Warning90
-        val contentColor   = if (isDark) Warning80      else Warning20
-        val iconTint       = if (isDark) Warning80      else Warning40
+        val (containerColor, contentColor, iconTint, label, description) = when (environmentName) {
+            "local" -> EnvironmentBadgeStyle(
+                containerColor = if (isDark) AppColors.cloudContainerDark  else AppColors.cloudContainerLight,
+                contentColor   = if (isDark) AppColors.cloudOnContainerDark else AppColors.cloudOnContainerLight,
+                iconTint       = if (isDark) AppColors.cloudIndicatorDark   else AppColors.cloudIndicatorLight,
+                label          = "LOCAL",
+                description    = "Local build indicator — connected to Docker Compose backend"
+            )
+            else -> EnvironmentBadgeStyle(  // "stage"
+                containerColor = if (isDark) WarningDark else Warning90,
+                contentColor   = if (isDark) Warning80   else Warning20,
+                iconTint       = if (isDark) Warning80   else Warning40,
+                label          = "STAGE",
+                description    = "Stage build indicator — this is not a production build"
+            )
+        }
 
         Surface(
             color = containerColor,
             shape = MaterialTheme.shapes.extraSmall,
             modifier = modifier.semantics {
-                contentDescription = "Stage build indicator — this is not a production build"
+                contentDescription = description
             }
         ) {
             Row(
@@ -109,7 +128,7 @@ fun EnvironmentIndicator(
                 )
                 Spacer(modifier = Modifier.width(4.dp))
                 Text(
-                    text = "STAGE",
+                    text = label,
                     style = MaterialTheme.typography.labelSmall,
                     color = contentColor
                 )
@@ -117,3 +136,12 @@ fun EnvironmentIndicator(
         }
     }
 }
+
+/** Internal value holder for badge colours, label, and accessibility text. */
+private data class EnvironmentBadgeStyle(
+    val containerColor: androidx.compose.ui.graphics.Color,
+    val contentColor: androidx.compose.ui.graphics.Color,
+    val iconTint: androidx.compose.ui.graphics.Color,
+    val label: String,
+    val description: String
+)

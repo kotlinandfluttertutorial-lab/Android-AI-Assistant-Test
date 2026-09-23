@@ -65,15 +65,16 @@ class HomeDashboardViewModel @Inject constructor(
     val uiState: StateFlow<HomeDashboardUiState> = _uiState.asStateFlow()
 
     /**
-     * Whether the running build is Production.
+     * Current environment name for the [EnvironmentIndicator] badge.
      *
-     * Derived from [EnvironmentConfig.isProduction] at construction time.
-     * Passed to [EnvironmentIndicator] so UI code does not access BuildConfig directly.
+     * Derived from [EnvironmentConfig.environmentName] at construction time.
+     * Values: `"local"` | `"stage"` | `"production"`.
      *
-     * `true`  → production build, indicator is hidden.
-     * `false` → stage build, amber STAGE badge is visible.
+     * - `"local"`      → blue LOCAL badge (Docker Compose backend)
+     * - `"stage"`      → amber STAGE badge (GCP Stage)
+     * - `"production"` → no badge rendered
      */
-    val isProduction: Boolean = environmentConfig.isProduction
+    val environmentName: String = environmentConfig.environmentName
 
     /** Formatted date for the hero card greeting (e.g. "Tuesday, 25 Aug"). */
     private val todayDate: String = LocalDate.now().format(

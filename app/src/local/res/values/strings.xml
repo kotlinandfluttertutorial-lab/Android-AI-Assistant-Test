@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Local flavor strings.
+    Overrides app/src/main/res/values/strings.xml for the "local" product flavor.
+
+    The launcher label "AI Assistant Local" makes it immediately clear on the device
+    home screen that this build connects to the local Docker Compose stack, not GCP.
+    This prevents accidentally treating a local APK as a stage or production release.
+-->
+<resources>
+    <string name="app_name">AI Assistant Local</string>
+</resources>

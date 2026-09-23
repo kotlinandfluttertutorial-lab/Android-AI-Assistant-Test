@@ -25,6 +25,35 @@ android {
 
     flavorDimensions += "environment"
     productFlavors {
+        // ── Local ─────────────────────────────────────────────────────────────
+        // Connects to the local Docker Compose stack running on the developer machine.
+        //
+        // Android Emulator:  http://10.0.2.2:8080/  (Nginx → FastAPI)
+        // Physical device:   http://<LAN-IP>:8080/   (see docs/environments.md)
+        //
+        // Start the local backend with:
+        //   docker compose -f docker-compose.local.yml up -d
+        create("local") {
+            dimension = "environment"
+            applicationIdSuffix = ".local"
+            versionNameSuffix = "-local"
+
+            // Nginx gateway on the developer machine reachable from Android Emulator.
+            // Replace 10.0.2.2 with your LAN IP when testing on a physical device.
+            buildConfigField(
+                "String",
+                "API_BASE_URL",
+                "\"http://10.0.2.2:8080/\""
+            )
+            buildConfigField(
+                "String",
+                "WS_BASE_URL",
+                "\"ws://10.0.2.2:8080\""
+            )
+            buildConfigField("Boolean", "IS_PRODUCTION", "false")
+            buildConfigField("Boolean", "IS_LOCAL", "true")
+        }
+
         // ── Stage ─────────────────────────────────────────────────────────────
         // Connects to the Stage GCP environment.
         // PLACEHOLDER URLs below — replace with real Stage Cloud Run URLs before deploying.
@@ -49,6 +78,7 @@ android {
                 "\"wss://ws-stage.aiassistant.example.com\""
             )
             buildConfigField("Boolean", "IS_PRODUCTION", "false")
+            buildConfigField("Boolean", "IS_LOCAL", "false")
         }
 
         // ── Production ────────────────────────────────────────────────────────
@@ -72,6 +102,7 @@ android {
                 "\"wss://ws.aiassistant.example.com\""
             )
             buildConfigField("Boolean", "IS_PRODUCTION", "true")
+            buildConfigField("Boolean", "IS_LOCAL", "false")
         }
     }
 

@@ -26,7 +26,7 @@ android {
         minSdk = 26
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
-        missingDimensionStrategy("environment", "production", "stage")
+        missingDimensionStrategy("environment", "production", "stage", "local")
     }
 
     compileOptions {
