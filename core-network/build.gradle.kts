@@ -38,12 +38,12 @@ android {
             buildConfigField(
                 "String",
                 "API_BASE_URL",
-                "\"http://10.0.2.2:8080/\""
+                "\"https://api.handsonandroid.com/\""
             )
             buildConfigField(
                 "String",
                 "WS_BASE_URL",
-                "\"ws://10.0.2.2:8080\""
+                "\"wss://api.handsonandroid.com\""
             )
             buildConfigField("Boolean", "IS_PRODUCTION", "false")
             buildConfigField("Boolean", "IS_LOCAL", "true")

@@ -81,18 +81,21 @@ dimension = "environment"
 
 | Flavor       | Application ID              | Launcher Label       | Debug variant          | Release variant           |
 |--------------|-----------------------------|----------------------|------------------------|---------------------------|
+| `local`      | `com.aiassistant.local`     | AI Assistant Local   | `localDebug`           | `localRelease`            |
 | `stage`      | `com.aiassistant.stage`     | AI Assistant Stage   | `stageDebug`           | `stageRelease`            |
 | `production` | `com.aiassistant`           | AI Assistant         | `productionDebug`      | `productionRelease`       |
 
 > The `debug` build type also appends `.debug` to the application ID via
 > `applicationIdSuffix = ".debug"` in `buildTypes`, resulting in
-> `com.aiassistant.stage.debug` for `stageDebug`.
+> `com.aiassistant.local.debug` for `localDebug`, `com.aiassistant.stage.debug` for `stageDebug`, etc.
 
 ### Source sets
 
 ```
 app/src/
 ├── main/               ← shared application code
+├── local/
+│   └── res/            ← local-only resources (LOCAL badge, etc.)
 ├── stage/
 │   └── res/values/strings.xml    ← app_name = "AI Assistant Stage"
 ├── production/
@@ -107,9 +110,16 @@ app/src/
 
 ## 3. Environment URLs
 
-> **IMPORTANT — Placeholder URLs**: The Stage URLs below are placeholders.
-> Replace them with the real Stage Cloud Run service URLs before deploying to testers.
-> The Production API URL points at the existing Cloud Run service and is preserved.
+> **IMPORTANT — Placeholder URLs**: The Stage WebSocket and Production WebSocket URLs below are placeholders.
+> Replace them with the real Cloud Run service URLs before deploying to testers.
+> The Production REST API URL points at the existing Cloud Run service and is preserved.
+
+### Local
+
+| Service   | URL                                    | Status |
+|-----------|----------------------------------------|--------|
+| REST API  | `https://api.handsonandroid.com/`      | REAL (Cloudflare tunnel to local Docker) |
+| WebSocket | `wss://api.handsonandroid.com`         | REAL   |
 
 ### Stage
 
@@ -144,11 +154,12 @@ in the Gradle files above, and `EnvironmentConfig` propagates them everywhere.
 Both `app/build.gradle.kts` and `core-network/build.gradle.kts` declare identical
 flavor blocks so the library module's `BuildConfig` matches the app's variant.
 
-| Field           | Stage value                                              | Production value                                           |
-|-----------------|----------------------------------------------------------|------------------------------------------------------------|
-| `API_BASE_URL`  | `https://api-stage.aiassistant.example.com/`             | `https://ai-assistant-backend-106071012091.../` (Cloud Run)|
-| `WS_BASE_URL`   | `wss://ws-stage.aiassistant.example.com`                 | `wss://ws.aiassistant.example.com`                         |
-| `IS_PRODUCTION` | `false`                                                  | `true`                                                     |
+| Field           | Local value                                      | Stage value                                              | Production value                                           |
+|-----------------|--------------------------------------------------|----------------------------------------------------------|------------------------------------------------------------|
+| `API_BASE_URL`  | `https://api.handsonandroid.com/`                | `https://api-stage.aiassistant.example.com/`             | `https://ai-assistant-backend-106071012091.../` (Cloud Run)|
+| `WS_BASE_URL`   | `wss://api.handsonandroid.com`                   | `wss://ws-stage.aiassistant.example.com`                 | `wss://ws.aiassistant.example.com`                         |
+| `IS_PRODUCTION` | `false`                                          | `false`                                                  | `true`                                                     |
+| `IS_LOCAL`      | `true`                                           | `false`                                                  | `false`                                                    |
 
 > **Security**: Never add `GEMINI_API_KEY`, `OPENAI_API_KEY`, `JWT_SECRET`,
 > `DATABASE_PASSWORD`, or any GCP service account key to BuildConfig. Those belong
@@ -461,6 +472,10 @@ java -version  # should print openjdk 17
 ### Assembling APKs
 
 ```bash
+# Local (connects to Docker stack via api.handsonandroid.com)
+./gradlew assembleLocalDebug
+./gradlew assembleLocalRelease
+
 # Stage
 ./gradlew assembleStageDebug
 ./gradlew assembleStageRelease
@@ -479,6 +494,7 @@ java -version  # should print openjdk 17
 
 ```bash
 # These must succeed before any PR merge (also enforced by CI)
+./gradlew kspLocalDebugKotlin
 ./gradlew kspStageDebugKotlin
 ./gradlew kspProductionDebugKotlin
 ```
@@ -494,6 +510,7 @@ java -version  # should print openjdk 17
 ./gradlew :core-ai:test
 
 # Lint
+./gradlew lintLocalDebug
 ./gradlew lintStageDebug
 ./gradlew lintProductionDebug
 
@@ -578,8 +595,11 @@ Production environment (GCP Production Project)
 ### Flavor selection in CI
 
 The CI pipeline builds the `stageDebug` variant for PR checks. The signed release
-job on `main` builds `productionRelease`. Update `.github/workflows/android-ci.yml`
-if you need to test `stageRelease` artifacts in CI.
+job on `main` builds `productionRelease`. The `localDebug` variant is only used on
+developer machines — it is never built in CI.
+
+Update `.github/workflows/android-ci.yml` if you need to test `stageRelease` or
+`productionDebug` artifacts in CI.
 
 ---
 
@@ -674,14 +694,18 @@ Use this checklist when deploying to a new environment or rotating credentials.
 
 ```
 Android
-[ ] Stage API URL updated in core-network/build.gradle.kts (stage flavor)
-[ ] Production API URL verified in core-network/build.gradle.kts (production flavor)
-[ ] Stage WebSocket URL updated in core-network/build.gradle.kts (stage flavor)
-[ ] Production WebSocket URL updated in core-network/build.gradle.kts (production flavor)
+[ ] Local API URL set in app/build.gradle.kts (local flavor) — currently https://api.handsonandroid.com/
+[ ] Stage API URL updated in app/build.gradle.kts (stage flavor)
+[ ] Production API URL verified in app/build.gradle.kts (production flavor)
+[ ] Local WebSocket URL set in app/build.gradle.kts (local flavor) — currently wss://api.handsonandroid.com
+[ ] Stage WebSocket URL updated in app/build.gradle.kts (stage flavor)
+[ ] Production WebSocket URL updated in app/build.gradle.kts (production flavor)
+[ ] Local application ID: com.aiassistant.local (+ .debug for debug variant)
 [ ] Stage application ID: com.aiassistant.stage (+ .debug for debug variant)
 [ ] Production application ID: com.aiassistant (+ .debug for debug variant)
+[ ] Local branding: launcher shows "AI Assistant Local", blue LOCAL badge visible
 [ ] Stage branding: launcher shows "AI Assistant Stage", amber STAGE badge visible
-[ ] Production branding: launcher shows "AI Assistant", no STAGE badge
+[ ] Production branding: launcher shows "AI Assistant", no badge
 
 GCP Stage
 [ ] Cloud Run API service deployed to Stage project

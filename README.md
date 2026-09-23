@@ -10,11 +10,15 @@ integrations, and enterprise-grade security with comprehensive observability.
 
 - **Multi-LLM Chat** — Stream responses from GPT-4o, Gemini 1.5 Pro, Claude 3.5 Sonnet, Ollama, Llama 3.x, or Mistral
 - **RAG Document Q&A** — Upload PDFs, DOCX, and Markdown; get cited answers with source references
+- **On-Device RAG** — Fully offline retrieval + generation pipeline (Gemma GGUF + MiniLM-L6-v2); see `feature-on-device-rag`
 - **AI Memory** — Persistent user memory injected into every conversation
 - **Voice Assistant** — Speech-to-text, AI response, text-to-speech pipeline
 - **Image Understanding** — OCR, barcode/QR scanning, vision analysis
 - **MCP Tool Integrations** — GitHub, Gmail, Google Drive, Calendar, Slack, Jira, Notion, Figma
 - **Productivity Suite** — To-Do, Calendar, Reminders, Habit Tracker — all AI-enhanced, all offline-first
+- **AI Persona** — Customisable assistant personas (`feature-persona`)
+- **Universal Search** — Cross-module semantic search (`feature-search`)
+- **Dashboard** — Unified home screen with AI insights (`feature-dashboard`)
 - **Offline-First** — Works without network; auto-syncs when connectivity returns
 - **Enterprise Security** — JWT rotation, RBAC, bcrypt (work factor 12), AES-256, certificate pinning, prompt injection detection
 
@@ -127,7 +131,8 @@ The Celery worker processes background jobs (document ingestion, push notificati
 5. Click **▶ Run** or press **Shift+F10** — select an emulator (API 26+) or connected device
 
 **Minimum API Level:** Android 8.0 (API 26)  
-**Target API Level:** 35
+**Target API Level:** 35 (Android 15)  
+**Kotlin:** 2.0.21 · **AGP:** 8.8.0 · **Compose BOM:** 2024.09.03
 
 ---
 
@@ -208,22 +213,25 @@ All architecture and design documents are in `/docs`:
 
 | Document | Contents |
 |----------|---------|
-| [`docs/PROJECT_VISION.md`](docs/PROJECT_VISION.md) | Vision, goals, success criteria |
-| [`docs/PRD.md`](docs/PRD.md) | All functional requirements |
-| [`docs/SYSTEM_ARCHITECTURE.md`](docs/SYSTEM_ARCHITECTURE.md) | High-level Mermaid component diagram |
-| [`docs/ANDROID_ARCHITECTURE.md`](docs/ANDROID_ARCHITECTURE.md) | Clean Architecture, MVVM, module graph |
-| [`docs/BACKEND_ARCHITECTURE.md`](docs/BACKEND_ARCHITECTURE.md) | FastAPI modular monolith, service layer |
-| [`docs/AI_ARCHITECTURE.md`](docs/AI_ARCHITECTURE.md) | AI Orchestrator, providers, memory injection |
-| [`docs/RAG_ARCHITECTURE.md`](docs/RAG_ARCHITECTURE.md) | RAG ingestion and retrieval pipeline |
-| [`docs/DATABASE_DESIGN.md`](docs/DATABASE_DESIGN.md) | ER diagram and full table reference |
-| [`docs/API_SPECIFICATION.md`](docs/API_SPECIFICATION.md) | All REST endpoints + WebSocket events |
-| [`docs/SECURITY_GUIDE.md`](docs/SECURITY_GUIDE.md) | JWT lifecycle, RBAC, bcrypt, cert pinning |
-| [`docs/PERFORMANCE_GUIDE.md`](docs/PERFORMANCE_GUIDE.md) | Performance targets, Paging 3, metrics |
-| [`docs/TESTING_STRATEGY.md`](docs/TESTING_STRATEGY.md) | Unit tests, 30 property-based tests, CI gates |
-| [`docs/DEVOPS_GUIDE.md`](docs/DEVOPS_GUIDE.md) | Docker Compose, GitHub Actions CI/CD |
-| [`docs/MCP_INTEGRATION.md`](docs/MCP_INTEGRATION.md) | MCP Broker, all 8 connectors, adding new ones |
-| [`docs/CODING_STANDARDS.md`](docs/CODING_STANDARDS.md) | Kotlin/Python style, Educational Header format |
-| [`docs/DEPLOYMENT_GUIDE.md`](docs/DEPLOYMENT_GUIDE.md) | Production deployment, cert pinning, Play Store |
+| [`docs/project/PROJECT_VISION.md`](docs/project/PROJECT_VISION.md) | Vision, goals, success criteria |
+| [`docs/project/prd.md`](docs/project/prd.md) | All functional requirements |
+| [`docs/architecture/SYSTEM_ARCHITECTURE.md`](docs/architecture/SYSTEM_ARCHITECTURE.md) | High-level Mermaid component diagram |
+| [`docs/architecture/ANDROID_ARCHITECTURE.md`](docs/architecture/ANDROID_ARCHITECTURE.md) | Clean Architecture, MVVM, module graph |
+| [`docs/architecture/BACKEND_ARCHITECTURE.md`](docs/architecture/BACKEND_ARCHITECTURE.md) | FastAPI modular monolith, service layer |
+| [`docs/architecture/AI_ARCHITECTURE.md`](docs/architecture/AI_ARCHITECTURE.md) | AI Orchestrator, providers, memory injection |
+| [`docs/architecture/RAG_ARCHITECTURE.md`](docs/architecture/RAG_ARCHITECTURE.md) | RAG ingestion and retrieval pipeline |
+| [`docs/architecture/DATABASE_DESIGN.md`](docs/architecture/DATABASE_DESIGN.md) | ER diagram and full table reference |
+| [`docs/api/API_SPECIFICATION.md`](docs/api/API_SPECIFICATION.md) | All REST endpoints + WebSocket events |
+| [`docs/guides/SECURITY_GUIDE.md`](docs/guides/SECURITY_GUIDE.md) | JWT lifecycle, RBAC, bcrypt, cert pinning |
+| [`docs/guides/PERFORMANCE_GUIDE.md`](docs/guides/PERFORMANCE_GUIDE.md) | Performance targets, Paging 3, metrics |
+| [`docs/guides/TESTING_STRATEGY.md`](docs/guides/TESTING_STRATEGY.md) | Unit tests, 30 property-based tests, CI gates |
+| [`docs/guides/DEVOPS_GUIDE.md`](docs/guides/DEVOPS_GUIDE.md) | Docker Compose, GitHub Actions CI/CD |
+| [`docs/integrations/MCP_INTEGRATION.md`](docs/integrations/MCP_INTEGRATION.md) | MCP Broker, all 8 connectors, adding new ones |
+| [`docs/guides/CODING_STANDARDS.md`](docs/guides/CODING_STANDARDS.md) | Kotlin/Python style, Educational Header format |
+| [`docs/guides/DEPLOYMENT_GUIDE.md`](docs/guides/DEPLOYMENT_GUIDE.md) | Production deployment, cert pinning, Play Store |
+| [`docs/environment-configuration.md`](docs/environment-configuration.md) | Stage/Production flavor configuration |
+| [`docs/environments.md`](docs/environments.md) | Local/Stage/Production architecture |
+| [`docs/on-device-rag.md`](docs/on-device-rag.md) | On-device RAG pipeline (offline) |
 
 ---
 
@@ -233,8 +241,8 @@ All architecture and design documents are in `/docs`:
 Android App (Kotlin + Jetpack Compose, API 26+)
   │  HTTPS/WSS + Certificate Pinning (SHA-256)
   ▼
-Nginx Reverse Proxy (TLS 1.3 termination)
-  │
+Nginx Reverse Proxy (TLS 1.3 termination)  [local/Docker only]
+  │                                          Cloud Run handles TLS in production
   ▼
 FastAPI Backend (Python 3.11, async)
   ├── Auth Service    — JWT + RBAC + bcrypt + token rotation
@@ -246,7 +254,7 @@ FastAPI Backend (Python 3.11, async)
        ├── PostgreSQL 15+  (relational data)
        ├── Redis 7+        (cache + Celery broker)
        ├── ChromaDB        (vector store)
-       └── MinIO           (document object storage)
+       └── GCS / MinIO     (document object storage — GCS in production, MinIO locally)
        │
        └── Observability: Prometheus + Grafana + Loki
 ```
@@ -268,7 +276,7 @@ for the complete portfolio documentation.
 | Gemma 7B | Text generation (high-quality option) | INT4 GGUF | ~4 GB |
 | MiniLM-L6-v2 | Embedding / retrieval | TFLite float16 | ~90 MB |
 
-**Key constraint:** Gemma handles generation only. MiniLM-L6-v2 handles retrieval. The two never share inference calls � this is enforced structurally by the `OnDeviceInferenceEngine` interface which exposes no embedding or search methods (verified by Property 41).
+**Key constraint:** Gemma handles generation only. MiniLM-L6-v2 handles retrieval. The two never share inference calls � this is enforced structurally by the `OnDeviceInferenceEngine` interface which exposes no embedding or search methods (verified by Property 41).
 
 ### Minimum Hardware Requirements
 
@@ -277,7 +285,7 @@ for the complete portfolio documentation.
 | NPU or dedicated GPU memory | >= 4 GB |
 | CPU fallback | Supported (Battery Saver mode activates automatically) |
 | Available storage | >= 2 GB (Gemma 2B INT4) / >= 5 GB (Gemma 7B INT4) |
-| RAM during inference | >= 512 MB available (enforced � inference cancels below threshold) |
+| RAM during inference | >= 512 MB available (enforced � inference cancels below threshold) |
 
 ### Supported Document Formats
 

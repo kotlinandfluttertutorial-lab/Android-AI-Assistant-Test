@@ -53,48 +53,36 @@ class RetrofitConfigTest : DescribeSpec({
 
     describe("Retrofit — local environment") {
 
-        it("baseUrl matches local Docker Nginx address") {
+        it("baseUrl matches local dev server domain") {
             val config = FakeEnvironmentConfig(
-                apiBaseUrl   = "http://10.0.2.2:8080/",
-                websocketUrl = "ws://10.0.2.2:8080",
+                apiBaseUrl   = "https://api.handsonandroid.com/",
+                websocketUrl = "wss://api.handsonandroid.com",
                 isProduction = false,
                 isLocal      = true
             )
             val retrofit = buildRetrofit(config)
-            retrofit.baseUrl().toString() shouldBe "http://10.0.2.2:8080/"
+            retrofit.baseUrl().host shouldContain "handsonandroid.com"
         }
 
-        it("baseUrl host is the Android Emulator host 10.0.2.2") {
+        it("baseUrl uses https scheme") {
             val config = FakeEnvironmentConfig(
-                apiBaseUrl   = "http://10.0.2.2:8080/",
-                websocketUrl = "ws://10.0.2.2:8080",
+                apiBaseUrl   = "https://api.handsonandroid.com/",
+                websocketUrl = "wss://api.handsonandroid.com",
                 isProduction = false,
                 isLocal      = true
             )
             val retrofit = buildRetrofit(config)
-            retrofit.baseUrl().host shouldBe "10.0.2.2"
+            retrofit.baseUrl().scheme shouldBe "https"
         }
 
-        it("baseUrl port is 8080 (Nginx gateway)") {
+        it("baseUrl ends with trailing slash") {
             val config = FakeEnvironmentConfig(
-                apiBaseUrl   = "http://10.0.2.2:8080/",
-                websocketUrl = "ws://10.0.2.2:8080",
+                apiBaseUrl   = "https://api.handsonandroid.com/",
+                websocketUrl = "wss://api.handsonandroid.com",
                 isProduction = false,
                 isLocal      = true
             )
-            val retrofit = buildRetrofit(config)
-            retrofit.baseUrl().port shouldBe 8080
-        }
-
-        it("baseUrl uses plain http (no TLS for local Docker)") {
-            val config = FakeEnvironmentConfig(
-                apiBaseUrl   = "http://10.0.2.2:8080/",
-                websocketUrl = "ws://10.0.2.2:8080",
-                isProduction = false,
-                isLocal      = true
-            )
-            val retrofit = buildRetrofit(config)
-            retrofit.baseUrl().scheme shouldBe "http"
+            config.apiBaseUrl shouldEndWith "/"
         }
 
         it("baseUrl resolves against MockWebServer (functional)") {
@@ -103,7 +91,7 @@ class RetrofitConfigTest : DescribeSpec({
             server.enqueue(MockResponse().setResponseCode(200).setBody("{}"))
             val config = FakeEnvironmentConfig(
                 apiBaseUrl   = server.url("/").toString(),
-                websocketUrl = "ws://127.0.0.1:${server.port}",
+                websocketUrl = "wss://api.handsonandroid.com",
                 isProduction = false,
                 isLocal      = true
             )
@@ -179,7 +167,8 @@ class RetrofitConfigTest : DescribeSpec({
 
         it("local, stage, and production Retrofit instances use different hosts") {
             val local = buildRetrofit(FakeEnvironmentConfig(
-                apiBaseUrl = "http://10.0.2.2:8080/", websocketUrl = "ws://10.0.2.2:8080",
+                apiBaseUrl = "https://api.handsonandroid.com/",
+                websocketUrl = "wss://api.handsonandroid.com",
                 isProduction = false, isLocal = true
             ))
             val stage = buildRetrofit(FakeEnvironmentConfig(

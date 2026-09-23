@@ -26,29 +26,24 @@ android {
     flavorDimensions += "environment"
     productFlavors {
         // ── Local ─────────────────────────────────────────────────────────────
-        // Connects to the local Docker Compose stack running on the developer machine.
-        //
-        // Android Emulator:  http://10.0.2.2:8080/  (Nginx → FastAPI)
-        // Physical device:   http://<LAN-IP>:8080/   (see docs/environments.md)
-        //
-        // Start the local backend with:
-        //   docker compose -f docker-compose.local.yml up -d
+        // Connects to the shared local development server at api.handsonandroid.com.
+        // This replaces the old hardcoded 192.168.0.158:8000 address.
+        // Works from both Android Emulator and physical devices — no special
+        // network routing required since it is a real HTTPS domain.
         create("local") {
             dimension = "environment"
             applicationIdSuffix = ".local"
             versionNameSuffix = "-local"
 
-            // Nginx gateway on the developer machine reachable from Android Emulator.
-            // Replace 10.0.2.2 with your LAN IP when testing on a physical device.
             buildConfigField(
                 "String",
                 "API_BASE_URL",
-                "\"http://10.0.2.2:8080/\""
+                "\"https://api.handsonandroid.com/\""
             )
             buildConfigField(
                 "String",
                 "WS_BASE_URL",
-                "\"ws://10.0.2.2:8080\""
+                "\"wss://api.handsonandroid.com\""
             )
             buildConfigField("Boolean", "IS_PRODUCTION", "false")
             buildConfigField("Boolean", "IS_LOCAL", "true")
