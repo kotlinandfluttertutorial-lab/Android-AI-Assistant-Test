@@ -34,6 +34,11 @@ graph TD
     APP --> FEATURE_EMAIL["feature-email"]
     APP --> FEATURE_TRANSLATOR["feature-translator"]
     APP --> FEATURE_PRODUCTIVITY["feature-productivity"]
+    APP --> FEATURE_ON_DEVICE_AI["feature-on-device-ai"]
+    APP --> FEATURE_SEARCH["feature-search"]
+    APP --> FEATURE_PERSONA["feature-persona"]
+    APP --> FEATURE_DASHBOARD["feature-dashboard"]
+    APP --> FEATURE_ON_DEVICE_RAG["feature-on-device-rag"]
 
     FEATURE_AUTH --> DOMAIN["domain"]
     FEATURE_CHAT --> DOMAIN
@@ -50,6 +55,11 @@ graph TD
     FEATURE_EMAIL --> DOMAIN
     FEATURE_TRANSLATOR --> DOMAIN
     FEATURE_PRODUCTIVITY --> DOMAIN
+    FEATURE_ON_DEVICE_AI --> DOMAIN
+    FEATURE_SEARCH --> DOMAIN
+    FEATURE_PERSONA --> DOMAIN
+    FEATURE_DASHBOARD --> DOMAIN
+    FEATURE_ON_DEVICE_RAG --> DOMAIN
 
     DOMAIN --> CORE_COMMON["core-common"]
     DATA["data"] --> DOMAIN
@@ -66,6 +76,10 @@ graph TD
     FEATURE_HISTORY --> CORE_UI
     FEATURE_NOTES --> CORE_UI
     FEATURE_PRODUCTIVITY --> CORE_UI
+    FEATURE_SEARCH --> CORE_UI
+    FEATURE_PERSONA --> CORE_UI
+    FEATURE_DASHBOARD --> CORE_UI
+    FEATURE_ON_DEVICE_RAG --> CORE_UI
 
     CORE_UI --> CORE_COMMON
     CORE_NETWORK --> CORE_COMMON
@@ -200,6 +214,11 @@ Each feature module owns its Navigation graph, ViewModels, and Compose screens.
 | `feature-email` | EmailComposer, GrammarCorrection | `EmailViewModel` |
 | `feature-translator` | TranslatorScreen | `TranslatorViewModel` |
 | `feature-productivity` | TodoList, TodoEditor, CalendarView, ReminderList, ReminderEditor, HabitList, HabitEditor, HabitInsights | `ProductivityViewModel` |
+| `feature-on-device-ai` | OnDeviceChat, ModelDownload, ModelStatus | `OnDeviceAiViewModel` |
+| `feature-search` | SearchHome, SearchResults | `SearchViewModel` |
+| `feature-persona` | PersonaList, PersonaEditor | `PersonaViewModel` |
+| `feature-dashboard` | Dashboard, InsightsCard | `DashboardViewModel` |
+| `feature-on-device-rag` | OnDeviceDocumentList, OnDeviceDocumentChat, OnDeviceUpload | `OnDeviceRAGViewModel` |
 
 ---
 

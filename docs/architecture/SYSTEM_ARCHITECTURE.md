@@ -9,7 +9,7 @@ The system consists of five primary layers:
 
 1. **Android Client** — Kotlin/Jetpack Compose, offline-first, MVVM + Clean Architecture
 2. **FastAPI Backend** — Modular monolith, REST + WebSocket, JWT/RBAC security
-3. **Data & AI Layer** — PostgreSQL, Redis, ChromaDB, MinIO, Celery
+3. **Data & AI Layer** — PostgreSQL, Redis, ChromaDB, Celery, GCS (production) / MinIO (local)
 4. **External Integrations** — 6 LLM providers, 8 MCP tool connectors, Firebase
 5. **Observability** — Prometheus, Grafana, Loki, Firebase Crashlytics/Analytics
 
@@ -222,11 +222,11 @@ Android App  ──upload──►  POST /documents  ──►  MinIO (raw file)
 
 | Layer | Technology |
 |-------|-----------|
-| Android | Kotlin 1.9+, Jetpack Compose, Hilt, Room, WorkManager, OkHttp, Retrofit, Paging 3, DataStore |
+| Android | Kotlin 2.0.21, Jetpack Compose (BOM 2024.09.03), Hilt 2.52, Room 2.6.1, WorkManager, OkHttp 4.12.0, Retrofit 2.11.0, Paging 3, DataStore |
 | Backend | Python 3.11, FastAPI, SQLAlchemy 2.x, Alembic, Celery, Pydantic v2 |
 | Database | PostgreSQL 15+, Redis 7+ |
 | AI | ChromaDB, SentenceTransformer (`all-MiniLM-L6-v2`), OpenAI / Gemini / Claude / Ollama / Llama / Mistral |
-| Storage | MinIO (S3-compatible) |
-| Proxy | Nginx 1.25+ |
+| Storage | GCS (production), MinIO (local Docker Compose) |
+| Proxy | Nginx 1.25+ (local); Cloud Run ingress (production) |
 | Observability | Prometheus, Grafana, Loki, Firebase Crashlytics/Analytics |
-| CI/CD | GitHub Actions |
+| CI/CD | GitHub Actions, AGP 8.8.0, KSP 2.0.21-1.0.25 |

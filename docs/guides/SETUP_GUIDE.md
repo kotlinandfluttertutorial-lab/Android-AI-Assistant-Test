@@ -122,10 +122,10 @@ gcloud auth login
 
 ```powershell
 # Set these variables — use them in every command below
-$PROJECT_ID = "android-ai-assistant"
+$PROJECT_ID = "android-ai-assistant-89cec"
 $REGION     = "asia-south1"
 
-# Create the project
+# Create the project (skip if project already exists)
 gcloud projects create $PROJECT_ID --name="Android AI Assistant"
 
 # Set as default so you don't have to type it every time
@@ -454,6 +454,10 @@ keytool -genkey -v `
 # Base64-encode it for GitHub
 [Convert]::ToBase64String([IO.File]::ReadAllBytes("android-release.jks")) | Set-Clipboard
 # Now KEYSTORE_BASE64 is in your clipboard — paste it into GitHub
+# Also save:
+#   KEY_ALIAS      = release
+#   KEY_PASSWORD   = the key password you entered
+#   STORE_PASSWORD = the keystore store password you entered
 ```
 
 **Firebase service account** (from step 1b):
@@ -479,17 +483,17 @@ $gsJsonPath = "j:\Android\AndroidStudioProjects\Kiro\TestBranch\Develop_Feature\
 
 | Secret Name | Value | Where to get it |
 |---|---|---|
-| `GCP_PROJECT_ID` | `android-ai-assistant` | Step 2b |
+| `GCP_PROJECT_ID` | `android-ai-assistant-89cec` | Step 2b |
 | `GCP_REGION` | `asia-south1` | Step 2b |
 | `GCP_WIF_PROVIDER` | Long string printed in step 2k | Step 2k |
-| `GCP_SERVICE_ACCOUNT` | `ai-assistant-backend@android-ai-assistant.iam.gserviceaccount.com` | Step 2f |
+| `GCP_SERVICE_ACCOUNT` | `ai-assistant-backend@android-ai-assistant-89cec.iam.gserviceaccount.com` | Step 2f |
 | `CLOUD_RUN_SERVICE` | `ai-assistant-backend` | Step 2i |
 | `CLOUD_RUN_SERVICE_URL` | `https://ai-assistant-backend-xxxx-el.a.run.app` | Step 2i output |
 | `CHROMA_SERVICE_NAME` | `chromadb` | Step 2e |
 | `KEYSTORE_BASE64` | Base64 of `.jks` file | Step 3a |
 | `KEY_ALIAS` | `release` | Step 3a (the alias you chose) |
 | `KEY_PASSWORD` | Password you set in keytool | Step 3a |
-| `KEYSTORE_PASSWORD` | Keystore password from keytool | Step 3a |
+| `STORE_PASSWORD` | Keystore store password from keytool | Step 3a |
 | `GOOGLE_SERVICES_JSON` | Base64 of `app/google-services.json` | Step 3a |
 | `FIREBASE_APP_ID` | `1:106071012091:android:af250ff9587e8c33df765e` | Step 1c |
 | `FIREBASE_SERVICE_ACCOUNT` | Base64 of Firebase service account JSON | Step 3a |
@@ -596,13 +600,13 @@ gcloud logging read 'resource.type="cloud_run_job"' --limit=20 --format="value(t
 | Firebase account | `kotlinfiroj@gmail.com` |
 | Firebase release app ID | `1:106071012091:android:af250ff9587e8c33df765e` |
 | Web OAuth client ID | `106071012091-d4brm5cng1gaor0al51veafjd0fa239v.apps.googleusercontent.com` |
-| GCP project ID | `android-ai-assistant` |
+| GCP project ID | `android-ai-assistant-89cec` |
 | GCP region | `asia-south1` |
-| GCP service account | `ai-assistant-backend@android-ai-assistant.iam.gserviceaccount.com` |
+| GCP service account | `ai-assistant-backend@android-ai-assistant-89cec.iam.gserviceaccount.com` |
 | Android package name | `com.aiassistant` |
 | Cloud Run service name | `ai-assistant-backend` |
 | ChromaDB service name | `chromadb` |
-| Storage bucket | `android-ai-assistant-files` |
+| Storage bucket | `android-ai-assistant-89cec-files` |
 
 ---
 

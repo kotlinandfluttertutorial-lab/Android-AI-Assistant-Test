@@ -86,8 +86,8 @@ data class FakeEnvironmentConfig(
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
 private val localConfig = FakeEnvironmentConfig(
-    apiBaseUrl   = "http://10.0.2.2:8080/",
-    websocketUrl = "ws://10.0.2.2:8080",
+    apiBaseUrl   = "https://api.handsonandroid.com/",
+    websocketUrl = "wss://api.handsonandroid.com",
     isProduction = false,
     isLocal      = true
 )
@@ -118,14 +118,8 @@ class EnvironmentConfigTest : DescribeSpec({
             localConfig.apiBaseUrl shouldEndWith "/"
         }
 
-        it("websocketUrl uses plain ws:// (no TLS — Docker local)") {
-            localConfig.websocketUrl shouldStartWith "ws://"
-        }
-
-        it("websocketUrl does NOT use wss:// (local has no TLS)") {
-            assert(!localConfig.websocketUrl.startsWith("wss://")) {
-                "Local WS URL must use ws://, not wss://"
-            }
+        it("websocketUrl uses wss:// scheme") {
+            localConfig.websocketUrl shouldStartWith "wss://"
         }
 
         it("isProduction is false") {
@@ -144,12 +138,12 @@ class EnvironmentConfigTest : DescribeSpec({
             localConfig.environmentName shouldBe "local"
         }
 
-        it("apiBaseUrl targets Android Emulator host 10.0.2.2") {
-            localConfig.apiBaseUrl shouldContain "10.0.2.2"
+        it("apiBaseUrl targets the local dev domain") {
+            localConfig.apiBaseUrl shouldContain "handsonandroid.com"
         }
 
-        it("apiBaseUrl uses port 8080 (Nginx gateway)") {
-            localConfig.apiBaseUrl shouldContain "8080"
+        it("websocketUrl targets the local dev domain") {
+            localConfig.websocketUrl shouldContain "handsonandroid.com"
         }
     }
 

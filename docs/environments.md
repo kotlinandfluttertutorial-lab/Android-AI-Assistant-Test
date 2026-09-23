@@ -76,8 +76,8 @@ flowchart TD
 | Application ID  | `com.aiassistant.local`  | `com.aiassistant.stage`  | `com.aiassistant`             |
 | Launcher label  | AI Assistant Local       | AI Assistant Stage       | AI Assistant                  |
 | UI badge        | Blue LOCAL               | Amber STAGE              | *(none)*                      |
-| API URL         | `http://10.0.2.2:8080/`  | `https://api-stage.…/`   | `https://api.…/`              |
-| WebSocket URL   | `ws://10.0.2.2:8080`     | `wss://ws-stage.…`       | `wss://ws.…`                  |
+| API URL         | `https://api.handsonandroid.com/` | `https://api-stage.…/`   | `https://api.…/`              |
+| WebSocket URL   | `wss://api.handsonandroid.com`   | `wss://ws-stage.…`       | `wss://ws.…`                  |
 | PostgreSQL      | Docker (`localhost:5432`) | GCP Cloud SQL Stage      | GCP Cloud SQL Production      |
 | Redis           | Docker (`localhost:6379`) | GCP Redis Stage          | GCP Redis Production          |
 | ChromaDB        | Docker (`localhost:8001`) | GCP / managed equivalent | GCP / managed equivalent      |
@@ -315,9 +315,9 @@ AIStreamClientImpl(@Named("wsBaseUrl") wsBaseUrl: String)
 ### URL flow per environment
 
 ```
-localDebug     → http://10.0.2.2:8080/  → Nginx → FastAPI (Docker)
-stageRelease   → https://api-stage.…/   → GCP Stage Cloud Run
-productionRelease → https://api.…/      → GCP Production Cloud Run
+localDebug     → https://api.handsonandroid.com/  → shared local dev server
+stageRelease   → https://api-stage.…/             → GCP Stage Cloud Run
+productionRelease → https://api.…/                → GCP Production Cloud Run
 ```
 
 ---
@@ -488,13 +488,77 @@ The active variant is visible in the app:
 
 ## 14. Secret Management
 
-### Isolation rules
+### Why each environment needs its own Gemini API key
 
-| Environment | Secret storage         | Naming convention             |
-|-------------|------------------------|-------------------------------|
-| Local       | `.env.local` (git-ignored) | Plain variable names      |
-| Stage       | GCP Secret Manager     | `aiassistant-stage-*`         |
-| Production  | GCP Secret Manager     | `aiassistant-prod-*`          |
+Each environment (`local`, `stage`, `production`) uses a **completely independent** Gemini API key:
+
+| Environment | Key location                                     | Naming                              |
+|-------------|--------------------------------------------------|-------------------------------------|
+| Local       | `.env.local` → `GEMINI_API_KEY`                 | Developer machine only              |
+| Stage       | GCP Secret Manager → `aiassistant-stage-gemini-api-key` | Injected as `GEMINI_API_KEY` |
+| Production  | GCP Secret Manager → `aiassistant-prod-gemini-api-key`  | Injected as `GEMINI_API_KEY` |
+
+Reasons for isolation:
+- **Quota**: Stage load tests cannot exhaust the Production quota.
+- **Security**: A leaked Stage key cannot be used against Production data or billing.
+- **Billing**: API usage is tracked and billed separately per key.
+- **Revocation**: Rotating or revoking a key in one environment doesn't affect others.
+
+The Android APK **never** contains any API key. The app sends requests to its
+environment's backend URL; the backend reads the key from its environment at runtime.
+
+### Full secret isolation table
+
+| Secret                | Local (`.env.local`) | Stage (Secret Manager)                   | Production (Secret Manager)              |
+|-----------------------|----------------------|------------------------------------------|------------------------------------------|
+| `GEMINI_API_KEY`      | local dev key        | `aiassistant-stage-gemini-api-key`       | `aiassistant-prod-gemini-api-key`        |
+| `OPENAI_API_KEY`      | local dev key        | `aiassistant-stage-openai-api-key`       | `aiassistant-prod-openai-api-key`        |
+| `SECRET_KEY`          | local value          | `aiassistant-stage-secret-key`           | `aiassistant-prod-secret-key`            |
+| `AES_ENCRYPTION_KEY`  | local value          | `aiassistant-stage-aes-encryption-key`   | `aiassistant-prod-aes-encryption-key`    |
+| `DATABASE_URL`        | Docker postgres URL  | `aiassistant-stage-database-url`         | `aiassistant-prod-database-url`          |
+| `REDIS_URL`           | Docker redis URL     | `aiassistant-stage-redis-url`            | `aiassistant-prod-redis-url`             |
+
+### Storing Stage / Production secrets
+
+```powershell
+# Store Stage Gemini key
+$env:GEMINI_API_KEY = "AIza..."   # Stage-specific key from Google AI Studio
+.\scripts\store-secrets.ps1 -Environment stage -Secret gemini-api-key
+
+# Store Production Gemini key (different key!)
+$env:GEMINI_API_KEY = "AIza..."   # Production-specific key
+.\scripts\store-secrets.ps1 -Environment production -Secret gemini-api-key
+
+# Store all secrets for Stage at once
+$env:GEMINI_API_KEY    = "..."
+$env:SECRET_KEY        = "..."
+$env:AES_ENCRYPTION_KEY = "..."
+$env:DATABASE_URL      = "..."
+$env:REDIS_URL         = "..."
+.\scripts\store-secrets.ps1 -Environment stage -All
+```
+
+### How secrets reach the backend container
+
+`deploy-cloud-run.ps1` uses `--set-secrets` to map Secret Manager secrets to
+environment variables inside the Cloud Run container:
+
+```
+Stage container:
+  GEMINI_API_KEY  ←  aiassistant-stage-gemini-api-key:latest
+  SECRET_KEY      ←  aiassistant-stage-secret-key:latest
+  DATABASE_URL    ←  aiassistant-stage-database-url:latest
+  ...
+
+Production container:
+  GEMINI_API_KEY  ←  aiassistant-prod-gemini-api-key:latest
+  SECRET_KEY      ←  aiassistant-prod-secret-key:latest
+  DATABASE_URL    ←  aiassistant-prod-database-url:latest
+  ...
+```
+
+Both containers see `GEMINI_API_KEY` as the variable name — the difference is
+the **Secret Manager secret name** that backs it.
 
 ### What NEVER goes in the Android APK
 
@@ -507,16 +571,14 @@ GCP_SERVICE_ACCOUNT_KEY → GCP IAM / Workload Identity
 REDIS_PASSWORD         → GCP Secret Manager
 ```
 
-The APK only contains URLs and boolean environment flags — never credentials.
-
 ### Local secret setup
 
 ```bash
 cp .env.local.example .env.local
-# Edit .env.local:
-#   SECRET_KEY=<64-char hex: python -c "import secrets; print(secrets.token_hex(32))">
-#   AES_ENCRYPTION_KEY=<base64: python -c "import base64,os; print(base64.b64encode(os.urandom(32)).decode())">
-#   GEMINI_API_KEY=<your-key-from-aistudio.google.com>
+# Edit .env.local — set your LOCAL Gemini key and other secrets:
+#   GEMINI_API_KEY=<your-local-dev-key-from-aistudio.google.com>
+#   SECRET_KEY=<python -c "import secrets; print(secrets.token_hex(32))">
+#   AES_ENCRYPTION_KEY=<python -c "import base64,os; print(base64.b64encode(os.urandom(32)).decode())">
 ```
 
 ---

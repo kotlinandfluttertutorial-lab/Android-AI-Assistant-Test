@@ -114,19 +114,14 @@ class WebSocketConfigTest : DescribeSpec({
 
     describe("Three-environment WebSocket URL isolation") {
 
-        it("local wsBaseUrl uses plain ws:// (no TLS — Docker Compose)") {
-            val localWsUrl = "ws://10.0.2.2:8080"
-            localWsUrl shouldStartWith "ws://"
+        it("local wsBaseUrl uses wss:// scheme (real HTTPS domain)") {
+            val localWsUrl = "wss://api.handsonandroid.com"
+            localWsUrl shouldStartWith "wss://"
         }
 
-        it("local wsBaseUrl targets Android Emulator host 10.0.2.2") {
-            val localWsUrl = "ws://10.0.2.2:8080"
-            localWsUrl shouldContain "10.0.2.2"
-        }
-
-        it("local wsBaseUrl uses port 8080 (Nginx gateway)") {
-            val localWsUrl = "ws://10.0.2.2:8080"
-            localWsUrl shouldContain "8080"
+        it("local wsBaseUrl targets the handsonandroid.com dev server") {
+            val localWsUrl = "wss://api.handsonandroid.com"
+            localWsUrl shouldContain "handsonandroid.com"
         }
 
         it("stage and production wsBaseUrl values are different") {
@@ -136,7 +131,7 @@ class WebSocketConfigTest : DescribeSpec({
         }
 
         it("all three wsBaseUrl values are distinct") {
-            val localWsUrl = "ws://10.0.2.2:8080"
+            val localWsUrl = "wss://api.handsonandroid.com"
             val stageWsUrl = "wss://ws-stage.aiassistant.example.com"
             val prodWsUrl  = "wss://ws.aiassistant.example.com"
             val urls = setOf(localWsUrl, stageWsUrl, prodWsUrl)
