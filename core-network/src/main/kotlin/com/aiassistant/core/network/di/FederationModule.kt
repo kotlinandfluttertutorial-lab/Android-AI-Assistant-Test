@@ -55,8 +55,8 @@ import androidx.work.NetworkType
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.aiassistant.core.network.AuthInterceptor
-import com.aiassistant.core.network.BuildConfig
 import com.aiassistant.core.network.CertificatePinningInterceptor
+import com.aiassistant.core.network.EnvironmentConfig
 import com.aiassistant.core.network.RefreshTokenInterceptor
 import com.aiassistant.core.network.federation.BackendEndpointSelector
 import com.aiassistant.core.network.federation.FailoverBannerStateProvider
@@ -198,11 +198,15 @@ object FederationModule {
     @Provides
     @Singleton
     @FederationRetrofit
-    fun provideFederationRetrofit(@FederationRetrofit okHttpClient: OkHttpClient, json: Json): Retrofit {
+    fun provideFederationRetrofit(
+        @FederationRetrofit okHttpClient: OkHttpClient,
+        json: Json,
+        environmentConfig: EnvironmentConfig
+    ): Retrofit {
         val contentType = "application/json".toMediaType()
         return Retrofit.Builder()
             // Placeholder base URL — overridden at request time by FailoverInterceptor.
-            .baseUrl(BuildConfig.BASE_URL)
+            .baseUrl(environmentConfig.apiBaseUrl)
             .client(okHttpClient)
             .addConverterFactory(json.asConverterFactory(contentType))
             .build()

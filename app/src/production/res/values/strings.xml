@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Production flavor strings.
+    Overrides app/src/main/res/values/strings.xml for the "production" product flavor.
+
+    The launcher label matches the main strings.xml ("AI Assistant") so this file is
+    intentionally minimal. It exists so AGP resolves the resource correctly and to
+    establish the flavour source set that future production-specific overrides can use
+    (e.g., adaptive icon overlays, different color tokens).
+-->
+<resources>
+    <string name="app_name">AI Assistant</string>
+</resources>

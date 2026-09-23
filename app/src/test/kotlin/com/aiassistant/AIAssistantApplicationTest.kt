@@ -28,7 +28,7 @@ import org.robolectric.annotation.Config
 import timber.log.Timber
 
 @RunWith(RobolectricTestRunner::class)
-@Config(sdk = [33], manifest = Config.NONE)
+@Config(sdk = [33], manifest = Config.NONE, packageName = "com.aiassistant")
 class AIAssistantApplicationTest {
 
     private lateinit var app: AIAssistantApplication

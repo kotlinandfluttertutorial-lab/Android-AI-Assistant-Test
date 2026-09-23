@@ -25,13 +25,84 @@ android {
 
     flavorDimensions += "environment"
     productFlavors {
+        // ── Local ─────────────────────────────────────────────────────────────
+        // Connects to the local Docker Compose stack running on the developer machine.
+        //
+        // Android Emulator:  http://10.0.2.2:8080/  (Nginx → FastAPI)
+        // Physical device:   http://<LAN-IP>:8080/   (see docs/environments.md)
+        //
+        // Start the local backend with:
+        //   docker compose -f docker-compose.local.yml up -d
         create("local") {
             dimension = "environment"
-            buildConfigField("String", "BASE_URL", "\"http://api.handsonandroid.com/\"")
+            applicationIdSuffix = ".local"
+            versionNameSuffix = "-local"
+
+            // Nginx gateway on the developer machine reachable from Android Emulator.
+            // Replace 10.0.2.2 with your LAN IP when testing on a physical device.
+            buildConfigField(
+                "String",
+                "API_BASE_URL",
+                "\"http://10.0.2.2:8080/\""
+            )
+            buildConfigField(
+                "String",
+                "WS_BASE_URL",
+                "\"ws://10.0.2.2:8080\""
+            )
+            buildConfigField("Boolean", "IS_PRODUCTION", "false")
+            buildConfigField("Boolean", "IS_LOCAL", "true")
         }
-        create("cloud") {
+
+        // ── Stage ─────────────────────────────────────────────────────────────
+        // Connects to the Stage GCP environment.
+        // PLACEHOLDER URLs below — replace with real Stage Cloud Run URLs before deploying.
+        // See docs/environment-configuration.md for the full configuration checklist.
+        create("stage") {
             dimension = "environment"
-            buildConfigField("String", "BASE_URL", "\"https://ai-assistant-backend-106071012091.asia-south1.run.app/\"")
+            applicationIdSuffix = ".stage"
+            versionNameSuffix = "-stage"
+
+            // REST API base URL for the Stage Cloud Run service.
+            // TODO: Replace placeholder with the real Stage Cloud Run URL.
+            buildConfigField(
+                "String",
+                "API_BASE_URL",
+                "\"https://api-stage.aiassistant.example.com/\""
+            )
+            // WebSocket base URL for the Stage WebSocket service.
+            // TODO: Replace placeholder with the real Stage WebSocket URL.
+            buildConfigField(
+                "String",
+                "WS_BASE_URL",
+                "\"wss://ws-stage.aiassistant.example.com\""
+            )
+            buildConfigField("Boolean", "IS_PRODUCTION", "false")
+            buildConfigField("Boolean", "IS_LOCAL", "false")
+        }
+
+        // ── Production ────────────────────────────────────────────────────────
+        // Connects to the Production GCP environment.
+        // The existing Cloud Run URL is preserved as the Production API URL.
+        create("production") {
+            dimension = "environment"
+            // No applicationIdSuffix — production uses the base applicationId.
+
+            // REST API base URL for the Production Cloud Run service.
+            buildConfigField(
+                "String",
+                "API_BASE_URL",
+                "\"https://ai-assistant-backend-106071012091.asia-south1.run.app/\""
+            )
+            // WebSocket base URL for the Production WebSocket service.
+            // TODO: Replace placeholder with the real Production WebSocket URL.
+            buildConfigField(
+                "String",
+                "WS_BASE_URL",
+                "\"wss://ws.aiassistant.example.com\""
+            )
+            buildConfigField("Boolean", "IS_PRODUCTION", "true")
+            buildConfigField("Boolean", "IS_LOCAL", "false")
         }
     }
 

@@ -29,6 +29,7 @@ package com.aiassistant
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.aiassistant.core.network.EnvironmentConfig
 import com.aiassistant.domain.model.Conversation
 import com.aiassistant.domain.usecase.conversation.GetConversationsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -55,11 +56,25 @@ sealed class HomeDashboardUiState {
 // ── ViewModel ─────────────────────────────────────────────────────────────────
 
 @HiltViewModel
-class HomeDashboardViewModel @Inject constructor(private val getConversationsUseCase: GetConversationsUseCase) :
-    ViewModel() {
+class HomeDashboardViewModel @Inject constructor(
+    private val getConversationsUseCase: GetConversationsUseCase,
+    environmentConfig: EnvironmentConfig
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow<HomeDashboardUiState>(HomeDashboardUiState.Loading)
     val uiState: StateFlow<HomeDashboardUiState> = _uiState.asStateFlow()
+
+    /**
+     * Current environment name for the [EnvironmentIndicator] badge.
+     *
+     * Derived from [EnvironmentConfig.environmentName] at construction time.
+     * Values: `"local"` | `"stage"` | `"production"`.
+     *
+     * - `"local"`      → blue LOCAL badge (Docker Compose backend)
+     * - `"stage"`      → amber STAGE badge (GCP Stage)
+     * - `"production"` → no badge rendered
+     */
+    val environmentName: String = environmentConfig.environmentName
 
     /** Formatted date for the hero card greeting (e.g. "Tuesday, 25 Aug"). */
     private val todayDate: String = LocalDate.now().format(

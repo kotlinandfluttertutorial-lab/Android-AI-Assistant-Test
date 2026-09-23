@@ -70,8 +70,8 @@ if ($Build) {
 }
 
 # -- Start infrastructure services --------------------------------------------
-Write-Step 'Starting infrastructure services (postgres, redis, minio, chromadb)...'
-Compose up -d postgres redis minio chromadb
+Write-Step 'Starting infrastructure services (postgres, redis, minio)...'
+Compose up -d postgres redis minio
 
 Write-Step 'Waiting for infrastructure to be healthy...'
 $maxWait = 90

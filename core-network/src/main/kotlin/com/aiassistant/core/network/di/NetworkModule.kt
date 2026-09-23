@@ -81,6 +81,7 @@ import com.aiassistant.core.network.AuthRefreshApi
 import com.aiassistant.core.network.BuildConfig
 import com.aiassistant.core.network.CertificatePinningInterceptor
 import com.aiassistant.core.network.ConnectivityObserver
+import com.aiassistant.core.network.EnvironmentConfig
 import com.aiassistant.core.network.LogoutEventBus
 import com.aiassistant.core.network.NetworkConnectivityObserver
 import com.aiassistant.core.network.RefreshTokenInterceptor
@@ -109,15 +110,9 @@ object NetworkModule {
     /**
      * Base URL for all Backend API calls.
      *
-     * Override via BuildConfig for staging / production environments.
-     * Must end with a trailing slash for Retrofit to resolve relative paths correctly.
+     * Sourced from [EnvironmentConfig] which reads the flavor-specific BuildConfig field
+     * set in `core-network/build.gradle.kts`. Retrofit requires a trailing slash.
      */
-    private val BASE_URL: String get() = BuildConfig.BASE_URL
-    // Override per build variant via the `base_url` Gradle property:
-    //   debug   default → http://10.0.2.2:8000/  (Android emulator localhost)
-    //   release default → https://ai-assistant-backend-106071012091.asia-south1.run.app/
-    //   ci/staging      → pass -Pbase_url="https://your-cloud-run-url.run.app/"
-
     private const val CONNECT_TIMEOUT_SECONDS = 30L
 
     // 90 s gives Cloud Run cold-start containers (typically 10–60 s) time to respond
@@ -128,7 +123,8 @@ object NetworkModule {
     @Provides
     @Singleton
     @ObservabilityBaseUrl
-    fun provideObservabilityBaseUrl(): String = BASE_URL
+    fun provideObservabilityBaseUrl(environmentConfig: EnvironmentConfig): String =
+        environmentConfig.apiBaseUrl
 
     // â”€â”€â”€ JSON serializer â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -233,10 +229,14 @@ object NetworkModule {
 
     @Provides
     @Singleton
-    fun provideRetrofit(okHttpClient: OkHttpClient, json: Json): Retrofit {
+    fun provideRetrofit(
+        okHttpClient: OkHttpClient,
+        json: Json,
+        environmentConfig: EnvironmentConfig
+    ): Retrofit {
         val contentType = "application/json".toMediaType()
         return Retrofit.Builder()
-            .baseUrl(BASE_URL)
+            .baseUrl(environmentConfig.apiBaseUrl)
             .client(okHttpClient)
             .addConverterFactory(json.asConverterFactory(contentType))
             .build()
@@ -247,6 +247,25 @@ object NetworkModule {
     @Provides
     @Singleton
     fun provideAuthRefreshApi(retrofit: Retrofit): AuthRefreshApi = retrofit.create(AuthRefreshApi::class.java)
+
+    // ─── WebSocket base URL ─────────────────────────────────────────────────────
+
+    /**
+     * Provides the WebSocket base URL string to modules that cannot depend on
+     * [EnvironmentConfig] directly (e.g. core-ai, which must not depend on core-network
+     * to respect Clean Architecture layering).
+     *
+     * Inject with: `@Named("wsBaseUrl") wsBaseUrl: String`
+     *
+     * The Cloud AI WebSocket client uses this URL.
+     * The on-device AI client (OnDeviceInferenceClient) does NOT receive this binding
+     * and makes zero network calls.
+     */
+    @Provides
+    @Singleton
+    @Named("wsBaseUrl")
+    fun provideWsBaseUrl(environmentConfig: EnvironmentConfig): String =
+        environmentConfig.websocketUrl
 
     // â”€â”€â”€ ConnectivityObserver binding â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 

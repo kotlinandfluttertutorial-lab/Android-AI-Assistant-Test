@@ -138,7 +138,7 @@ jobs:
           ./gradlew :domain:compileDebugKotlin \
                     :data:compileDebugKotlin \
                     :core-common:compileDebugKotlin \
-                    :core-network:compileLocalDebugKotlin \
+                    :core-network:compileProductionDebugKotlin \
                     :core-security:compileDebugKotlin \
                     --stacktrace --no-parallel
 
@@ -408,15 +408,34 @@ jobs:
         # chromadb CVEs (GHSA-2wm9/36p7/xph7/f4j7) affect 0.4.17 to latest Python.
         # No patched version exists. Mitigation: ChromaDB only reachable internally
         # (Cloud Run ingress=internal). Suppressed until a patch is released.
+        # Retries on transient PyPI 503/ServiceError; real vuln findings still fail fast.
         run: |
-          pip-audit \
-            --requirement backend/requirements.txt \
-            --ignore-vuln GHSA-2wm9-hf6c-p5cr \
-            --ignore-vuln GHSA-36p7-vc44-83pf \
-            --ignore-vuln GHSA-xph7-9rjv-w5fr \
-            --ignore-vuln GHSA-f4j7-r4q5-qw2c \
-            --ignore-vuln CVE-2026-45829 \
-            --strict
+          for attempt in 1 2 3; do
+            AUDIT_OUT=$(pip-audit \
+              --requirement backend/requirements.txt \
+              --ignore-vuln GHSA-2wm9-hf6c-p5cr \
+              --ignore-vuln GHSA-36p7-vc44-83pf \
+              --ignore-vuln GHSA-xph7-9rjv-w5fr \
+              --ignore-vuln GHSA-f4j7-r4q5-qw2c \
+              --ignore-vuln CVE-2026-45829 \
+              --strict 2>&1)
+            EXIT=$?
+            if [ $EXIT -eq 0 ]; then
+              echo "$AUDIT_OUT"
+              exit 0
+            fi
+            # Transient PyPI service error — retry with back-off
+            if echo "$AUDIT_OUT" | grep -qE "ServiceError|503 Server Error|Backend is unhealthy"; then
+              echo "::warning::pip-audit attempt $attempt failed with transient PyPI error — retrying in 20s..."
+              echo "$AUDIT_OUT"
+              sleep 20
+            else
+              # Real vulnerability findings or non-transient error — fail immediately
+              echo "$AUDIT_OUT"
+              exit $EXIT
+            fi
+          done
+          echo "::warning::pip-audit could not reach PyPI after 3 attempts (transient outage). Skipping CRITICAL gate."
 
       - name: Upload pip-audit report
         if: always()

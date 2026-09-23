@@ -1,38 +1,38 @@
-# ============================================================================
-# Android CI/CD Pipeline — Production Grade
+﻿# ============================================================================
+# Android CI/CD Pipeline â€” Production Grade
 # ============================================================================
 #
 # Triggers:
-#   pull_request  →  targets main or develop branches
-#   push          →  main branch only
-#   workflow_dispatch  →  manual trigger
+#   pull_request  â†’  targets main or develop branches
+#   push          â†’  main branch only
+#   workflow_dispatch  â†’  manual trigger
 #
 # PR Required Status Checks (configure as branch-protection rules):
-#   • android-ci / validate
-#   • android-ci / dependency-lint
-#   • android-ci / hilt-ksp-gate
-#   • android-ci / hilt-di-gate
-#   • android-ci / android-lint
-#   • android-ci / android-unit-tests
-#   • android-ci / ktlint-detekt
-#   • android-ci / jacoco-gate
-#   • android-ci / backend-unit-tests
-#   • android-ci / backend-integration-tests
-#   • android-ci / instrumented-tests
+#   â€¢ android-ci / validate
+#   â€¢ android-ci / dependency-lint
+#   â€¢ android-ci / hilt-ksp-gate
+#   â€¢ android-ci / hilt-di-gate
+#   â€¢ android-ci / android-lint
+#   â€¢ android-ci / android-unit-tests
+#   â€¢ android-ci / ktlint-detekt
+#   â€¢ android-ci / jacoco-gate
+#   â€¢ android-ci / backend-unit-tests
+#   â€¢ android-ci / backend-integration-tests
+#   â€¢ android-ci / instrumented-tests
 #
 # Main-branch Release Jobs:
-#   • android-ci / build-signed-apk  — signed APK artifact (merge-to-main)
+#   â€¢ android-ci / build-signed-apk  â€” signed APK artifact (merge-to-main)
 #
 # Secrets required (repository / environment level):
-#   KEYSTORE_BASE64            — base64-encoded release keystore (.jks)
-#   KEY_ALIAS                  — key alias in the keystore
-#   KEY_PASSWORD               — key password
-#   STORE_PASSWORD             — keystore store password
-#   GOOGLE_SERVICES_JSON       — google-services.json content (base64)
-#   FIREBASE_APP_ID            — Firebase App ID
-#   FIREBASE_SERVICE_ACCOUNT   — Firebase service account JSON (base64)
-#   FIREBASE_TESTER_GROUPS     — comma-separated tester group aliases
-#   SLACK_WEBHOOK_URL          — Slack incoming webhook for notifications (optional)
+#   KEYSTORE_BASE64            â€” base64-encoded release keystore (.jks)
+#   KEY_ALIAS                  â€” key alias in the keystore
+#   KEY_PASSWORD               â€” key password
+#   STORE_PASSWORD             â€” keystore store password
+#   GOOGLE_SERVICES_JSON       â€” google-services.json content (base64)
+#   FIREBASE_APP_ID            â€” Firebase App ID
+#   FIREBASE_SERVICE_ACCOUNT   â€” Firebase service account JSON (base64)
+#   FIREBASE_TESTER_GROUPS     â€” comma-separated tester group aliases
+#   SLACK_WEBHOOK_URL          â€” Slack incoming webhook for notifications (optional)
 # ============================================================================
 
 name: android-ci
@@ -51,7 +51,7 @@ on:
       release_notes:
         description: "Release notes for Firebase App Distribution testers"
         required: false
-        default: "New build from main branch — see commit history for changes."
+        default: "New build from main branch â€” see commit history for changes."
 
 # Cancel in-flight runs for the same PR / branch to save runner minutes.
 concurrency:
@@ -71,9 +71,9 @@ env:
 
 jobs:
 
-  # ──────────────────────────────────────────────────────────────────────────
-  # VALIDATION GATE — fail fast before spinning up heavier jobs
-  # ──────────────────────────────────────────────────────────────────────────
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  # VALIDATION GATE â€” fail fast before spinning up heavier jobs
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   validate:
     name: validate
     runs-on: ubuntu-latest
@@ -82,11 +82,11 @@ jobs:
       - uses: actions/checkout@v4
       - uses: gradle/actions/wrapper-validation@v3
 
-  # ──────────────────────────────────────────────────────────────────────────
-  # 1. Dependency-Lint — enforce Clean Architecture dependency rules
-  #    Forbidden edges: feature→feature, domain→data/feature, data→feature
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  # 1. Dependency-Lint â€” enforce Clean Architecture dependency rules
+  #    Forbidden edges: featureâ†’feature, domainâ†’data/feature, dataâ†’feature
   #    (Requirements 19.2)
-  # ──────────────────────────────────────────────────────────────────────────
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   dependency-lint:
     name: dependency-lint
     runs-on: ubuntu-latest
@@ -105,10 +105,10 @@ jobs:
       - name: Run module dependency lint
         run: .github/scripts/check-module-deps.sh "$GITHUB_WORKSPACE"
 
-  # ──────────────────────────────────────────────────────────────────────────
-  # Hilt DI Gate — enforce Hilt DI completeness across Android modules (KSP)
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  # Hilt DI Gate â€” enforce Hilt DI completeness across Android modules (KSP)
   # (Requirements 30.1, 30.2, 30.3, 30.4)
-  # ──────────────────────────────────────────────────────────────────────────
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   hilt-di-gate:
     name: Hilt DI Binding Verification (KSP)
     runs-on: ubuntu-latest
@@ -139,24 +139,23 @@ jobs:
         run: |
           if [ -n "$GOOGLE_SERVICES_JSON" ]; then
             echo "$GOOGLE_SERVICES_JSON" | base64 --decode > app/google-services.json
-          else
-            cp app/google-services.json app/google-services.json 2>/dev/null || \
+          elif [ ! -f app/google-services.json ]; then
             cat > app/google-services.json << 'EOF'
-          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
+          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:2222222222222222222222","android_client_info":{"package_name":"com.aiassistant.stage"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:3333333333333333333333","android_client_info":{"package_name":"com.aiassistant.stage.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
           EOF
           fi
 
       - name: Run KSP Hilt code generation (debug)
-        run: ./gradlew :app:kspLocalDebugKotlin :app:kspCloudDebugKotlin --stacktrace
+        run: ./gradlew :app:kspStageDebugKotlin :app:kspProductionDebugKotlin --stacktrace
 
       - name: Confirm zero Hilt binding errors
         run: |
-          echo "✅ Hilt DI bindings verified — zero binding errors"
+          echo "âœ… Hilt DI bindings verified â€” zero binding errors"
 
-  # ──────────────────────────────────────────────────────────────────────────
-  # Hilt KSP Gate — confirm zero Hilt binding errors at compile time
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  # Hilt KSP Gate â€” confirm zero Hilt binding errors at compile time
   # (Requirements 30.1, 30.2, 30.4)
-  # ──────────────────────────────────────────────────────────────────────────
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   hilt-ksp-gate:
     name: hilt-ksp-gate
     runs-on: ubuntu-latest
@@ -191,20 +190,20 @@ jobs:
             echo "$GOOGLE_SERVICES_JSON" | base64 --decode > app/google-services.json
           elif [ ! -f app/google-services.json ]; then
             cat > app/google-services.json << 'EOF'
-          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
+          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:2222222222222222222222","android_client_info":{"package_name":"com.aiassistant.stage"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:3333333333333333333333","android_client_info":{"package_name":"com.aiassistant.stage.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
           EOF
           fi
 
       - name: Run KSP code generation for Hilt (debug)
-        run: ./gradlew :app:kspLocalDebugKotlin :app:kspCloudDebugKotlin --stacktrace
+        run: ./gradlew :app:kspStageDebugKotlin :app:kspProductionDebugKotlin --stacktrace
 
       - name: Confirm zero Hilt binding errors
         run: |
-          echo "✅ Hilt KSP code generation completed with zero binding errors"
+          echo "âœ… Hilt KSP code generation completed with zero binding errors"
 
-  # ──────────────────────────────────────────────────────────────────────────
-  # 2. Android Lint — all modules
-  # ──────────────────────────────────────────────────────────────────────────
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  # 2. Android Lint â€” all modules
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   android-lint:
     name: android-lint
     runs-on: ubuntu-latest
@@ -239,7 +238,7 @@ jobs:
             echo "$GOOGLE_SERVICES_JSON" | base64 --decode > app/google-services.json
           elif [ ! -f app/google-services.json ]; then
             cat > app/google-services.json << 'EOF'
-          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
+          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:2222222222222222222222","android_client_info":{"package_name":"com.aiassistant.stage"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:3333333333333333333333","android_client_info":{"package_name":"com.aiassistant.stage.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
           EOF
           fi
 
@@ -259,13 +258,13 @@ jobs:
       - name: Annotate PR with lint issues
         if: failure()
         run: |
-          echo "::error::Android Lint failed — see lint-reports artifact for details."
+          echo "::error::Android Lint failed â€” see lint-reports artifact for details."
           exit 1
 
-  # ──────────────────────────────────────────────────────────────────────────
-  # 3. Android Unit Tests — all modules
-  #    (Requirements 21.1, 31.1–31.5)
-  # ──────────────────────────────────────────────────────────────────────────
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  # 3. Android Unit Tests â€” all modules
+  #    (Requirements 21.1, 31.1â€“31.5)
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   android-unit-tests:
     name: android-unit-tests
     runs-on: ubuntu-latest
@@ -300,7 +299,7 @@ jobs:
             echo "$GOOGLE_SERVICES_JSON" | base64 --decode > app/google-services.json
           elif [ ! -f app/google-services.json ]; then
             cat > app/google-services.json << 'EOF'
-          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
+          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:2222222222222222222222","android_client_info":{"package_name":"com.aiassistant.stage"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:3333333333333333333333","android_client_info":{"package_name":"com.aiassistant.stage.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
           EOF
           fi
 
@@ -326,20 +325,20 @@ jobs:
           path: "**/build/reports/tests/"
           retention-days: 7
 
-  # ──────────────────────────────────────────────────────────────────────────
-  # 4. ktlint + Detekt — block merge on any error in changed Kotlin files
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  # 4. ktlint + Detekt â€” block merge on any error in changed Kotlin files
   #    (Requirements 19.5, 19.6)
   #
   #    Strategy:
-  #      • Both tools run on the full source tree (required for correct
+  #      â€¢ Both tools run on the full source tree (required for correct
   #        cross-file rule evaluation in Detekt).
-  #      • After each tool run we filter its XML/Checkstyle report to the
+  #      â€¢ After each tool run we filter its XML/Checkstyle report to the
   #        set of changed .kt files and emit GitHub "error" annotations only
   #        for those files.  The job fails (exit 1) when any changed file has
   #        at least one violation, blocking the merge.
-  #      • The SARIF upload sends full-tree results to GitHub Code Scanning
+  #      â€¢ The SARIF upload sends full-tree results to GitHub Code Scanning
   #        for historical tracking (informational only, non-blocking).
-  # ──────────────────────────────────────────────────────────────────────────
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   ktlint-detekt:
     name: ktlint + Detekt
     runs-on: ubuntu-latest
@@ -376,11 +375,11 @@ jobs:
             echo "$GOOGLE_SERVICES_JSON" | base64 --decode > app/google-services.json
           elif [ ! -f app/google-services.json ]; then
             cat > app/google-services.json << 'EOF'
-          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
+          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:2222222222222222222222","android_client_info":{"package_name":"com.aiassistant.stage"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:3333333333333333333333","android_client_info":{"package_name":"com.aiassistant.stage.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
           EOF
           fi
 
-      # ── Compute the set of changed .kt files for this PR ──────────────────
+      # â”€â”€ Compute the set of changed .kt files for this PR â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       - name: Compute changed Kotlin files
         id: changed_kt
         run: |
@@ -394,17 +393,17 @@ jobs:
             echo "Changed .kt files ($COUNT):"
             cat changed_kt_files.txt
           else
-            echo "No changed .kt files — checks will still run (full tree) but cannot fail on changed-file scope."
+            echo "No changed .kt files â€” checks will still run (full tree) but cannot fail on changed-file scope."
           fi
 
-      # ── ktlint — full tree, Checkstyle XML output ─────────────────────────
+      # â”€â”€ ktlint â€” full tree, Checkstyle XML output â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       - name: Run ktlint check
         id: ktlint
         run: ./gradlew ktlintCheck --stacktrace
         continue-on-error: true   # parse results before deciding pass/fail
 
-      # ── Annotate PR: ktlint violations in changed files ───────────────────
-      - name: Annotate changed files — ktlint violations
+      # â”€â”€ Annotate PR: ktlint violations in changed files â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      - name: Annotate changed files â€” ktlint violations
         id: ktlint_annotate
         if: steps.changed_kt.outputs.count != '0'
         run: |
@@ -451,14 +450,14 @@ jobs:
             echo "::error::ktlint found $VIOLATIONS violation(s) in changed Kotlin files. Fix them before merging."
           fi
 
-      # ── Detekt — full tree ─────────────────────────────────────────────────
+      # â”€â”€ Detekt â€” full tree â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       - name: Run Detekt
         id: detekt
         run: ./gradlew detekt --stacktrace
         continue-on-error: true   # parse results before deciding pass/fail
 
-      # ── Annotate PR: Detekt violations in changed files ───────────────────
-      - name: Annotate changed files — Detekt violations
+      # â”€â”€ Annotate PR: Detekt violations in changed files â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+      - name: Annotate changed files â€” Detekt violations
         id: detekt_annotate
         if: steps.changed_kt.outputs.count != '0'
         run: |
@@ -505,7 +504,7 @@ jobs:
             echo "::error::Detekt found $VIOLATIONS file(s) with error-level violations in changed Kotlin files. Fix them before merging."
           fi
 
-      # ── Fail the job when either tool found violations in changed files ────
+      # â”€â”€ Fail the job when either tool found violations in changed files â”€â”€â”€â”€
       - name: Block merge on violations in changed Kotlin files
         run: |
           KTLINT_FAIL="${{ steps.ktlint.outcome }}"
@@ -526,23 +525,23 @@ jobs:
             [ "$KT_VIOL" -gt 0 ] && FAIL=1
             [ "$DK_VIOL" -gt 0 ] && FAIL=1
           else
-            # No changed .kt files — nothing to block on.
+            # No changed .kt files â€” nothing to block on.
             # Tool failures (style violations in unchanged files) are visible in
             # the step logs and SARIF upload but should not block a PR that
             # touches no Kotlin sources.
-            echo "No changed .kt files — skipping violation gate."
+            echo "No changed .kt files â€” skipping violation gate."
           fi
 
           if [ "$FAIL" -eq 1 ]; then
             echo ""
-            echo "❌ ktlint + Detekt gate FAILED — resolve the violations above before merging."
+            echo "âŒ ktlint + Detekt gate FAILED â€” resolve the violations above before merging."
             exit 1
           fi
 
           echo ""
-          echo "✅ ktlint + Detekt gate PASSED — no violations in changed Kotlin files."
+          echo "âœ… ktlint + Detekt gate PASSED â€” no violations in changed Kotlin files."
 
-      # ── SARIF upload (informational, non-blocking) ─────────────────────────
+      # â”€â”€ SARIF upload (informational, non-blocking) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       - name: Upload Detekt SARIF to GitHub Code Scanning
         if: always()
         uses: github/codeql-action/upload-sarif@v3
@@ -550,7 +549,7 @@ jobs:
           sarif_file: "**/build/reports/detekt/*.sarif"
         continue-on-error: true   # SARIF upload is informational
 
-      # ── Artifact uploads for investigation ────────────────────────────────
+      # â”€â”€ Artifact uploads for investigation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       - name: Upload ktlint reports
         if: failure()
         uses: actions/upload-artifact@v4
@@ -567,10 +566,10 @@ jobs:
           path: "**/build/reports/detekt/"
           retention-days: 7
 
-  # ──────────────────────────────────────────────────────────────────────────
-  # 5. JaCoCo Gate — combined domain + data coverage ≥ 70%
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  # 5. JaCoCo Gate â€” combined domain + data coverage â‰¥ 70%
   #    Calls the check-coverage.sh script (Requirement 19.5)
-  # ──────────────────────────────────────────────────────────────────────────
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   jacoco-gate:
     name: jacoco-gate
     runs-on: ubuntu-latest
@@ -609,7 +608,7 @@ jobs:
             echo "$GOOGLE_SERVICES_JSON" | base64 --decode > app/google-services.json
           elif [ ! -f app/google-services.json ]; then
             cat > app/google-services.json << 'EOF'
-          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
+          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:2222222222222222222222","android_client_info":{"package_name":"com.aiassistant.stage"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:3333333333333333333333","android_client_info":{"package_name":"com.aiassistant.stage.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
           EOF
           fi
 
@@ -619,7 +618,7 @@ jobs:
       - name: Make coverage script executable
         run: chmod +x .github/scripts/check-coverage.sh
 
-      - name: Enforce combined coverage ≥ 70%
+      - name: Enforce combined coverage â‰¥ 70%
         run: .github/scripts/check-coverage.sh "$GITHUB_WORKSPACE" 70
 
       - name: Post coverage comment on PR
@@ -630,7 +629,7 @@ jobs:
         with:
           script: |
             const pct = process.env.coverage_pct || 'N/A';
-            const emoji = parseFloat(pct) >= 70 ? '✅' : '❌';
+            const emoji = parseFloat(pct) >= 70 ? 'âœ…' : 'âŒ';
             const body = `### ${emoji} JaCoCo Coverage Report\n\n` +
               `**Combined (domain + data): ${pct}%** (threshold: 70%)\n\n` +
               `_Generated for commit \`${context.sha.substring(0, 7)}\`_`;
@@ -651,9 +650,9 @@ jobs:
             data/build/reports/jacoco/
           retention-days: 14
 
-  # ──────────────────────────────────────────────────────────────────────────
-  # 6. Hilt Audit — verify dependency injection graph
-  # ──────────────────────────────────────────────────────────────────────────
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  # 6. Hilt Audit â€” verify dependency injection graph
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   hilt-audit:
     name: Hilt Audit
     runs-on: ubuntu-latest
@@ -688,17 +687,17 @@ jobs:
             echo "$GOOGLE_SERVICES_JSON" | base64 --decode > app/google-services.json
           elif [ ! -f app/google-services.json ]; then
             cat > app/google-services.json << 'EOF'
-          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
+          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:2222222222222222222222","android_client_info":{"package_name":"com.aiassistant.stage"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:3333333333333333333333","android_client_info":{"package_name":"com.aiassistant.stage.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
           EOF
           fi
 
       - name: Run Hilt binding check (KSP)
-        run: ./gradlew :app:kspLocalDebugKotlin :app:kspCloudDebugKotlin --stacktrace
+        run: ./gradlew :app:kspStageDebugKotlin :app:kspProductionDebugKotlin --stacktrace
 
-  # ──────────────────────────────────────────────────────────────────────────
-  # 7. Backend Unit Tests — pytest backend/tests/unit/
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  # 7. Backend Unit Tests â€” pytest backend/tests/unit/
   #    (Requirement 20.3)
-  # ──────────────────────────────────────────────────────────────────────────
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   backend-unit-tests:
     name: backend-unit-tests
     runs-on: ubuntu-latest
@@ -754,9 +753,9 @@ jobs:
         if: always()
         run: |
           if [ -f unit-test-results.xml ]; then
-            echo "✅ unit-test-results.xml found"
+            echo "âœ… unit-test-results.xml found"
           else
-            echo "⚠️  unit-test-results.xml not found — creating placeholder"
+            echo "âš ï¸  unit-test-results.xml not found â€” creating placeholder"
             echo '<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="unit" tests="0" errors="0" failures="0" skipped="0"/></testsuites>' > unit-test-results.xml
           fi
 
@@ -779,14 +778,14 @@ jobs:
           path: backend/.pytest_cache/
           retention-days: 7
 
-  # ──────────────────────────────────────────────────────────────────────────
-  # 7. Backend Integration Tests — pytest backend/tests/integration/
-  #    All tests are fully mocked — no live DB/Redis/MinIO required.
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  # 7. Backend Integration Tests â€” pytest backend/tests/integration/
+  #    All tests are fully mocked â€” no live DB/Redis/MinIO required.
   #    pytest-xdist distributes test files across CPU workers in parallel.
   #    pytest-timeout kills any single test that hangs beyond 30 s.
   #    Job-level timeout-minutes: 15 prevents the whole job from blocking CI.
   #    (Requirement 20.4)
-  # ──────────────────────────────────────────────────────────────────────────
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   backend-integration-tests:
     name: backend-integration-tests
     runs-on: ubuntu-latest
@@ -842,9 +841,9 @@ jobs:
         if: always()
         run: |
           if [ -f integration-test-results.xml ]; then
-            echo "✅ integration-test-results.xml found"
+            echo "âœ… integration-test-results.xml found"
           else
-            echo "⚠️  integration-test-results.xml not found — creating placeholder"
+            echo "âš ï¸  integration-test-results.xml not found â€” creating placeholder"
             echo '<?xml version="1.0" encoding="utf-8"?><testsuites><testsuite name="integration" tests="0" errors="0" failures="0" skipped="0"/></testsuites>' > integration-test-results.xml
           fi
 
@@ -869,11 +868,11 @@ jobs:
             backend/.pytest_cache/
           retention-days: 7
 
-  # ──────────────────────────────────────────────────────────────────────────
-  # 8. Build Signed APK — merge-to-main only
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  # 8. Build Signed APK â€” merge-to-main only
   #    Produces signed release APK artifact on every push to main.
   #    (Requirement 20.3)
-  # ──────────────────────────────────────────────────────────────────────────
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   build-signed-apk:
     name: Build & Sign Release APK
     runs-on: ubuntu-latest
@@ -912,7 +911,7 @@ jobs:
             echo "$GOOGLE_SERVICES_JSON" | base64 --decode > app/google-services.json
             echo "Using google-services.json from secret"
           else
-            echo "GOOGLE_SERVICES_JSON secret not set — using committed placeholder"
+            echo "GOOGLE_SERVICES_JSON secret not set â€” using committed placeholder"
           fi
 
       - name: Decode release keystore
@@ -928,7 +927,7 @@ jobs:
             echo "has_keystore=true" >> "$GITHUB_OUTPUT"
             echo "Using release keystore from secret"
           else
-            echo "KEYSTORE_BASE64 secret not set — generating temporary debug keystore"
+            echo "KEYSTORE_BASE64 secret not set â€” generating temporary debug keystore"
             keytool -genkeypair -v \
               -keystore app/release.keystore \
               -alias androiddebugkey \
@@ -965,7 +964,7 @@ jobs:
             EFFECTIVE_STORE_PASSWORD="android"
           fi
 
-          ./gradlew :app:assembleCloudRelease \
+          ./gradlew :app:assembleProductionRelease \
             -PversionCode="${{ steps.version.outputs.version_code }}" \
             -PversionName="${{ steps.version.outputs.version_name }}" \
             -Pandroid.injected.signing.store.file="$GITHUB_WORKSPACE/app/release.keystore" \
@@ -977,7 +976,7 @@ jobs:
       - name: Locate signed APK
         id: apk
         run: |
-          APK_PATH=$(find app/build/outputs/apk/cloud/release -name "*.apk" | head -1)
+          APK_PATH=$(find app/build/outputs/apk/production/release -name "*.apk" | head -1)
           echo "path=$APK_PATH" >> "$GITHUB_OUTPUT"
           echo "Found APK: $APK_PATH"
 
@@ -985,7 +984,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: release-apk-${{ steps.version.outputs.version_name }}
-          path: app/build/outputs/apk/cloud/release/*.apk
+          path: app/build/outputs/apk/production/release/*.apk
           retention-days: 30
           if-no-files-found: error
 
@@ -995,16 +994,16 @@ jobs:
           PREVIOUS_TAG=$(git describe --tags --abbrev=0 2>/dev/null || echo "")
           if [[ -n "$PREVIOUS_TAG" ]]; then
             NOTES=$(git log "${PREVIOUS_TAG}..HEAD" \
-              --pretty=format:"• %s" \
+              --pretty=format:"â€¢ %s" \
               --no-merges | head -20)
           else
-            NOTES="• Build #${{ github.run_number }} from main branch"
+            NOTES="â€¢ Build #${{ github.run_number }} from main branch"
           fi
           CUSTOM_NOTES="${{ github.event.inputs.release_notes }}"
           if [[ -n "$CUSTOM_NOTES" ]]; then
             FULL_NOTES="$CUSTOM_NOTES"$'\n\n'"$NOTES"
           else
-            FULL_NOTES="v${{ steps.version.outputs.version_name }} — main branch"$'\n\n'"$NOTES"
+            FULL_NOTES="v${{ steps.version.outputs.version_name }} â€” main branch"$'\n\n'"$NOTES"
           fi
           echo "$FULL_NOTES" > firebase-release-notes.txt
           echo "Release notes:"
@@ -1018,7 +1017,7 @@ jobs:
         run: |
           if [[ -z "$FIREBASE_APP_ID" || -z "$FIREBASE_SERVICE_ACCOUNT" ]]; then
             echo "skip=true" >> "$GITHUB_OUTPUT"
-            echo "⚠️  FIREBASE_APP_ID or FIREBASE_SERVICE_ACCOUNT secret is not set — skipping Firebase distribution"
+            echo "âš ï¸  FIREBASE_APP_ID or FIREBASE_SERVICE_ACCOUNT secret is not set â€” skipping Firebase distribution"
           else
             echo "skip=false" >> "$GITHUB_OUTPUT"
           fi
@@ -1040,7 +1039,7 @@ jobs:
 
       - name: Write build summary
         run: |
-          echo "### ✅ Signed APK Built & Distributed — v${{ steps.version.outputs.version_name }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "### âœ… Signed APK Built & Distributed â€” v${{ steps.version.outputs.version_name }}" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "| Field | Value |" >> "$GITHUB_STEP_SUMMARY"
           echo "|-------|-------|" >> "$GITHUB_STEP_SUMMARY"
@@ -1051,10 +1050,10 @@ jobs:
           echo "| Firebase Account | kotlinfiroj@gmail.com |" >> "$GITHUB_STEP_SUMMARY"
           echo "| Tester Groups | \`${{ secrets.FIREBASE_TESTER_GROUPS }}\` |" >> "$GITHUB_STEP_SUMMARY"
 
-  # ──────────────────────────────────────────────────────────────────────────
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   # 9. Instrumented / Compose UI Tests on Android Emulator (optional, PR)
   #    DISABLED: android-unit-tests job is commented out; re-enable both together.
-  # ──────────────────────────────────────────────────────────────────────────
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 #  instrumented-tests:
 #    name: Instrumented Tests (API 34 Emulator)
 #    runs-on: macos-latest         # hardware acceleration required for KVM
@@ -1089,7 +1088,7 @@ jobs:
 #            echo "$GOOGLE_SERVICES_JSON" | base64 --decode > app/google-services.json
 #          elif [ ! -f app/google-services.json ]; then
 #            cat > app/google-services.json << 'EOF'
-#          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
+#          {"project_info":{"project_number":"000000000000","project_id":"ci-placeholder","storage_bucket":"ci-placeholder.appspot.com"},"client":[{"client_info":{"mobilesdk_app_id":"1:000000000000:android:0000000000000000000000","android_client_info":{"package_name":"com.aiassistant"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:1111111111111111111111","android_client_info":{"package_name":"com.aiassistant.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:2222222222222222222222","android_client_info":{"package_name":"com.aiassistant.stage"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}},{"client_info":{"mobilesdk_app_id":"1:000000000000:android:3333333333333333333333","android_client_info":{"package_name":"com.aiassistant.stage.debug"}},"oauth_client":[],"api_key":[{"current_key":"CI_PLACEHOLDER_KEY"}],"services":{"appinvite_service":{"other_platform_oauth_client":[]}}}],"configuration_version":"1"}
 #          EOF
 #          fi
 #
@@ -1152,9 +1151,9 @@ jobs:
 #          path: "**/build/reports/androidTests/"
 #          retention-days: 7
 
-  # ──────────────────────────────────────────────────────────────────────────
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   # 10. Slack Notification (on main-branch failure/success)
-  # ──────────────────────────────────────────────────────────────────────────
+  # â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   notify:
     name: Slack Notification
     runs-on: ubuntu-latest
@@ -1172,13 +1171,13 @@ jobs:
           webhook-type: incoming-webhook
           payload: |
             {
-              "text": "${{ needs.build-signed-apk.result == 'success' && '✅ Android APK built and distributed via Firebase' || '❌ Android CI pipeline failed on main' }}",
+              "text": "${{ needs.build-signed-apk.result == 'success' && 'âœ… Android APK built and distributed via Firebase' || 'âŒ Android CI pipeline failed on main' }}",
               "blocks": [
                 {
                   "type": "header",
                   "text": {
                     "type": "plain_text",
-                    "text": "${{ needs.build-signed-apk.result == 'success' && '🚀 Android CI — Build & Firebase Distribution' || '❌ Android CI — main branch failure' }}"
+                    "text": "${{ needs.build-signed-apk.result == 'success' && 'ðŸš€ Android CI â€” Build & Firebase Distribution' || 'âŒ Android CI â€” main branch failure' }}"
                   }
                 },
                 {

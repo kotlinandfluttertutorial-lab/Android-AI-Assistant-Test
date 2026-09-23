@@ -17,7 +17,7 @@ networks:
 services:
 
   postgres:
-    image: postgres:16-alpine
+    image: pgvector/pgvector:pg16
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-aiassistant}
@@ -54,7 +54,7 @@ services:
       start_period: 10s
 
   minio:
-    image: minio/minio:RELEASE.2024-09-13T20-26-02Z
+    image: quay.io/minio/minio:RELEASE.2024-09-13T20-26-02Z
     restart: unless-stopped
     command: server /data --console-address :9001
     environment:
@@ -99,16 +99,16 @@ services:
       # Override localhost-based URLs from .env with Docker service names
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-aiassistant}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-aiassistant}
       REDIS_URL: redis://redis:6379/0
-      CHROMA_HOST: chromadb
-      CHROMA_PORT: 8000
       MINIO_ENDPOINT: minio:9000
+      STORAGE_BACKEND: minio
+      # ChromaDB runs embedded in-process (PersistentClient) — no separate service
+      CHROMA_PERSIST_DIR: /tmp/chroma
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.6-flash}
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-      chromadb:
-        condition: service_started
     networks:
       - ai_assistant_net
     expose:
@@ -133,16 +133,15 @@ services:
       # Override localhost-based URLs from .env with Docker service names
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-aiassistant}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-aiassistant}
       REDIS_URL: redis://redis:6379/0
-      CHROMA_HOST: chromadb
-      CHROMA_PORT: 8000
       MINIO_ENDPOINT: minio:9000
+      STORAGE_BACKEND: minio
+      CHROMA_PERSIST_DIR: /tmp/chroma
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.6-flash}
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
-      chromadb:
-        condition: service_started
     networks:
       - ai_assistant_net
     volumes:

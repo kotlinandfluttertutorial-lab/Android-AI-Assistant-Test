@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+    Stage flavor strings.
+    Overrides app/src/main/res/values/strings.xml for the "stage" product flavor.
+
+    The launcher label "AI Assistant Stage" makes it immediately clear on the device
+    home screen that this is a non-production build. This prevents accidentally treating
+    a stage APK as a production release.
+-->
+<resources>
+    <string name="app_name">AI Assistant Stage</string>
+</resources>

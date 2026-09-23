@@ -39,6 +39,11 @@ backend/coverage_fresh.json
 backend/**/.env
 backend/.env.*
 !backend/.env.example
+# Local Docker environment file — contains local dev secrets
+.env.local
+# Keep the example files so developers know what to fill in
+!.env.local.example
+!backend/.env.example
 # Integration test output (may contain API response snippets)
 backend/.llm_test_cache/
 
