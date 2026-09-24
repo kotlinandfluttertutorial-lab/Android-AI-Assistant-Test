@@ -142,8 +142,55 @@ Uses GitHub Environment: `production` — can add approval gate here.
 
 ## How to Update Secrets
 
-Secrets are read by Cloud Run at **container startup**. There are two ways to
-apply a new secret version — one requires a redeploy, one does not.
+### Environment file structure
+
+```
+.env.local            ← Local Docker stack. Real secrets. Git-ignored.
+.env.stage            ← Stage non-secret config only. Git-ignored when real values added.
+.env.production       ← Production non-secret config only. Git-ignored when real values added.
+
+.env.local.example      ← Template for .env.local. Committed.
+.env.stage.example      ← Template for .env.stage. Committed.
+.env.production.example ← Template for .env.production. Committed.
+```
+
+**Local** — real secrets go directly in `.env.local`:
+```
+DATABASE_URL=postgresql+asyncpg://aiassistant:local_dev_password@localhost:5432/aiassistant_local
+SECRET_KEY=<generated>
+GEMINI_API_KEY=AIza<your-local-key>
+...
+```
+
+**Stage / Production** — `.env.stage` and `.env.production` contain **only non-secret config**
+(ENVIRONMENT, LOG_LEVEL, CORS_ORIGINS, LLM model names, etc.).
+Real secrets like `GEMINI_API_KEY`, `DATABASE_URL`, `SECRET_KEY` live exclusively
+in GCP Secret Manager and are injected by `deploy-cloud-run.ps1` at deploy time
+via `--set-secrets`.
+
+### Setup workflow
+
+```powershell
+# Local — copy template and fill real values
+Copy-Item .env.local.example .env.local
+# Edit .env.local: set SECRET_KEY, AES_ENCRYPTION_KEY, GEMINI_API_KEY, etc.
+
+# Stage — copy non-secret template
+Copy-Item .env.stage.example .env.stage
+# Edit .env.stage: only non-secret values (ENVIRONMENT, LOG_LEVEL, CORS_ORIGINS...)
+# Store actual Stage secrets in GCP Secret Manager:
+$env:GEMINI_API_KEY = "AIza<stage-key>"
+.\scripts\store-secrets.ps1 -Environment stage -Secret gemini-api-key
+$env:SECRET_KEY = (python -c "import secrets; print(secrets.token_hex(32))")
+.\scripts\store-secrets.ps1 -Environment stage -Secret secret-key
+# ... repeat for database-url, redis-url, aes-encryption-key
+
+# Production — same pattern
+Copy-Item .env.production.example .env.production
+# Edit .env.production: only non-secret values
+$env:GEMINI_API_KEY = "AIza<prod-key>"
+.\scripts\store-secrets.ps1 -Environment production -Secret gemini-api-key
+```
 
 ### Method A — Zero-downtime secret update (no code change needed)
 

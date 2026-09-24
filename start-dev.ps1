@@ -28,7 +28,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $ROOT     = $PSScriptRoot
 $BACKEND  = Join-Path $ROOT 'backend'
-$ENV_FILE = Join-Path $BACKEND '.env'
+$ENV_FILE = Join-Path $ROOT '.env.local'
 
 function Write-Step($msg) { Write-Host "`n==> $msg" -ForegroundColor Cyan }
 function Write-Ok($msg)   { Write-Host "    $msg"   -ForegroundColor Green }
@@ -55,9 +55,9 @@ if (-not (Get-Command docker -ErrorAction SilentlyContinue)) {
 }
 
 if (-not (Test-Path $ENV_FILE)) {
-    Write-Warn '.env not found'
-    Write-Warn 'Copying .env.example -> .env (edit it with real values before production use)'
-    Copy-Item "$BACKEND\.env.example" $ENV_FILE
+    Write-Warn '.env.local not found'
+    Write-Warn 'Copying .env.local.example -> .env.local (fill in real values before running)'
+    Copy-Item "$ROOT\.env.local.example" $ENV_FILE
 }
 
 Write-Ok 'Prerequisites OK'

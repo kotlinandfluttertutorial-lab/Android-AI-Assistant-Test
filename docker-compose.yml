@@ -94,9 +94,9 @@ services:
       target: production
     restart: unless-stopped
     env_file:
-      - ./backend/.env
+      - .env.local
     environment:
-      # Override localhost-based URLs from .env with Docker service names
+      # Override localhost-based URLs from .env.local with Docker service names
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-aiassistant}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-aiassistant}
       REDIS_URL: redis://redis:6379/0
       MINIO_ENDPOINT: minio:9000
@@ -128,9 +128,9 @@ services:
       target: production
     restart: unless-stopped
     env_file:
-      - ./backend/.env
+      - .env.local
     environment:
-      # Override localhost-based URLs from .env with Docker service names
+      # Override localhost-based URLs from .env.local with Docker service names
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-aiassistant}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-aiassistant}
       REDIS_URL: redis://redis:6379/0
       MINIO_ENDPOINT: minio:9000
