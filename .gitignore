@@ -64,3 +64,5 @@ Thumbs.db
 *.jks
 *.keystore
 android-release.jks
+/.env.stage.example
+/.env.production.example

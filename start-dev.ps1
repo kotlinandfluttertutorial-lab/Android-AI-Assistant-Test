@@ -9,7 +9,7 @@
 #
 # Prerequisites:
 #   - Docker Desktop running
-#   - backend\.env file configured (copy from backend\.env.example)
+#   - .env.local configured at repo root (copy from .env.local.example and fill in values)
 #   - cloudflared installed and tunnel configured
 #
 # Usage:
