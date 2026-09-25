@@ -34,15 +34,18 @@ backend/coverage_fresh.json
 
 # Environment secrets — NEVER commit real credentials
 .env
-*.env.local
-# API keys and secrets — safety net (backend/.env is already above)
+# Per-environment secret files (real secrets — never commit these)
+.env.local
+.env.stage
+.env.production
+# API keys and secrets — safety net
 backend/**/.env
 backend/.env.*
 !backend/.env.example
-# Local Docker environment file — contains local dev secrets
-.env.local
-# Keep the example files so developers know what to fill in
+# Keep the example/template files — these ARE committed
 !.env.local.example
+!.env.stage.example
+!.env.production.example
 !backend/.env.example
 # Integration test output (may contain API response snippets)
 backend/.llm_test_cache/
@@ -61,3 +64,5 @@ Thumbs.db
 *.jks
 *.keystore
 android-release.jks
+/.env.stage.example
+/.env.production.example

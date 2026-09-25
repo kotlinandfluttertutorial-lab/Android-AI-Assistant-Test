@@ -1,0 +1,7 @@
+Your Postman Vault Key (kotlinfiroj@gmail.com)
+
+285ba6f14b5d63caadfa7568a7386412697f7316ec10a6bec0fbbe7981f64354
+
+• Keep this key somewhere safe but accessible.
+• Need more information? Visit https://go.pstmn.io/vault
+• This key was generated on: Sep 26 2026.

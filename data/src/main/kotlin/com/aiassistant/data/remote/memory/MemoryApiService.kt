@@ -50,6 +50,7 @@
  */
 package com.aiassistant.data.remote.memory
 
+import com.aiassistant.core.network.model.Iso8601ToEpochMillisSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import retrofit2.http.Body
@@ -69,7 +70,9 @@ data class MemoryDto(
     @SerialName("user_id") val userId: String,
     @SerialName("content") val content: String,
     @SerialName("memory_type") val memoryType: String, // "preference" | "fact" | "style"
-    @SerialName("created_at") val createdAt: Long
+    @SerialName("created_at")
+    @Serializable(with = Iso8601ToEpochMillisSerializer::class)
+    val createdAt: Long
 )
 
 /**

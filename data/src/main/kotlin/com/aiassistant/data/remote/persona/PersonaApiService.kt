@@ -8,6 +8,7 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
+import com.aiassistant.core.network.model.Iso8601ToEpochMillisSerializer
 
 @Serializable
 data class PersonaResponse(
@@ -19,8 +20,12 @@ data class PersonaResponse(
     @SerialName("scope_description") val scopeDescription: String? = null,
     @SerialName("admin_locked") val adminLocked: Boolean = false,
     @SerialName("allowed_roles") val allowedRoles: List<String> = emptyList(),
-    @SerialName("created_at") val createdAt: Long = 0L,
-    @SerialName("updated_at") val updatedAt: Long = 0L
+    @SerialName("created_at")
+    @Serializable(with = Iso8601ToEpochMillisSerializer::class)
+    val createdAt: Long = 0L,
+    @SerialName("updated_at")
+    @Serializable(with = Iso8601ToEpochMillisSerializer::class)
+    val updatedAt: Long = 0L
 )
 
 @Serializable

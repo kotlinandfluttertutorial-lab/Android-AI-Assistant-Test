@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Neural Glow Outer Circle -->
+    <path
+        android:pathData="M54,22 A32,32 0 1 0 54,86 A32,32 0 1 0 54,22 Z"
+        android:strokeColor="#F59E0B"
+        android:strokeWidth="1.2"
+        android:strokeAlpha="0.4" />
+
+    <!-- Neural Network Nodes & Links -->
+    <path
+        android:pathData="M54,28 L70,39 L70,61 L54,72 L38,61 L38,39 Z"
+        android:strokeColor="#F97316"
+        android:strokeWidth="1.0"
+        android:strokeAlpha="0.6" />
+
+    <!-- Main AI Sparkle Emblem (Amber/Gold Theme) -->
+    <path
+        android:fillColor="#F59E0B"
+        android:pathData="M54,34 C54,43 45,52 35,52 C45,52 54,61 54,70 C54,61 63,52 73,52 C63,52 54,43 54,34 Z" />
+
+    <!-- Core Glow Inner Spark -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,42 C54,47 49,52 44,52 C49,52 54,57 54,62 C54,57 59,52 64,52 C59,52 54,47 54,42 Z" />
+
+    <!-- STAGE Environmental Pill Badge -->
+    <path
+        android:fillColor="#F59E0B"
+        android:pathData="M50,20 H82 C85,20 87,22 87,25 V29 C87,32 85,34 82,34 H50 C47,34 45,32 45,29 V25 C45,22 47,20 50,20 Z" />
+
+    <!-- STAGE Text paths inside pill badge -->
+    <!-- S -->
+    <path
+        android:strokeColor="#0F172A"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:pathData="M52,24 H49.5 C48.5,24 48.5,27 49.5,27 H51.5 C52.5,27 52.5,30 51.5,30 H49" />
+    <!-- T -->
+    <path
+        android:strokeColor="#0F172A"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:pathData="M55,24 H61 M58,24 V30" />
+    <!-- A -->
+    <path
+        android:strokeColor="#0F172A"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:pathData="M63,30 L65.5,24 L68,30 M64,28 H67" />
+    <!-- G -->
+    <path
+        android:strokeColor="#0F172A"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:pathData="M74,25 H71 V30 H74 V27.5 H72.5" />
+    <!-- E -->
+    <path
+        android:strokeColor="#0F172A"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:pathData="M81,24 H77 V30 H81 M77,27 H80" />
+</vector>

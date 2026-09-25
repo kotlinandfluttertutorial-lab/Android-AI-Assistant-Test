@@ -50,6 +50,7 @@
  */
 package com.aiassistant.data.remote.note
 
+import com.aiassistant.core.network.model.Iso8601ToEpochMillisSerializer
 import com.aiassistant.core.network.model.PaginatedResponse
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -71,8 +72,12 @@ data class NoteDto(
     @SerialName("content") val content: String,
     @SerialName("tags") val tags: List<String> = emptyList(),
     @SerialName("sync_status") val syncStatus: String,
-    @SerialName("created_at") val createdAt: Long,
-    @SerialName("updated_at") val updatedAt: Long
+    @SerialName("created_at")
+    @Serializable(with = Iso8601ToEpochMillisSerializer::class)
+    val createdAt: Long,
+    @SerialName("updated_at")
+    @Serializable(with = Iso8601ToEpochMillisSerializer::class)
+    val updatedAt: Long
 )
 
 /** Request body for `POST /notes` and `PUT /notes/{id}`. */

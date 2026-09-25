@@ -94,16 +94,19 @@ services:
       target: production
     restart: unless-stopped
     env_file:
-      - ./backend/.env
+      - ${COMPOSE_ENV_FILE:-.env.local}
     environment:
-      # Override localhost-based URLs from .env with Docker service names
+      # These overrides ensure containers always use Docker service names,
+      # never localhost — regardless of what the env file contains.
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-aiassistant}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-aiassistant}
       REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
       MINIO_ENDPOINT: minio:9000
       STORAGE_BACKEND: minio
       # ChromaDB runs embedded in-process (PersistentClient) — no separate service
       CHROMA_PERSIST_DIR: /tmp/chroma
-      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.6-flash}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.1-flash-lite}
     depends_on:
       postgres:
         condition: service_healthy
@@ -128,15 +131,18 @@ services:
       target: production
     restart: unless-stopped
     env_file:
-      - ./backend/.env
+      - ${COMPOSE_ENV_FILE:-.env.local}
     environment:
-      # Override localhost-based URLs from .env with Docker service names
+      # These overrides ensure containers always use Docker service names,
+      # never localhost — regardless of what the env file contains.
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-aiassistant}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-aiassistant}
       REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/0
+      CELERY_RESULT_BACKEND: redis://redis:6379/0
       MINIO_ENDPOINT: minio:9000
       STORAGE_BACKEND: minio
       CHROMA_PERSIST_DIR: /tmp/chroma
-      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.6-flash}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.1-flash-lite}
     depends_on:
       postgres:
         condition: service_healthy
