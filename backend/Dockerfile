@@ -40,7 +40,7 @@ COPY requirements.txt .
 
 # Cache-bust ARG — increment when requirements change to force pip re-install.
 # chromadb==0.5.20 + anyio==4.14.2 (CVE-2026-45829 bypass + GHSA-82r6/5p39)
-ARG CACHE_BUST=20260918-chromadb0520-anyio4142
+ARG CACHE_BUST=20260925-pgvector036-force-rebuild
 
 # Compile all wheels and install into an isolated prefix directory so we can
 # copy only the installed packages to the final stage — no pip, no wheel

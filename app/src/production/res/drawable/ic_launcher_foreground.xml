@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Neural Glow Outer Circle -->
+    <path
+        android:pathData="M54,20 A34,34 0 1 0 54,88 A34,34 0 1 0 54,20 Z"
+        android:strokeColor="#06B6D4"
+        android:strokeWidth="1.2"
+        android:strokeAlpha="0.4" />
+
+    <!-- Neural Network Nodes & Links -->
+    <path
+        android:pathData="M54,26 L72,38 L72,62 L54,74 L36,62 L36,38 Z"
+        android:strokeColor="#3B82F6"
+        android:strokeWidth="1.0"
+        android:strokeAlpha="0.6" />
+
+    <!-- Main AI Sparkle Emblem -->
+    <path
+        android:fillColor="#10B981"
+        android:pathData="M54,32 C54,43 44,54 32,54 C44,54 54,65 54,76 C54,65 64,54 76,54 C64,54 54,43 54,32 Z" />
+
+    <!-- Core Glow Inner Spark -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,42 C54,48 48,54 42,54 C48,54 54,60 54,66 C54,60 60,54 66,54 C60,54 54,48 54,42 Z" />
+
+    <!-- Top-Right Accent Sparkle -->
+    <path
+        android:fillColor="#06B6D4"
+        android:pathData="M70,32 C70,36 67,39 63,39 C67,39 70,42 70,46 C70,42 73,39 77,39 C73,39 70,36 70,32 Z" />
+</vector>
