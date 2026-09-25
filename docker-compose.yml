@@ -94,10 +94,10 @@ services:
       target: production
     restart: unless-stopped
     env_file:
-      - .env.local
+      - ${COMPOSE_ENV_FILE:-.env.local}
     environment:
       # These overrides ensure containers always use Docker service names,
-      # never localhost — regardless of what .env.local contains.
+      # never localhost — regardless of what the env file contains.
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-aiassistant}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-aiassistant}
       REDIS_URL: redis://redis:6379/0
       CELERY_BROKER_URL: redis://redis:6379/0
@@ -131,10 +131,10 @@ services:
       target: production
     restart: unless-stopped
     env_file:
-      - .env.local
+      - ${COMPOSE_ENV_FILE:-.env.local}
     environment:
       # These overrides ensure containers always use Docker service names,
-      # never localhost — regardless of what .env.local contains.
+      # never localhost — regardless of what the env file contains.
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-aiassistant}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-aiassistant}
       REDIS_URL: redis://redis:6379/0
       CELERY_BROKER_URL: redis://redis:6379/0

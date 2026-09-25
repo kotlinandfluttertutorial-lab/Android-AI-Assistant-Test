@@ -501,8 +501,8 @@ jobs:
           script: |
             set -euo pipefail
             cd "${{ vars.STAGING_COMPOSE_PATH }}"
-            docker compose pull backend celery_worker
-            docker compose up -d --no-deps --remove-orphans backend celery_worker
+            COMPOSE_ENV_FILE=.env.stage docker compose pull backend celery_worker
+            COMPOSE_ENV_FILE=.env.stage docker compose up -d --no-deps --remove-orphans backend celery_worker
             docker image prune -f
             echo "✅ Staging deploy complete — image: ${{ needs.build-and-push.outputs.image_digest }}"
 
@@ -576,8 +576,8 @@ jobs:
           script: |
             set -euo pipefail
             cd "${{ vars.PROD_COMPOSE_PATH }}"
-            docker compose pull backend celery_worker
-            docker compose up -d --no-deps --remove-orphans backend celery_worker
+            COMPOSE_ENV_FILE=.env.production docker compose pull backend celery_worker
+            COMPOSE_ENV_FILE=.env.production docker compose up -d --no-deps --remove-orphans backend celery_worker
             docker image prune -f
             echo "✅ Production deploy complete"
 

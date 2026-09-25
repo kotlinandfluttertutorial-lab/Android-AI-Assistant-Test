@@ -70,6 +70,12 @@ jobs:
       - name: Create stub backend/.env for config validation
         run: cp backend/.env.example backend/.env
 
+      - name: Create stub env files for docker compose config validation
+        run: |
+          cp .env.local.example .env.local || touch .env.local
+          cp .env.stage.example .env.stage || touch .env.stage
+          cp .env.production.example .env.production || touch .env.production
+
       - name: Validate docker-compose.yml syntax
         run: |
           docker compose config --quiet
@@ -457,6 +463,9 @@ jobs:
           GRAFANA_ADMIN_USER=admin
           GRAFANA_ADMIN_PASSWORD=changeme
           EOF
+
+      - name: Create stack .env.local for Compose env_file
+        run: cp backend/.env .env.local
 
       - name: Start infrastructure services only (no backend yet)
         run: |
