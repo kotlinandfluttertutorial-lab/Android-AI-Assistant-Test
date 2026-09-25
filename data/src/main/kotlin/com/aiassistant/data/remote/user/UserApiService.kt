@@ -48,6 +48,7 @@
  */
 package com.aiassistant.data.remote.user
 
+import com.aiassistant.core.network.model.Iso8601ToEpochMillisSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import retrofit2.http.Body
@@ -69,8 +70,12 @@ data class UserResponse(
     val role: String = "user",
     @SerialName("active_provider") val activeProvider: String = "openai_gpt4o",
     @SerialName("theme_mode") val themeMode: String = "system",
-    @SerialName("created_at") val createdAt: Long = 0L,
-    @SerialName("updated_at") val updatedAt: Long = 0L
+    @SerialName("created_at")
+    @Serializable(with = Iso8601ToEpochMillisSerializer::class)
+    val createdAt: Long = 0L,
+    @SerialName("updated_at")
+    @Serializable(with = Iso8601ToEpochMillisSerializer::class)
+    val updatedAt: Long = 0L
 )
 
 /**

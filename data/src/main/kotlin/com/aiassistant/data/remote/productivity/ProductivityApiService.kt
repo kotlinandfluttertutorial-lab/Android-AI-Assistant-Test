@@ -50,6 +50,7 @@
  */
 package com.aiassistant.data.remote.productivity
 
+import com.aiassistant.core.network.model.Iso8601ToEpochMillisSerializer
 import com.aiassistant.core.network.model.PaginatedResponse
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -74,8 +75,12 @@ data class TodoItemDto(
     @SerialName("priority") val priority: String = "medium",
     @SerialName("tags") val tags: List<String> = emptyList(),
     @SerialName("sync_status") val syncStatus: String = "synced",
-    @SerialName("created_at") val createdAt: Long,
-    @SerialName("updated_at") val updatedAt: Long
+    @SerialName("created_at")
+    @Serializable(with = Iso8601ToEpochMillisSerializer::class)
+    val createdAt: Long,
+    @SerialName("updated_at")
+    @Serializable(with = Iso8601ToEpochMillisSerializer::class)
+    val updatedAt: Long
 )
 
 @Serializable
@@ -105,8 +110,12 @@ data class CalendarEventDto(
     @SerialName("is_all_day") val isAllDay: Boolean = false,
     @SerialName("source") val source: String = "local",
     @SerialName("sync_status") val syncStatus: String = "synced",
-    @SerialName("created_at") val createdAt: Long,
-    @SerialName("updated_at") val updatedAt: Long
+    @SerialName("created_at")
+    @Serializable(with = Iso8601ToEpochMillisSerializer::class)
+    val createdAt: Long,
+    @SerialName("updated_at")
+    @Serializable(with = Iso8601ToEpochMillisSerializer::class)
+    val updatedAt: Long
 )
 
 @Serializable
@@ -131,8 +140,12 @@ data class ReminderDto(
     @SerialName("linked_todo_id") val linkedTodoId: String? = null,
     @SerialName("is_completed") val isCompleted: Boolean = false,
     @SerialName("sync_status") val syncStatus: String = "synced",
-    @SerialName("created_at") val createdAt: Long,
-    @SerialName("updated_at") val updatedAt: Long
+    @SerialName("created_at")
+    @Serializable(with = Iso8601ToEpochMillisSerializer::class)
+    val createdAt: Long,
+    @SerialName("updated_at")
+    @Serializable(with = Iso8601ToEpochMillisSerializer::class)
+    val updatedAt: Long
 )
 
 @Serializable
@@ -182,8 +195,12 @@ data class HabitDefinitionDto(
     @SerialName("description") val description: String = "",
     @SerialName("recurrence") val recurrence: String = "daily",
     @SerialName("target_frequency") val targetFrequency: Int = 1,
-    @SerialName("created_at") val createdAt: Long,
-    @SerialName("updated_at") val updatedAt: Long
+    @SerialName("created_at")
+    @Serializable(with = Iso8601ToEpochMillisSerializer::class)
+    val createdAt: Long,
+    @SerialName("updated_at")
+    @Serializable(with = Iso8601ToEpochMillisSerializer::class)
+    val updatedAt: Long
 )
 
 @Serializable

@@ -594,18 +594,41 @@ class GeminiClient(BaseLLMClient):
             temperature=context.temperature,
         )
 
-        try:
-            response = await self._genai_client.aio.models.generate_content(
-                model=self._model_name,
-                contents=contents,
-                config=config,
-            )
-        except genai_errors.APIError as exc:
-            status_code = getattr(exc, "code", 0) or 0
-            raise RuntimeError(
-                f"Gemini complete error (HTTP {status_code}) "
-                f"[model={self._model_name}]: {exc}"
-            ) from exc
+        last_exc: Exception | None = None
+        for _attempt in range(4):  # up to 3 retries (attempts 0-3)
+            try:
+                response = await self._genai_client.aio.models.generate_content(
+                    model=self._model_name,
+                    contents=contents,
+                    config=config,
+                )
+                break  # success — exit retry loop
+            except genai_errors.ServerError as exc:
+                # 503 UNAVAILABLE — transient overload; back off and retry
+                status_code = getattr(exc, "code", 503) or 503
+                last_exc = RuntimeError(
+                    f"Gemini complete error (HTTP {status_code}) "
+                    f"[model={self._model_name}]: {exc}"
+                )
+                if _attempt < 3:
+                    backoff = 2 ** _attempt  # 1s, 2s, 4s
+                    logger.warning(
+                        "Gemini 503 on attempt %d/%d; retrying in %ds",
+                        _attempt + 1, 4, backoff,
+                    )
+                    await asyncio.sleep(backoff)
+                else:
+                    raise last_exc from exc
+            except genai_errors.APIError as exc:
+                status_code = getattr(exc, "code", 0) or 0
+                raise RuntimeError(
+                    f"Gemini complete error (HTTP {status_code}) "
+                    f"[model={self._model_name}]: {exc}"
+                ) from exc
+        else:
+            # Loop exhausted without break — raise last captured error
+            if last_exc:
+                raise last_exc
 
         text = response.text
         if text is None:

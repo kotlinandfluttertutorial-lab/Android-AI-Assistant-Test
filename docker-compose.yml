@@ -106,7 +106,7 @@ services:
       STORAGE_BACKEND: minio
       # ChromaDB runs embedded in-process (PersistentClient) — no separate service
       CHROMA_PERSIST_DIR: /tmp/chroma
-      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.6-flash}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.1-flash-lite}
     depends_on:
       postgres:
         condition: service_healthy
@@ -142,7 +142,7 @@ services:
       MINIO_ENDPOINT: minio:9000
       STORAGE_BACKEND: minio
       CHROMA_PERSIST_DIR: /tmp/chroma
-      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.6-flash}
+      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.1-flash-lite}
     depends_on:
       postgres:
         condition: service_healthy

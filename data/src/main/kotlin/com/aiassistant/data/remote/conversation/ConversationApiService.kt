@@ -50,6 +50,7 @@
  */
 package com.aiassistant.data.remote.conversation
 
+import com.aiassistant.core.network.model.Iso8601ToEpochMillisSerializer
 import com.aiassistant.core.network.model.PaginatedResponse
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -82,8 +83,12 @@ data class ConversationDto(
     @SerialName("is_pinned") val isPinned: Boolean = false,
     @SerialName("is_deleted") val isDeleted: Boolean = false,
     @SerialName("provider") val provider: String,
-    @SerialName("created_at") val createdAt: Long,
-    @SerialName("updated_at") val updatedAt: Long
+    @SerialName("created_at")
+    @Serializable(with = Iso8601ToEpochMillisSerializer::class)
+    val createdAt: Long,
+    @SerialName("updated_at")
+    @Serializable(with = Iso8601ToEpochMillisSerializer::class)
+    val updatedAt: Long
 )
 
 // ─── Retrofit service interface ───────────────────────────────────────────────

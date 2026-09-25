@@ -51,6 +51,7 @@
 package com.aiassistant.data.remote.message
 
 import com.aiassistant.core.network.model.PaginatedResponse
+import com.aiassistant.core.network.model.Iso8601ToEpochMillisSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import retrofit2.http.Body
@@ -79,7 +80,9 @@ data class MessageDto(
     @SerialName("input_tokens") val inputTokens: Int = 0,
     @SerialName("output_tokens") val outputTokens: Int = 0,
     @SerialName("provider") val provider: String = "",
-    @SerialName("created_at") val createdAt: Long
+    @SerialName("created_at")
+    @Serializable(with = Iso8601ToEpochMillisSerializer::class)
+    val createdAt: Long
 )
 
 // ─── Retrofit service interface ───────────────────────────────────────────────
