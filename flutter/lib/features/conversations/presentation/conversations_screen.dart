@@ -6,6 +6,7 @@ import 'dart:async';
 import 'package:ai_assistant_flutter/app/router/app_router.dart';
 import 'package:ai_assistant_flutter/app/theme/app_theme.dart';
 import 'package:ai_assistant_flutter/core/utils/date_formatter.dart';
+import 'package:ai_assistant_flutter/features/conversations/data/conversations_api.dart';
 import 'package:ai_assistant_flutter/features/conversations/domain/conversation_model.dart';
 import 'package:ai_assistant_flutter/features/conversations/providers/conversations_provider.dart';
 import 'package:ai_assistant_flutter/shared/widgets/empty_state.dart';
@@ -134,7 +135,74 @@ class _ConversationTile extends ConsumerWidget {
           style: context.texts.labelSmall?.copyWith(color: context.mutedColor),
         ),
         onTap: () => context.push(Routes.chatPath(conversation.id)),
+        onLongPress: () => _showExportSheet(context, ref),
       ),
+    );
+  }
+
+  void _showExportSheet(BuildContext context, WidgetRef ref) {
+    showModalBottomSheet<void>(
+      context: context,
+      builder: (_) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: const Icon(Icons.download_outlined),
+              title: const Text('Export as Markdown'),
+              onTap: () {
+                Navigator.pop(context);
+                unawaited(_export(context, ref, ExportFormat.markdown));
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.picture_as_pdf_outlined),
+              title: const Text('Export as PDF'),
+              onTap: () {
+                Navigator.pop(context);
+                unawaited(_export(context, ref, ExportFormat.pdf));
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Future<void> _export(
+    BuildContext context,
+    WidgetRef ref,
+    ExportFormat format,
+  ) async {
+    final api    = ref.read(conversationsApiProvider);
+    final result = await api.exportConversation(
+      conversation.id,
+      format: format,
+    );
+
+    if (!context.mounted) return;
+
+    result.when(
+      onSuccess: (export) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Exported "${export.filename}" '
+                '(${export.bytes.length} bytes)'),
+            action: SnackBarAction(
+              label: 'OK',
+              onPressed: () {},
+            ),
+          ),
+        );
+      },
+      onFailure: (err) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Export failed: ${err.userMessage}'),
+            backgroundColor: Theme.of(context).colorScheme.error,
+          ),
+        );
+      },
     );
   }
 }

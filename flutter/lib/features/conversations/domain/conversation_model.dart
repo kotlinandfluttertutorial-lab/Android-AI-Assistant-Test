@@ -95,3 +95,36 @@ class ConversationListResponse {
   final int page;
   final int pageSize;
 }
+
+// ── Export models ─────────────────────────────────────────────────────────────
+
+/// Supported export formats for POST /conversations/{id}/export.
+enum ExportFormat {
+  markdown,
+  pdf;
+
+  String get value => name; // 'markdown' | 'pdf'
+  String get extension => name == 'pdf' ? 'pdf' : 'md';
+  String get mimeType => name == 'pdf'
+      ? 'application/pdf'
+      : 'text/markdown';
+}
+
+/// The result of a successful conversation export.
+class ConversationExport {
+  const ConversationExport({
+    required this.bytes,
+    required this.filename,
+    required this.format,
+  });
+
+  /// Raw file bytes returned by the server.
+  final List<int> bytes;
+
+  /// Suggested filename (from Content-Disposition header or generated).
+  final String filename;
+
+  final ExportFormat format;
+
+  bool get isEmpty => bytes.isEmpty;
+}

@@ -49,6 +49,8 @@ integrations, and enterprise-grade security with comprehensive observability.
 - **Dashboard** — Unified home screen with AI insights (`feature-dashboard`)
 - **Offline-First** — Works without network; auto-syncs when connectivity returns
 - **Enterprise Security** — JWT rotation, RBAC, bcrypt (work factor 12), AES-256, certificate pinning, prompt injection detection
+- **Flutter Client** — Cross-platform second client (`flutter/`) with Incidents, DevOps AI assistant, Error Analysis, offline queue, and local cache
+- **Observability** — Structured event telemetry from both Android and Flutter clients uploaded to the AI analysis pipeline
 
 ---
 
@@ -165,6 +167,68 @@ The Celery worker processes background jobs (document ingestion, push notificati
 
 ---
 
+## Flutter Application
+
+A production-quality cross-platform client (`flutter/`) that consumes the same FastAPI backend.
+Built for learning, experimentation, and future cross-platform support.
+
+### Flutter screens
+
+| Screen | Route | Description |
+|--------|-------|-------------|
+| Login | `/login` | Email/password, show/hide password, validation, error banners |
+| Register | `/register` | Create account (password ≥ 12 chars) |
+| Home | `/home` | Greeting, hero card, 3 quick-action shortcuts, recent chats |
+| Chats | `/conversations` | Cache-first list, swipe-to-delete, long-press export (MD/PDF) |
+| Chat | `/chat/:id` | WebSocket streaming, offline queue, suggestion chips, stop/retry |
+| Incidents | `/incidents` | Severity filter chips, AI summary line, open-count badge |
+| Incident Detail | `/incidents/:id` | RCA confidence bar, remediation approve/reject with safety gate |
+| DevOps AI | `/devops` | REST ReAct assistant, tool-call badges, citations, 7 suggestions |
+| Error Analysis | `/analysis/errors` | AI error analysis with facts/inferences, confidence, fix suggestion |
+| Settings | `/settings` | Provider, theme, on-device AI status, account, env badge |
+
+### Flutter quick start
+
+```bash
+# 1. Start the backend (from repo root)
+docker compose up -d
+
+# 2. Install dependencies
+cd flutter
+flutter pub get
+
+# 3. Run on Android emulator (points to localhost:8000 via 10.0.2.2)
+flutter run --dart-define=ENV=local
+```
+
+### Flutter test commands
+
+```bash
+cd flutter
+flutter test                                          # 80+ unit + widget tests
+flutter test integration_test/ --dart-define=ENV=local  # E2E (backend required)
+flutter analyze                                       # static analysis
+dart format --set-exit-if-changed .                   # format check
+```
+
+### Key Flutter architecture decisions
+
+| Concern | Approach |
+|---------|----------|
+| State management | Riverpod `AsyncNotifier` + `FamilyNotifier` |
+| Navigation | GoRouter with auth guard |
+| HTTP | Dio + `AuthInterceptor` (silent JWT refresh + 401 retry) |
+| Streaming | WebSocket to `/ws/chat/{id}?token=<jwt>` |
+| Offline chat | `PendingMessageQueue` (SharedPreferences, FIFO, max 50) |
+| Local cache | `ConversationCache` (SharedPreferences, max 100 conversations) |
+| Secure storage | `flutter_secure_storage` (Keychain/Keystore) |
+| On-device AI | `OnDeviceAiService` interface + `StubOnDeviceAiService` |
+| Observability | `ObservabilityService` → `POST /api/v1/observability/events` |
+
+See [`flutter/README.md`](flutter/README.md) for full documentation.
+
+---
+
 ## Running the Full Docker Compose Stack
 
 To run the entire backend stack (backend + Celery) inside Docker:
@@ -205,7 +269,7 @@ Access points:
 ```bash
 cd flutter
 
-# Unit + widget tests
+# Unit + widget tests (80+ tests across 22 test files)
 flutter test
 
 # Lint + format check
