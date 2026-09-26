@@ -4,11 +4,14 @@
 /// Call methods on the notifier to trigger login, register, and logout.
 library;
 
+import 'dart:async';
+
 import 'package:ai_assistant_flutter/app/providers/core_providers.dart';
 import 'package:ai_assistant_flutter/core/utils/result.dart';
 import 'package:ai_assistant_flutter/features/auth/data/auth_api.dart';
 import 'package:ai_assistant_flutter/features/auth/data/auth_repository.dart';
 import 'package:ai_assistant_flutter/features/auth/domain/auth_models.dart';
+import 'package:ai_assistant_flutter/features/notifications/providers/notifications_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // ── Repository provider ───────────────────────────────────────────────────────
@@ -41,6 +44,7 @@ class AuthStateNotifier extends AsyncNotifier<AuthState> {
     return result.when(
       onSuccess: (user) {
         state = AsyncData(AuthState.authenticated(user));
+        _registerFcmToken();
         return const Success(null);
       },
       onFailure: (error) {
@@ -57,6 +61,7 @@ class AuthStateNotifier extends AsyncNotifier<AuthState> {
     return result.when(
       onSuccess: (user) {
         state = AsyncData(AuthState.authenticated(user));
+        _registerFcmToken();
         return const Success(null);
       },
       onFailure: (error) {
@@ -71,6 +76,33 @@ class AuthStateNotifier extends AsyncNotifier<AuthState> {
     final repo = ref.read(authRepositoryProvider);
     await repo.logout();
     state = const AsyncData(AuthState.unauthenticated());
+  }
+
+  Future<Result<void>> googleSignIn(String idToken) async {
+    state = const AsyncLoading();
+    final repo   = ref.read(authRepositoryProvider);
+    final result = await repo.googleSignIn(idToken);
+    return result.when(
+      onSuccess: (user) {
+        state = AsyncData(AuthState.authenticated(user));
+        _registerFcmToken();
+        return const Success(null);
+      },
+      onFailure: (error) {
+        state = AsyncData(const AuthState.unauthenticated());
+        return Failure(error);
+      },
+    );
+  }
+
+  /// Fire-and-forget FCM token registration.
+  ///
+  /// Called after every successful authentication. Non-fatal — a push
+  /// notification failure must never degrade the core app experience.
+  void _registerFcmToken() {
+    unawaited(
+      ref.read(fcmTokenServiceProvider).registerIfAvailable(),
+    );
   }
 }
 

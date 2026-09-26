@@ -82,6 +82,22 @@ class ApiConfig {
 
   static const String analysisErrors = '/analysis/errors';
 
+  // ── RAG / Documents ─────────────────────────────────────────────────────
+  static const String documents            = '/documents';
+  static const String documentsQuery       = '/documents/query';
+  static String documentById(String id)    => '/documents/$id';
+  static String documentQuery(String id)   => '/documents/$id/query';
+  static String documentReingest(String id) => '/documents/$id/reingest';
+  static String ragJobById(String id)      => '/jobs/$id';
+
+  // ── Notifications ────────────────────────────────────────────────────────
+  static const String notificationsDeviceToken = '/notifications/device-token';
+
+  // ── Memory ───────────────────────────────────────────────────────────────
+  static const String memory      = '/memory';
+  static const String memoryList  = '/memory/list';
+  static String memoryById(String id) => '/memory/$id';
+
   /// WebSocket chat path — append ?token=<jwt> before connecting.
   static String wsChatPath(String conversationId) =>
       '/ws/chat/$conversationId';

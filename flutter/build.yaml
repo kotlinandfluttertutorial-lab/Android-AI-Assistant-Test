@@ -1,0 +1,45 @@
+# build.yaml — Code generation configuration for build_runner.
+#
+# Run: flutter pub run build_runner build --delete-conflicting-outputs
+# Watch: flutter pub run build_runner watch --delete-conflicting-outputs
+#
+# Generated files (committed to .gitignore by default):
+#   **/*.g.dart       — json_serializable + riverpod_generator output
+#   **/*.freezed.dart — freezed output
+#
+# To commit generated files (simpler CI setup), remove the .gitignore entries.
+
+targets:
+  $default:
+    builders:
+      # ── Freezed ──────────────────────────────────────────────────────────
+      freezed:
+        # Only run Freezed in the lib/ and test/ directories.
+        generate_for:
+          include:
+            - lib/**
+            - test/**
+        options:
+          # Use the default copyWith / == / toString / fromJson pattern.
+          copy_with: true
+          equal: true
+          to_string: true
+
+      # ── json_serializable ────────────────────────────────────────────────
+      json_serializable:
+        generate_for:
+          include:
+            - lib/**
+        options:
+          # Use explicit_to_json so nested objects serialize correctly.
+          explicit_to_json: true
+          # Generate the factory constructor.
+          constructor: ""
+          # Use snake_case field names in JSON (matches our FastAPI backend).
+          field_rename: snake
+
+      # ── Riverpod generator ───────────────────────────────────────────────
+      riverpod_generator:
+        generate_for:
+          include:
+            - lib/**

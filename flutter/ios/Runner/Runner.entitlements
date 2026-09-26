@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Runner.entitlements
+  ───────────────────
+  Declares the capabilities your app uses. Each capability must also be
+  enabled in the Apple Developer portal under your App ID.
+
+  Current capabilities:
+    - Push Notifications (required for FCM)
+    - Keychain Sharing   (required by flutter_secure_storage)
+
+  After enabling push notifications here, you must also:
+    1. Enable "Push Notifications" in App Store Connect → App ID.
+    2. Create an APNs Auth Key (.p8) or APNs certificate.
+    3. Upload the key/certificate to Firebase Console → Project Settings → Cloud Messaging.
+-->
+<plist version="1.0">
+<dict>
+  <!-- Push Notifications — required for FCM / firebase_messaging -->
+  <key>aps-environment</key>
+  <string>production</string>
+
+  <!--
+    Keychain Sharing — required by flutter_secure_storage so tokens
+    persist across app reinstalls (optional but recommended).
+    The access group must match your Team ID + Bundle ID.
+  -->
+  <key>keychain-access-groups</key>
+  <array>
+    <string>$(AppIdentifierPrefix)com.aiassistant.flutter</string>
+  </array>
+</dict>
+</plist>

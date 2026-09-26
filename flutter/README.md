@@ -26,16 +26,18 @@ flutter --version
 
 | Screen | Route | Description |
 |--------|-------|-------------|
-| Login | `/login` | Email/password auth, show/hide password, validation, error states |
+| Login | `/login` | Email + password, Google Sign-In button, show/hide, validation |
 | Register | `/register` | Create account (password ≥ 12 chars) |
 | Home | `/home` | Greeting, hero card, 3 quick-action shortcuts, recent chats |
-| Chats | `/conversations` | Paginated list, swipe-to-delete, long-press export (MD/PDF), cache-first |
+| Chats | `/conversations` | Cache-first list, swipe-to-delete, long-press export (MD/PDF), tablet two-pane |
 | Chat | `/chat/:id` | WebSocket streaming, suggestion chips, offline queue, stop/retry |
 | Incidents | `/incidents` | Severity filter chips, AI summary line, open-count badge |
-| Incident Detail | `/incidents/:id` | Header, RCA card with confidence bar, remediation approve/reject |
-| DevOps AI | `/devops` | REST-based ReAct assistant, tool-call badges, citations, suggestions |
+| Incident Detail | `/incidents/:id` | RCA confidence bar, remediation approve/reject with safety gate |
+| DevOps AI | `/devops` | REST ReAct assistant, tool-call badges, citations, 7 suggestions |
 | Error Analysis | `/analysis/errors` | AI error analysis — facts/inferences, confidence, recommended fix |
-| Settings | `/settings` | Provider selector, theme, on-device AI status, account, env info |
+| Documents | `/documents` | List uploaded docs, upload (multipart), job-polling progress banner |
+| Document Query | `/documents/query` | RAG Q&A — filter chips, Markdown answer, citation cards |
+| Settings | `/settings` | Provider, theme, on-device AI, account, env badge |
 
 ---
 
@@ -114,20 +116,23 @@ flutter/lib/
 ## Navigation Structure
 
 ```
-ShellRoute  (MainShell — 5-tab bottom NavigationBar)
+AdaptiveShell  (phone: BottomNav  |  tablet ≥ 600dp: NavigationRail)
   ├── /home          Home — greeting, hero card, quick actions, recent chats
-  ├── /conversations Conversation list — cache-first, swipe-to-delete
+  ├── /conversations Conversation list — two-pane on tablet ≥ 700dp
   ├── /incidents     Incidents list — filter by severity, AI summary
   ├── /devops        DevOps AI assistant — REST chat, suggestion chips
   └── /settings      Settings — provider, theme, account
 
-Full-screen (no bottom nav)
-  ├── /chat/new          New chat (ChatScreen)
-  ├── /chat/:id          Existing chat (ChatScreen)
-  └── /incidents/:id     Incident detail (RCA + remediation)
+Full-screen (no nav chrome)
+  ├── /chat/new             New chat (ChatScreen)
+  ├── /chat/:id             Existing chat (ChatScreen)
+  ├── /incidents/:id        Incident detail (RCA + remediation)
+  ├── /analysis/errors      Error Analysis
+  ├── /documents            RAG Documents list + upload
+  └── /documents/query      RAG Document Q&A
 
 Auth (redirected to when unauthenticated)
-  ├── /login
+  ├── /login       (email/password + Google Sign-In)
   └── /register
 ```
 
@@ -249,6 +254,7 @@ dart format --set-exit-if-changed .
 | File | Tests | Coverage |
 |------|-------|----------|
 | `test/core/error/error_mapper_test.dart` | 8 | ErrorMapper HTTP → AppError mapping |
+| `test/core/error/app_error_freezed_test.dart` | 16 | AppErrorF sealed union — when/maybeWhen/userMessage |
 | `test/core/utils/result_test.dart` | 8 | Result<T> sealed class |
 | `test/core/utils/date_formatter_test.dart` | 6 | Relative time, ISO parse |
 | `test/core/storage/pending_message_queue_test.dart` | 14 | FIFO, cap, retry, JSON round-trip |
@@ -256,18 +262,23 @@ dart format --set-exit-if-changed .
 | `test/features/auth/auth_models_test.dart` | 8 | Auth request/response models |
 | `test/features/auth/auth_repository_test.dart` | 3 | Login/logout/restoreSession |
 | `test/features/auth/login_screen_test.dart` | 3 | Form validation widget tests |
+| `test/features/auth/google_auth_models_test.dart` | 8 | GoogleAuthRequest/Response models |
 | `test/features/chat/chat_state_test.dart` | 6 | UiMessage + ChatState |
+| `test/features/chat/chat_message_freezed_test.dart` | 12 | ChatMessage Freezed — copyWith, equality, isUser |
 | `test/features/conversations/conversation_model_test.dart` | 5 | Conversation + Message models |
 | `test/features/incidents/incident_models_test.dart` | 20 | All incident domain models |
 | `test/features/devops/devops_models_test.dart` | 14 | DevOps request/response/turn models |
 | `test/features/analysis/analysis_models_test.dart` | 18 | Error analysis domain models |
 | `test/features/observability/observability_models_test.dart` | 12 | Observability event models |
+| `test/features/rag/rag_models_test.dart` | 23 | RAG models — IngestJob, RagDocument, Citation, Query |
+| `test/features/notifications/fcm_token_service_test.dart` | 5 | FCM registerToken + registerIfAvailable |
 | `test/features/ai_providers/ai_provider_model_test.dart` | 5 | Provider model + KnownProviders |
 | `test/shared/widgets/app_button_test.dart` | 5 | AppButton widget |
 | `test/shared/widgets/message_bubble_test.dart` | 5 | MessageBubble widget |
 | `test/shared/widgets/typing_indicator_test.dart` | 2 | TypingIndicator animation |
 | `test/shared/widgets/suggestion_chip_row_test.dart` | 5 | SuggestionChipRow widget |
 | `integration_test/app_test.dart` | 3 | Launch → login redirect → register nav |
+| **Total** | **≈ 225** | |
 
 ---
 
@@ -280,12 +291,129 @@ They return `Result<T>` — never throw — and map errors via `ErrorMapper`.
 
 | Feature | Endpoints |
 |---------|-----------|
-| Auth | `POST /auth/login`, `/register`, `/refresh`, `/logout` |
+| Auth | `POST /auth/login`, `/register`, `/refresh`, `/logout`, `/google` |
 | Chat | `POST /api/v1/chat`, `WS /ws/chat/{id}?token=` |
-| Conversations | `GET/POST /conversations`, `GET /conversations/{id}/messages`, `DELETE /conversations/{id}` |
+| Conversations | `GET/POST /conversations`, `GET /conversations/{id}/messages`, `DELETE /conversations/{id}`, `POST /conversations/{id}/export` |
 | Incidents | `GET /incidents`, `GET /incidents/{id}`, `POST /incidents/{id}/rca`, `GET /incidents/{id}/rca` |
 | Remediation | `POST /incidents/{id}/remediation/recommend`, `/approve`, `/reject` |
 | DevOps AI | `POST /devops/chat`, `GET /devops/tools` |
+| Error Analysis | `POST /analysis/errors` |
+| Observability | `POST /api/v1/observability/events` (no auth) |
+| RAG Documents | `POST /documents` (multipart), `GET /documents`, `DELETE /documents/{id}`, `POST /documents/query`, `GET /jobs/{id}` |
+| Notifications | `PUT /notifications/device-token` |
+| Remediation | `POST /incidents/{id}/remediation/recommend`, `/approve`, `/reject` |
+| DevOps AI | `POST /devops/chat`, `GET /devops/tools` |
+| Error Analysis | `POST /analysis/errors` |
+| Observability | `POST /api/v1/observability/events` (no auth) |
+| RAG Documents | `POST /documents` (multipart), `GET /documents`, `DELETE /documents/{id}`, `POST /documents/query`, `GET /jobs/{id}` |
+| Notifications | `PUT /notifications/device-token` |
+
+---
+
+## RAG Documents
+
+**`DocumentsScreen`** (`/documents`) + **`DocumentQueryScreen`** (`/documents/query`)
+
+Upload PDFs, DOCX, TXT, or Markdown files and ask natural-language questions about them.
+
+### Upload flow
+
+```
+Tap Upload → file picker (add file_picker: ^8.x.x)
+  ↓
+POST /documents (multipart)
+  ↓
+{document_id, job_id, status: "queued"}
+  ↓
+Poll GET /jobs/{job_id} every 3 seconds
+  ↓
+Progress banner: queued → running → completed
+  ↓
+Document appears in list; GET /documents refreshed
+```
+
+### Query flow
+
+```
+Select documents (filter chips) → type question → search
+  ↓
+POST /documents/query  {query, document_ids?, top_k}
+  ↓
+{answer (Markdown), citations: [{document_name, page_number}], context_used}
+```
+
+**To enable file picking:** add `file_picker: ^8.1.2` to `pubspec.yaml`, then replace the stub dialog in `DocumentsScreen._showUploadDialog()` per the inline instructions.
+
+---
+
+## Google Sign-In
+
+The `_GoogleSignInButton` on the login screen is fully wired to `AuthStateNotifier.googleSignIn()` and the backend `POST /auth/google` endpoint.
+
+The Google SDK itself is stubbed — `_getGoogleIdToken()` returns `null` until you add the package.
+
+**To enable:**
+1. Add `google_sign_in: ^6.2.1` to `pubspec.yaml`
+2. Place platform config files (`google-services.json` / `GoogleService-Info.plist`)
+3. Replace `_getGoogleIdToken()` in `login_screen.dart` per the inline doc comment
+
+---
+
+## Adaptive Layout
+
+The app uses `AdaptiveShell` to pick the right navigation chrome automatically:
+
+| Screen width | Navigation | Notes |
+|-------------|-----------|-------|
+| < 600dp | `NavigationBar` (bottom) | Standard phone layout |
+| 600–899dp | `NavigationRail` (collapsed) | Tablet portrait |
+| ≥ 900dp | `NavigationRail` (extended) | Tablet landscape — labels inline |
+
+Conversations screen additionally shows a **two-pane split** at ≥ 700dp: 360dp list on the left, full-width chat panel on the right. Selecting a conversation updates the right panel without navigation.
+
+---
+
+## Freezed Code Generation
+
+Two models are provided with Freezed annotations and pre-generated stub files:
+
+| File | Purpose |
+|------|---------|
+| `lib/features/chat/domain/chat_message.dart` | Immutable `ChatMessage` with `copyWith`, `==`, `hashCode` |
+| `lib/core/error/app_error_freezed.dart` | `AppErrorF` sealed union — exhaustive `when()` error handling |
+
+The `.freezed.dart` and `.g.dart` stubs are committed so the project compiles before running `build_runner`. When you modify a `@freezed` model, regenerate:
+
+```bash
+flutter pub run build_runner build --delete-conflicting-outputs
+```
+
+---
+
+## Push Notifications (FCM)
+
+Token registration is wired into the auth flow. After every successful login/register/Google Sign-In, `_registerFcmToken()` is called — it is fire-and-forget and non-fatal.
+
+The FCM SDK is stubbed — `_getToken()` returns `null` until you add the package.
+
+**To enable:**
+1. Add `firebase_messaging: ^15.1.3` to `pubspec.yaml`
+2. Configure Firebase per `ios/SIGNING.md` § 8 (iOS) and the `android/app/` instructions
+3. Replace `_getToken()` in `fcm_token_service.dart` per the inline doc comment
+
+Token refresh is handled by listening to `FirebaseMessaging.instance.onTokenRefresh` — see the doc comment in `fcm_token_service.dart` for the exact listener code.
+
+---
+
+## iOS Signing
+
+See [`ios/SIGNING.md`](ios/SIGNING.md) for a step-by-step guide covering:
+- Bundle ID registration in Apple Developer portal
+- Distribution certificate export
+- Provisioning profile creation
+- `ExportOptions.plist` + `Runner.entitlements` configuration
+- `flutter build ipa` command
+- GitHub Actions CI/CD snippet
 
 ### Auth flow
 
@@ -510,32 +638,38 @@ To add a real backend (e.g. Gemma via llama.cpp FFI):
 
 ## Remaining TODOs
 
-- [ ] Generate Freezed models for API responses (`build_runner`)
-- [ ] Real on-device inference backend (e.g. Gemma GGUF via llama.cpp FFI)
-- [ ] FCM push notification registration (`PUT /notifications/device-token`)
-- [ ] RAG document upload / query screens
-- [ ] iOS Bundle ID + signing configuration
-- [ ] Tablet two-pane layout (conversations list + chat side-by-side)
-- [ ] Google Sign-In (`POST /auth/google`)
+- [ ] Real on-device inference backend (e.g. Gemma GGUF via llama.cpp FFI) — interface defined, stub in place
+- [ ] Wire `file_picker` for document upload (`file_picker: ^8.x.x` + replace stub in `documents_screen.dart`)
+- [ ] Wire `firebase_messaging` for FCM (`firebase_messaging: ^15.x.x` + replace stub in `fcm_token_service.dart`)
+- [ ] Wire `google_sign_in` SDK (`google_sign_in: ^6.x.x` + replace stub in `login_screen.dart`)
+- [ ] Replace Freezed stubs with real generated files (`flutter pub run build_runner build`)
+- [ ] iOS Bundle ID: replace `com.aiassistant.flutter` with your real Bundle ID (see `ios/SIGNING.md`)
+- [ ] Add tablet two-pane layout for Incidents (list + detail)
 
 ---
 
-## Completed from original plan
+## Completed
 
-- [x] Material 3 theme with extended DevOps/AI color tokens
-- [x] GoRouter with auth guard (5-tab shell + full-screen routes)
-- [x] Login + Register screens
+- [x] Material 3 theme with DevOps/AI color tokens (light + dark)
+- [x] GoRouter with async auth guard (5-tab AdaptiveShell + full-screen routes)
+- [x] **Adaptive layout** — NavigationBar on phone, NavigationRail on tablet ≥ 600dp
+- [x] **Tablet two-pane** — Conversations list + Chat panel side-by-side at ≥ 700dp
+- [x] Login + Register screens with form validation
+- [x] **Google Sign-In button** (styled, with full wiring instructions — SDK stub)
 - [x] Home screen with hero card + 3 quick-action shortcuts
-- [x] AI chat screen (WebSocket streaming, suggestion chips, offline queue)
-- [x] Conversations list (cache-first, swipe-to-delete, export Markdown/PDF)
-- [x] Incidents screen + detail (filter, RCA, remediation approve/reject + high-risk gate)
-- [x] DevOps AI assistant screen (REST ReAct, tool badges, citations)
+- [x] AI chat screen (WebSocket streaming, suggestion chips, offline queue, stop/retry)
+- [x] Conversations list (cache-first, swipe-to-delete, long-press export Markdown/PDF)
+- [x] Incidents screen + detail (filter, RCA confidence bar, remediation approve/reject + high-risk gate)
+- [x] DevOps AI assistant screen (REST ReAct, tool badges, citations, 7 suggestions)
 - [x] AI Error Analysis screen (severity, facts/inferences, confidence, fix suggestion)
+- [x] **RAG Documents screen** (upload progress + job polling, dismissible list, type icons)
+- [x] **RAG Document Query screen** (filter chips, Markdown answer, citation cards with copy)
 - [x] Observability service (event capture, PII sanitizer, auto-flush, lifecycle observer)
 - [x] Offline message queue (FIFO, max 50, auto-flush on reconnect, Retry button)
 - [x] Local conversation cache (SharedPreferences, max 100)
-- [x] AI provider abstraction (6 providers + on-device stub)
-- [x] Settings screen (provider, theme, on-device AI, account)
-- [x] iOS platform stubs (Info.plist, AppDelegate, Podfile)
-- [x] 80+ unit + widget tests across 22 test files
+- [x] AI provider abstraction (6 cloud providers + on-device stub + settings selector)
+- [x] **FCM device token registration** (PUT /notifications/device-token on post-login — SDK stub)
+- [x] **Freezed codegen setup** — `build.yaml`, `@freezed ChatMessage`, `AppErrorF` sealed union with `when()`, generated stubs committed
+- [x] **iOS signing configuration** — `ExportOptions.plist`, `Runner.entitlements`, `SIGNING.md` step-by-step guide
+- [x] 110+ unit + widget tests across 27 test files
 - [x] Integration test skeleton (launch → login redirect → register navigation)

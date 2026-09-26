@@ -29,8 +29,34 @@
         android:fillColor="#FFFFFF"
         android:pathData="M54,42 C54,48 48,54 42,54 C48,54 54,60 54,66 C54,60 60,54 66,54 C60,54 54,48 54,42 Z" />
 
-    <!-- Top-Right Accent Sparkle -->
+    <!-- PROD Environmental Pill Badge -->
     <path
-        android:fillColor="#06B6D4"
-        android:pathData="M70,32 C70,36 67,39 63,39 C67,39 70,42 70,46 C70,42 73,39 77,39 C73,39 70,36 70,32 Z" />
+        android:fillColor="#059669"
+        android:pathData="M48,20 H82 C85,20 87,22 87,25 V29 C87,32 85,34 82,34 H48 C45,34 43,32 43,29 V25 C43,22 45,20 48,20 Z" />
+
+    <!-- PROD Text paths inside pill badge -->
+    <!-- P -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:pathData="M47,24 V30 M47,24 H51 C53,24 53,27 51,27 H47" />
+    <!-- R -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:pathData="M54,24 V30 M54,24 H58 C60,24 60,27 58,27 H54 M56,27 L59,30" />
+    <!-- O -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:pathData="M61,24 H65 V30 H61 Z" />
+    <!-- D -->
+    <path
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:pathData="M68,24 V30 H71 C73.5,30 73.5,24 71,24 H68 Z" />
 </vector>

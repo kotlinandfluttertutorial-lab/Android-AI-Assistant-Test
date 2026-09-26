@@ -46,3 +46,22 @@ class AuthApi {
     }
   }
 }
+
+  /// Exchange a Google ID token for application-level JWT + refresh tokens.
+  ///
+  /// The [idToken] is obtained from the Google Sign-In SDK on the device.
+  /// The backend verifies it with Google's public keys before issuing tokens.
+  ///
+  /// POST /auth/google
+  Future<Result<GoogleAuthResponse>> googleSignIn(
+      GoogleAuthRequest request) async {
+    try {
+      final response = await _dio.post<Map<String, dynamic>>(
+        ApiConfig.authGoogle,
+        data: request.toJson(),
+      );
+      return Success(GoogleAuthResponse.fromJson(response.data!));
+    } catch (e, st) {
+      return Failure(ErrorMapper.map(e, st));
+    }
+  }
