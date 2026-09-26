@@ -19,8 +19,16 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 class ChatScreen extends ConsumerStatefulWidget {
-  const ChatScreen({super.key, required this.conversationId});
+  const ChatScreen({
+    super.key,
+    required this.conversationId,
+    this.showBackButton = true,
+  });
   final String conversationId;
+
+  /// Set to false when embedded in a two-pane tablet layout where back
+  /// navigation is handled by the parent scaffold.
+  final bool showBackButton;
 
   @override
   ConsumerState<ChatScreen> createState() => _ChatScreenState();
@@ -94,6 +102,7 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        automaticallyImplyLeading: widget.showBackButton,
         title: Text(
           chatState.conversationId != null ? 'Chat' : 'New chat',
           style: context.texts.titleMedium,

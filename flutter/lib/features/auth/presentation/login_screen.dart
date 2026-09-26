@@ -158,6 +158,36 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                   onPressed: _submit,
                 ),
 
+                const SizedBox(height: 12),
+
+                // ── Divider ───────────────────────────────────────────────
+                Row(
+                  children: [
+                    const Expanded(child: Divider()),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 12),
+                      child: Text(
+                        'or',
+                        style: context.texts.bodySmall
+                            ?.copyWith(color: context.mutedColor),
+                      ),
+                    ),
+                    const Expanded(child: Divider()),
+                  ],
+                ),
+
+                const SizedBox(height: 12),
+
+                // ── Google Sign-In button ─────────────────────────────────
+                _GoogleSignInButton(
+                  isLoading: isLoading,
+                  onSignedIn: (error) {
+                    if (error != null && mounted) {
+                      setState(() => _errorMessage = error);
+                    }
+                  },
+                ),
+
                 const SizedBox(height: 16),
 
                 // ── Register link ─────────────────────────────────────────
@@ -216,5 +246,112 @@ class _ErrorBanner extends StatelessWidget {
         ],
       ),
     );
+  }
+}
+
+/// Google Sign-In button.
+///
+/// This button is a styled wrapper that delegates to [AuthStateNotifier.googleSignIn].
+///
+/// ## Wiring a real Google Sign-In SDK
+///
+/// 1. Add the dependency:
+///    ```yaml
+///    google_sign_in: ^6.2.1
+///    ```
+///
+/// 2. Configure each platform:
+///    - Android: place `google-services.json` in `flutter/android/app/`
+///    - iOS: place `GoogleService-Info.plist` in `flutter/ios/Runner/`
+///
+/// 3. Replace the _getGoogleIdToken() stub below with:
+///    ```dart
+///    final googleSignIn = GoogleSignIn(scopes: ['email']);
+///    final account      = await googleSignIn.signIn();
+///    final auth         = await account?.authentication;
+///    return auth?.idToken;
+///    ```
+class _GoogleSignInButton extends ConsumerWidget {
+  const _GoogleSignInButton({
+    required this.isLoading,
+    required this.onSignedIn,
+  });
+
+  final bool isLoading;
+  final void Function(String? error) onSignedIn;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    return OutlinedButton(
+      style: OutlinedButton.styleFrom(
+        minimumSize: const Size(double.infinity, 52),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        side: BorderSide(
+          color: Theme.of(context).colorScheme.outline,
+        ),
+      ),
+      onPressed: isLoading ? null : () => _signIn(context, ref),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          // Google "G" icon — drawn as a coloured circle placeholder.
+          // Replace with an SVG asset once google_sign_in is wired in.
+          Container(
+            width: 20,
+            height: 20,
+            decoration: const BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: LinearGradient(
+                colors: [Color(0xFF4285F4), Color(0xFF34A853)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: const Center(
+              child: Text(
+                'G',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          const Text('Continue with Google'),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _signIn(BuildContext context, WidgetRef ref) async {
+    // Stub: returns null until google_sign_in is installed.
+    // Replace with the real implementation described in the doc comment above.
+    final idToken = await _getGoogleIdToken();
+
+    if (idToken == null) {
+      onSignedIn(
+        'Google Sign-In is not configured. '
+        'See the doc comment in _GoogleSignInButton for setup instructions.',
+      );
+      return;
+    }
+
+    final result =
+        await ref.read(authStateProvider.notifier).googleSignIn(idToken);
+    result.when(
+      onSuccess: (_) => onSignedIn(null),
+      onFailure: (err) => onSignedIn(err.userMessage),
+    );
+  }
+
+  /// Returns a Google ID token, or null if the SDK is not wired.
+  Future<String?> _getGoogleIdToken() async {
+    // TODO: replace this stub with google_sign_in SDK call.
+    // See class-level doc comment for instructions.
+    return null;
   }
 }

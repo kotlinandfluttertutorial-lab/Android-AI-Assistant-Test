@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"
+  "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  ExportOptions.plist
+  ───────────────────
+  Used by `xcodebuild -exportArchive` to configure how the IPA is produced.
+
+  METHOD OPTIONS
+  ──────────────
+  development   → for internal testing on registered devices
+  ad-hoc        → for TestFlight-style distribution to registered UDIDs
+  app-store     → for App Store Connect submission
+  enterprise    → for in-house distribution (requires Enterprise account)
+
+  BEFORE USING
+  ────────────
+  1. Replace "com.aiassistant.flutter" with your real Bundle ID registered
+     in App Store Connect.
+  2. Replace "YourTeamID" with your 10-character Apple Developer Team ID
+     (find it at developer.apple.com → Membership → Team ID).
+  3. Replace "AI Assistant Distribution" with the exact name of the
+     Distribution provisioning profile you created in App Store Connect.
+  4. Set method to "app-store" for production releases.
+
+  GITHUB ACTIONS USAGE
+  ────────────────────
+  Store your p12 certificate and provisioning profile as GitHub secrets:
+    IOS_CERTIFICATE_P12    → base64-encoded .p12
+    IOS_CERTIFICATE_PASS   → certificate password
+    IOS_PROVISION_PROFILE  → base64-encoded .mobileprovision
+
+  CI step:
+    - name: Import certificate
+      run: |
+        echo "$IOS_CERTIFICATE_P12" | base64 --decode > cert.p12
+        security import cert.p12 -P "$IOS_CERTIFICATE_PASS" -k ~/Library/Keychains/login.keychain-db
+    - name: Build IPA
+      run: flutter build ipa --export-options-plist=ios/ExportOptions.plist
+-->
+<plist version="1.0">
+<dict>
+  <!-- The distribution method. -->
+  <key>method</key>
+  <string>app-store</string>
+
+  <!-- Your 10-character Apple Developer Team ID. -->
+  <key>teamID</key>
+  <string>YourTeamID</string>
+
+  <!-- Set to true to upload directly to App Store Connect after export. -->
+  <key>uploadBitcode</key>
+  <false/>
+
+  <key>uploadSymbols</key>
+  <true/>
+
+  <key>compileBitcode</key>
+  <false/>
+
+  <!--
+    Provisioning profiles map Bundle IDs to profiles.
+    Key   = Bundle ID
+    Value = Provisioning profile name (exact string from Apple Developer portal)
+  -->
+  <key>provisioningProfiles</key>
+  <dict>
+    <key>com.aiassistant.flutter</key>
+    <string>AI Assistant Distribution</string>
+  </dict>
+
+  <!--
+    Signing certificate to use.
+    "Apple Distribution" covers both App Store and Ad Hoc exports.
+  -->
+  <key>signingCertificate</key>
+  <string>Apple Distribution</string>
+
+  <!-- Manual signing gives full control over profile selection. -->
+  <key>signingStyle</key>
+  <string>manual</string>
+</dict>
+</plist>

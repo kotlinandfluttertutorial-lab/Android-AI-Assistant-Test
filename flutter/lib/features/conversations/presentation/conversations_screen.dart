@@ -1,4 +1,7 @@
 /// Conversation list screen — shows all past chats.
+///
+/// On tablet (≥ 700dp): two-pane layout — list on the left, chat on the right.
+/// On phone:            single-pane list; tapping navigates to ChatScreen.
 library;
 
 import 'dart:async';
@@ -6,6 +9,7 @@ import 'dart:async';
 import 'package:ai_assistant_flutter/app/router/app_router.dart';
 import 'package:ai_assistant_flutter/app/theme/app_theme.dart';
 import 'package:ai_assistant_flutter/core/utils/date_formatter.dart';
+import 'package:ai_assistant_flutter/features/chat/presentation/chat_screen.dart';
 import 'package:ai_assistant_flutter/features/conversations/data/conversations_api.dart';
 import 'package:ai_assistant_flutter/features/conversations/domain/conversation_model.dart';
 import 'package:ai_assistant_flutter/features/conversations/providers/conversations_provider.dart';
@@ -16,57 +20,153 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-class ConversationsScreen extends ConsumerWidget {
+/// Minimum width to enable the two-pane layout (dp).
+const double _twoPaneBreakpoint = 700;
+
+class ConversationsScreen extends ConsumerStatefulWidget {
   const ConversationsScreen({super.key});
+
+  @override
+  ConsumerState<ConversationsScreen> createState() =>
+      _ConversationsScreenState();
+}
+
+class _ConversationsScreenState extends ConsumerState<ConversationsScreen> {
+  /// The conversation open in the detail pane (tablet only).
+  String? _selectedConversationId;
+
+  void _openConversation(BuildContext context, String id) {
+    final isTablet =
+        MediaQuery.of(context).size.width >= _twoPaneBreakpoint;
+    if (isTablet) {
+      setState(() => _selectedConversationId = id);
+    } else {
+      context.push(Routes.chatPath(id));
+    }
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final conversationsAsync = ref.watch(conversationsProvider);
+    final isTablet =
+        MediaQuery.of(context).size.width >= _twoPaneBreakpoint;
 
+    final listPane = _ConversationListPane(
+      conversationsAsync: conversationsAsync,
+      selectedId:         _selectedConversationId,
+      onOpen:             (id) => _openConversation(context, id),
+      onRefresh:          () => ref.read(conversationsProvider.notifier).refresh(),
+    );
+
+    if (!isTablet) {
+      return listPane;
+    }
+
+    // ── Two-pane tablet layout ─────────────────────────────────────────────
+    return Scaffold(
+      body: Row(
+        children: [
+          SizedBox(
+            width: 360,
+            child: listPane,
+          ),
+          const VerticalDivider(width: 1, thickness: 1),
+          Expanded(
+            child: _selectedConversationId != null
+                ? ChatScreen(
+                    conversationId: _selectedConversationId!,
+                    showBackButton: false,
+                  )
+                : Center(
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(
+                          Icons.chat_bubble_outline,
+                          size: 64,
+                          color: context.mutedColor,
+                          semanticLabel: 'Select a chat',
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'Select a conversation',
+                          style: context.texts.titleSmall
+                              ?.copyWith(color: context.mutedColor),
+                        ),
+                      ],
+                    ),
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// ── Conversation list pane ────────────────────────────────────────────────────
+
+class _ConversationListPane extends ConsumerWidget {
+  const _ConversationListPane({
+    required this.conversationsAsync,
+    required this.selectedId,
+    required this.onOpen,
+    required this.onRefresh,
+  });
+
+  final AsyncValue<List<Conversation>> conversationsAsync;
+  final String?                        selectedId;
+  final void Function(String id)       onOpen;
+  final Future<void> Function()        onRefresh;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Chats'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.refresh),
+            icon:    const Icon(Icons.refresh),
             tooltip: 'Refresh',
-            onPressed: () =>
-                ref.read(conversationsProvider.notifier).refresh(),
+            onPressed: onRefresh,
           ),
         ],
       ),
       body: conversationsAsync.when(
-        loading: () => const LoadingIndicator(message: 'Loading conversations…'),
+        loading: () => const LoadingIndicator(
+            message: 'Loading conversations…'),
         error: (e, _) => ErrorView(
           message: e.toString(),
-          onRetry: () => ref.read(conversationsProvider.notifier).refresh(),
+          onRetry: onRefresh,
         ),
         data: (conversations) {
           if (conversations.isEmpty) {
             return EmptyState(
-              icon: Icons.chat_bubble_outline,
-              title: 'No conversations yet',
-              subtitle: 'Start a new chat to get going.',
+              icon:        Icons.chat_bubble_outline,
+              title:       'No conversations yet',
+              subtitle:    'Start a new chat to get going.',
               actionLabel: 'New chat',
-              onAction: () => context.push(Routes.newChat),
+              onAction:    () => context.push(Routes.newChat),
             );
           }
           return RefreshIndicator(
-            onRefresh: () =>
-                ref.read(conversationsProvider.notifier).refresh(),
+            onRefresh: onRefresh,
             child: ListView.separated(
               padding: const EdgeInsets.symmetric(vertical: 8),
               itemCount: conversations.length,
-              separatorBuilder: (_, __) => const Divider(height: 1, indent: 72),
-              itemBuilder: (context, i) =>
-                  _ConversationTile(conversation: conversations[i]),
+              separatorBuilder: (_, __) =>
+                  const Divider(height: 1, indent: 72),
+              itemBuilder: (ctx, i) => _ConversationTile(
+                conversation: conversations[i],
+                isSelected:   conversations[i].id == selectedId,
+                onTap:        () => onOpen(conversations[i].id),
+              ),
             ),
           );
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push(Routes.newChat),
-        icon: const Icon(Icons.add),
+        icon:  const Icon(Icons.add),
         label: const Text('New chat'),
       ),
     );
@@ -74,8 +174,14 @@ class ConversationsScreen extends ConsumerWidget {
 }
 
 class _ConversationTile extends ConsumerWidget {
-  const _ConversationTile({required this.conversation});
+  const _ConversationTile({
+    required this.conversation,
+    this.isSelected = false,
+    this.onTap,
+  });
   final Conversation conversation;
+  final bool         isSelected;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -134,8 +240,17 @@ class _ConversationTile extends ConsumerWidget {
           DateFormatter.relative(conversation.updatedAt ?? conversation.createdAt),
           style: context.texts.labelSmall?.copyWith(color: context.mutedColor),
         ),
-        onTap: () => context.push(Routes.chatPath(conversation.id)),
+        onTap: () {
+          if (onTap != null) {
+            onTap!();
+          } else {
+            context.push(Routes.chatPath(conversation.id));
+          }
+        },
         onLongPress: () => _showExportSheet(context, ref),
+        selected:   isSelected,
+        selectedTileColor:
+            Theme.of(context).colorScheme.primary.withAlpha(12),
       ),
     );
   }
