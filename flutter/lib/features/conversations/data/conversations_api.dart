@@ -64,4 +64,39 @@ class ConversationsApi {
       return Failure(ErrorMapper.map(e, st));
     }
   }
+
+  /// Export a conversation as Markdown or PDF.
+  ///
+  /// Returns the raw bytes of the file on success.
+  /// The filename is derived from the response headers.
+  Future<Result<ConversationExport>> exportConversation(
+    String id, {
+    ExportFormat format = ExportFormat.markdown,
+  }) async {
+    try {
+      final response = await _dio.post<List<int>>(
+        ApiConfig.conversationExport(id),
+        queryParameters: {'format': format.value},
+        options: Options(responseType: ResponseType.bytes),
+      );
+
+      final bytes = response.data ?? [];
+
+      // Extract filename from Content-Disposition header if present.
+      final disposition =
+          response.headers.value('content-disposition') ?? '';
+      final filenameMatch =
+          RegExp(r'filename="?([^";]+)"?').firstMatch(disposition);
+      final filename = filenameMatch?.group(1) ??
+          'conversation-$id.${format.extension}';
+
+      return Success(ConversationExport(
+        bytes:    bytes,
+        filename: filename,
+        format:   format,
+      ));
+    } catch (e, st) {
+      return Failure(ErrorMapper.map(e, st));
+    }
+  }
 }

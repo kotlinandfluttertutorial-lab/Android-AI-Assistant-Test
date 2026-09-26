@@ -290,24 +290,41 @@ class _ConversationCard extends StatelessWidget {
 class _QuickActionsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Row(
+    return Column(
       children: [
-        Expanded(
-          child: _QuickActionCard(
-            icon:    Icons.bug_report_outlined,
-            label:   'Incidents',
-            color:   context.critical,
-            onTap:   () => context.go(Routes.incidents),
-          ),
+        Row(
+          children: [
+            Expanded(
+              child: _QuickActionCard(
+                icon:  Icons.bug_report_outlined,
+                label: 'Incidents',
+                color: context.critical,
+                onTap: () => context.go(Routes.incidents),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _QuickActionCard(
+                icon:  Icons.travel_explore,
+                label: 'DevOps AI',
+                color: context.aiAccent,
+                onTap: () => context.go(Routes.devops),
+              ),
+            ),
+          ],
         ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: _QuickActionCard(
-            icon:    Icons.travel_explore,
-            label:   'DevOps AI',
-            color:   context.aiAccent,
-            onTap:   () => context.go(Routes.devops),
-          ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(
+              child: _QuickActionCard(
+                icon:  Icons.auto_awesome,
+                label: 'Error Analysis',
+                color: context.colors.primary,
+                onTap: () => context.push(Routes.errorAnalysis),
+              ),
+            ),
+          ],
         ),
       ],
     );
