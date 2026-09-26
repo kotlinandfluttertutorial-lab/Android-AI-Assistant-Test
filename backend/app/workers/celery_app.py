@@ -91,6 +91,12 @@ def _create_celery_app() -> Celery:
         # may reset idle connections. Without this Celery 5.x logs a deprecation
         # warning and will default to False in Celery 6.0.
         broker_connection_retry_on_startup=True,
+        # Cap the number of connection retries so the worker exits cleanly
+        # instead of spinning forever when Redis is over quota or unreachable.
+        # entrypoint.sh probes Redis before launching Celery, so by the time we
+        # reach here Redis is known-good; these limits handle post-startup drops.
+        broker_connection_retry=True,
+        broker_connection_max_retries=5,
         # Heartbeat keeps the broker connection alive on Upstash Redis which
         # resets idle TCP connections after ~60s. Set to 10s so we detect and
         # recover dropped connections well within that window.
