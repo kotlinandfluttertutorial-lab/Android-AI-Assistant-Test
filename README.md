@@ -176,16 +176,18 @@ Built for learning, experimentation, and future cross-platform support.
 
 | Screen | Route | Description |
 |--------|-------|-------------|
-| Login | `/login` | Email/password, show/hide password, validation, error banners |
+| Login | `/login` | Email + password, Google Sign-In button, validation |
 | Register | `/register` | Create account (password ≥ 12 chars) |
 | Home | `/home` | Greeting, hero card, 3 quick-action shortcuts, recent chats |
-| Chats | `/conversations` | Cache-first list, swipe-to-delete, long-press export (MD/PDF) |
+| Chats | `/conversations` | Cache-first list, swipe-to-delete, export MD/PDF, **tablet two-pane** |
 | Chat | `/chat/:id` | WebSocket streaming, offline queue, suggestion chips, stop/retry |
 | Incidents | `/incidents` | Severity filter chips, AI summary line, open-count badge |
 | Incident Detail | `/incidents/:id` | RCA confidence bar, remediation approve/reject with safety gate |
 | DevOps AI | `/devops` | REST ReAct assistant, tool-call badges, citations, 7 suggestions |
-| Error Analysis | `/analysis/errors` | AI error analysis with facts/inferences, confidence, fix suggestion |
-| Settings | `/settings` | Provider, theme, on-device AI status, account, env badge |
+| Error Analysis | `/analysis/errors` | AI error analysis — facts/inferences, confidence, recommended fix |
+| **Documents** | `/documents` | Upload PDFs/DOCX, job-polling progress, dismissible list |
+| **Document Query** | `/documents/query` | RAG Q&A — filter chips, Markdown answer, citation cards |
+| Settings | `/settings` | Provider, theme, on-device AI, account, env badge |
 
 ### Flutter quick start
 
@@ -205,10 +207,10 @@ flutter run --dart-define=ENV=local
 
 ```bash
 cd flutter
-flutter test                                          # 80+ unit + widget tests
+flutter test                                            # 225+ unit + widget tests
 flutter test integration_test/ --dart-define=ENV=local  # E2E (backend required)
-flutter analyze                                       # static analysis
-dart format --set-exit-if-changed .                   # format check
+flutter analyze                                         # static analysis
+dart format --set-exit-if-changed .                     # format check
 ```
 
 ### Key Flutter architecture decisions
@@ -216,7 +218,7 @@ dart format --set-exit-if-changed .                   # format check
 | Concern | Approach |
 |---------|----------|
 | State management | Riverpod `AsyncNotifier` + `FamilyNotifier` |
-| Navigation | GoRouter with auth guard |
+| Navigation | GoRouter with async auth guard |
 | HTTP | Dio + `AuthInterceptor` (silent JWT refresh + 401 retry) |
 | Streaming | WebSocket to `/ws/chat/{id}?token=<jwt>` |
 | Offline chat | `PendingMessageQueue` (SharedPreferences, FIFO, max 50) |
@@ -224,6 +226,13 @@ dart format --set-exit-if-changed .                   # format check
 | Secure storage | `flutter_secure_storage` (Keychain/Keystore) |
 | On-device AI | `OnDeviceAiService` interface + `StubOnDeviceAiService` |
 | Observability | `ObservabilityService` → `POST /api/v1/observability/events` |
+| Adaptive layout | `AdaptiveShell` — BottomNav < 600dp, NavigationRail ≥ 600dp |
+| Two-pane tablet | Conversations + Chat side-by-side at ≥ 700dp |
+| RAG | Upload → job polling → `DocumentsScreen` + `DocumentQueryScreen` |
+| Google Sign-In | Stubbed `_GoogleSignInButton` wired to `POST /auth/google` |
+| FCM | `FcmTokenService` registers token on post-login (stubbed SDK) |
+| Immutable models | Freezed `@freezed ChatMessage` + `AppErrorF` sealed union |
+| iOS signing | `ExportOptions.plist` + `Runner.entitlements` + `ios/SIGNING.md` |
 
 See [`flutter/README.md`](flutter/README.md) for full documentation.
 

@@ -134,3 +134,56 @@ class RegisterResponse {
   final int accessTokenExpiresAt;
   final int refreshTokenExpiresAt;
 }
+
+// ── Google OAuth2 ─────────────────────────────────────────────────────────────
+
+/// Request body for POST /auth/google.
+///
+/// The client exchanges the Google ID token (obtained from the Google Sign-In
+/// SDK) for application-level JWT + refresh tokens.
+class GoogleAuthRequest {
+  const GoogleAuthRequest({required this.idToken});
+  final String idToken;
+
+  Map<String, dynamic> toJson() => {'id_token': idToken};
+}
+
+/// Response body for POST /auth/google (HTTP 200 / 201).
+class GoogleAuthResponse {
+  const GoogleAuthResponse({
+    required this.userId,
+    required this.email,
+    required this.displayName,
+    required this.role,
+    required this.accessToken,
+    required this.refreshToken,
+    required this.accessTokenExpiresAt,
+    required this.refreshTokenExpiresAt,
+    required this.isNewUser,
+  });
+
+  factory GoogleAuthResponse.fromJson(Map<String, dynamic> json) =>
+      GoogleAuthResponse(
+        userId:               json['user_id'] as String,
+        email:                json['email'] as String,
+        displayName:          (json['display_name'] as String?) ?? '',
+        role:                 (json['role'] as String?) ?? 'user',
+        accessToken:          json['access_token'] as String,
+        refreshToken:         json['refresh_token'] as String,
+        accessTokenExpiresAt: json['access_token_expires_at'] as int,
+        refreshTokenExpiresAt: json['refresh_token_expires_at'] as int,
+        isNewUser:            (json['is_new_user'] as bool?) ?? false,
+      );
+
+  final String userId;
+  final String email;
+  final String displayName;
+  final String role;
+  final String accessToken;
+  final String refreshToken;
+  final int    accessTokenExpiresAt;
+  final int    refreshTokenExpiresAt;
+
+  /// True when a new local account was created on this sign-in.
+  final bool isNewUser;
+}

@@ -4,17 +4,20 @@
 /// The router reacts to [authStateProvider] changes automatically.
 ///
 /// Navigation structure:
-///   ShellRoute (MainShell — 5-tab bottom nav)
+///   ShellRoute (AdaptiveShell — 5-tab bottom nav on phone,
+///                               NavigationRail on tablet ≥ 600dp)
 ///     /home          → HomeScreen
 ///     /conversations → ConversationsScreen
 ///     /incidents     → IncidentsScreen
 ///     /devops        → DevOpsChatScreen
 ///     /settings      → SettingsScreen
 ///
-///   Full-screen routes (no bottom nav)
-///     /chat/new          → ChatScreen (new conversation)
-///     /chat/:id          → ChatScreen (existing conversation)
-///     /incidents/:id     → IncidentDetailScreen
+///   Full-screen (no nav chrome)
+///     /chat/new, /chat/:id      → ChatScreen
+///     /incidents/:id            → IncidentDetailScreen
+///     /analysis/errors          → ErrorAnalysisScreen
+///     /documents                → DocumentsScreen
+///     /documents/query          → DocumentQueryScreen
 library;
 
 import 'package:ai_assistant_flutter/features/analysis/presentation/error_analysis_screen.dart';
@@ -27,8 +30,10 @@ import 'package:ai_assistant_flutter/features/devops/presentation/devops_chat_sc
 import 'package:ai_assistant_flutter/features/home/presentation/home_screen.dart';
 import 'package:ai_assistant_flutter/features/incidents/presentation/incident_detail_screen.dart';
 import 'package:ai_assistant_flutter/features/incidents/presentation/incidents_screen.dart';
+import 'package:ai_assistant_flutter/features/rag/presentation/document_query_screen.dart';
+import 'package:ai_assistant_flutter/features/rag/presentation/documents_screen.dart';
 import 'package:ai_assistant_flutter/features/settings/presentation/settings_screen.dart';
-import 'package:ai_assistant_flutter/shared/widgets/main_shell.dart';
+import 'package:ai_assistant_flutter/shared/widgets/adaptive_shell.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -48,19 +53,16 @@ abstract class Routes {
   static const devops        = '/devops';
   static const settings      = '/settings';
 
-  // Full-screen (no bottom nav)
-  // NOTE: /chat/new MUST be declared before /chat/:conversationId
-  static const newChat = '/chat/new';
+  // Full-screen routes (no nav chrome)
+  static const newChat = '/chat/new'; // MUST come before /chat/:id
   static const chat    = '/chat/:conversationId';
 
-  // Incident detail (full-screen)
   static const incidentDetailRoute = '/incidents/:incidentId';
+  static const errorAnalysis       = '/analysis/errors';
+  static const documents           = '/documents';
+  static const ragQuery            = '/documents/query';
 
-  // Error analysis (full-screen)
-  static const errorAnalysis = '/analysis/errors';
-
-  // ── Helpers ──────────────────────────────────────────────────────────────
-
+  // ── Path helpers ──────────────────────────────────────────────────────────
   static String chatPath(String conversationId) => '/chat/$conversationId';
   static String incidentDetail(String id)        => '/incidents/$id';
 }
@@ -103,9 +105,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (_, __) => const RegisterScreen(),
       ),
 
-      // ── Main shell (5-tab bottom nav) ─────────────────────────────────
+      // ── Adaptive shell (phone: BottomNav, tablet: NavigationRail) ──────
       ShellRoute(
-        builder: (context, state, child) => MainShell(child: child),
+        builder: (context, state, child) => AdaptiveShell(child: child),
         routes: [
           GoRoute(
             path:    Routes.home,
@@ -130,8 +132,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         ],
       ),
 
-      // ── Chat (full-screen, outside shell) ─────────────────────────────
-      // /chat/new MUST come before /chat/:conversationId
+      // ── Chat ──────────────────────────────────────────────────────────
       GoRoute(
         path:    Routes.newChat,
         builder: (_, __) => const ChatScreen(conversationId: 'new'),
@@ -144,7 +145,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
-      // ── Incident detail (full-screen, outside shell) ───────────────────
+      // ── Incident detail ────────────────────────────────────────────────
       GoRoute(
         path: Routes.incidentDetailRoute,
         builder: (_, state) {
@@ -153,10 +154,23 @@ final routerProvider = Provider<GoRouter>((ref) {
         },
       ),
 
-      // ── Error analysis (full-screen, outside shell) ─────────────────────
+      // ── Error analysis ─────────────────────────────────────────────────
       GoRoute(
         path:    Routes.errorAnalysis,
         builder: (_, __) => const ErrorAnalysisScreen(),
+      ),
+
+      // ── RAG / Documents ────────────────────────────────────────────────
+      GoRoute(
+        path:    Routes.documents,
+        builder: (_, __) => const DocumentsScreen(),
+      ),
+      GoRoute(
+        path: Routes.ragQuery,
+        builder: (_, state) {
+          final preselected = state.extra as String?;
+          return DocumentQueryScreen(preselectedDocumentId: preselected);
+        },
       ),
     ],
   );

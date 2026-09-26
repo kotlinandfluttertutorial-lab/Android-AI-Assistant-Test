@@ -70,6 +70,37 @@ class AuthRepository {
     );
   }
 
+  // ── Google Sign-In ────────────────────────────────────────────────────────
+
+  /// Exchange a Google ID token obtained from the Google Sign-In SDK for
+  /// application-level tokens.
+  ///
+  /// The backend verifies the ID token with Google's public keys.
+  /// On success, stores tokens identically to a regular login.
+  Future<Result<AuthUser>> googleSignIn(String idToken) async {
+    final result =
+        await _api.googleSignIn(GoogleAuthRequest(idToken: idToken));
+    return result.when(
+      onSuccess: (response) async {
+        await _persistTokens(
+          accessToken:           response.accessToken,
+          refreshToken:          response.refreshToken,
+          accessTokenExpiresAt:  response.accessTokenExpiresAt,
+          refreshTokenExpiresAt: response.refreshTokenExpiresAt,
+          userId:                response.userId,
+          email:                 response.email,
+          role:                  response.role,
+        );
+        return Success(AuthUser(
+          userId: response.userId,
+          email:  response.email,
+          role:   response.role,
+        ));
+      },
+      onFailure: Failure.new,
+    );
+  }
+
   // ── Logout ────────────────────────────────────────────────────────────────
 
   Future<Result<void>> logout() async {
