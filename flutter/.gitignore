@@ -1,0 +1,40 @@
+# Flutter / Dart generated files
+.dart_tool/
+.packages
+build/
+.flutter-plugins
+.flutter-plugins-dependencies
+pubspec.lock
+
+# IDE
+.idea/
+.vscode/
+*.iml
+
+# Android
+flutter/android/.gradle/
+flutter/android/captures/
+flutter/android/local.properties
+flutter/android/key.properties
+
+# iOS
+flutter/ios/.symlinks/
+flutter/ios/Flutter/flutter_export_environment.sh
+flutter/ios/Flutter/App.framework
+flutter/ios/Flutter/Flutter.framework
+flutter/ios/Flutter/Flutter.podspec
+flutter/ios/Flutter/Generated.xcconfig
+flutter/ios/Pods/
+flutter/ios/*.xcworkspace
+
+# Generated code (keep .g.dart and .freezed.dart out of VCS)
+**/*.g.dart
+**/*.freezed.dart
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Test coverage
+coverage/
