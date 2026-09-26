@@ -1,5 +1,33 @@
 # Android AI Assistant — Enterprise Edition
 
+A production-ready, full-stack AI platform with **two independent client applications**
+sharing a common FastAPI backend:
+
+| Client | Language | Status |
+|--------|----------|--------|
+| **Android** (Kotlin/Compose) | Native Android, offline-first | Primary client |
+| **Flutter** (`flutter/`) | Dart/Flutter, cross-platform | Learning / secondary client |
+
+The Android application is the primary client. The Flutter application is an independent
+cross-platform client built for learning, experimentation, and future platform expansion.
+Both clients consume the same FastAPI backend.
+
+```
+                 ┌─────────────────┐
+                 │  FastAPI Backend │
+                 └────────┬────────┘
+                          │
+              ┌───────────┴───────────┐
+              │                       │
+        ┌─────▼─────┐           ┌─────▼─────┐
+        │  Android  │           │  Flutter  │
+        │ Kotlin    │           │   Dart    │
+        │ Compose   │           │  Material │
+        └───────────┘           └───────────┘
+```
+
+---
+
 A production-ready, full-stack AI platform featuring an offline-first Android application,
 a FastAPI backend, multi-LLM orchestration, RAG document Q&A, voice assistance, MCP tool
 integrations, and enterprise-grade security with comprehensive observability.
@@ -32,6 +60,7 @@ Install all required tools before starting. Estimated install time on a clean OS
 |------|-----------------|---------|
 | Android Studio | Hedgehog (2023.1.1) or newer | [developer.android.com/studio](https://developer.android.com/studio) |
 | JDK | 17 (LTS) | [adoptium.net](https://adoptium.net) — select Temurin 17 |
+| Flutter | 3.22.0+ | [docs.flutter.dev/get-started/install](https://docs.flutter.dev/get-started/install) |
 | Git | 2.40+ | [git-scm.com](https://git-scm.com) |
 | Docker Desktop | 4.24+ (includes Docker Engine 24+, Compose v2) | [docker.com/products/docker-desktop](https://www.docker.com/products/docker-desktop) |
 | Python | 3.11+ | [python.org/downloads](https://www.python.org/downloads) |
@@ -169,6 +198,23 @@ Access points:
 
 # Static analysis + style
 ./gradlew ktlintCheck detekt
+```
+
+### Flutter
+
+```bash
+cd flutter
+
+# Unit + widget tests
+flutter test
+
+# Lint + format check
+flutter analyze
+dart format --set-exit-if-changed .
+
+# Integration tests (requires running backend)
+docker compose up -d
+flutter test integration_test/ --dart-define=ENV=local
 ```
 
 ### Backend
