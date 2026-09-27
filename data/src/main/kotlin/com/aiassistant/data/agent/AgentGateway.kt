@@ -111,11 +111,11 @@ class AgentGateway @Inject constructor(
      * @param language     Language identifier, e.g. `"kotlin"`, `"python"`.
      * @param context      Optional [AgentContext] (user ID, persona, etc.)
      */
-    fun executeCode(
+    override fun executeCode(
         code: String,
         action: String,
         language: String,
-        context: AgentContext? = null,
+        context: AgentContext?,
     ): Flow<AgentEvent> {
         val request = AgentRequest(
             userId = resolveUserId(context),
@@ -180,12 +180,12 @@ class AgentGateway @Inject constructor(
      * @param documentId Optional document to scope RAG retrieval.
      * @param context    Optional [AgentContext].
      */
-    fun executeCodeWithRagContext(
+    override fun executeCodeWithRagContext(
         code: String,
         action: String,
         language: String,
-        documentId: String? = null,
-        context: AgentContext? = null,
+        documentId: String? ,
+        context: AgentContext?,
     ): Flow<AgentEvent> {
         val metadataBuilder = mutableMapOf(
             CodeAgent.METADATA_CODE_ACTION to action,

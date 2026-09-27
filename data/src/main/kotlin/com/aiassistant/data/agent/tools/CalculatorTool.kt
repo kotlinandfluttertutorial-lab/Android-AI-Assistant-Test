@@ -1,4 +1,4 @@
-/*
+﻿/*
  * ============================================================
  * Android AI Assistant (Enterprise Edition)
  * ============================================================
@@ -11,7 +11,7 @@
  * Pattern Used       : Tool implementation
  *
  * Security:
- *   - Input whitelist: only digits, operators (+-*/^%), decimal points,
+ *  // - Input whitelist: only digits, operators (+-*^%), decimal points,
  *     parentheses, and whitespace are accepted.
  *   - No eval(), no shell, no reflection.
  *   - Division by zero -> safe error message.
