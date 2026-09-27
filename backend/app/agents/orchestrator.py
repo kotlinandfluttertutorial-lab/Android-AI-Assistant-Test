@@ -143,7 +143,6 @@ class AgentOrchestrator:
         # ── 3. Execute plan ──────────────────────────────────────────────────
         current_input = request.input
         counters = PlanCounters(start_ms=time.monotonic() * 1000)
-        cancelled = False
 
         try:
             async with asyncio.timeout(plan.timeout_ms / 1000):
@@ -226,7 +225,6 @@ class AgentOrchestrator:
                 f"Plan execution exceeded timeout of {plan.timeout_ms} ms.",
             )
         except asyncio.CancelledError:
-            cancelled = True
             from app.agents.models import AgentCancelledEvent
             yield AgentCancelledEvent(reason="Execution cancelled by caller.")
             raise  # re-raise so the task is properly cancelled

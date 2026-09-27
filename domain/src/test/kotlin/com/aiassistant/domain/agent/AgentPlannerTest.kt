@@ -166,7 +166,7 @@ class AgentPlannerTest {
 
     @Test
     fun `checkLimits detects max steps exceeded`() {
-        val plan = AgentPlan(listOf(AgentPlanStep("a")), "r1", maxSteps = 3)
+        val plan = AgentPlan(steps = listOf(AgentPlanStep("a")), requestId = "r1", maxSteps = 3)
         val counters = PlanCounters(stepsTaken = 3)
         val violation = planner.checkLimits(plan, counters).shouldNotBeNull()
         (violation is LimitViolation.MaxStepsExceeded).shouldBeTrue()
@@ -174,7 +174,7 @@ class AgentPlannerTest {
 
     @Test
     fun `checkLimits detects max tool calls exceeded`() {
-        val plan = AgentPlan(listOf(AgentPlanStep("a")), "r1", maxToolCalls = 5)
+        val plan = AgentPlan(steps = listOf(AgentPlanStep("a")), requestId = "r1", maxToolCalls = 5)
         val counters = PlanCounters(toolCallsMade = 5)
         val violation = planner.checkLimits(plan, counters).shouldNotBeNull()
         (violation is LimitViolation.MaxToolCallsExceeded).shouldBeTrue()
@@ -182,7 +182,7 @@ class AgentPlannerTest {
 
     @Test
     fun `checkLimits detects timeout exceeded`() {
-        val plan = AgentPlan(listOf(AgentPlanStep("a")), "r1", timeoutMs = 1000L)
+        val plan = AgentPlan(steps = listOf(AgentPlanStep("a")), requestId = "r1", timeoutMs = 1000L)
         val counters = PlanCounters(elapsedMs = 1001L)
         val violation = planner.checkLimits(plan, counters).shouldNotBeNull()
         (violation is LimitViolation.TimeoutExceeded).shouldBeTrue()
