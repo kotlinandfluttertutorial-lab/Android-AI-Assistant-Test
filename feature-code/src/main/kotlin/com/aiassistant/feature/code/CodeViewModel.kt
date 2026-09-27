@@ -55,12 +55,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aiassistant.core.common.ApiResult
 import com.aiassistant.core.common.DispatcherProvider
+import com.aiassistant.domain.agent.AgentEvent
 import com.aiassistant.domain.model.CodeAction
 import com.aiassistant.domain.model.CodeAnalysisRequest
+import com.aiassistant.domain.model.CodeAnalysisResult
 import com.aiassistant.domain.model.SupportedLanguage
 import com.aiassistant.domain.usecase.code.AnalyzeCodeUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -84,7 +88,12 @@ import kotlinx.coroutines.withContext
 @HiltViewModel
 class CodeViewModel @Inject constructor(
     private val analyzeCodeUseCase: AnalyzeCodeUseCase,
-    private val dispatchers: DispatcherProvider
+    private val dispatchers: DispatcherProvider,
+    // Phase 4: optional AgentGateway for routing through the agent orchestrator.
+    // Null by default so existing unit tests that don't provide it compile unchanged.
+    // When non-null, submitForAnalysis() routes via the agent path instead of
+    // calling analyzeCodeUseCase directly.
+    private val agentGateway: com.aiassistant.domain.agent.AgentGatewayCodeExtension? = null,
 ) : ViewModel() {
 
     // â”€â”€â”€ State â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -175,6 +184,59 @@ class CodeViewModel @Inject constructor(
             action = currentState.selectedAction
         )
 
+        // Phase 4: if AgentGatewayCodeExtension is injected, route through the
+        // agent orchestrator (CodeAgent path) instead of calling use case directly.
+        if (agentGateway != null) {
+            submitViaAgent(currentState, request)
+        } else {
+            submitViaUseCase(request)
+        }
+    }
+
+    /** Agent path — routes through AgentGatewayCodeExtension → AgentOrchestrator → CodeAgent. */
+    private fun submitViaAgent(
+        editingState: CodeUiState.Editing,
+        request: CodeAnalysisRequest,
+    ) {
+        viewModelScope.launch(dispatchers.io) {
+            var content: String? = null
+            var errorMessage: String? = null
+
+            agentGateway!!.executeCode(
+                code = request.code,
+                action = request.action.name.lowercase(),
+                language = request.language.name,
+            ).collect { event ->
+                when (event) {
+                    is AgentEvent.Token -> content = (content ?: "") + event.token
+                    is AgentEvent.Completed -> {
+                        content = event.result.content ?: content
+                    }
+                    is AgentEvent.Failed -> {
+                        errorMessage = event.result.error?.message ?: "Agent execution failed."
+                    }
+                    else -> Unit
+                }
+            }
+
+            _uiState.value = when {
+                content != null -> CodeUiState.AnalysisResult(
+                    request = request,
+                    result = CodeAnalysisResult(
+                        languageId = request.language.name.lowercase(),
+                        originalCode = request.code,
+                        action = request.action,
+                        content = content!!,
+                    )
+                )
+                errorMessage != null -> CodeUiState.Error(errorMessage!!)
+                else -> CodeUiState.Error("No response received from agent.")
+            }
+        }
+    }
+
+    /** Original direct use-case path — unchanged. */
+    private fun submitViaUseCase(request: CodeAnalysisRequest) {
         viewModelScope.launch {
             val result = withContext(dispatchers.io) { analyzeCodeUseCase(request) }
             _uiState.value = when (result) {
@@ -183,8 +245,6 @@ class CodeViewModel @Inject constructor(
                     result = result.data
                 )
                 is ApiResult.Error -> CodeUiState.Error(
-                    // The backend /code/analyze endpoint is not yet deployed.
-                    // Show a clear message instead of a raw server error string.
                     if (result.error is com.aiassistant.core.common.DomainError.ServerError &&
                         (result.error as com.aiassistant.core.common.DomainError.ServerError).httpStatusCode == 404
                     ) {

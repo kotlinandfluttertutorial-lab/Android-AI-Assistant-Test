@@ -22,31 +22,58 @@
 package com.aiassistant.data.di
 
 import com.aiassistant.data.agent.AgentGateway
+import com.aiassistant.data.agent.tools.CalculatorTool
+import com.aiassistant.data.agent.tools.DateTimeTool
+import com.aiassistant.data.agent.tools.DocumentSearchTool
+import com.aiassistant.data.agent.tools.WebSearchTool
+import com.aiassistant.domain.agent.AgentGatewayDocumentExtension
 import com.aiassistant.domain.agent.AgentGatewayRepository
+import com.aiassistant.domain.agent.DefaultToolRegistry
+import com.aiassistant.domain.agent.ToolRegistry
 import dagger.Binds
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 
-/**
- * Hilt module that exposes the Agent layer to the rest of the application.
- *
- * Installed in [SingletonComponent] because both [AgentGateway] and
- * [com.aiassistant.data.agent.ChatAgent] are `@Singleton`.
- */
 @Module
 @InstallIn(SingletonComponent::class)
 abstract class AgentDataModule {
 
-    /**
-     * Binds the data-layer [AgentGateway] to its domain interface
-     * [AgentGatewayRepository] so that [com.aiassistant.feature.chat.ChatDetailViewModel]
-     * can depend only on the domain interface without knowing about the data implementation.
-     */
     @Binds
     @Singleton
-    abstract fun bindAgentGatewayRepository(
+    abstract fun bindAgentGatewayRepository(impl: AgentGateway): AgentGatewayRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindAgentGatewayCodeExtension(
         impl: AgentGateway,
-    ): AgentGatewayRepository
+    ): com.aiassistant.domain.agent.AgentGatewayCodeExtension
+
+    @Binds
+    @Singleton
+    abstract fun bindAgentGatewayDocumentExtension(impl: AgentGateway): AgentGatewayDocumentExtension
+
+    companion object {
+        /**
+         * Provides a pre-populated [ToolRegistry] singleton.
+         *
+         * Each tool is `@Singleton` and `@Inject`-constructable, so Hilt injects
+         * them here without additional `@Provides` methods.
+         */
+        @Provides
+        @Singleton
+        fun provideToolRegistry(
+            calculatorTool: CalculatorTool,
+            dateTimeTool: DateTimeTool,
+            documentSearchTool: DocumentSearchTool,
+            webSearchTool: WebSearchTool,
+        ): ToolRegistry = DefaultToolRegistry().also { reg ->
+            reg.register(calculatorTool)
+            reg.register(dateTimeTool)
+            reg.register(documentSearchTool)
+            reg.register(webSearchTool)
+        }
+    }
 }
