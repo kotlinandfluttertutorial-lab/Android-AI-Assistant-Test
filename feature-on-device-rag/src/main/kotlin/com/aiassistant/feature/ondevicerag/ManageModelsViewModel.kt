@@ -89,20 +89,38 @@ class ManageModelsViewModel @Inject constructor(
                     when (result) {
                         is ApiResult.Success -> {
                             val progress = result.data
-                            val state = if (progress.percentComplete >= 100) {
-                                DownloadState.Verifying
+                            if (progress.percentComplete >= 100) {
+                                _uiState.update { s ->
+                                    s.copy(downloadProgress = s.downloadProgress + (model.name to DownloadState.Verifying))
+                                }
+                                val verifyResult = manageModelsUseCase.verifyModel(model)
+                                val finalState = when (verifyResult) {
+                                    is ApiResult.Success -> {
+                                        if (verifyResult.data) null
+                                        else DownloadState.Error("Checksum verification failed")
+                                    }
+                                    is ApiResult.Error -> DownloadState.Error(verifyResult.error.message)
+                                    else -> DownloadState.Error("Verification failed")
+                                }
+                                _uiState.update { s ->
+                                    val newProgress = if (finalState == null) {
+                                        s.downloadProgress - model.name
+                                    } else {
+                                        s.downloadProgress + (model.name to finalState)
+                                    }
+                                    s.copy(downloadProgress = newProgress)
+                                }
+                                loadModels()
                             } else {
-                                DownloadState.Downloading(
+                                val state = DownloadState.Downloading(
                                     bytesDownloaded = progress.bytesDownloaded,
                                     totalBytes = progress.totalBytes,
                                     percent = progress.percentComplete
                                 )
+                                _uiState.update { s ->
+                                    s.copy(downloadProgress = s.downloadProgress + (model.name to state))
+                                }
                             }
-                            _uiState.update { s ->
-                                s.copy(downloadProgress = s.downloadProgress + (model.name to state))
-                            }
-                            // Refresh list on completion
-                            if (progress.percentComplete >= 100) loadModels()
                         }
                         is ApiResult.Error -> _uiState.update { s ->
                             s.copy(

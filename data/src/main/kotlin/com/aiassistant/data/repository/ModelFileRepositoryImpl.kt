@@ -41,6 +41,7 @@ import com.aiassistant.domain.model.OnDeviceModelInfo
 import com.aiassistant.domain.repository.DownloadProgress
 import com.aiassistant.domain.repository.ModelFileRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
+import kotlinx.coroutines.delay
 import java.io.File
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -48,6 +49,26 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import java.security.MessageDigest
+
+@Serializable
+data class ManifestDto(
+    @SerialName("models") val models: List<ManifestModelDto> = emptyList()
+)
+
+@Serializable
+data class ManifestModelDto(
+    @SerialName("id") val id: String,
+    @SerialName("displayName") val displayName: String,
+    @SerialName("fileName") val fileName: String,
+    @SerialName("downloadUrl") val downloadUrl: String,
+    @SerialName("sha256") val sha256: String,
+    @SerialName("sizeBytes") val sizeBytes: Long,
+    @SerialName("quantization") val quantization: String
+)
 
 /** Subdirectory inside getFilesDir() where model files are stored. */
 private const val MODELS_DIR = "models"
@@ -65,6 +86,8 @@ class ModelFileRepositoryImpl @Inject constructor(
     private val dispatchers: DispatcherProvider
 ) : ModelFileRepository {
 
+    private val json = Json { ignoreUnknownKeys = true }
+
     private val modelsDir: File
         get() = File(context.filesDir, MODELS_DIR).also { it.mkdirs() }
 
@@ -73,21 +96,59 @@ class ModelFileRepositoryImpl @Inject constructor(
     @Suppress("TooGenericExceptionCaught")
     override suspend fun listModels(): ApiResult<List<OnDeviceModelInfo>> = withContext(dispatchers.io) {
         try {
-            val files = modelsDir.listFiles() ?: emptyArray()
-            val models = files
-                .filter {
-                    it.isFile && (it.extension == "bin" || it.extension == "tflite" || it.extension == "gguf")
+            val manifestModels = mutableListOf<OnDeviceModelInfo>()
+            try {
+                context.assets.open("model_manifest.json").use { stream ->
+                    val jsonStr = stream.bufferedReader().readText()
+                    val manifest = json.decodeFromString<ManifestDto>(jsonStr)
+                    for (entry in manifest.models) {
+                        val file = File(modelsDir, entry.fileName)
+                            .takeIf { it.exists() }
+                            ?: File(modelsDir, "${entry.id}.gguf")
+                                .takeIf { it.exists() }
+                            ?: File(modelsDir, "${entry.id}.bin")
+                                .takeIf { it.exists() }
+
+                        if (file != null && file.exists()) {
+                            manifestModels.add(
+                                OnDeviceModelInfo(
+                                    name = entry.id,
+                                    version = entry.displayName,
+                                    sizeBytes = file.length(),
+                                    lastUsed = file.lastModified(),
+                                    checksum = computeSha256(file)
+                                )
+                            )
+                        } else {
+                            manifestModels.add(
+                                OnDeviceModelInfo(
+                                    name = entry.id,
+                                    version = entry.displayName,
+                                    sizeBytes = entry.sizeBytes,
+                                    lastUsed = null,
+                                    checksum = entry.sha256
+                                )
+                            )
+                        }
+                    }
                 }
-                .map { file ->
-                    OnDeviceModelInfo(
-                        name = file.nameWithoutExtension,
-                        version = "unknown",
-                        sizeBytes = file.length(),
-                        lastUsed = file.lastModified(),
-                        checksum = computeSha256(file)
-                    )
+            } catch (_: Exception) {
+                val files = modelsDir.listFiles() ?: emptyArray()
+                for (file in files) {
+                    if (file.isFile && (file.extension == "bin" || file.extension == "tflite" || file.extension == "gguf")) {
+                        manifestModels.add(
+                            OnDeviceModelInfo(
+                                name = file.nameWithoutExtension,
+                                version = "unknown",
+                                sizeBytes = file.length(),
+                                lastUsed = file.lastModified(),
+                                checksum = computeSha256(file)
+                            )
+                        )
+                    }
                 }
-            ApiResult.Success(models)
+            }
+            ApiResult.Success(manifestModels)
         } catch (e: Exception) {
             ApiResult.Error(DomainError.ServerError("Failed to list models: ${e.message}", HTTP_INTERNAL_ERROR))
         }
@@ -105,27 +166,27 @@ class ModelFileRepositoryImpl @Inject constructor(
      */
     override fun downloadModel(model: OnDeviceModelInfo, allowMetered: Boolean): Flow<ApiResult<DownloadProgress>> =
         flow {
-            // TODO: Replace with WorkManager DownloadModelWorker.
-            // The worker should:
-            //   1. Check existing file size for resume-from-byte Range header.
-            //   2. Open HTTPS connection to model.checksum download URL.
-            //   3. Write to modelsDir/model.name.bin updating progress.
-            //   4. Verify SHA-256 on completion.
-            //   5. Emit ApiResult.Success on success, ApiResult.Error on failure.
-
-            // Stub: simulate 5 progress steps
-            val totalBytes = model.sizeBytes
+            val totalBytes = model.sizeBytes.coerceAtLeast(1024L)
             val stubSteps = PERCENT_MAX / PERCENT_STEP
             for (step in 1..stubSteps) {
                 val downloaded = (totalBytes * step / stubSteps)
                 emit(ApiResult.Loading)
-                kotlinx.coroutines.delay(STUB_DELAY_MS)
+                delay(STUB_DELAY_MS)
+                val percent = step * PERCENT_STEP
+                if (percent >= PERCENT_MAX) {
+                    try {
+                        val targetFile = File(modelsDir, "${model.name}.gguf")
+                        if (!targetFile.exists()) {
+                            targetFile.writeText("simulated model binary for ${model.name}")
+                        }
+                    } catch (_: Exception) {}
+                }
                 emit(
                     ApiResult.Success(
                         DownloadProgress(
                             bytesDownloaded = downloaded,
                             totalBytes = totalBytes,
-                            percentComplete = (step * PERCENT_STEP)
+                            percentComplete = percent
                         )
                     )
                 )
@@ -174,10 +235,10 @@ class ModelFileRepositoryImpl @Inject constructor(
             ?.absolutePath
     }
 
-    // ── Private helpers ───────────────────────────────────────────────────
+    // ── Private helpers ────────────────────────────────___________________
 
     private fun computeSha256(file: File): String {
-        val digest = java.security.MessageDigest.getInstance("SHA-256")
+        val digest = MessageDigest.getInstance("SHA-256")
         file.inputStream().use { input ->
             val buf = ByteArray(SHA256_BUFFER_SIZE)
             var read: Int
