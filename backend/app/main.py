@@ -287,7 +287,30 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             await _warmup_task
         except _asyncio.CancelledError:
             pass
-    # Shutdown cleanup (if needed in future) goes here.
+
+    # ── Graceful shutdown ────────────────────────────────────────────────────
+    # Dispose the async SQLAlchemy connection pool so every pooled asyncpg
+    # connection is closed cleanly before the process exits.
+    #
+    # Why this matters:
+    # - Without dispose(), asyncpg connections stay open in the pool until
+    #   the asyncpg library's GC finaliser runs — which may never happen in a
+    #   SIGTERM-killed uvicorn process.
+    # - Cloud Run kills workers with SIGTERM. Leaving connections open exhausts
+    #   the PostgreSQL max_connections (default 100) after rolling deploys.
+    # - asyncpg logs "connection was closed in the middle of operation" warnings
+    #   in the server's pg_log when connections are dropped without a clean close.
+    # - `engine.dispose()` calls `pool.close()` which sends the asyncpg "terminate"
+    #   message to every connection in the pool and waits for the close handshake.
+    #
+    # The try/except guard ensures a dispose failure never prevents the process
+    # from exiting (Uvicorn will force-kill after SIGTERM timeout regardless).
+    try:
+        from app.database import engine as _engine
+        await _engine.dispose()
+        logger.info("SHUTDOWN: SQLAlchemy connection pool disposed cleanly.")
+    except Exception as _exc:
+        logger.warning("SHUTDOWN: engine.dispose() failed (non-fatal): %s", _exc)
 
 
 settings = get_settings()
