@@ -10,6 +10,7 @@
 
 # Phase 1 — models + base interface
 from app.agents.base import Agent
+from app.agents.chat_agent import CHAT_AGENT_NAME, ChatAgent
 from app.agents.llm_client import (
     LLMClient,
     LLMClientError,
@@ -59,8 +60,9 @@ from app.agents.registry import AgentNotFoundError, AgentRegistry
 from app.agents.router import AgentRouter, RoutingOutcome
 
 __all__ = [
-    # Phase 1
     "Agent",
+    "CHAT_AGENT_NAME",
+    "ChatAgent",
     "AgentAttachment",
     "AgentCapability",
     "AgentCitation",
@@ -72,8 +74,15 @@ __all__ = [
     "AgentExecution",
     "AgentFailedEvent",
     "AgentNextAction",
+    "AgentNotFoundError",
+    "AgentOrchestrator",
+    "AgentPlan",
+    "AgentPlanStep",
+    "AgentPlanner",
+    "AgentRegistry",
     "AgentRequest",
     "AgentResult",
+    "AgentRouter",
     "AgentStartedEvent",
     "AgentStatus",
     "AgentStatusChangedEvent",
@@ -81,29 +90,21 @@ __all__ = [
     "AgentToolCall",
     "AgentUsage",
     "CallToolDecision",
-    "FinishDecision",
-    "RespondDecision",
-    "RetrieveDecision",
-    "WaitDecision",
     "ContextMemory",
     "ContextMessage",
-    # Phase 2
-    "AgentNotFoundError",
-    "AgentRegistry",
-    "AgentRouter",
-    "RoutingOutcome",
-    "AgentPlan",
-    "AgentPlanStep",
-    "AgentPlanner",
-    "LimitViolation",
-    "PlanCounters",
-    "AgentOrchestrator",
+    "FinishDecision",
+    "InferencePath",
     "LLMClient",
     "LLMClientError",
     "LLMServiceAdapter",
+    "LimitViolation",
     "LocalGemmaAdapter",
-    "InferencePath",
     "ModelRouter",
     "ModelRoutingDecision",
+    "PlanCounters",
+    "RespondDecision",
+    "RetrieveDecision",
+    "RoutingOutcome",
+    "WaitDecision",
 ]
 

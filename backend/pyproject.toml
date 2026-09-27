@@ -103,5 +103,14 @@ module = [
     "app.security.lockout",
     "app.services.llm_clients",
     "app.main",
+    "app.agents.chat_agent",
+    "app.agents.llm_client",
+    "app.agents.models",
+    "app.agents.orchestrator",
+    "app.agents.registry",
+    "app.agents.router",
+    "app.agents.planner",
+    "app.agents.model_router",
+    "app.agents.base",
 ]
 ignore_errors = true

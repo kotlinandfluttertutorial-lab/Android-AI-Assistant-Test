@@ -60,6 +60,7 @@ import com.aiassistant.core.ai.StreamEvent
 import com.aiassistant.core.common.ApiResult
 import com.aiassistant.core.common.DispatcherProvider
 import com.aiassistant.core.common.DomainError
+import com.aiassistant.core.security.SecureStorage
 import com.aiassistant.domain.model.ExportFormat
 import com.aiassistant.domain.model.Message
 import com.aiassistant.domain.model.ScreenContext
@@ -108,7 +109,11 @@ class ChatDetailViewModel @Inject constructor(
     private val exportConversationUseCase: ExportConversationUseCase,
     private val streamClient: AIStreamClient,
     private val dispatchers: DispatcherProvider,
-    private val getContextSuggestionsUseCase: GetContextSuggestionsUseCase
+    private val getContextSuggestionsUseCase: GetContextSuggestionsUseCase,
+    // Phase 3: injected to resolve the real JWT instead of the placeholder.
+    // Optional (default null) so existing unit tests that don't provide this
+    // dependency continue to compile and run without modification.
+    private val secureStorage: SecureStorage? = null,
 ) : ViewModel() {
 
     /** Pulled from the navigation back-stack entry by Hilt's SavedStateHandle. */
@@ -205,7 +210,9 @@ class ChatDetailViewModel @Inject constructor(
         lastTokenIndex = -1
 
         // Placeholder JWT â€” real token comes from SecureStorage in auth module
-        val jwt = "placeholder_jwt"
+        // Phase 3: resolve real JWT from SecureStorage; fall back to empty string so
+        // the backend rejects with a clear 4001 error instead of silently using a debug token.
+        val jwt = secureStorage?.getJwt() ?: ""
 
         // Determine whether this request uses on-device inference (Requirement 31.3)
         val isOnDevice = payload.provider == ON_DEVICE_PROVIDER_ID
