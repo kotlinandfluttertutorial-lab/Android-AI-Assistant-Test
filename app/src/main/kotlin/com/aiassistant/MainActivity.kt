@@ -54,6 +54,7 @@ import com.aiassistant.feature.productivity.productivityNavGraph
 import com.aiassistant.feature.profile.profileNavGraph
 import com.aiassistant.feature.rag.RAGRoute
 import com.aiassistant.feature.rag.ragNavGraph
+import com.aiassistant.feature.ondevicerag.onDeviceRagNavGraph
 import com.aiassistant.feature.resume.resumeNavGraph
 import com.aiassistant.feature.settings.SettingsRoute
 import com.aiassistant.feature.settings.settingsNavGraph
@@ -212,6 +213,9 @@ private fun rootNavHost(navController: NavHostController) {
 
         // â”€â”€ RAG / Documents (deep link: aiassistant://open/rag) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         ragNavGraph(navController = navController)
+
+        // ── On-Device RAG & Models (deep link: aiassistant://open/ondevicerag/…) ──
+        onDeviceRagNavGraph(navController = navController)
 
         composable(
             route = "deeplink/rag",
