@@ -38,13 +38,9 @@
 #   secrets are not set.
 #
 # NOTE — lint-and-type-check job:
-#   The job is currently commented out because ruff/mypy are not yet pinned in
-#   requirements.txt and --strict mypy on the full codebase produces false positives
-#   from third-party stubs.  To re-enable:
-#     1. Add to requirements.txt (dev section): ruff==0.6.9 mypy==1.11.2
-#        types-passlib types-python-jose
-#     2. Uncomment the lint-and-type-check job below.
-#     3. Add "backend-ci / lint-and-type-check" to branch protection required checks.
+#   ruff (linter + formatter) and mypy (type checker) are pinned in
+#   backend/requirements.txt and installed by the standard `pip install -r requirements.txt`
+#   step — no separate install needed.  The job is active and runs on every PR.
 # ============================================================================
 
 name: backend-ci
@@ -79,57 +75,74 @@ env:
 jobs:
 
   # ──────────────────────────────────────────────────────────────────────────
-  # 1. Lint & Type Check — ruff + black --check + mypy
+  # 1. Lint & Type Check — ruff + mypy
   #    Blocks merge on any lint or formatting error.
+  #    ruff and mypy are now pinned in backend/requirements.txt so this job
+  #    reuses the same pip cache as the test jobs — no extra install step.
   # ──────────────────────────────────────────────────────────────────────────
-#  lint-and-type-check:
-#    name: Lint & Type Check
-#    runs-on: ubuntu-latest
-#    if: github.event_name == 'pull_request'
-#
-#    defaults:
-#      run:
-#        working-directory: backend
-#
-#    steps:
-#      - uses: actions/checkout@v4
-#        with:
-#          fetch-depth: 0
-#
-#      - uses: actions/setup-python@v5
-#        with:
-#          python-version: ${{ env.PYTHON_VERSION }}
-#
-#      - name: Cache pip
-#        uses: actions/cache@v4
-#        with:
-#          path: ~/.cache/pip
-#          key: pip-lint-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('backend/requirements.txt') }}
-#          restore-keys: pip-lint-${{ runner.os }}-${{ env.PYTHON_VERSION }}-
-#
-#      - name: Install lint dependencies
-#        run: pip install ruff==0.6.9 black==24.10.0 mypy==1.11.2 types-passlib types-python-jose
-#
-#      - name: Run ruff linter
-#        run: ruff check . --output-format=github
-#
-#      - name: Run ruff formatter check
-#        run: ruff format . --check
-#
-#      - name: Run black formatter check
-#        run: black --check --diff .
-#
-#      - name: Install app dependencies for mypy
-#        run: pip install -r requirements.txt
-#
-#      - name: Run mypy type check
-#        run: |
-#          mypy app \
-#            --ignore-missing-imports \
-#            --strict \
-#            --exclude "app/alembic" \
-#            --no-error-summary \
-#            2>&1 | head -100
+  lint-and-type-check:
+    name: lint-and-type-check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    defaults:
+      run:
+        working-directory: backend
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Cache pip
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: pip-lint-${{ runner.os }}-${{ env.PYTHON_VERSION }}-${{ hashFiles('backend/requirements.txt') }}
+          restore-keys: pip-lint-${{ runner.os }}-${{ env.PYTHON_VERSION }}-
+
+      - name: Install dependencies (includes ruff and mypy)
+        run: pip install -r requirements.txt
+
+      # ── ruff linter ─────────────────────────────────────────────────────────
+      # Emits GitHub Actions error annotations inline on the PR diff.
+      # Configuration: backend/ruff.toml
+      - name: ruff lint
+        run: ruff check . --output-format=github
+
+      # ── ruff formatter ───────────────────────────────────────────────────────
+      # Replaces black — ruff format is compatible with black's output.
+      # `--diff` shows what would change; the job fails on any diff.
+      - name: ruff format check
+        run: ruff format . --check --diff
+
+      # ── mypy type check ──────────────────────────────────────────────────────
+      # Runs without --strict because third-party stubs (pydantic v2, sqlalchemy
+      # 2.x, chromadb) emit hundreds of false positives in strict mode.
+      # --ignore-missing-imports suppresses noise from stubs-less packages.
+      # head -200 prevents the log from becoming unreadably long on first run.
+      - name: mypy type check
+        run: |
+          mypy app \
+            --ignore-missing-imports \
+            --exclude "alembic" \
+            --no-error-summary \
+            2>&1 | head -200
+
+      - name: Lint summary
+        if: always()
+        run: |
+          echo "### 🔍 Backend Lint & Type Check" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Tool | Purpose |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|------|---------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| ruff check | PEP 8, pyflakes, bugbear, security, isort |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| ruff format | Black-compatible formatting |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| mypy | Static type checking (--ignore-missing-imports) |" >> "$GITHUB_STEP_SUMMARY"
 
   # ──────────────────────────────────────────────────────────────────────────
   # 2. Backend Unit Tests — pytest backend/tests/unit/
