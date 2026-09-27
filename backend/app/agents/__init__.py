@@ -10,6 +10,7 @@
 
 # Phase 1 — models + base interface
 from app.agents.base import Agent
+from app.agents.chat_agent import CHAT_AGENT_NAME, ChatAgent
 from app.agents.llm_client import (
     LLMClient,
     LLMClientError,
@@ -60,6 +61,8 @@ from app.agents.router import AgentRouter, RoutingOutcome
 
 __all__ = [
     "Agent",
+    "CHAT_AGENT_NAME",
+    "ChatAgent",
     "AgentAttachment",
     "AgentCapability",
     "AgentCitation",
