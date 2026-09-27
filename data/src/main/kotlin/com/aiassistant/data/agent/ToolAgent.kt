@@ -174,7 +174,7 @@ class ToolAgent @Inject constructor(
                         executionId = execution.executionId,
                         requestId = request.requestId,
                         agentName = name,
-                        status = AgentStatus.WAITING,
+                        status = AgentStatus.PARTIAL,
                         content = null,
                         metadata = mapOf(
                             "awaiting_confirmation" to toolName,

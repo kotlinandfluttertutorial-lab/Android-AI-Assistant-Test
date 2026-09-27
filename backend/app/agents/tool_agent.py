@@ -49,11 +49,11 @@ from app.agents.models import (
     AgentStartedEvent,
     AgentStatus,
     AgentStatusChangedEvent,
+    AgentTokenEvent,
     AgentToolCompletedEvent,
     AgentToolConfirmationRequiredEvent,
     AgentToolFailedEvent,
     AgentToolStartedEvent,
-    AgentTokenEvent,
 )
 
 logger = logging.getLogger(__name__)
@@ -170,7 +170,8 @@ class ToolAgent(Agent):
                 # Confirmation gate (MCPBroker handles this internally too,
                 # but we surface it as an AgentEvent for the UI)
                 connector = broker._registry.get(tool_name)  # type: ignore[attr-defined]
-                if connector is not None and getattr(connector, "requires_confirmation", False) and not confirmed:
+                requires_conf = getattr(connector, "requires_confirmation", False)
+                if connector is not None and requires_conf and not confirmed:
                     yield AgentToolConfirmationRequiredEvent(
                         tool_name=tool_name,
                         parameters=params_str[:500],
@@ -185,7 +186,10 @@ class ToolAgent(Agent):
                         agent_name=self.name,
                         status=AgentStatus.PARTIAL,
                         content=None,
-                        metadata={"awaiting_confirmation": tool_name, "action": "resend_with_confirmed_true"},
+                        metadata={
+                            "awaiting_confirmation": tool_name,
+                            "action": "resend_with_confirmed_true",
+                        },
                     ))
                     return
 
@@ -199,15 +203,21 @@ class ToolAgent(Agent):
                 )
 
         except asyncio.TimeoutError:
-            yield AgentToolFailedEvent(tool_name=tool_name,
-                                       error_message=f"Tool timed out after {_DEFAULT_TOOL_TIMEOUT}s.")
-            yield self._failed(execution, request, "TOOL_TIMEOUT",
-                               f"Tool '{tool_name}' exceeded timeout of {_DEFAULT_TOOL_TIMEOUT}s.")
+            yield AgentToolFailedEvent(
+                tool_name=tool_name,
+                error_message=f"Tool timed out after {_DEFAULT_TOOL_TIMEOUT}s.",
+            )
+            yield self._failed(
+                execution, request, "TOOL_TIMEOUT",
+                f"Tool '{tool_name}' exceeded timeout of {_DEFAULT_TOOL_TIMEOUT}s.",
+            )
             return
         except Exception as exc:
             logger.exception("ToolAgent: unexpected error invoking '%s': %s", tool_name, exc)
-            yield AgentToolFailedEvent(tool_name=tool_name,
-                                       error_message="Tool invocation failed unexpectedly.")
+            yield AgentToolFailedEvent(
+                tool_name=tool_name,
+                error_message="Tool invocation failed unexpectedly.",
+            )
             yield self._failed(execution, request, "TOOL_ERROR",
                                "Tool invocation failed. Check tool configuration.")
             return
@@ -216,7 +226,9 @@ class ToolAgent(Agent):
 
         if tool_result.success:
             output_str = json.dumps(tool_result.result or {})
-            yield AgentToolCompletedEvent(tool_name=tool_name, output=output_str, duration_ms=duration_ms)
+            yield AgentToolCompletedEvent(
+                tool_name=tool_name, output=output_str, duration_ms=duration_ms
+            )
             yield AgentTokenEvent(token=output_str)
             yield AgentCompletedEvent(result=AgentResult(
                 execution_id=execution.execution_id,
@@ -224,7 +236,10 @@ class ToolAgent(Agent):
                 agent_name=self.name,
                 status=AgentStatus.COMPLETED,
                 content=output_str,
-                metadata={"tool_name": tool_name, "result_status": tool_result.result_status},
+                metadata={
+                    "tool_name": tool_name,
+                    "result_status": tool_result.result_status,
+                },
             ))
         else:
             error_msg = tool_result.error or "Tool returned an error."
@@ -232,7 +247,12 @@ class ToolAgent(Agent):
             yield self._failed(execution, request, "TOOL_RETURNED_ERROR", error_msg)
 
     @staticmethod
-    def _failed(execution: AgentExecution, request: AgentRequest, code: str, msg: str) -> AgentFailedEvent:
+    def _failed(
+        execution: AgentExecution,
+        request: AgentRequest,
+        code: str,
+        msg: str,
+    ) -> AgentFailedEvent:
         return AgentFailedEvent(result=AgentResult(
             execution_id=execution.execution_id,
             request_id=request.request_id,
@@ -246,13 +266,20 @@ async def _register_all_connectors(broker: object, db: object) -> object:
     """Register all MCP connectors into *broker*, matching the MCP router wiring."""
     from app.services.mcp_connectors import (  # type: ignore
         FigmaReadConnector,
-        GCalReadConnector, GCalWriteConnector,
-        GDriveReadConnector, GDriveWriteConnector,
-        GitHubReadConnector, GitHubWriteConnector,
-        GmailReadConnector, GmailWriteConnector,
-        JiraReadConnector, JiraWriteConnector,
-        NotionReadConnector, NotionWriteConnector,
-        SlackReadConnector, SlackWriteConnector,
+        GCalReadConnector,
+        GCalWriteConnector,
+        GDriveReadConnector,
+        GDriveWriteConnector,
+        GitHubReadConnector,
+        GitHubWriteConnector,
+        GmailReadConnector,
+        GmailWriteConnector,
+        JiraReadConnector,
+        JiraWriteConnector,
+        NotionReadConnector,
+        NotionWriteConnector,
+        SlackReadConnector,
+        SlackWriteConnector,
     )
     for cls in [
         GitHubReadConnector, GitHubWriteConnector,

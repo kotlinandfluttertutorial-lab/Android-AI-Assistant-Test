@@ -12,9 +12,6 @@
 from app.agents.base import Agent
 from app.agents.chat_agent import CHAT_AGENT_NAME, ChatAgent
 from app.agents.code_agent import CODE_AGENT_NAME, CodeAgent
-from app.agents.pdf_agent import PDF_AGENT_NAME, PdfAgent
-from app.agents.rag_agent import RAG_AGENT_NAME, RagAgent
-from app.agents.tool_agent import TOOL_AGENT_NAME, ToolAgent
 from app.agents.llm_client import (
     LLMClient,
     LLMClientError,
@@ -51,6 +48,7 @@ from app.agents.models import (
     WaitDecision,
 )
 from app.agents.orchestrator import AgentOrchestrator
+from app.agents.pdf_agent import PDF_AGENT_NAME, PdfAgent
 from app.agents.planner import (
     AgentPlan,
     AgentPlanner,
@@ -58,23 +56,20 @@ from app.agents.planner import (
     LimitViolation,
     PlanCounters,
 )
+from app.agents.rag_agent import RAG_AGENT_NAME, RagAgent
 
 # Phase 2 — registry, router, planner, orchestrator, llm_client, model_router
 from app.agents.registry import AgentNotFoundError, AgentRegistry
 from app.agents.router import AgentRouter, RoutingOutcome
+from app.agents.tool_agent import TOOL_AGENT_NAME, ToolAgent
 
 __all__ = [
-    "Agent",
     "CHAT_AGENT_NAME",
-    "ChatAgent",
     "CODE_AGENT_NAME",
-    "CodeAgent",
     "PDF_AGENT_NAME",
-    "PdfAgent",
     "RAG_AGENT_NAME",
-    "RagAgent",
     "TOOL_AGENT_NAME",
-    "ToolAgent",
+    "Agent",
     "AgentAttachment",
     "AgentCapability",
     "AgentCitation",
@@ -102,6 +97,8 @@ __all__ = [
     "AgentToolCall",
     "AgentUsage",
     "CallToolDecision",
+    "ChatAgent",
+    "CodeAgent",
     "ContextMemory",
     "ContextMessage",
     "FinishDecision",
@@ -113,10 +110,13 @@ __all__ = [
     "LocalGemmaAdapter",
     "ModelRouter",
     "ModelRoutingDecision",
+    "PdfAgent",
     "PlanCounters",
+    "RagAgent",
     "RespondDecision",
     "RetrieveDecision",
     "RoutingOutcome",
+    "ToolAgent",
     "WaitDecision",
 ]
 

@@ -72,7 +72,9 @@ except Exception:  # pragma: no cover
     _AsyncSessionLocal = None  # type: ignore
 
 try:
-    from app.repositories.document_repository import DocumentRepository as _DocumentRepository  # type: ignore
+    from app.repositories.document_repository import (
+        DocumentRepository as _DocumentRepository,  # type: ignore
+    )
 except Exception:  # pragma: no cover
     _DocumentRepository = None  # type: ignore
 
@@ -135,8 +137,11 @@ class PdfAgent(Agent):
             async for event in self._handle_query(action, request, execution, metadata):
                 yield event
         else:
-            yield self._failed(execution, request, "UNKNOWN_ACTION",
-                               f"Unknown pdf_action '{action}'. Supported: upload, query, summarize, search.")
+            yield self._failed(
+                execution, request, "UNKNOWN_ACTION",
+                f"Unknown pdf_action '{action}'. "
+                "Supported: upload, query, summarize, search.",
+            )
 
     # ── Upload ────────────────────────────────────────────────────────────────
 
@@ -151,8 +156,10 @@ class PdfAgent(Agent):
         mime_type = metadata.get("mime_type", "application/pdf").strip()
 
         if not file_bytes_b64:
-            yield self._failed(execution, request, "MISSING_FILE_BYTES",
-                               "metadata['file_bytes_b64'] (base64-encoded file content) is required for upload.")
+            yield self._failed(
+                execution, request, "MISSING_FILE_BYTES",
+                "metadata['file_bytes_b64'] (base64-encoded file) is required for upload.",
+            )
             return
 
         import base64
@@ -163,7 +170,10 @@ class PdfAgent(Agent):
                                f"Could not decode file_bytes_b64: {exc}")
             return
 
-        yield AgentThinkingEvent(step_index=0, thought=f"Validating '{filename}' ({len(file_bytes)} bytes)…")
+        yield AgentThinkingEvent(
+            step_index=0,
+            thought=f"Validating '{filename}' ({len(file_bytes)} bytes)…",
+        )
 
         # Validate before any I/O (Property 26)
         try:
@@ -203,7 +213,7 @@ class PdfAgent(Agent):
                     minio_key=minio_key,
                 )
                 document_id_str = str(document.id)
-                job_id = await rag_service.create_ingestion_job(document.id, user_uuid, db)
+                await rag_service.create_ingestion_job(document.id, user_uuid, db)
                 await db.commit()
 
             # Dispatch Celery task (non-fatal if fails)
@@ -329,11 +339,20 @@ class PdfAgent(Agent):
             status=AgentStatus.COMPLETED,
             content=answer_text,
             citations=citations,
-            metadata={"action": action, "document_id": document_id, "chunk_count": str(len(chunks))},
+            metadata={
+                "action": action,
+                "document_id": document_id,
+                "chunk_count": str(len(chunks)),
+            },
         ))
 
     @staticmethod
-    def _failed(execution: AgentExecution, request: AgentRequest, code: str, msg: str) -> AgentFailedEvent:
+    def _failed(
+        execution: AgentExecution,
+        request: AgentRequest,
+        code: str,
+        msg: str,
+    ) -> AgentFailedEvent:
         return AgentFailedEvent(result=AgentResult(
             execution_id=execution.execution_id,
             request_id=request.request_id,

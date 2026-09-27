@@ -4,17 +4,17 @@
  * ============================================================
  * Module     : data
  * File       : tools/CalculatorTool.kt
- * Purpose    : Safe arithmetic calculator — evaluates numeric expressions
+ * Purpose    : Safe arithmetic calculator -- evaluates numeric expressions
  *              without shell access or arbitrary code execution.
  *
- * Architecture Layer : Data — agent tools
+ * Architecture Layer : Data -- agent tools
  * Pattern Used       : Tool implementation
  *
  * Security:
- *   - Input whitelist: only digits, operators (+−×÷*/^%), decimal points,
+ *   - Input whitelist: only digits, operators (+-*/^%), decimal points,
  *     parentheses, and whitespace are accepted.
  *   - No eval(), no shell, no reflection.
- *   - Division by zero → safe error message.
+ *   - Division by zero -> safe error message.
  *   - Maximum expression length: 500 characters.
  *
  * Dependencies: domain (Tool, ToolSchema, ToolResult, ToolPermission,
@@ -66,7 +66,7 @@ class CalculatorTool @Inject constructor() : Tool {
         if (!expr.matches(ALLOWED_CHARS))
             throw ToolValidationError(
                 NAME, "expression",
-                "contains invalid characters — only digits, operators, parentheses, and whitespace are allowed"
+                "contains invalid characters -- only digits, operators, parentheses, and whitespace are allowed"
             )
     }
 
@@ -113,7 +113,7 @@ class CalculatorTool @Inject constructor() : Tool {
     }
 }
 
-// ── Recursive-descent arithmetic parser ──────────────────────────────────────
+// -- Recursive-descent arithmetic parser --------------------------------------
 
 private class Calculator(private val expr: String) {
     private var pos = 0
