@@ -229,6 +229,7 @@ class RagAgentTest {
             mockChat, mockCode, agent,
             mockk(relaxed = true), mockk(relaxed = true),
             mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true),
+            mockk(relaxed = true), mockk(relaxed = true),
             com.aiassistant.domain.agent.DefaultToolRegistry(),
         )
 
@@ -251,6 +252,7 @@ class RagAgentTest {
             mockChat, mockCode, agent,
             mockk(relaxed = true), mockk(relaxed = true),
             mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true),
+            mockk(relaxed = true), mockk(relaxed = true),
             com.aiassistant.domain.agent.DefaultToolRegistry(),
         )
 

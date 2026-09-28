@@ -213,6 +213,7 @@ class CodeAgentTest {
             mockChat, agent, mockRag,
             mockk(relaxed = true), mockk(relaxed = true),
             mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true),
+            mockk(relaxed = true), mockk(relaxed = true),
             com.aiassistant.domain.agent.DefaultToolRegistry(),
         )
 

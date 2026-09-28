@@ -171,6 +171,7 @@ class PdfAgentTest {
             mockChat, mockCode, mockRag, agent,
             ToolAgent(toolRegistry),
             mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true),
+            mockk(relaxed = true), mockk(relaxed = true),
             toolRegistry,
         )
 

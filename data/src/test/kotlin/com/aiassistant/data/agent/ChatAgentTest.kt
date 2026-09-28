@@ -389,6 +389,8 @@ class ChatAgentTest {
             webAgent = mockk(relaxed = true),
             imageAgent = mockk(relaxed = true),
             voiceAgent = mockk(relaxed = true),
+            onDeviceAgent = mockk(relaxed = true),
+            inferencePort = mockk(relaxed = true),
             toolRegistry = com.aiassistant.domain.agent.DefaultToolRegistry(),
         )
         val events = gateway.executeChat(
