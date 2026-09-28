@@ -1,5 +1,5 @@
-/*
- * Unit tests for CalculatorTool — arithmetic, validation, edge cases, security.
+﻿/*
+ * Unit tests for CalculatorTool â€” arithmetic, validation, edge cases, security.
  */
 package com.aiassistant.data.agent
 
@@ -11,13 +11,13 @@ import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import kotlinx.coroutines.test.runTest
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 class CalculatorToolTest {
 
     private val tool = CalculatorTool()
 
-    // ── Schema ────────────────────────────────────────────────────────────────
+    // â”€â”€ Schema â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test fun `name is calculator`() = tool.schema.name shouldBe "calculator"
     @Test fun `requires COMPUTE permission`() =
@@ -25,7 +25,7 @@ class CalculatorToolTest {
     @Test fun `does not require confirmation`() =
         tool.schema.requiresConfirmation.shouldBe(false)
 
-    // ── Validation ────────────────────────────────────────────────────────────
+    // â”€â”€ Validation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test fun `blank expression throws validation error`() {
         shouldThrow<ToolValidationError> { tool.validate(mapOf("expression" to "")) }
@@ -45,7 +45,7 @@ class CalculatorToolTest {
         }
     }
 
-    // ── Arithmetic ────────────────────────────────────────────────────────────
+    // â”€â”€ Arithmetic â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test fun `addition`() = runTest {
         val r = tool.execute(mapOf("expression" to "2 + 3"), "u1")
@@ -104,7 +104,7 @@ class CalculatorToolTest {
         r.output shouldBe "1"
     }
 
-    // ── Error paths ───────────────────────────────────────────────────────────
+    // â”€â”€ Error paths â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test fun `division by zero returns failure result`() = runTest {
         val r = tool.execute(mapOf("expression" to "5 / 0"), "u1")
@@ -114,7 +114,7 @@ class CalculatorToolTest {
 
     @Test fun `invalid syntax returns failure result`() = runTest {
         val r = tool.execute(mapOf("expression" to "2 ++++ 3"), "u1")
-        // Should not throw — returns ToolResult(success=false)
+        // Should not throw â€” returns ToolResult(success=false)
         r.success.shouldBe(false)
     }
 
@@ -123,7 +123,7 @@ class CalculatorToolTest {
         r.output shouldBe "3"
     }
 
-    // ── Security: no shell injection ─────────────────────────────────────────
+    // â”€â”€ Security: no shell injection â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test fun `shell-like characters are rejected by validate`() {
         shouldThrow<ToolValidationError> {

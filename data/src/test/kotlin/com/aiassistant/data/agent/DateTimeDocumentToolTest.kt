@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Unit tests for DateTimeTool and DocumentSearchTool.
  */
 package com.aiassistant.data.agent
@@ -17,9 +17,9 @@ import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
-// ── DateTimeTool ──────────────────────────────────────────────────────────────
+// â”€â”€ DateTimeTool â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class DateTimeToolTest {
 
@@ -73,7 +73,7 @@ class DateTimeToolTest {
     }
 }
 
-// ── DocumentSearchTool ────────────────────────────────────────────────────────
+// â”€â”€ DocumentSearchTool â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 class DocumentSearchToolTest {
 
@@ -84,7 +84,7 @@ class DocumentSearchToolTest {
     @Test fun `requires READ_DOCUMENTS`() =
         (ToolPermission.READ_DOCUMENTS in tool.schema.requiredPermissions).shouldBeTrue()
 
-    // ── Validation ────────────────────────────────────────────────────────────
+    // â”€â”€ Validation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test fun `missing document_id throws`() {
         shouldThrow<ToolValidationError> {
@@ -116,7 +116,7 @@ class DocumentSearchToolTest {
         }
     }
 
-    // ── Execution ─────────────────────────────────────────────────────────────
+    // â”€â”€ Execution â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test fun `successful query returns answer`() = runTest {
         coEvery { documentRepository.queryDocument("doc-1", "What is this?") } returns

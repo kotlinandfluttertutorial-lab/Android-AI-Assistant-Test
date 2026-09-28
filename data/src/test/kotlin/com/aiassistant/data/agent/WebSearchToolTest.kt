@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Unit tests for WebSearchTool stub.
  */
 package com.aiassistant.data.agent
@@ -10,7 +10,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 class WebSearchToolTest {
 
@@ -50,9 +50,9 @@ class WebSearchToolTest {
 
     @Test fun `stub returns failure result with clear message`() = runTest {
         val r = tool.execute(mapOf("query" to "latest news"), "u1")
-        // Stub is not configured — success=false with informative error
+        // Stub is not configured â€” success=false with informative error
         r.success shouldBe false
-        r.error?.contains("not yet configured", ignoreCase = true).shouldBeTrue()
+        r.error?.contains("not yet configured", ignoreCase = true) == true shouldBe true
     }
 
     @Test fun `stub metadata carries query and stub flag`() = runTest {

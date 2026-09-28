@@ -164,9 +164,9 @@ class CodeAgentTest {
     @Test
     fun `result metadata contains language_id`() = runTest {
         coEvery { codeRepository.analyzeCode(any()) } returns successResult("x")
-        val events = agent.execute(makeRequest(language = "PYTHON"), makeExecution()).toList()
+        val events = agent.execute(makeRequest(language = "KOTLIN"), makeExecution()).toList()
         val completed = events.filterIsInstance<AgentEvent.Completed>().first()
-        completed.result.metadata["language_id"] shouldBe "python"
+        completed.result.metadata["language_id"] shouldBe "kotlin"
     }
 
     // ── Error paths ──────────────────────────────────────────────────────────
@@ -209,7 +209,12 @@ class CodeAgentTest {
         coEvery { codeRepository.analyzeCode(any()) } returns successResult("Generated code")
         val mockChat = mockk<ChatAgent>(relaxed = true)
         val mockRag = mockk<RagAgent>(relaxed = true)
-        val gateway = AgentGateway(mockChat, agent, mockRag)
+        val gateway = AgentGateway(
+            mockChat, agent, mockRag,
+            mockk(relaxed = true), mockk(relaxed = true),
+            mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true),
+            com.aiassistant.domain.agent.DefaultToolRegistry(),
+        )
 
         val events = gateway.executeCode(
             code = "fun x() {}",
