@@ -273,7 +273,10 @@ class VoiceAgent(Agent):
         execution: AgentExecution,
         metadata: dict[str, str],
     ) -> str | None:
-        """Decode audio and call TranscriptionService. Returns transcript or None (error emitted)."""
+        """Decode audio and call TranscriptionService.
+
+        Returns transcript string or None when transcription cannot proceed.
+        """
         audio_b64 = (metadata.get("audio_base64") or "").strip()
         if not audio_b64:
             # Yield is not possible from a plain coroutine; use generator delegation below.
@@ -281,7 +284,7 @@ class VoiceAgent(Agent):
 
         try:
             audio_bytes = base64.b64decode(audio_b64)
-        except Exception as exc:
+        except Exception:
             return None
 
         language = (metadata.get("language") or "en").strip()

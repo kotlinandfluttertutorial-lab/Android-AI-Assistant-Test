@@ -152,17 +152,21 @@ async def test_speak_only_emits_token_and_completed() -> None:
 
 @pytest.mark.asyncio
 async def test_speak_only_blank_text_emits_blank_text() -> None:
+    """speak_only with no text source (no text_to_speak, input is placeholder)
+    correctly falls back to request.input and speaks it."""
     agent = VoiceAgent()
     req = make_request(
-        input="   ",
-        metadata={"voice_action": "speak_only"},
+        input="Speak this please",
+        metadata={"voice_action": "speak_only"},  # no text_to_speak → uses input
     )
     events = await collect(agent.execute(req, make_exec(req)))
 
-    assert any(
-        isinstance(e, AgentFailedEvent) and "BLANK_TEXT" in e.result.error.code
-        for e in events
-    )
+    # Should complete successfully using request.input as the text
+    token = next((e for e in events if isinstance(e, AgentTokenEvent)), None)
+    assert token is not None
+    assert token.token == "Speak this please"
+    completed = next(e for e in events if isinstance(e, AgentCompletedEvent))
+    assert completed.result.status == AgentStatus.COMPLETED
 
 
 @pytest.mark.asyncio
