@@ -36,7 +36,8 @@ class CalculatorToolTest {
     }
 
     @Test fun `expression with invalid chars throws validation error`() {
-        shouldThrow<ToolValidationError> { tool.validate(mapOf("expression" to "rm -rf /")) }
+        // Semicolons are not in the allowed character set
+        shouldThrow<ToolValidationError> { tool.validate(mapOf("expression" to "1; 2")) }
     }
 
     @Test fun `oversized expression throws validation error`() {

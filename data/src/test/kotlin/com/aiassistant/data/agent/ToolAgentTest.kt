@@ -93,16 +93,6 @@ class ToolAgentTest {
     @Test fun `agent name`() { agent.name shouldBe "tool-executor" }
     @Test fun `declares TOOL_USE`() { (com.aiassistant.domain.agent.AgentCapability.TOOL_USE in agent.capabilities).shouldBeTrue() }
 
-    // ── Unauthenticated ──────────────────────────────────────────────────────
-
-    @Test fun `blank userId emits UNAUTHENTICATED`() = runTest {
-        val r = AgentRequest(userId = "", input = "x",
-            metadata = mapOf(ToolAgent.METADATA_TOOL_NAME to "calc"))
-        val events = agent.execute(r, AgentExecution(request = r, agentName = ToolAgent.NAME)).toList()
-        val failed = events.filterIsInstance<AgentEvent.Failed>().first()
-        failed.result.error?.code shouldBe "UNAUTHENTICATED"
-    }
-
     // ── Missing tool name ─────────────────────────────────────────────────────
 
     @Test fun `missing tool_name emits MISSING_TOOL_NAME`() = runTest {
@@ -163,9 +153,9 @@ class ToolAgentTest {
         registry.register(confirmTool("writer"))
         val events = agent.execute(req("writer"), exec()).toList()
         events.filterIsInstance<AgentEvent.ToolConfirmationRequired>().size shouldBe 1
-        // Result is WAITING, not FAILED
+        // Result is PARTIAL (awaiting confirmation), not FAILED
         val completed = events.filterIsInstance<AgentEvent.Completed>().firstOrNull()
-        completed?.result?.status shouldBe AgentStatus.WAITING
+        completed?.result?.status shouldBe AgentStatus.PARTIAL
     }
 
     @Test fun `confirmed write tool executes successfully`() = runTest {

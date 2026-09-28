@@ -98,9 +98,13 @@ class RagAgentTest {
 
     @Test
     fun `canHandle returns false for CODE_ANALYSIS`() {
-        agent.canHandle(
-            makeRequest(caps = setOf(AgentCapability.CODE_ANALYSIS))
-        ).shouldBeFalse()
+        val req = AgentRequest(
+            userId = "u1",
+            input = "test",
+            capabilities = setOf(AgentCapability.CODE_ANALYSIS),
+            // no agent_name metadata — let canHandle decide by capability
+        )
+        agent.canHandle(req).shouldBeFalse()
     }
 
     // ── Successful retrieval ──────────────────────────────────────────────────
