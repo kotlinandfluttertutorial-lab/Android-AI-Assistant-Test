@@ -182,6 +182,9 @@ dependencies {
     testImplementation(libs.turbine)
     testImplementation(libs.mockwebserver)
     testImplementation(libs.bundles.kotest)
+    // JUnit Vintage engine: allows JUnit 4 @Test classes to run under JUnit Platform
+    // Required because build uses useJUnitPlatform() and agent tests use @org.junit.Test
+    testImplementation("org.junit.vintage:junit-vintage-engine:5.10.2")
     androidTestImplementation(libs.junit.ext)
     androidTestImplementation(libs.room.testing)
 }

@@ -215,6 +215,7 @@ dependencies {
     implementation(project(":feature-translator"))
     implementation(project(":feature-productivity"))
     implementation(project(":feature-on-device-ai"))
+    implementation(project(":feature-on-device-rag"))
     implementation(project(":feature-search"))
     implementation(project(":feature-persona"))
     implementation(project(":feature-dashboard"))

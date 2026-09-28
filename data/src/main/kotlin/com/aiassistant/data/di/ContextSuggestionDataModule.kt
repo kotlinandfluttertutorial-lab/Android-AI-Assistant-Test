@@ -82,15 +82,5 @@ abstract class ContextSuggestionDataModule {
         @Singleton
         fun provideGetContextSuggestionsUseCase(repository: ContextSuggestionRepository): GetContextSuggestionsUseCase =
             GetContextSuggestionsUseCase(repository = repository)
-
-        /**
-         * Provides the [DismissSuggestionUseCase] singleton.
-         *
-         * Scoped as a singleton so the session-scoped dismissal map is shared across
-         * all injection sites (Notes, Calendar, Chat ViewModels).
-         */
-        @Provides
-        @Singleton
-        fun provideDismissSuggestionUseCase(): DismissSuggestionUseCase = DismissSuggestionUseCase()
     }
 }

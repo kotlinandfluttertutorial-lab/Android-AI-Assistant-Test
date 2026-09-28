@@ -13,12 +13,14 @@ import com.aiassistant.core.ai.ondevicerag.LocalVectorIndexImpl
 import com.aiassistant.core.ai.ondevicerag.MediaPipeInferenceEngine
 import com.aiassistant.core.ai.ondevicerag.MiniLmEmbeddingModel
 import com.aiassistant.core.ai.ondevicerag.QueryRouterImpl
+import com.aiassistant.core.common.Chunker
 import com.aiassistant.core.common.LocalVectorIndex
 import com.aiassistant.core.common.OnDeviceEmbeddingModel
 import com.aiassistant.core.common.OnDeviceInferenceEngine
 import com.aiassistant.core.common.QueryRouter
 import dagger.Binds
 import dagger.Module
+import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
@@ -42,4 +44,10 @@ abstract class OnDeviceRagEngineModule {
     @Binds
     @Singleton
     abstract fun bindQueryRouter(impl: QueryRouterImpl): QueryRouter
+
+    companion object {
+        @Provides
+        @Singleton
+        fun provideChunker(): Chunker = Chunker()
+    }
 }

@@ -86,6 +86,7 @@ import com.aiassistant.feature.notes.NotesRoute
 import com.aiassistant.feature.productivity.ProductivityRoute
 import com.aiassistant.feature.profile.ProfileRoute
 import com.aiassistant.feature.rag.RAGRoute
+import com.aiassistant.feature.ondevicerag.OnDeviceRagRoute
 import com.aiassistant.feature.settings.SettingsRoute
 import com.aiassistant.feature.voice.VoiceRoute
 import kotlinx.coroutines.launch
@@ -156,7 +157,7 @@ val drawerSections = listOf(
     NavSection(
         title = "AI",
         items = listOf(
-            NavItem("On-device Gemma", AppIcons.Ai.Gemma, AppIcons.Ai.Gemma, VoiceRoute.GRAPH),
+            NavItem("On-device Gemma", AppIcons.Ai.Gemma, AppIcons.Ai.Gemma, OnDeviceRagRoute.MANAGE_MODELS),
             NavItem("Cloud AI", AppIcons.Ai.Cloud, AppIcons.Ai.Cloud, ChatRoute.LIST),
             NavItem("RAG Documents", AppIcons.Ai.Rag, AppIcons.Ai.Rag, RAGRoute.DOCUMENT_LIST)
         )

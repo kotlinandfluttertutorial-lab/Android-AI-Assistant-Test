@@ -42,6 +42,7 @@ package com.aiassistant.domain.usecase.suggestions
 
 import com.aiassistant.domain.model.SuggestionType
 import javax.inject.Inject
+import javax.inject.Singleton
 
 /**
  * Use case for dismissing context-aware suggestion types on a specific screen instance.
@@ -54,6 +55,7 @@ import javax.inject.Inject
  * set is automatically cleared when [clearSession] is called or when the process is
  * restarted.
  */
+@Singleton
 class DismissSuggestionUseCase @Inject constructor() {
 
     /**

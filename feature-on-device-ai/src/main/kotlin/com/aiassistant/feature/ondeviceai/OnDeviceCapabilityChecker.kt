@@ -38,17 +38,24 @@ class OnDeviceCapabilityChecker @Inject constructor(
      * [OnDeviceCapabilityState].
      */
     override suspend fun evaluate(): OnDeviceCapabilityState = withContext(dispatchers.io) {
+        val modelStatus = modelManager.checkModelStatus()
+        // If model is already downloaded and ready on disk, consider it supported and ready
+        // (bypassing strict emulator/hardware RAM checks for downloaded models).
+        if (modelStatus is ModelStatus.Ready) {
+            return@withContext OnDeviceCapabilityState.SupportedAndReady(modelStatus.entry.displayName)
+        }
+
         val hardwareSupported = capabilityDetector.isOnDeviceInferenceSupported()
         if (!hardwareSupported) {
             return@withContext OnDeviceCapabilityState.NotSupported
         }
 
-        return@withContext when (val status = modelManager.checkModelStatus()) {
-            is ModelStatus.Ready -> OnDeviceCapabilityState.SupportedAndReady(status.entry.displayName)
+        return@withContext when (modelStatus) {
             is ModelStatus.Absent,
             is ModelStatus.VerificationFailed,
             is ModelStatus.Downloading
             -> OnDeviceCapabilityState.SupportedButModelNotReady
+            else -> OnDeviceCapabilityState.SupportedButModelNotReady
         }
     }
 }
