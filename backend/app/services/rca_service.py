@@ -25,8 +25,7 @@ from __future__ import annotations
 import json
 import logging
 import uuid
-from dataclasses import dataclass, field
-from datetime import UTC, datetime, timedelta
+from datetime import UTC, datetime
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -277,7 +276,8 @@ INCIDENT
   Title:       {incident.title}
   Severity:    {incident.severity}
   Detected at: {incident.detected_at.isoformat() if incident.detected_at else 'unknown'}
-  Triggered by: {incident.triggered_by}  (value: {incident.metric_value}, threshold: {incident.threshold_value})
+  Triggered by: {incident.triggered_by}
+  Metric: value={incident.metric_value}, threshold={incident.threshold_value}
 {phase10_context}
 ---
 CORRELATED EVIDENCE TIMELINE (oldest → newest)
@@ -296,7 +296,8 @@ RULES:
 2. Think step by step: first analyse the timeline, then hypothesise causes, then rank them.
 3. Every candidate MUST cite specific evidence from the timeline.
 4. Provide a confidence score per candidate (0.0–1.0). Be honest about uncertainty.
-5. If overall confidence < 0.6, say exactly: "Evidence is insufficient — manual investigation required."
+5. If overall confidence < 0.6, say exactly:
+   "Evidence is insufficient — manual investigation required."
 6. Investigation steps are SUGGESTIONS only — no automated action will be taken.
 7. Never expose credentials, tokens, or PII from the evidence.
 
@@ -370,7 +371,7 @@ Respond with ONLY valid JSON matching this exact schema (no markdown, no explana
         text = raw.strip()
         if text.startswith("```"):
             lines = text.split("\n")
-            text = "\n".join(l for l in lines if not l.strip().startswith("```"))
+            text = "\n".join(line for line in lines if not line.strip().startswith("```"))
 
         start = text.find("{")
         end   = text.rfind("}") + 1
@@ -399,7 +400,9 @@ Respond with ONLY valid JSON matching this exact schema (no markdown, no explana
         provider_name: str,
     ) -> RcaAnalysisResponse:
         if not parsed:
-            return self._fallback_response(rca_id, incident, timeline, obs_count, errlog_count, provider_name)
+            return self._fallback_response(
+                rca_id, incident, timeline, obs_count, errlog_count, provider_name
+            )
 
         # Build candidates
         candidates: list[RootCauseCandidate] = []
@@ -412,7 +415,8 @@ Respond with ONLY valid JSON matching this exact schema (no markdown, no explana
                     supporting_evidence=[str(e) for e in c.get("supporting_evidence", []) if e],
                     reasoning=str(c.get("reasoning", "")),
                 ))
-            except Exception:
+            except Exception as _exc:
+                logger.debug("RCA: skipping malformed candidate entry: %s", _exc)
                 continue
 
         # Sort by confidence descending, re-number ranks
@@ -442,7 +446,11 @@ Respond with ONLY valid JSON matching this exact schema (no markdown, no explana
 
         # Related documentation — from LLM + RAG source names
         llm_docs = [str(d) for d in parsed.get("related_documentation", []) if d]
-        kb_docs  = list({c["document_name"] for c in (runbook_chunks + incident_chunks) if c.get("document_name")})
+        kb_docs = list({
+            c["document_name"]
+            for c in (runbook_chunks + incident_chunks)
+            if c.get("document_name")
+        })
         related_docs = list(dict.fromkeys(llm_docs + kb_docs))
 
         return RcaAnalysisResponse(
@@ -563,7 +571,9 @@ Respond with ONLY valid JSON matching this exact schema (no markdown, no explana
             root_cause_candidates=candidates,
             overall_confidence=incident.rca_confidence or 0.0,
             timeline=[],   # not stored on the row — re-run with force_rerun=True to get it
-            chain_of_thought="(Cached result — re-run with force_rerun=True to get full chain of thought)",
+            chain_of_thought=(
+                "(Cached result — re-run with force_rerun=True to get full chain of thought)"
+            ),
             investigation_steps=steps,
             related_documentation=[],
             observability_events_count=0,

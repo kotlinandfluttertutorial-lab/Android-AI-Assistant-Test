@@ -8,7 +8,6 @@ library;
 import 'package:ai_assistant_flutter/app/theme/app_theme.dart';
 import 'package:ai_assistant_flutter/features/ai_providers/domain/ai_provider_model.dart';
 import 'package:ai_assistant_flutter/features/ai_providers/providers/ai_provider_provider.dart';
-import 'package:ai_assistant_flutter/features/chat/domain/chat_state.dart';
 import 'package:ai_assistant_flutter/features/chat/providers/chat_provider.dart';
 import 'package:ai_assistant_flutter/shared/widgets/empty_state.dart';
 import 'package:ai_assistant_flutter/shared/widgets/message_bubble.dart';

@@ -240,9 +240,6 @@ class DocumentRepository:
         Returns:
             List of :class:`DocumentChunk` rows ordered by cosine similarity.
         """
-        from pgvector.sqlalchemy import Vector
-        from sqlalchemy import func as sa_func
-
         stmt = (
             select(DocumentChunk)
             .join(DocumentChunk.document)

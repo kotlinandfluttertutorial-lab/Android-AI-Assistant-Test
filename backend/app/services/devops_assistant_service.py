@@ -187,9 +187,6 @@ class DevOpsAssistantService:
 
         # Describe available tools for the prompt
         tool_schemas = self._broker.discover()
-        tools_description = "\n".join(
-            f"  {t.name}: {t.description}" for t in tool_schemas
-        )
 
         # Build the conversation: system + user question + accumulating tool results
         messages: list[dict] = [
@@ -211,7 +208,9 @@ class DevOpsAssistantService:
             )
 
             if not llm_text.strip():
-                final_answer = "I was unable to retrieve the information needed to answer your question."
+                final_answer = (
+                    "I was unable to retrieve the information needed to answer your question."
+                )
                 break
 
             # Parse LLM response
@@ -292,7 +291,7 @@ class DevOpsAssistantService:
         text = raw.strip()
         if text.startswith("```"):
             lines = text.split("\n")
-            text = "\n".join(l for l in lines if not l.strip().startswith("```"))
+            text = "\n".join(line for line in lines if not line.strip().startswith("```"))
 
         start = text.find("{")
         end   = text.rfind("}") + 1

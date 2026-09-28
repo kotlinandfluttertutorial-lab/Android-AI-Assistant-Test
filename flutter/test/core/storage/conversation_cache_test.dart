@@ -105,7 +105,7 @@ void main() {
 
     test('CachedConversation survives JSON round-trip', () async {
       final cache = await makeCache();
-      final conv = CachedConversation(
+      final conv = const CachedConversation(
         id:          'rt-conv',
         title:       'Round-trip title',
         createdAt:   '2025-06-15T08:00:00',

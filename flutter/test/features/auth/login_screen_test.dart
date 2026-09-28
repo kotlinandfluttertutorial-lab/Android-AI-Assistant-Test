@@ -9,7 +9,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 // ── Mock notifier ─────────────────────────────────────────────────────────────
@@ -36,6 +35,10 @@ class MockAuthNotifier extends AsyncNotifier<AuthState>
 
   @override
   Future<Result<void>> register(RegisterRequest request) async =>
+      const Success(null);
+
+  @override
+  Future<Result<void>> googleSignIn(String idToken) async =>
       const Success(null);
 
   @override

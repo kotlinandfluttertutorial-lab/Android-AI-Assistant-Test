@@ -33,7 +33,7 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         children: [
           // ── Account ────────────────────────────────────────────────────
-          _SectionHeader(label: 'Account'),
+          const _SectionHeader(label: 'Account'),
           ListTile(
             leading: const Icon(Icons.person_outline),
             title: Text(authState?.user?.email ?? '—'),
@@ -53,7 +53,7 @@ class SettingsScreen extends ConsumerWidget {
           const Divider(),
 
           // ── AI Provider ────────────────────────────────────────────────
-          _SectionHeader(label: 'AI Provider'),
+          const _SectionHeader(label: 'AI Provider'),
           ...allProviders.map((provider) {
             final isSelected = provider.id == selectedProvider.id;
             return RadioListTile<AiProvider>(
@@ -78,7 +78,7 @@ class SettingsScreen extends ConsumerWidget {
           const Divider(),
 
           // ── On-Device AI ───────────────────────────────────────────────
-          _SectionHeader(label: 'On-Device AI'),
+          const _SectionHeader(label: 'On-Device AI'),
           onDeviceAsync.when(
             loading: () => const ListTile(
               title: Text('Checking device support…'),
@@ -118,7 +118,7 @@ class SettingsScreen extends ConsumerWidget {
           const Divider(),
 
           // ── Appearance ─────────────────────────────────────────────────
-          _SectionHeader(label: 'Appearance'),
+          const _SectionHeader(label: 'Appearance'),
           ListTile(
             leading: const Icon(Icons.palette_outlined),
             title: const Text('Theme'),
@@ -138,7 +138,7 @@ class SettingsScreen extends ConsumerWidget {
           const Divider(),
 
           // ── About ──────────────────────────────────────────────────────
-          _SectionHeader(label: 'About'),
+          const _SectionHeader(label: 'About'),
           ListTile(
             leading: const Icon(Icons.info_outline),
             title: const Text('Version'),

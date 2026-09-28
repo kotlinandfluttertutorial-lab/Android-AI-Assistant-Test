@@ -1,4 +1,4 @@
-"""Unit tests for app.llm.service.LLMService.
+﻿"""Unit tests for app.llm.service.LLMService.
 
 Covers:
 - generate(): routes to GeminiProvider for simple/complex requests.
@@ -6,7 +6,7 @@ Covers:
 - generate(): routes to LocalGemmaProvider when DEFAULT_LLM_PROVIDER=gemma.
 - generate(): provider-level fallback on LLMError.
 - generate(): LLMConfigurationError bypasses fallback.
-- generate(): both providers fail → LLMProviderError raised.
+- generate(): both providers fail â†’ LLMProviderError raised.
 - generate(): structured log emitted on success and error.
 - _resolve_provider(): returns cached instance on repeated calls.
 - get_llm_service(): returns the module singleton.
@@ -23,7 +23,7 @@ os.environ.setdefault("SECRET_KEY", "test-secret-32-chars-long-minimum!")
 os.environ.setdefault("DATABASE_URL", "postgresql+asyncpg://test:test@localhost/test")
 os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
 os.environ.setdefault("GEMINI_API_KEY", "test-gemini-key")
-# AES_ENCRYPTION_KEY is set by conftest.py � not repeated here to avoid false-positive secret scans.
+# AES_ENCRYPTION_KEY is set by conftest.py -- not repeated here to avoid false-positive secret scans.
 
 from app.llm.base import LLMRequest, LLMResponse, LLMUsage
 from app.llm.exceptions import (

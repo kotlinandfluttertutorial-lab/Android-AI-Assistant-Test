@@ -1,10 +1,10 @@
-"""Unit tests for app.llm.providers.gemini_provider.GeminiProvider.
+﻿"""Unit tests for app.llm.providers.gemini_provider.GeminiProvider.
 
 Covers:
 - Initialisation: validates API key, stores model names from settings.
 - generate(): success path, usage_metadata extraction, fallback_used flag.
 - generate(): fallback to GEMINI_FALLBACK_MODEL on LLMQuotaError.
-- generate(): fallback disabled → quota error propagates.
+- generate(): fallback disabled â†’ quota error propagates.
 - generate(): fallback skipped when primary == fallback model.
 - generate(): permanent errors (4xx) are NOT retried.
 - generate(): transient errors (5xx) ARE retried with back-off.
@@ -14,7 +14,7 @@ Covers:
 - stream(): falls back to fallback model on quota error.
 - _maybe_sleep(): no sleep after final attempt.
 - _build_config(): respects per-request overrides.
-- No API key → LLMConfigurationError at init.
+- No API key â†’ LLMConfigurationError at init.
 """
 
 from __future__ import annotations
@@ -31,12 +31,11 @@ os.environ.setdefault("SECRET_KEY", "test-secret-32-chars-long-minimum!")
 os.environ.setdefault("DATABASE_URL", "postgresql+asyncpg://test:test@localhost/test")
 os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
 os.environ.setdefault("GEMINI_API_KEY", "test-gemini-key")
-# AES_ENCRYPTION_KEY is set by conftest.py � not repeated here to avoid false-positive secret scans.
+# AES_ENCRYPTION_KEY is set by conftest.py -- not repeated here to avoid false-positive secret scans.
 
 from app.llm.base import LLMRequest
 from app.llm.exceptions import (
     LLMConfigurationError,
-    LLMProviderError,
     LLMQuotaError,
     LLMRateLimitError,
     LLMTimeoutError,
@@ -94,7 +93,7 @@ def _make_api_error(code: int, message: str = "API error") -> Exception:
     exc.status = None
     exc.details = []
     # Ensure str(exc) returns the message so assertion messages are readable.
-    exc.__str__ = lambda self: message  # noqa: E731
+    exc.__str__ = lambda self: message
     return exc
 
 
@@ -162,7 +161,7 @@ class TestGeminiProviderInit:
 
 
 # ---------------------------------------------------------------------------
-# generate() — success path
+# generate() â€” success path
 # ---------------------------------------------------------------------------
 
 class TestGeminiProviderGenerate:
@@ -211,13 +210,13 @@ class TestGeminiProviderGenerate:
 
 
 # ---------------------------------------------------------------------------
-# generate() — fallback behaviour
+# generate() â€” fallback behaviour
 # ---------------------------------------------------------------------------
 
 class TestGeminiProviderFallback:
     @pytest.mark.asyncio
     async def test_fallback_invoked_on_quota_error(self, provider) -> None:
-        """LLMQuotaError on primary model → fallback model is tried."""
+        """LLMQuotaError on primary model â†’ fallback model is tried."""
         provider._enable_fallback = True
         provider._primary_model = "gemini-3.6-flash"
         provider._fallback_model = "gemini-3.1-flash-lite"
@@ -278,7 +277,7 @@ class TestGeminiProviderFallback:
 
 
 # ---------------------------------------------------------------------------
-# generate() — retry and error handling
+# generate() â€” retry and error handling
 # ---------------------------------------------------------------------------
 
 class TestGeminiProviderRetry:
@@ -329,7 +328,7 @@ class TestGeminiProviderRetry:
 
     @pytest.mark.asyncio
     async def test_timeout_error_raised_after_retries(self, provider) -> None:
-        """asyncio.TimeoutError exhausted → LLMTimeoutError raised."""
+        """asyncio.TimeoutError exhausted â†’ LLMTimeoutError raised."""
         provider._max_retry_attempts = 1
         provider._retry_base_delay = 0.0
 
@@ -396,7 +395,7 @@ class TestGeminiProviderStream:
 
     @pytest.mark.asyncio
     async def test_stream_falls_back_on_quota(self, provider) -> None:
-        """quota error during primary stream → fallback model is used."""
+        """quota error during primary stream â†’ fallback model is used."""
         provider._enable_fallback = True
         provider._primary_model = "gemini-3.6-flash"
         provider._fallback_model = "gemini-3.1-flash-lite"

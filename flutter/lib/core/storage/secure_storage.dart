@@ -88,7 +88,7 @@ class SecureStorage {
     if (token == null) return false;
     final expiry = await getAccessTokenExpiry();
     if (expiry == null) return false;
-    final bufferMs = AppConstants.tokenRefreshBufferSeconds * 1000;
+    const bufferMs = AppConstants.tokenRefreshBufferSeconds * 1000;
     return DateTime.now().millisecondsSinceEpoch < (expiry - bufferMs);
   }
 

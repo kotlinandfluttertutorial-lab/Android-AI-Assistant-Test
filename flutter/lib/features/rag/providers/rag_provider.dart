@@ -4,7 +4,6 @@ library;
 import 'dart:async';
 
 import 'package:ai_assistant_flutter/app/providers/core_providers.dart';
-import 'package:ai_assistant_flutter/core/utils/result.dart';
 import 'package:ai_assistant_flutter/features/rag/data/rag_api.dart';
 import 'package:ai_assistant_flutter/features/rag/domain/rag_models.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -127,11 +126,11 @@ class UploadNotifier extends Notifier<UploadState> {
           state = state.copyWith(
             jobStatus:           job.status,
             completedDocumentId: job.documentId,
-            error: job.isFailed ? (job.errorMessage ?? 'Ingestion failed') : null,
+            error: job.status.isFailed ? (job.errorMessage ?? 'Ingestion failed') : null,
           );
           if (job.status.isTerminal) {
             _pollTimer?.cancel();
-            if (job.isCompleted) {
+            if (job.status.isCompleted) {
               // Refresh document list so the new doc appears.
               unawaited(
                 ref.read(documentsProvider.notifier).refresh(),

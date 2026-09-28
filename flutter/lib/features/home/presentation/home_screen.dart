@@ -126,7 +126,7 @@ class HomeScreen extends ConsumerWidget {
                   return SliverToBoxAdapter(
                     child: Padding(
                       padding: const EdgeInsets.symmetric(vertical: 16),
-                      child: EmptyState(
+                      child: const EmptyState(
                         icon: Icons.chat_bubble_outline,
                         title: 'No conversations yet',
                         subtitle: 'Tap the button below to start chatting.',
@@ -189,7 +189,7 @@ class _HeroCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          const Row(
             children: [
               const Icon(Icons.auto_awesome, color: Colors.white, size: 28,
                   semanticLabel: 'AI ready'),

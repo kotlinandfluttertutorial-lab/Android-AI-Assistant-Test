@@ -61,7 +61,7 @@ class IncidentResponse(BaseModel):
     resolved_at: str | None
 
     @classmethod
-    def from_orm_model(cls, inc: Incident) -> "IncidentResponse":
+    def from_orm_model(cls, inc: Incident) -> IncidentResponse:
         return cls(
             id=inc.id,
             title=inc.title,
@@ -361,7 +361,7 @@ class RemediationActionResponse(BaseModel):
     reviewed_at:      str | None
 
     @classmethod
-    def from_orm_model(cls, a) -> "RemediationActionResponse":
+    def from_orm_model(cls, a) -> RemediationActionResponse:
         import json as _json
         try:
             params = _json.loads(a.params_json or "{}")

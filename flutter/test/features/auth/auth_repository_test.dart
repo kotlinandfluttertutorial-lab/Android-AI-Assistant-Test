@@ -99,7 +99,7 @@ void main() {
 
   group('AuthRepository.login', () {
     test('returns AuthUser and persists tokens on success', () async {
-      final response = LoginResponse(
+      final response = const LoginResponse(
         userId: 'u1',
         email: 'test@test.com',
         role: 'user',

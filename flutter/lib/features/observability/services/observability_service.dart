@@ -201,13 +201,13 @@ class ObservabilityService {
 
   /// Strip values that look like credentials from metadata.
   static Map<String, dynamic> _sanitizeMetadata(Map<String, dynamic> raw) {
-    const _sensitiveKeys = {
+    const sensitiveKeys = {
       'token', 'password', 'secret', 'key', 'authorization',
       'api_key', 'access_token', 'refresh_token',
     };
     return {
       for (final entry in raw.entries)
-        if (!_sensitiveKeys.contains(entry.key.toLowerCase()))
+        if (!sensitiveKeys.contains(entry.key.toLowerCase()))
           entry.key: entry.value,
     };
   }

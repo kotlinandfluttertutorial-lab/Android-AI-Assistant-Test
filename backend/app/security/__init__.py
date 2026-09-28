@@ -23,34 +23,26 @@ from app.security.password import hash_password, verify_password
 from app.security.rbac import require_admin, require_premium_or_admin, require_roles
 
 __all__ = [
-    # Exceptions
-    "AuthError",
-    "InvalidTokenError",
-    "SecurityViolationError",
-    "TokenFamilyRevokedError",
     "AccountLockedError",
-    # JWT
-    "TokenPayload",
-    "RefreshTokenData",
+    "AccountLockoutService",
+    "AuditEventType",
+    "AuditService",
+    "AuthError",
     "create_access_token",
     "create_refresh_token",
-    "verify_access_token",
-    "hash_token",
-    # Password
-    "hash_password",
-    "verify_password",
-    # Encryption
-    "encrypt_api_key",
     "decrypt_api_key",
-    # RBAC
-    "require_roles",
+    "encrypt_api_key",
+    "get_current_user",
+    "hash_password",
+    "hash_token",
+    "InvalidTokenError",
+    "RefreshTokenData",
     "require_admin",
     "require_premium_or_admin",
-    # Auth dependency
-    "get_current_user",
-    # Lockout
-    "AccountLockoutService",
-    # Audit
-    "AuditService",
-    "AuditEventType",
+    "require_roles",
+    "SecurityViolationError",
+    "TokenFamilyRevokedError",
+    "TokenPayload",
+    "verify_access_token",
+    "verify_password",
 ]

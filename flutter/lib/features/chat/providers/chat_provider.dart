@@ -26,7 +26,6 @@ import 'package:ai_assistant_flutter/core/storage/pending_message_queue_provider
 import 'package:ai_assistant_flutter/core/utils/app_logger.dart';
 import 'package:ai_assistant_flutter/features/ai_providers/providers/ai_provider_provider.dart';
 import 'package:ai_assistant_flutter/features/chat/domain/chat_state.dart';
-import 'package:ai_assistant_flutter/features/conversations/data/conversations_api.dart';
 import 'package:ai_assistant_flutter/features/conversations/providers/conversations_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -38,6 +37,7 @@ class ChatNotifier extends FamilyNotifier<ChatState, String> {
   StreamSubscription<WsMessage>? _sub;
 
   @override
+  // ignore: avoid_renaming_method_parameters
   ChatState build(String conversationId) {
     _ws = WebSocketService();
     ref.onDispose(() {
@@ -110,10 +110,10 @@ class ChatNotifier extends FamilyNotifier<ChatState, String> {
     );
 
     final provider = ref.read(selectedProviderProvider);
-    _ws.sendMessage(
+    unawaited(_ws.sendMessage(
       text.trim(),
       provider: provider.isOnDevice ? null : provider.id,
-    );
+    ));
   }
 
   Future<void> stopGeneration() async {
@@ -199,10 +199,10 @@ class ChatNotifier extends FamilyNotifier<ChatState, String> {
         clearError:  true,
       );
 
-      _ws.sendMessage(
+      unawaited(_ws.sendMessage(
         msg.content,
         provider: msg.provider ?? (provider.isOnDevice ? null : provider.id),
-      );
+      ));
 
       // Remove from queue after sending.
       await queue.remove(msg.id);

@@ -153,8 +153,6 @@ async def test_4a_estimated_tokens_below_provider_max_after_build_prompt(
     This verifies that the summarization path keeps the total token budget
     within bounds regardless of which provider is used.
     """
-    from app.services.llm_clients import OpenAIClient
-
     orch = _make_orchestrator()
     history = _make_history_tokens_above(history_tokens, num_messages=num_messages)
     orch._message_repo.get_by_conversation_id = AsyncMock(return_value=history)

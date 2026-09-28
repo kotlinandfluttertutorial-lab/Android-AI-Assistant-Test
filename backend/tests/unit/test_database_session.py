@@ -33,7 +33,7 @@ Requirements: 9.3, 9.10
 from __future__ import annotations
 
 import os
-from unittest.mock import AsyncMock, MagicMock, patch, call
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 

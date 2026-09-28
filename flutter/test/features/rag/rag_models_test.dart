@@ -183,7 +183,7 @@ void main() {
     test('parses answer and citations', () {
       final json = {
         'answer': 'The connection pool exhausted at 14:32.',
-        'citations': [
+        'citations': <Map<String, dynamic>>[
           {'document_name': 'runbook-db.md', 'page_number': 2},
           {'document_name': 'architecture.md'},
         ],
@@ -225,7 +225,7 @@ void main() {
     test('includes document_ids when provided', () {
       final req = DocumentQueryRequest(
         query:       'DB timeout',
-        documentIds: ['doc-1', 'doc-2'],
+        documentIds: <String>['doc-1', 'doc-2'],
       );
       final json = req.toJson();
       expect(json['document_ids'], ['doc-1', 'doc-2']);

@@ -643,7 +643,7 @@ async def reingest_stuck_documents(
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """Re-dispatch Celery tasks for all documents stuck in processing/pending state."""
-    from sqlalchemy import select, or_
+    from sqlalchemy import or_, select
 
     from app.models.document import Document, IngestionStatus
     from app.services.rag_service import rag_service
@@ -669,7 +669,7 @@ async def reingest_stuck_documents(
             await db.flush()
 
             # Create a new job
-            job_id = await rag_service.create_ingestion_job(doc.id, doc.user_id, db)
+            await rag_service.create_ingestion_job(doc.id, doc.user_id, db)
             await db.commit()
 
             # Dispatch Celery task

@@ -32,9 +32,10 @@ except Exception as e:
     sys.exit(1)
 
 try:
+    from sqlalchemy import or_, select
+
     from app.models.document import Document, IngestionStatus
     from app.workers.rag_worker import ingest_document_task
-    from sqlalchemy import select, or_
     print("All imports OK", flush=True)
 except Exception as e:
     print(f"ERROR importing models/worker: {type(e).__name__}: {e}", flush=True)

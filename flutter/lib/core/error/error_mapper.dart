@@ -45,6 +45,9 @@ class ErrorMapper {
       case DioExceptionType.unknown:
       case DioExceptionType.badCertificate:
         return AppError.unknown(e.message);
+
+      case DioExceptionType.transformTimeout:
+        return AppError.timeout();
     }
   }
 

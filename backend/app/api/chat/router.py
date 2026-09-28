@@ -261,7 +261,9 @@ async def _handle_chat(
         )
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
-            detail={"error": {"code": "LLM_UNAVAILABLE", "message": "AI service is currently unavailable."}},
+            detail={
+                "error": {"code": "LLM_UNAVAILABLE", "message": "AI service is currently unavailable."}
+            },
         )
     except LLMError as exc:
         logger.error(
@@ -377,7 +379,8 @@ v1_router = APIRouter(
     description=(
         "POST /api/v1/chat — versioned REST chat endpoint.\n\n"
         "Request body: ``{message, conversation_id}``\n\n"
-        "Response: ``{answer, provider, model, usage: {input_tokens, output_tokens, total_tokens}}``"
+        "Response: ``{answer, provider, model, usage: {input_tokens, output_tokens, "
+        "total_tokens}}``"
     ),
     status_code=status.HTTP_200_OK,
 )

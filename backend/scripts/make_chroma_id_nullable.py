@@ -1,5 +1,6 @@
 """One-shot script: ALTER document_chunks.chroma_id to allow NULLs."""
 import os
+
 import psycopg2
 
 raw_url = os.environ["DATABASE_URL"]
@@ -9,7 +10,7 @@ if "?ssl=require" in url:
     url = url.replace("?ssl=require", "")
     url += "?sslmode=require"
 
-print(f"Connecting...", flush=True)
+print("Connecting...", flush=True)
 conn = psycopg2.connect(url)
 conn.autocommit = True
 cur = conn.cursor()

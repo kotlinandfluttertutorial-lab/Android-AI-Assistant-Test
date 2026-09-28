@@ -36,7 +36,7 @@ void main() {
       final json = {
         'tool_name': 'search_logs',
         'params':    {'query': 'connection refused', 'limit': 10},
-        'result':    {'count': 5, 'logs': []},
+        'result':    {'count': 5, 'logs': <dynamic>[]},
       };
       final tc = ToolCallSummary.fromJson(json);
 
@@ -62,7 +62,7 @@ void main() {
         'session_id':   'sess-abc',
         'question':     'Why did the API fail at 14:32?',
         'answer':       'The connection pool was exhausted due to slow queries.',
-        'citations':    ['runbook-db.md', 'incident-1234'],
+        'citations':    <String>['runbook-db.md', 'incident-1234'],
         'tool_calls':   [
           {
             'tool_name': 'search_logs',
@@ -127,8 +127,8 @@ void main() {
         'session_id':   's1',
         'question':     'Show incidents',
         'answer':       'Found 3 open incidents.',
-        'citations':    <dynamic>[],
-        'tool_calls':   <dynamic>[],
+        'citations':    const <dynamic>[],
+        'tool_calls':   const <dynamic>[],
         'rounds_used':  1,
         'llm_provider': 'gemini',
       });

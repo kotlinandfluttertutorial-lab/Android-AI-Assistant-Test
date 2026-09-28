@@ -9,6 +9,8 @@ analyzer:
     missing_required_param: error
     missing_return: error
     dead_code: warning
+    uri_does_not_exist: ignore
+    uri_has_not_been_generated: ignore
   exclude:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
@@ -25,13 +27,13 @@ linter:
     - directives_ordering
     - prefer_const_constructors
     - prefer_const_declarations
+    - prefer_const_literals_to_create_immutables
     - prefer_final_fields
     - prefer_single_quotes
     - sort_child_properties_last
     - use_super_parameters
 
     # Safety
-    - avoid_returning_null_for_future
     - cancel_subscriptions
     - close_sinks
     - unawaited_futures

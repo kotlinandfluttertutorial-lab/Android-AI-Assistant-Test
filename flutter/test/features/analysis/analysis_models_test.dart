@@ -23,8 +23,8 @@ void main() {
   group('FactsVsInference.fromJson', () {
     test('parses facts and inferences', () {
       final json = {
-        'facts':      ['DB pool at capacity', 'Latency +340%'],
-        'inferences': ['Likely caused by slow query'],
+        'facts':      <String>['DB pool at capacity', 'Latency +340%'],
+        'inferences': <String>['Likely caused by slow query'],
       };
       final fvi = FactsVsInference.fromJson(json);
       expect(fvi.facts.length,      2);
@@ -32,7 +32,8 @@ void main() {
     });
 
     test('handles empty lists', () {
-      final fvi = FactsVsInference.fromJson({'facts': [], 'inferences': []});
+      final fvi = FactsVsInference.fromJson(
+          {'facts': <String>[], 'inferences': <String>[]});
       expect(fvi.facts,      isEmpty);
       expect(fvi.inferences, isEmpty);
     });
@@ -74,7 +75,7 @@ void main() {
       expect(r.confidence,               closeTo(0.87, 0.001));
       expect(r.evidence.length,          2);
       expect(r.possibleCauses.length,    2);
-      expect(r.relatedDocumentation,     ['runbook-db.md']);
+      expect(r.relatedDocumentation,     const <String>['runbook-db.md']);
       expect(r.factsVsInference.facts.length, 1);
       expect(r.eventsAnalysed,           12);
       expect(r.knowledgeChunksRetrieved, 5);

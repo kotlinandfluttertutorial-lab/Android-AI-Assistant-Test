@@ -48,7 +48,7 @@ class AuthStateNotifier extends AsyncNotifier<AuthState> {
         return const Success(null);
       },
       onFailure: (error) {
-        state = AsyncData(const AuthState.unauthenticated());
+        state = const AsyncData(AuthState.unauthenticated());
         return Failure(error);
       },
     );
@@ -65,7 +65,7 @@ class AuthStateNotifier extends AsyncNotifier<AuthState> {
         return const Success(null);
       },
       onFailure: (error) {
-        state = AsyncData(const AuthState.unauthenticated());
+        state = const AsyncData(AuthState.unauthenticated());
         return Failure(error);
       },
     );
@@ -89,7 +89,7 @@ class AuthStateNotifier extends AsyncNotifier<AuthState> {
         return const Success(null);
       },
       onFailure: (error) {
-        state = AsyncData(const AuthState.unauthenticated());
+        state = const AsyncData(AuthState.unauthenticated());
         return Failure(error);
       },
     );

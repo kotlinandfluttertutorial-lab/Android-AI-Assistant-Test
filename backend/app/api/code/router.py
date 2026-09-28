@@ -235,9 +235,11 @@ async def _orchestrate(prompt: str, user_id: str, max_tokens: int) -> str:
     description=(
         "Submit source code for AI analysis. "
         "Supported actions:\n"
-        "- **explain** — Markdown explanation: what the code does, how it works, and improvement ideas.\n"
+        "- **explain** — Markdown explanation: what the code does, how it works, and improvement"
+        " ideas.\n"
         "- **fix_bug** — Corrected code with inline `# FIX:` comments on every changed line.\n"
-        "- **generate_tests** — Complete test suite using the standard framework for the language.\n\n"
+        "- **generate_tests** — Complete test suite using the standard framework for the"
+        " language.\n\n"
         "Prompt injection is detected and blocked before the LLM is called. "
         "Requires JWT Bearer authentication."
     ),

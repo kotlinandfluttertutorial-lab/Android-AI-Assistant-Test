@@ -9,7 +9,6 @@ class DateFormatter {
   static final _time = DateFormat('HH:mm');
   static final _dateTime = DateFormat('MMM d, HH:mm');
   static final _fullDate = DateFormat('MMM d, yyyy');
-  static final _iso = DateFormat("yyyy-MM-dd'T'HH:mm:ss");
 
   /// Format epoch millis as a short time string, e.g. "14:32".
   static String shortTime(int epochMs) {

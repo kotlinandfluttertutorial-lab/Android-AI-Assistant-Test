@@ -73,11 +73,29 @@ class SearchLogsConnector(MCPToolConnector):
             input_schema={
                 "type": "object",
                 "properties": {
-                    "query":      {"type": "string",  "description": "Substring to search in event messages (case-insensitive)."},
-                    "level":      {"type": "string",  "description": "Severity: DEBUG|INFO|WARN|ERROR|CRITICAL. Omit for all levels."},
-                    "event_type": {"type": "string",  "description": "Exact event type e.g. 'http_error', 'network_timeout'. Omit for all types."},
-                    "minutes":    {"type": "integer", "description": "Look-back window in minutes (default 60, max 1440)."},
-                    "limit":      {"type": "integer", "description": "Max events to return (default 20)."},
+                    "query": {
+                        "type": "string",
+                        "description": "Substring to search in event messages (case-insensitive).",
+                    },
+                    "level": {
+                        "type": "string",
+                        "description": "Severity: DEBUG|INFO|WARN|ERROR|CRITICAL. Omit for all levels.",
+                    },
+                    "event_type": {
+                        "type": "string",
+                        "description": (
+                            "Exact event type e.g. 'http_error', 'network_timeout'."
+                            " Omit for all types."
+                        ),
+                    },
+                    "minutes": {
+                        "type": "integer",
+                        "description": "Look-back window in minutes (default 60, max 1440).",
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "description": "Max events to return (default 20).",
+                    },
                 },
                 "required": [],
             },
@@ -137,9 +155,18 @@ class SearchIncidentsConnector(MCPToolConnector):
             input_schema={
                 "type": "object",
                 "properties": {
-                    "severity": {"type": "string", "description": "CRITICAL|HIGH|MEDIUM|LOW. Omit for all."},
-                    "status":   {"type": "string", "description": "OPEN|INVESTIGATING|RESOLVED|DISMISSED. Omit for all."},
-                    "limit":    {"type": "integer", "description": "Max incidents to return (default 10)."},
+                    "severity": {
+                        "type": "string",
+                        "description": "CRITICAL|HIGH|MEDIUM|LOW. Omit for all.",
+                    },
+                    "status": {
+                        "type": "string",
+                        "description": "OPEN|INVESTIGATING|RESOLVED|DISMISSED. Omit for all.",
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "description": "Max incidents to return (default 10).",
+                    },
                 },
                 "required": [],
             },
@@ -201,9 +228,21 @@ class SearchRunbooksConnector(MCPToolConnector):
             input_schema={
                 "type": "object",
                 "properties": {
-                    "query":    {"type": "string",  "description": "Natural language search query."},
-                    "category": {"type": "string",  "description": "runbooks|incidents|architecture|deployment. Omit to search all."},
-                    "top_k":    {"type": "integer", "description": "Number of results to return (default 5)."},
+                    "query": {
+                        "type": "string",
+                        "description": "Natural language search query.",
+                    },
+                    "category": {
+                        "type": "string",
+                        "description": (
+                            "runbooks|incidents|architecture|deployment."
+                            " Omit to search all."
+                        ),
+                    },
+                    "top_k": {
+                        "type": "integer",
+                        "description": "Number of results to return (default 5).",
+                    },
                 },
                 "required": ["query"],
             },
@@ -265,8 +304,14 @@ class AnalyseErrorsConnector(MCPToolConnector):
             input_schema={
                 "type": "object",
                 "properties": {
-                    "lookback_minutes": {"type": "integer", "description": "How far back to look (default 30, max 1440)."},
-                    "session_id":       {"type": "string",  "description": "Optional: analyse a specific session only."},
+                    "lookback_minutes": {
+                        "type": "integer",
+                        "description": "How far back to look (default 30, max 1440).",
+                    },
+                    "session_id": {
+                        "type": "string",
+                        "description": "Optional: analyse a specific session only.",
+                    },
                 },
                 "required": [],
             },
@@ -325,9 +370,18 @@ class GetRcaConnector(MCPToolConnector):
             input_schema={
                 "type": "object",
                 "properties": {
-                    "incident_id":         {"type": "string",  "description": "UUID of the incident to analyse."},
-                    "evidence_window_min": {"type": "integer", "description": "Evidence window in minutes (default 30)."},
-                    "force_rerun":         {"type": "boolean", "description": "Re-run even if a cached result exists."},
+                    "incident_id": {
+                        "type": "string",
+                        "description": "UUID of the incident to analyse.",
+                    },
+                    "evidence_window_min": {
+                        "type": "integer",
+                        "description": "Evidence window in minutes (default 30).",
+                    },
+                    "force_rerun": {
+                        "type": "boolean",
+                        "description": "Re-run even if a cached result exists.",
+                    },
                 },
                 "required": ["incident_id"],
             },
@@ -335,6 +389,7 @@ class GetRcaConnector(MCPToolConnector):
 
     async def invoke(self, params: dict, user_id: str) -> MCPToolResult:
         import uuid as _uuid
+
         from app.schemas.rca import RcaRequest
         from app.services.rca_service import RcaService
 
@@ -355,7 +410,10 @@ class GetRcaConnector(MCPToolConnector):
                 "incident_id":       result.incident_id,
                 "summary":           result.summary,
                 "overall_confidence":result.overall_confidence,
-                "top_candidate":     result.root_cause_candidates[0].model_dump() if result.root_cause_candidates else None,
+                "top_candidate": (
+                    result.root_cause_candidates[0].model_dump()
+                    if result.root_cause_candidates else None
+                ),
                 "all_candidates":    [c.model_dump() for c in result.root_cause_candidates[:3]],
                 "investigation_steps":result.investigation_steps[:3],
                 "related_docs":      result.related_documentation[:3],
@@ -398,6 +456,7 @@ class GetIncidentSummaryConnector(MCPToolConnector):
 
     async def invoke(self, params: dict, user_id: str) -> MCPToolResult:
         import uuid as _uuid
+
         from app.repositories.incident_repository import IncidentRepository
 
         try:
@@ -435,8 +494,12 @@ class GetIncidentSummaryConnector(MCPToolConnector):
                 "triggered_by":      incident.triggered_by,
                 "metric_value":      incident.metric_value,
                 "threshold_value":   incident.threshold_value,
-                "detected_at":       incident.detected_at.isoformat() if incident.detected_at else "",
-                "resolved_at":       incident.resolved_at.isoformat() if incident.resolved_at else None,
+                "detected_at": (
+                    incident.detected_at.isoformat() if incident.detected_at else ""
+                ),
+                "resolved_at": (
+                    incident.resolved_at.isoformat() if incident.resolved_at else None
+                ),
                 "event_count":       incident.event_count,
                 # Phase 10 error analysis
                 "error_analysis": {
@@ -488,9 +551,18 @@ class CreateIncidentConnector(MCPToolConnector):
             input_schema={
                 "type": "object",
                 "properties": {
-                    "title":    {"type": "string", "description": "Short description of the incident."},
-                    "severity": {"type": "string", "description": "CRITICAL|HIGH|MEDIUM|LOW"},
-                    "description": {"type": "string", "description": "Detailed description (stored as triggered_by)."},
+                    "title": {
+                        "type": "string",
+                        "description": "Short description of the incident.",
+                    },
+                    "severity": {
+                        "type": "string",
+                        "description": "CRITICAL|HIGH|MEDIUM|LOW",
+                    },
+                    "description": {
+                        "type": "string",
+                        "description": "Detailed description (stored as triggered_by).",
+                    },
                 },
                 "required": ["title", "severity"],
             },

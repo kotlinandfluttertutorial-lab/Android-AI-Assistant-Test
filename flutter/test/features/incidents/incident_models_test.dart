@@ -154,7 +154,7 @@ void main() {
     });
 
     test('handles empty incidents list gracefully', () {
-      final json = {'incidents': [], 'total': 0, 'open_count': 0};
+      final json = {'incidents': <dynamic>[], 'total': 0, 'open_count': 0};
       final response = IncidentListResponse.fromJson(json);
       expect(response.incidents, isEmpty);
     });
@@ -200,15 +200,15 @@ void main() {
         'incident_id':       'inc-001',
         'summary':           'Connection pool exhausted due to slow queries.',
         'overall_confidence': 0.87,
-        'root_cause_candidates': [
+        'root_cause_candidates': <dynamic>[
           {
             'rank': 1, 'cause': 'Pool exhaustion',
-            'confidence': 0.87, 'supporting_evidence': [], 'reasoning': '',
+            'confidence': 0.87, 'supporting_evidence': <String>[], 'reasoning': '',
           },
         ],
-        'timeline':             [],
-        'investigation_steps':  ['Check pool size', 'Review slow query log'],
-        'related_documentation': ['runbook-db-connections.md'],
+        'timeline':             <dynamic>[],
+        'investigation_steps':  <String>['Check pool size', 'Review slow query log'],
+        'related_documentation': <String>['runbook-db-connections.md'],
         'low_confidence_warning': null,
         'llm_provider':          'gemini',
       };

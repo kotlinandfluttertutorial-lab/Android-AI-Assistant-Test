@@ -186,8 +186,8 @@ class TestPromptBuilderIntegration:
     @pytest.mark.asyncio
     async def test_built_prompt_produces_answer(self) -> None:
         """A prompt built by PromptBuilder generates a valid response."""
-        from app.llm.providers.gemini_provider import GeminiProvider
         from app.llm.prompt_builder import PromptBuilder
+        from app.llm.providers.gemini_provider import GeminiProvider
 
         builder = PromptBuilder()
         provider = GeminiProvider()

@@ -69,19 +69,19 @@ sealed class AppErrorF with _$AppErrorF {
             'Your session has expired. Please sign in again.',
         forbidden:   () =>
             'You do not have permission to perform this action.',
-        notFound:    (r) => '$r was not found.',
-        validation:  (msg, _) =>
+        notFound:    (String r) => '$r was not found.',
+        validation:  (String msg, String? _) =>
             msg.isNotEmpty ? msg : 'Please check your input and try again.',
-        rateLimited: (retryAfter) => retryAfter != null
+        rateLimited: (int? retryAfter) => retryAfter != null
             ? 'Too many requests. Please wait $retryAfter seconds.'
             : 'Too many requests. Please wait a moment.',
-        serverError: (_) =>
+        serverError: (String? _) =>
             'Something went wrong on our end. Please try again.',
-        aiProvider:  (_) =>
+        aiProvider:  (String _) =>
             'The AI service is currently unavailable. Please try again.',
         websocketDisconnect: () =>
             'Connection lost. Attempting to reconnect…',
-        unknown:     (_) =>
+        unknown:     (String? _) =>
             'An unexpected error occurred. Please try again.',
       );
 }

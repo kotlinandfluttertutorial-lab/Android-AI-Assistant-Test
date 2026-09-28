@@ -48,8 +48,12 @@ class IncidentsScreen extends ConsumerWidget {
           const Divider(height: 1),
 
           // ── Stats row ──────────────────────────────────────────────────
-          listAsync.whenData((data) =>
-              _StatsBar(total: data.total, openCount: data.openCount)),
+          listAsync.when(
+            loading: () => const SizedBox.shrink(),
+            error:   (_, __) => const SizedBox.shrink(),
+            data:    (data) =>
+                _StatsBar(total: data.total, openCount: data.openCount),
+          ),
 
           // ── List ───────────────────────────────────────────────────────
           Expanded(

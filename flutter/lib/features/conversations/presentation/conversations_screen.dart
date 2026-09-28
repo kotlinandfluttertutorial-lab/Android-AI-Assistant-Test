@@ -10,7 +10,6 @@ import 'package:ai_assistant_flutter/app/router/app_router.dart';
 import 'package:ai_assistant_flutter/app/theme/app_theme.dart';
 import 'package:ai_assistant_flutter/core/utils/date_formatter.dart';
 import 'package:ai_assistant_flutter/features/chat/presentation/chat_screen.dart';
-import 'package:ai_assistant_flutter/features/conversations/data/conversations_api.dart';
 import 'package:ai_assistant_flutter/features/conversations/domain/conversation_model.dart';
 import 'package:ai_assistant_flutter/features/conversations/providers/conversations_provider.dart';
 import 'package:ai_assistant_flutter/shared/widgets/empty_state.dart';
@@ -46,7 +45,7 @@ class _ConversationsScreenState extends ConsumerState<ConversationsScreen> {
   }
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  Widget build(BuildContext context) {
     final conversationsAsync = ref.watch(conversationsProvider);
     final isTablet =
         MediaQuery.of(context).size.width >= _twoPaneBreakpoint;

@@ -43,15 +43,13 @@ import uuid
 from datetime import UTC, datetime, timedelta
 from unittest.mock import AsyncMock, MagicMock, patch
 
-import pytest
-
 os.environ.setdefault("SECRET_KEY", "test-secret-key-at-least-32-chars-long!!")
 os.environ.setdefault("DATABASE_URL", "postgresql+asyncpg://test:test@localhost/test")
 os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
 os.environ.setdefault("AES_ENCRYPTION_KEY", "dGVzdGtleXRlc3RrZXl0ZXN0a2V5dGVzdA==")
 
-from app.models.observability_event import ObservabilityEvent  # noqa: E402
-from app.repositories.observability_event_repository import (  # noqa: E402
+from app.models.observability_event import ObservabilityEvent
+from app.repositories.observability_event_repository import (
     ObservabilityEventRepository,
     _MAX_BATCH_SIZE,
 )

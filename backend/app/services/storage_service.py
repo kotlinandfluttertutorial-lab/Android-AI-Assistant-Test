@@ -112,7 +112,7 @@ class GCSStorageBackend(StorageBackend):
 
     def _get_client(self):
         if self._client is None:
-            from google.cloud import storage as gcs  # noqa: PLC0415
+            from google.cloud import storage as gcs
             self._client = gcs.Client()
         return self._client
 
@@ -198,7 +198,7 @@ class MinioStorageBackend(StorageBackend):
         self._bucket_name = bucket_name
 
     def _get_client(self):
-        from minio import Minio  # noqa: PLC0415
+        from minio import Minio
         return Minio(
             self._endpoint,
             access_key=self._access_key,
@@ -207,7 +207,7 @@ class MinioStorageBackend(StorageBackend):
         )
 
     def _ensure_bucket(self, client) -> None:
-        from minio.error import S3Error  # noqa: PLC0415
+        from minio.error import S3Error
         try:
             if not client.bucket_exists(self._bucket_name):
                 client.make_bucket(self._bucket_name)
@@ -290,7 +290,7 @@ class StorageService:
         if self._backend is not None:
             return self._backend
 
-        from app.config.settings import get_settings  # noqa: PLC0415
+        from app.config.settings import get_settings
         s = get_settings()
         backend = s.STORAGE_BACKEND.lower().strip()
 

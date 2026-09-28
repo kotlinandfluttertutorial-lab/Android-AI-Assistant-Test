@@ -83,6 +83,7 @@ final incidentDetailProvider =
 
 class RcaNotifier extends FamilyAsyncNotifier<RcaAnalysisResponse?, String> {
   @override
+  // ignore: avoid_renaming_method_parameters
   Future<RcaAnalysisResponse?> build(String incidentId) async {
     // Try to fetch any cached RCA result; return null if none yet.
     final api    = ref.read(incidentsApiProvider);
@@ -114,6 +115,7 @@ final rcaProvider =
 class RemediationNotifier
     extends FamilyAsyncNotifier<RemediationPlanResponse?, String> {
   @override
+  // ignore: avoid_renaming_method_parameters
   Future<RemediationPlanResponse?> build(String incidentId) async => null;
 
   Future<void> recommend() async {

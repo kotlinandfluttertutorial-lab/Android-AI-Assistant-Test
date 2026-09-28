@@ -10,20 +10,8 @@ import 'package:mocktail/mocktail.dart';
 class MockNotificationsApi extends Mock implements NotificationsApi {}
 
 // ── Test-only subclass that injects a controllable token ─────────────────────
-
-class _TestFcmTokenService extends FcmTokenService {
-  _TestFcmTokenService(super.api, {required String? tokenToReturn})
-      : _tokenToReturn = tokenToReturn;
-
-  final String? _tokenToReturn;
-
-  @override
-  // ignore: unused_element
-  Future<String?> _getToken() async => _tokenToReturn;
-}
-
-// We can't override the private _getToken directly in Dart, so we test
-// registerToken (the public method) and verify the API call.
+// Note: Dart does not allow overriding private methods across library boundaries.
+// Tests use registerToken (the public method) and verify the API call directly.
 
 void main() {
   late MockNotificationsApi mockApi;

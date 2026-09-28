@@ -94,14 +94,18 @@ class _DocumentQueryScreenState extends ConsumerState<DocumentQueryScreen> {
       body: Column(
         children: [
           // ── Document filter chips ──────────────────────────────────────
-          docsAsync.whenData((docs) => _DocumentFilterRow(
-                docs:        docs,
-                selectedIds: queryState.selectedIds,
-                onToggle:    (id) =>
-                    ref.read(queryProvider.notifier).toggleDocument(id),
-                onClearAll:  () =>
-                    ref.read(queryProvider.notifier).clearSelection(),
-              )),
+          docsAsync.when(
+            loading: () => const SizedBox.shrink(),
+            error:   (_, __) => const SizedBox.shrink(),
+            data:    (docs) => _DocumentFilterRow(
+              docs:        docs,
+              selectedIds: queryState.selectedIds,
+              onToggle:    (id) =>
+                  ref.read(queryProvider.notifier).toggleDocument(id),
+              onClearAll:  () =>
+                  ref.read(queryProvider.notifier).clearSelection(),
+            ),
+          ),
 
           const Divider(height: 1),
 

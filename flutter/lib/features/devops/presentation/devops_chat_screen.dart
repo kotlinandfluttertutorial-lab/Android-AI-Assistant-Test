@@ -106,7 +106,7 @@ class _DevOpsChatScreenState extends ConsumerState<DevOpsChatScreen> {
           // ── Turn list ──────────────────────────────────────────────────
           Expanded(
             child: chatState.isEmpty
-                ? EmptyState(
+                ? const EmptyState(
                     icon: Icons.travel_explore,
                     title: 'Ask your DevOps assistant',
                     subtitle:

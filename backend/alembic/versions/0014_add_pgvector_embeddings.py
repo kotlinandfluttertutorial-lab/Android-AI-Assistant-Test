@@ -89,7 +89,7 @@ def upgrade() -> None:
         op.execute(
             sa.text(
                 "CREATE INDEX IF NOT EXISTS ix_document_chunks_embedding_cosine "
-                f"ON document_chunks USING ivfflat (embedding vector_cosine_ops) "
+                "ON document_chunks USING ivfflat (embedding vector_cosine_ops) "
                 "WITH (lists = 100)"
             )
         )
