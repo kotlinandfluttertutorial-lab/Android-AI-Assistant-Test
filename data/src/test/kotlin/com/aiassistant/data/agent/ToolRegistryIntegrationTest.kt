@@ -82,7 +82,9 @@ class ToolRegistryIntegrationTest {
         val mockImage = mockk<ImageAgent>(relaxed = true)
         val mockVoice = mockk<VoiceAgent>(relaxed = true)
         val gateway = AgentGateway(mockChat, mockCode, mockRag, mockPdf, toolAgent,
-            mockWeb, mockImage, mockVoice, registry)
+            mockWeb, mockImage, mockVoice,
+            mockk(relaxed = true), mockk(relaxed = true),
+            registry)
 
         val schemas = gateway.listTools()
         schemas shouldHaveSize 3

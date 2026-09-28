@@ -70,6 +70,9 @@ dependencies {
     implementation(project(":core-ai"))
     implementation(project(":core-common"))
 
+    // Domain — required for OnDeviceInferencePort + ModelRoutingMode bindings
+    implementation(project(":domain"))
+
     // Android core
     implementation(libs.androidx.core.ktx)
 

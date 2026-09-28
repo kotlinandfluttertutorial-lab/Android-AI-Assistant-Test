@@ -6,6 +6,7 @@
  * File       : ModelRouterImpl.kt
  * Purpose    : Wraps OnDeviceCapabilityProvider + ConnectivityObserver to
  *              resolve CLOUD / ON_DEVICE / AUTO inference path decisions.
+ *              Phase 7: now also honours ModelRoutingMode from request metadata.
  *
  * Architecture Layer : Data — agent sub-package
  * Pattern Used       : Strategy implementation
@@ -15,11 +16,13 @@
  *   - Uses existing OnDeviceCapabilityProvider (core-ai) for device check
  *   - Uses ConnectivityObserver (core-network) for network check
  *   - Capability result is cached after first evaluation
+ *   - Phase 7: ModelRoutingMode.LOCAL_ONLY → never fall back to cloud silently
  *   - Hilt @Inject constructor; singleton scoped in AgentDataModule
  *
  * Dependencies: core-ai (LlmProvider, OnDeviceCapabilityProvider,
  *               OnDeviceCapabilityState), core-network (ConnectivityObserver),
- *               domain (ModelRouter, ModelRoutingDecision, InferencePath)
+ *               domain (ModelRouter, ModelRoutingDecision, InferencePath,
+ *                       ModelRoutingMode)
  * ============================================================
  */
 
@@ -33,6 +36,7 @@ import com.aiassistant.domain.agent.AgentRequest
 import com.aiassistant.domain.agent.InferencePath
 import com.aiassistant.domain.agent.ModelRoutingDecision
 import com.aiassistant.domain.agent.ModelRouter
+import com.aiassistant.domain.agent.ModelRoutingMode
 import javax.inject.Inject
 import javax.inject.Singleton
 
@@ -41,6 +45,13 @@ import javax.inject.Singleton
  * (from core-ai) and [ConnectivityObserver] (from core-network).
  *
  * Neither underlying component is modified — this class is a pure adapter.
+ *
+ * ## Phase 7: ModelRoutingMode
+ * If the request contains metadata key `"routing_mode"` with value `"LOCAL_ONLY"`,
+ * the router enforces on-device routing.  If the device is not ready and the mode
+ * is [ModelRoutingMode.LOCAL_ONLY], it returns an on-device decision anyway — the
+ * [OnDeviceInferencePort] / [OnDeviceAgent] then emits a clear error rather than
+ * routing to cloud silently.
  *
  * @param capabilityProvider Checks on-device hardware / model readiness.
  * @param connectivity       Checks current network availability.
@@ -59,7 +70,22 @@ class ModelRouterImpl @Inject constructor(
         request: AgentRequest,
         preference: InferencePath,
     ): ModelRoutingDecision {
-        // ── Explicit provider hint in the request ──────────────────────────
+
+        // ── Phase 7: ModelRoutingMode from request metadata ────────────────────
+        val routingMode = ModelRoutingMode.fromName(request.metadata["routing_mode"])
+        when (routingMode) {
+            ModelRoutingMode.LOCAL_ONLY -> {
+                // LOCAL_ONLY always routes to on-device — even when not ready.
+                // OnDeviceAgent emits a clear LOCAL_ONLY_UNAVAILABLE error if needed.
+                return onDeviceDecision("routing_mode:LOCAL_ONLY")
+            }
+            ModelRoutingMode.CLOUD -> {
+                return cloudDecision("routing_mode:CLOUD")
+            }
+            ModelRoutingMode.AUTO -> { /* fall through to normal routing */ }
+        }
+
+        // ── Explicit provider hint in the request ──────────────────────────────
         val explicitProvider = request.provider
         if (!explicitProvider.isNullOrBlank()) {
             val lp = LlmProvider.fromId(explicitProvider)

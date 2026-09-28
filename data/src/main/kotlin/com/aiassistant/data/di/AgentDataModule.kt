@@ -32,6 +32,7 @@ import com.aiassistant.data.agent.web.StubWebSearchProvider
 import com.aiassistant.data.remote.image.ImageAnalysisRemoteDataSourceImpl
 import com.aiassistant.domain.agent.AgentGatewayDocumentExtension
 import com.aiassistant.domain.agent.AgentGatewayMediaExtension
+import com.aiassistant.domain.agent.AgentGatewayOnDeviceExtension
 import com.aiassistant.domain.agent.AgentGatewayRepository
 import com.aiassistant.domain.agent.AgentGatewayWebExtension
 import com.aiassistant.domain.agent.DefaultToolRegistry
@@ -90,6 +91,20 @@ abstract class AgentDataModule {
     abstract fun bindImageAnalysisRemoteDataSource(
         impl: ImageAnalysisRemoteDataSourceImpl,
     ): ImageAnalysisRemoteDataSource
+
+    // ── Phase 7 bindings ──────────────────────────────────────────────────────
+
+    /**
+     * Bind [AgentGatewayOnDeviceExtension] → [AgentGateway].
+     *
+     * Feature modules that need to execute on-device inference inject this
+     * domain interface rather than [AgentGateway] directly.
+     */
+    @Binds
+    @Singleton
+    abstract fun bindAgentGatewayOnDeviceExtension(
+        impl: AgentGateway,
+    ): AgentGatewayOnDeviceExtension
 
     companion object {
         /**
