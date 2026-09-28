@@ -221,7 +221,12 @@ class RagAgentTest {
 
         val mockChat = mockk<ChatAgent>(relaxed = true)
         val mockCode = mockk<CodeAgent>(relaxed = true)
-        val gateway = AgentGateway(mockChat, mockCode, agent)
+        val gateway = AgentGateway(
+            mockChat, mockCode, agent,
+            mockk(relaxed = true), mockk(relaxed = true),
+            mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true),
+            com.aiassistant.domain.agent.DefaultToolRegistry(),
+        )
 
         val events = gateway.executeRag(
             query = "What is the architecture?",
@@ -238,7 +243,12 @@ class RagAgentTest {
         // Full execution requires CodeAgent too; we only verify plan construction here.
         val mockChat = mockk<ChatAgent>(relaxed = true)
         val mockCode = mockk<CodeAgent>(relaxed = true)
-        val gateway = AgentGateway(mockChat, mockCode, agent)
+        val gateway = AgentGateway(
+            mockChat, mockCode, agent,
+            mockk(relaxed = true), mockk(relaxed = true),
+            mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true),
+            com.aiassistant.domain.agent.DefaultToolRegistry(),
+        )
 
         // Verify the method exists and is callable (does not throw)
         val flow = gateway.executeCodeWithRagContext(

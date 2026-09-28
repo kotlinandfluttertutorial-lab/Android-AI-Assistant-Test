@@ -62,13 +62,19 @@ from app.agents.rag_agent import RAG_AGENT_NAME, RagAgent
 from app.agents.registry import AgentNotFoundError, AgentRegistry
 from app.agents.router import AgentRouter, RoutingOutcome
 from app.agents.tool_agent import TOOL_AGENT_NAME, ToolAgent
+from app.agents.web_agent import WEB_AGENT_NAME, WebAgent
+from app.agents.image_agent import IMAGE_AGENT_NAME, ImageAgent
+from app.agents.voice_agent import VOICE_AGENT_NAME, VoiceAgent
 
 __all__ = [
     "CHAT_AGENT_NAME",
     "CODE_AGENT_NAME",
+    "IMAGE_AGENT_NAME",
     "PDF_AGENT_NAME",
     "RAG_AGENT_NAME",
     "TOOL_AGENT_NAME",
+    "VOICE_AGENT_NAME",
+    "WEB_AGENT_NAME",
     "Agent",
     "AgentAttachment",
     "AgentCapability",
@@ -117,6 +123,9 @@ __all__ = [
     "RetrieveDecision",
     "RoutingOutcome",
     "ToolAgent",
+    "VoiceAgent",
+    "WebAgent",
+    "ImageAgent",
     "WaitDecision",
 ]
 

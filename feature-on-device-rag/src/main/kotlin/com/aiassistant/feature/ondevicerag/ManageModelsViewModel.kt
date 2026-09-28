@@ -15,6 +15,7 @@
  */
 package com.aiassistant.feature.ondevicerag
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aiassistant.core.common.ApiResult
@@ -29,6 +30,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+
+private const val TAG = "ManageModelsVM"
 
 /** Download progress state per model. */
 sealed class DownloadState {
@@ -61,23 +64,35 @@ class ManageModelsViewModel @Inject constructor(
 
     fun loadModels() {
         viewModelScope.launch(dispatchers.io) {
+            Log.d(TAG, "loadModels started")
             _uiState.update { it.copy(isLoading = true) }
             when (val result = manageModelsUseCase.listModels()) {
-                is ApiResult.Success -> _uiState.update {
-                    it.copy(isLoading = false, models = result.data)
+                is ApiResult.Success -> {
+                    Log.d(TAG, "loadModels success, loaded ${result.data.size} models")
+                    _uiState.update {
+                        it.copy(isLoading = false, models = result.data)
+                    }
                 }
-                is ApiResult.Error -> _uiState.update {
-                    it.copy(isLoading = false)
+                is ApiResult.Error -> {
+                    Log.e(TAG, "loadModels error: ${result.error.message}")
+                    _uiState.update {
+                        it.copy(isLoading = false)
+                    }
                 }
-                else -> _uiState.update { it.copy(isLoading = false) }
+                else -> {
+                    Log.d(TAG, "loadModels other result")
+                    _uiState.update { it.copy(isLoading = false) }
+                }
             }
         }
     }
 
     fun downloadModel(model: OnDeviceModelInfo) {
+        Log.d(TAG, "downloadModel requested for model: ${model.name}")
         viewModelScope.launch(dispatchers.io) {
             manageModelsUseCase.downloadModel(model)
                 .catch { e ->
+                    Log.e(TAG, "downloadModel exception for ${model.name}: ${e.message}", e)
                     _uiState.update { state ->
                         state.copy(
                             downloadProgress = state.downloadProgress +
@@ -89,18 +104,32 @@ class ManageModelsViewModel @Inject constructor(
                     when (result) {
                         is ApiResult.Success -> {
                             val progress = result.data
+                            Log.d(TAG, "downloadModel progress for ${model.name}: ${progress.percentComplete}% (${progress.bytesDownloaded}/${progress.totalBytes} bytes)")
                             if (progress.percentComplete >= 100) {
+                                Log.d(TAG, "downloadModel reached 100% for ${model.name}, starting verification...")
                                 _uiState.update { s ->
                                     s.copy(downloadProgress = s.downloadProgress + (model.name to DownloadState.Verifying))
                                 }
                                 val verifyResult = manageModelsUseCase.verifyModel(model)
+                                Log.d(TAG, "verifyModel result for ${model.name}: $verifyResult")
                                 val finalState = when (verifyResult) {
                                     is ApiResult.Success -> {
-                                        if (verifyResult.data) null
-                                        else DownloadState.Error("Checksum verification failed")
+                                        if (verifyResult.data) {
+                                            Log.d(TAG, "verifyModel succeeded for ${model.name}")
+                                            null
+                                        } else {
+                                            Log.e(TAG, "verifyModel failed (data=false) for ${model.name}")
+                                            DownloadState.Error("Checksum verification failed")
+                                        }
                                     }
-                                    is ApiResult.Error -> DownloadState.Error(verifyResult.error.message)
-                                    else -> DownloadState.Error("Verification failed")
+                                    is ApiResult.Error -> {
+                                        Log.e(TAG, "verifyModel error for ${model.name}: ${verifyResult.error.message}")
+                                        DownloadState.Error(verifyResult.error.message)
+                                    }
+                                    else -> {
+                                        Log.e(TAG, "verifyModel unknown result for ${model.name}")
+                                        DownloadState.Error("Verification failed")
+                                    }
                                 }
                                 _uiState.update { s ->
                                     val newProgress = if (finalState == null) {
@@ -122,11 +151,14 @@ class ManageModelsViewModel @Inject constructor(
                                 }
                             }
                         }
-                        is ApiResult.Error -> _uiState.update { s ->
-                            s.copy(
-                                downloadProgress = s.downloadProgress +
-                                    (model.name to DownloadState.Error(result.error.message))
-                            )
+                        is ApiResult.Error -> {
+                            Log.e(TAG, "downloadModel error result for ${model.name}: ${result.error.message}")
+                            _uiState.update { s ->
+                                s.copy(
+                                    downloadProgress = s.downloadProgress +
+                                        (model.name to DownloadState.Error(result.error.message))
+                                )
+                            }
                         }
                         else -> Unit
                     }
@@ -135,6 +167,7 @@ class ManageModelsViewModel @Inject constructor(
     }
 
     fun deleteModel(model: OnDeviceModelInfo) {
+        Log.d(TAG, "deleteModel requested for ${model.name}")
         viewModelScope.launch(dispatchers.io) {
             manageModelsUseCase.deleteModel(model)
             loadModels()

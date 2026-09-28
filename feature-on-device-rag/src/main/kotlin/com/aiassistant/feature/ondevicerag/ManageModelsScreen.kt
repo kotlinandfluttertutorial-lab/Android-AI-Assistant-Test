@@ -215,14 +215,28 @@ private fun ModelInfoRow(model: OnDeviceModelInfo, onDownload: () -> Unit, onDel
             }
         }
 
-        Row {
-            IconButton(
-                onClick = onDownload,
-                modifier = Modifier.semantics {
-                    contentDescription = "Download ${model.name}"
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            if (model.lastUsed != null) {
+                Surface(
+                    color = MaterialTheme.colorScheme.primaryContainer,
+                    shape = MaterialTheme.shapes.small
+                ) {
+                    Text(
+                        text = "Ready",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onPrimaryContainer,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                    )
                 }
-            ) {
-                Icon(Icons.Default.Download, contentDescription = "Download model")
+            } else {
+                IconButton(
+                    onClick = onDownload,
+                    modifier = Modifier.semantics {
+                        contentDescription = "Download ${model.name}"
+                    }
+                ) {
+                    Icon(Icons.Default.Download, contentDescription = "Download model")
+                }
             }
             IconButton(
                 onClick = onDelete,

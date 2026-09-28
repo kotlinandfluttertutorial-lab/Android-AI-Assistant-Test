@@ -9,6 +9,7 @@
  */
 package com.aiassistant.domain.agent
 
+import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.shouldBe
 import org.junit.Test
 

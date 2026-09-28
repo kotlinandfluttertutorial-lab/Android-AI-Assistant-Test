@@ -1,0 +1,138 @@
+﻿
+> Configure project :app
+WARNING: The option setting 'android.r8.maxWorkers=1' is experimental.
+
+> Task :core-ai:preBuild UP-TO-DATE
+> Task :core-common:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core-common:preBuild UP-TO-DATE
+> Task :core-common:preReleaseBuild UP-TO-DATE
+> Task :core-ai:preReleaseBuild UP-TO-DATE
+> Task :core-ai:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core-common:generateReleaseResources
+> Task :core-ai:generateReleaseResources
+> Task :core-common:packageReleaseResources
+> Task :core-ai:packageReleaseResources
+> Task :core-common:parseReleaseLocalResources
+> Task :core-ai:parseReleaseLocalResources
+> Task :core-common:generateReleaseRFile
+> Task :core-ai:generateReleaseRFile
+> Task :core-database:preBuild UP-TO-DATE
+> Task :core-database:preReleaseBuild UP-TO-DATE
+> Task :core-database:generateReleaseResources
+> Task :core-database:packageReleaseResources
+> Task :core-database:parseReleaseLocalResources
+> Task :core-database:generateReleaseRFile
+> Task :core-database:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core-database:javaPreCompileRelease
+> Task :core-ai:javaPreCompileRelease
+> Task :core-network:preBuild UP-TO-DATE
+> Task :core-network:preProductionReleaseBuild UP-TO-DATE
+> Task :core-network:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core-network:generateProductionReleaseBuildConfig
+> Task :core-network:generateProductionReleaseResources
+> Task :core-network:packageProductionReleaseResources
+> Task :core-network:parseProductionReleaseLocalResources
+> Task :core-network:generateProductionReleaseRFile
+> Task :core-security:preBuild UP-TO-DATE
+> Task :core-security:preReleaseBuild UP-TO-DATE
+> Task :core-security:generateReleaseResources
+> Task :core-security:packageReleaseResources
+> Task :core-common:javaPreCompileRelease
+> Task :core-security:parseReleaseLocalResources
+> Task :core-security:generateReleaseRFile
+> Task :core-security:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core-security:javaPreCompileRelease
+> Task :domain:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :domain:preBuild UP-TO-DATE
+> Task :domain:preReleaseBuild UP-TO-DATE
+> Task :domain:generateReleaseResources
+> Task :domain:packageReleaseResources
+> Task :domain:parseReleaseLocalResources
+> Task :domain:generateReleaseRFile
+> Task :domain:javaPreCompileRelease
+> Task :core-network:javaPreCompileProductionRelease
+> Task :data:preBuild UP-TO-DATE
+> Task :data:preReleaseBuild UP-TO-DATE
+> Task :data:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :data:generateReleaseResources
+> Task :data:packageReleaseResources
+> Task :data:parseReleaseLocalResources
+> Task :data:generateReleaseRFile
+> Task :data:javaPreCompileRelease
+> Task :data:preReleaseUnitTestBuild UP-TO-DATE
+> Task :data:generateReleaseUnitTestStubRFile
+> Task :data:javaPreCompileReleaseUnitTest
+> Task :core-common:compileReleaseKotlin
+> Task :core-common:compileReleaseJavaWithJavac NO-SOURCE
+> Task :core-common:bundleLibRuntimeToJarRelease
+> Task :core-common:bundleLibCompileToJarRelease
+> Task :core-common:processReleaseJavaRes
+> Task :core-security:kspReleaseKotlin
+> Task :core-security:compileReleaseKotlin
+> Task :core-database:kspReleaseKotlin
+> Task :core-security:compileReleaseJavaWithJavac
+> Task :core-security:transformReleaseClassesWithAsm
+> Task :core-security:bundleLibCompileToJarRelease
+> Task :core-database:compileReleaseKotlin
+> Task :core-database:compileReleaseJavaWithJavac
+> Task :core-database:transformReleaseClassesWithAsm
+> Task :core-database:bundleLibCompileToJarRelease
+> Task :core-ai:kspReleaseKotlin
+> Task :domain:compileReleaseKotlin
+> Task :core-database:bundleLibRuntimeToJarRelease
+> Task :core-database:processReleaseJavaRes
+> Task :domain:compileReleaseJavaWithJavac NO-SOURCE
+> Task :core-ai:compileReleaseKotlin
+> Task :domain:bundleLibCompileToJarRelease
+> Task :core-ai:compileReleaseJavaWithJavac
+> Task :core-ai:transformReleaseClassesWithAsm
+> Task :core-ai:bundleLibRuntimeToJarRelease
+> Task :core-ai:processReleaseJavaRes
+> Task :core-security:bundleLibRuntimeToJarRelease
+> Task :domain:bundleLibRuntimeToJarRelease
+> Task :core-security:processReleaseJavaRes
+> Task :core-ai:bundleLibCompileToJarRelease
+> Task :domain:processReleaseJavaRes
+> Task :core-network:kspProductionReleaseKotlin
+> Task :core-network:compileProductionReleaseKotlin
+> Task :core-network:compileProductionReleaseJavaWithJavac
+> Task :core-network:processProductionReleaseJavaRes
+> Task :core-network:transformProductionReleaseClassesWithAsm
+> Task :core-network:bundleLibRuntimeToJarProductionRelease
+> Task :core-network:bundleLibCompileToJarProductionRelease
+> Task :data:kspReleaseKotlin
+> Task :data:compileReleaseKotlin
+> Task :data:compileReleaseJavaWithJavac
+> Task :data:processReleaseJavaRes
+> Task :data:transformReleaseClassesWithAsm
+> Task :data:bundleLibRuntimeToJarRelease
+> Task :data:bundleLibCompileToJarRelease
+> Task :data:kspReleaseUnitTestKotlin
+> Task :data:compileReleaseUnitTestKotlin
+w: file:///J:/Android/AndroidStudioProjects/Kiro/TestBranch/Develop_Main/Android-AI-Assistant-Test/data/src/test/kotlin/com/aiassistant/data/agent/ChatAgentTest.kt:332:25 Check for instance is always 'true'.
+w: file:///J:/Android/AndroidStudioProjects/Kiro/TestBranch/Develop_Main/Android-AI-Assistant-Test/data/src/test/kotlin/com/aiassistant/data/agent/ChatAgentTest.kt:349:25 Check for instance is always 'true'.
+w: file:///J:/Android/AndroidStudioProjects/Kiro/TestBranch/Develop_Main/Android-AI-Assistant-Test/data/src/test/kotlin/com/aiassistant/data/agent/RagAgentTest.kt:261:10 Condition is always 'true'.
+
+> Task :data:compileReleaseUnitTestJavaWithJavac NO-SOURCE
+> Task :data:hiltAggregateDepsReleaseUnitTest
+> Task :data:hiltJavaCompileReleaseUnitTest NO-SOURCE
+> Task :data:processReleaseUnitTestJavaRes
+> Task :data:transformReleaseUnitTestClassesWithAsm
+.\gradlew.bat : Java HotSpot(TM) 64-Bit Server VM 
+warning: Sharing is only supported for boot 
+loader classes because bootstrap classpath has 
+been appended
+At line:1 char:1
++ .\gradlew.bat :data:testReleaseUnitTest 
+--rerun-tasks 2>&1 | Out-File ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Java 
+    HotSpot(TM...s been appended:String) [], Rem  
+  oteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+> Task :data:testReleaseUnitTest
+
+BUILD SUCCESSFUL in 4m 42s
+87 actionable tasks: 87 executed

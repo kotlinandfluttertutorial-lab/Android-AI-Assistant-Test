@@ -380,7 +380,17 @@ class ChatAgentTest {
             StreamEvent.Done(TokenUsage(1, 1)),
         )
 
-        val gateway = AgentGateway(chatAgent = agent)
+        val gateway = AgentGateway(
+            chatAgent = agent,
+            codeAgent = mockk(relaxed = true),
+            ragAgent = mockk(relaxed = true),
+            pdfAgent = mockk(relaxed = true),
+            toolAgent = mockk(relaxed = true),
+            webAgent = mockk(relaxed = true),
+            imageAgent = mockk(relaxed = true),
+            voiceAgent = mockk(relaxed = true),
+            toolRegistry = com.aiassistant.domain.agent.DefaultToolRegistry(),
+        )
         val events = gateway.executeChat(
             conversationId = "conv-1",
             content = "Hello",

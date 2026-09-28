@@ -7,18 +7,20 @@
  * Purpose    : Data-layer implementation of AgentGatewayRepository.
  *              Bridges ViewModels → AgentOrchestrator → Agents.
  *              Phase 3: ChatAgent. Phase 4: CodeAgent, RagAgent.
+ *              Phase 5: PdfAgent, ToolAgent.
+ *              Phase 6: WebAgent, ImageAgent, VoiceAgent.
  *
  * Architecture Layer : Data — agent sub-package
  * Pattern Used       : Repository implementation (Gateway adapter)
  *
  * Key Concepts:
  *   - Implements AgentGatewayRepository (domain interface)
- *   - ViewModels depend only on the domain interface
+ *   - ViewModels depend only on domain interfaces
  *   - All agents registered at singleton init time; no hardcoded routing
- *   - Phase 4 adds executeCode() and executeRag() entry points
+ *   - Phase 6 adds executeWebSearch(), executeImageAnalysis(), executeVoice()
  *
  * Dependencies: domain (AgentGatewayRepository, orchestrator types),
- *               data (ChatAgent, CodeAgent, RagAgent)
+ *               data (ChatAgent, CodeAgent, RagAgent, WebAgent, ImageAgent, VoiceAgent)
  * ============================================================
  */
 
@@ -29,7 +31,9 @@ import com.aiassistant.domain.agent.AgentContext
 import com.aiassistant.domain.agent.AgentEvent
 import com.aiassistant.domain.agent.AgentGatewayCodeExtension
 import com.aiassistant.domain.agent.AgentGatewayDocumentExtension
+import com.aiassistant.domain.agent.AgentGatewayMediaExtension
 import com.aiassistant.domain.agent.AgentGatewayRepository
+import com.aiassistant.domain.agent.AgentGatewayWebExtension
 import com.aiassistant.domain.agent.AgentRequest
 import com.aiassistant.domain.agent.DefaultAgentOrchestrator
 import com.aiassistant.domain.agent.DefaultAgentPlanner
@@ -45,13 +49,18 @@ import kotlinx.coroutines.flow.Flow
 /**
  * Production implementation of [AgentGatewayRepository].
  *
- * All three agents are registered at construction time.  The orchestrator
+ * All agents are registered at construction time.  The orchestrator
  * uses [DefaultAgentRouter] to dispatch based on metadata hints or
  * capability requirements — no hardcoded routing logic here.
  *
- * @param chatAgent  Conversational agent (Phase 3)
- * @param codeAgent  Code analysis/generation agent (Phase 4)
- * @param ragAgent   RAG retrieval agent (Phase 4)
+ * @param chatAgent   Conversational agent (Phase 3)
+ * @param codeAgent   Code analysis/generation agent (Phase 4)
+ * @param ragAgent    RAG retrieval agent (Phase 4)
+ * @param pdfAgent    PDF processing agent (Phase 5)
+ * @param toolAgent   Tool execution agent (Phase 5)
+ * @param webAgent    Web search agent (Phase 6)
+ * @param imageAgent  Image analysis agent (Phase 6)
+ * @param voiceAgent  Voice pipeline agent (Phase 6)
  */
 @Singleton
 class AgentGateway @Inject constructor(
@@ -60,8 +69,15 @@ class AgentGateway @Inject constructor(
     private val ragAgent: RagAgent,
     private val pdfAgent: PdfAgent,
     private val toolAgent: ToolAgent,
+    private val webAgent: WebAgent,
+    private val imageAgent: ImageAgent,
+    private val voiceAgent: VoiceAgent,
     private val toolRegistry: com.aiassistant.domain.agent.ToolRegistry,
-) : AgentGatewayRepository, AgentGatewayCodeExtension, AgentGatewayDocumentExtension {
+) : AgentGatewayRepository,
+    AgentGatewayCodeExtension,
+    AgentGatewayDocumentExtension,
+    AgentGatewayWebExtension,
+    AgentGatewayMediaExtension {
 
     // ── Registry and orchestrator ─────────────────────────────────────────────
 
@@ -71,6 +87,9 @@ class AgentGateway @Inject constructor(
         reg.register(ragAgent)
         reg.register(pdfAgent)
         reg.register(toolAgent)
+        reg.register(webAgent)
+        reg.register(imageAgent)
+        reg.register(voiceAgent)
     }
 
     private val orchestrator = DefaultAgentOrchestrator(
@@ -273,5 +292,87 @@ class AgentGateway @Inject constructor(
 
     companion object {
         private const val ANONYMOUS_USER_ID = "anonymous"
+    }
+
+    // ── Phase 6: Web Search ───────────────────────────────────────────────────
+
+    override fun executeWebSearch(
+        query: String,
+        maxResults: Int,
+        context: AgentContext?,
+    ): Flow<AgentEvent> {
+        val request = AgentRequest(
+            userId = resolveUserId(context),
+            input = query,
+            capabilities = setOf(AgentCapability.SEMANTIC_SEARCH),
+            context = context,
+            metadata = mapOf(
+                WebAgent.METADATA_AGENT_NAME to WebAgent.NAME,
+                WebAgent.METADATA_QUERY to query,
+                WebAgent.METADATA_MAX_RESULTS to maxResults.toString(),
+            ),
+        )
+        return orchestrator.execute(request)
+    }
+
+    // ── Phase 6: Image Analysis ───────────────────────────────────────────────
+
+    override fun executeImageAnalysis(
+        action: String,
+        imageBase64: String?,
+        imageUri: String?,
+        prompt: String?,
+        provider: String?,
+        imageWidth: Int?,
+        imageHeight: Int?,
+        context: AgentContext?,
+    ): Flow<AgentEvent> {
+        val meta = mutableMapOf(
+            ImageAgent.METADATA_AGENT_NAME to ImageAgent.NAME,
+            ImageAgent.METADATA_IMAGE_ACTION to action,
+        )
+        imageBase64?.let { meta[ImageAgent.METADATA_IMAGE_BASE64] = it }
+        imageUri?.let { meta[ImageAgent.METADATA_IMAGE_URI] = it }
+        prompt?.let { meta[ImageAgent.METADATA_PROMPT] = it }
+        provider?.let { meta[ImageAgent.METADATA_PROVIDER] = it }
+        imageWidth?.let { meta[ImageAgent.METADATA_IMAGE_WIDTH] = it.toString() }
+        imageHeight?.let { meta[ImageAgent.METADATA_IMAGE_HEIGHT] = it.toString() }
+        val request = AgentRequest(
+            userId = resolveUserId(context),
+            input = prompt ?: "Analyse image.",
+            capabilities = setOf(AgentCapability.IMAGE_UNDERSTANDING),
+            context = context,
+            metadata = meta,
+        )
+        return orchestrator.execute(request)
+    }
+
+    // ── Phase 6: Voice ───────────────────────────────────────────────────────
+
+    override fun executeVoice(
+        action: String,
+        conversationId: String?,
+        provider: String,
+        language: String,
+        textToSpeak: String?,
+        context: AgentContext?,
+    ): Flow<AgentEvent> {
+        val meta = mutableMapOf(
+            VoiceAgent.METADATA_AGENT_NAME to VoiceAgent.NAME,
+            VoiceAgent.METADATA_VOICE_ACTION to action,
+            VoiceAgent.METADATA_PROVIDER to provider,
+            VoiceAgent.METADATA_LANGUAGE to language,
+        )
+        conversationId?.let { meta[VoiceAgent.METADATA_CONVERSATION_ID] = it }
+        textToSpeak?.let { meta[VoiceAgent.METADATA_TEXT_TO_SPEAK] = it }
+        val request = AgentRequest(
+            userId = resolveUserId(context),
+            input = textToSpeak ?: "Voice interaction.",
+            conversationId = conversationId,
+            capabilities = setOf(AgentCapability.SPEECH_TO_TEXT),
+            context = context,
+            metadata = meta,
+        )
+        return orchestrator.execute(request)
     }
 }

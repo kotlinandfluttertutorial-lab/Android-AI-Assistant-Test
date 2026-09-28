@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Integration tests for ToolRegistry with real tool instances.
  * Tests: tool registration, permission filtering, listTools via gateway.
  */
@@ -13,14 +13,14 @@ import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
-import org.junit.Before
-import org.junit.Test
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
 
 class ToolRegistryIntegrationTest {
 
     private lateinit var registry: DefaultToolRegistry
 
-    @Before
+    @BeforeEach
     fun setUp() {
         registry = DefaultToolRegistry().apply {
             register(CalculatorTool())
@@ -29,7 +29,7 @@ class ToolRegistryIntegrationTest {
         }
     }
 
-    // ── Registration ──────────────────────────────────────────────────────────
+    // â”€â”€ Registration â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test fun `three tools registered`() = registry.size shouldBe 3
 
@@ -42,7 +42,7 @@ class ToolRegistryIntegrationTest {
     @Test fun `web_search accessible by name`() =
         registry.get("web_search").schema.name shouldBe "web_search"
 
-    // ── Permission filtering ──────────────────────────────────────────────────
+    // â”€â”€ Permission filtering â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test fun `COMPUTE permission returns only calculator`() {
         val found = registry.findByPermission(setOf(ToolPermission.COMPUTE))
@@ -70,7 +70,7 @@ class ToolRegistryIntegrationTest {
         registry.findByPermission(emptySet()) shouldHaveSize 3
     }
 
-    // ── listTools via AgentGateway ────────────────────────────────────────────
+    // â”€â”€ listTools via AgentGateway â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test fun `AgentGateway listTools returns schemas for all registered tools`() {
         val mockChat = mockk<ChatAgent>(relaxed = true)
@@ -78,7 +78,11 @@ class ToolRegistryIntegrationTest {
         val mockRag = mockk<RagAgent>(relaxed = true)
         val mockPdf = mockk<PdfAgent>(relaxed = true)
         val toolAgent = ToolAgent(registry)
-        val gateway = AgentGateway(mockChat, mockCode, mockRag, mockPdf, toolAgent, registry)
+        val mockWeb = mockk<WebAgent>(relaxed = true)
+        val mockImage = mockk<ImageAgent>(relaxed = true)
+        val mockVoice = mockk<VoiceAgent>(relaxed = true)
+        val gateway = AgentGateway(mockChat, mockCode, mockRag, mockPdf, toolAgent,
+            mockWeb, mockImage, mockVoice, registry)
 
         val schemas = gateway.listTools()
         schemas shouldHaveSize 3

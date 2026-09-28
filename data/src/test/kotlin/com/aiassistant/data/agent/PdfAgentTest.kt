@@ -167,8 +167,12 @@ class PdfAgentTest {
         val mockCode = mockk<CodeAgent>(relaxed = true)
         val mockRag = mockk<RagAgent>(relaxed = true)
         val toolRegistry = com.aiassistant.domain.agent.DefaultToolRegistry()
-        val gateway = AgentGateway(mockChat, mockCode, mockRag, agent,
-            ToolAgent(toolRegistry), toolRegistry)
+        val gateway = AgentGateway(
+            mockChat, mockCode, mockRag, agent,
+            ToolAgent(toolRegistry),
+            mockk(relaxed = true), mockk(relaxed = true), mockk(relaxed = true),
+            toolRegistry,
+        )
 
         val events = gateway.executePdf(
             action = "query", input = "What is this?", documentId = "doc-1"
