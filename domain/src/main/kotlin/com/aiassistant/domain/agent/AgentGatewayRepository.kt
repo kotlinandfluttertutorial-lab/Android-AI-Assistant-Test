@@ -77,6 +77,8 @@ interface AgentGatewayRepository {
      * @param context        Optional pre-assembled [AgentContext] (conversation history,
      *                       memories, persona prompt, etc.). When null the implementation
      *                       assembles a minimal context from the conversationId.
+     * @param mode           Agent routing mode. Defaults to [AgentMode.AUTO] (orchestrator
+     *                       decides). Pass an explicit mode to add capability/agent hints.
      * @return Cold [Flow] of [AgentEvent] values. Always terminates with
      *         [AgentEvent.Completed], [AgentEvent.Failed], or [AgentEvent.Cancelled].
      */
@@ -85,5 +87,6 @@ interface AgentGatewayRepository {
         content: String,
         provider: String,
         context: AgentContext? = null,
+        mode: AgentMode = AgentMode.AUTO,
     ): Flow<AgentEvent>
 }

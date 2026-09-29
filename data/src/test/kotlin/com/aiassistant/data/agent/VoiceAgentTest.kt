@@ -206,7 +206,7 @@ class VoiceAgentTest {
             SttEvent.Final("What is Kotlin?"),
             SttEvent.EndOfSpeech,
         )
-        every { chatGateway.executeChat(any(), any(), any(), any()) } returns flowOf(
+        every { chatGateway.executeChat(any(), any(), any(), any(), any()) } returns flowOf(
             AgentEvent.Token("Kotlin is a modern JVM language."),
             AgentEvent.Completed(
                 com.aiassistant.domain.agent.AgentResult(
@@ -263,7 +263,7 @@ class VoiceAgentTest {
             SttEvent.Final("Hello"),
             SttEvent.EndOfSpeech,
         )
-        every { chatGateway.executeChat(any(), any(), any(), any()) } returns flowOf(
+        every { chatGateway.executeChat(any(), any(), any(), any(), any()) } returns flowOf(
             AgentEvent.Token("Hi there."),
             AgentEvent.Completed(
                 com.aiassistant.domain.agent.AgentResult(
