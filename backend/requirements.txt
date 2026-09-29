@@ -74,6 +74,16 @@ python-multipart==0.0.32
 # which the 1.x Python client calls unconditionally on construction, causing
 # 404 errors on every task. Server is kept internal (Cloud Run ingress=internal)
 # to mitigate CVE-2026-45829/45830/45831/45833 which only affect the Python server.
+#
+# GHSA-f4j7-r4q5-qw2c / CVE-2026-45829 / PYSEC-2026-311 — pre-auth RCE (affects
+#   chromadb >=1.0.0; our 0.5.20 pin is outside the affected range).
+# GHSA-2wm9-hf6c-p5cr / CVE-2026-45830 / PYSEC-2026-3813 — cross-tenant read/write
+# GHSA-36p7-vc44-83pf / CVE-2026-45833 / PYSEC-2026-3814 — auth'd code injection
+# GHSA-xph7-9rjv-w5fr / CVE-2026-45831 / PYSEC-2026-3815 — RBAC scope bypass
+#   All four sets affect 0.4.17–1.5.9; no patch released. PYSEC-2026-3813/14/15
+#   were published 2026-09-10 as PYSEC re-publications of the existing GHSAs;
+#   all six IDs (GHSA + PYSEC + CVE) are suppressed in security-scan.yml.
+#   Mitigation: Cloud Run ingress=internal (server not reachable from internet).
 chromadb==0.5.20
 
 # ──────────────────────────────────────────────────────────────────────────────
