@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Domain unit tests for Tool domain types: ToolSchema, ToolResult,
  * ToolPermission, ToolValidationError, ToolPermissionDeniedError, ToolTimeoutError.
  */
@@ -9,11 +9,11 @@ import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 class ToolSchemaTest {
 
-    // ── ToolSchema validation ─────────────────────────────────────────────────
+    // â”€â”€ ToolSchema validation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test fun `blank name throws`() {
         shouldThrow<IllegalArgumentException> {
@@ -53,7 +53,7 @@ class ToolSchemaTest {
         (ToolPermission.WRITE_EXTERNAL in s.requiredPermissions).shouldBeTrue()
     }
 
-    // ── ToolResult ────────────────────────────────────────────────────────────
+    // â”€â”€ ToolResult â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test fun `ToolResult isEmpty when output null`() =
         ToolResult(toolName = "t", success = true, output = null).isEmpty.shouldBeTrue()
@@ -70,7 +70,7 @@ class ToolSchemaTest {
         r.error shouldBe "something went wrong"
     }
 
-    // ── Error types ───────────────────────────────────────────────────────────
+    // â”€â”€ Error types â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test fun `ToolValidationError message contains field and reason`() {
         val e = ToolValidationError("calc", "expression", "is required")
@@ -98,7 +98,7 @@ class ToolSchemaTest {
         e.timeoutMs shouldBe 5_000L
     }
 
-    // ── ToolPermission ────────────────────────────────────────────────────────
+    // â”€â”€ ToolPermission â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test fun `all permissions are distinct`() {
         val perms = ToolPermission.entries

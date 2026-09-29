@@ -1,4 +1,4 @@
-/*
+﻿/*
  * ============================================================
  * Android AI Assistant (Enterprise Edition)
  * ============================================================
@@ -6,7 +6,7 @@
  * File       : AgentResultTest.kt
  * Purpose    : Unit tests for AgentResult construction, validation, and helpers.
  *
- * Architecture Layer : Domain — agent sub-package (test)
+ * Architecture Layer : Domain â€” agent sub-package (test)
  * Pattern Used       : JUnit4 + Kotest assertions
  * ============================================================
  */
@@ -17,7 +17,7 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
 import io.kotest.matchers.shouldBe
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 class AgentResultTest {
 
@@ -32,7 +32,7 @@ class AgentResultTest {
         content = content,
     )
 
-    // ── Construction ────────────────────────────────────────────────────────
+    // â”€â”€ Construction â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test
     fun `minimal COMPLETED result constructs successfully`() {
@@ -73,7 +73,7 @@ class AgentResultTest {
         result.content shouldBe null
     }
 
-    // ── Validation ──────────────────────────────────────────────────────────
+    // â”€â”€ Validation â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test
     fun `non-terminal status throws IllegalArgumentException`() {
@@ -123,7 +123,7 @@ class AgentResultTest {
         }
     }
 
-    // ── Computed properties ─────────────────────────────────────────────────
+    // â”€â”€ Computed properties â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test
     fun `hasContent is true when content is non-blank`() =
@@ -181,7 +181,7 @@ class AgentResultTest {
         result.hasToolErrors.shouldBeTrue()
     }
 
-    // ── AgentUsage ──────────────────────────────────────────────────────────
+    // â”€â”€ AgentUsage â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test
     fun `AgentUsage totalTokens defaults to sum`() {
