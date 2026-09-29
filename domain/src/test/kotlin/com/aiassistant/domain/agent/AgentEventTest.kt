@@ -138,6 +138,8 @@ class AgentEventTest {
             AgentEvent.ToolFailed("t", "err"),
             AgentEvent.ToolConfirmationRequired("t", "{}"),
             AgentEvent.RetrievalCompleted("q", 3),
+            AgentEvent.HandoffStarted("pdf", "rag", 0),
+            AgentEvent.HandoffCompleted("pdf", "rag", 0),
             AgentEvent.Completed(doneResult),
             AgentEvent.Failed(failedResult),
             AgentEvent.Cancelled(),
@@ -153,6 +155,8 @@ class AgentEventTest {
                 is AgentEvent.ToolFailed              -> "tool_failed"
                 is AgentEvent.ToolConfirmationRequired -> "tool_confirmation_required"
                 is AgentEvent.RetrievalCompleted      -> "retrieval_completed"
+                is AgentEvent.HandoffStarted          -> "handoff_started"
+                is AgentEvent.HandoffCompleted        -> "handoff_completed"
                 is AgentEvent.Completed               -> "completed"
                 is AgentEvent.Failed                  -> "failed"
                 is AgentEvent.Cancelled               -> "cancelled"
@@ -161,7 +165,8 @@ class AgentEventTest {
         types shouldBe listOf(
             "started", "status_changed", "token", "thinking",
             "tool_started", "tool_completed", "tool_failed", "tool_confirmation_required",
-            "retrieval_completed", "completed", "failed", "cancelled",
+            "retrieval_completed", "handoff_started", "handoff_completed",
+            "completed", "failed", "cancelled",
         )
     }
 }

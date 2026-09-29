@@ -114,4 +114,6 @@ dependencies {
     testImplementation(libs.mockk)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.bundles.kotest)
+    // JUnit Vintage engine: allows JUnit 4 @Test classes to run under JUnit Platform
+    testImplementation("org.junit.vintage:junit-vintage-engine:5.10.2")
 }

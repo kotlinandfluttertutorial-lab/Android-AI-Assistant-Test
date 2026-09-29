@@ -168,6 +168,45 @@ sealed class AgentEvent {
         val chunkCount: Int,
     ) : AgentEvent()
 
+    // ── Multi-agent handoff events (Phase 8) ─────────────────────────────────
+
+    /**
+     * The orchestrator is transferring execution from one agent to another.
+     *
+     * Emitted by [DefaultAgentOrchestrator] immediately before the next-step
+     * agent begins execution.
+     *
+     * @param fromAgent    Name of the agent that just completed.
+     * @param toAgent      Name of the agent about to start.
+     * @param handoffIndex Zero-based handoff index (0 = first inter-agent transfer).
+     * @param context      First 200 characters of the output being passed forward.
+     */
+    @Serializable
+    @SerialName("handoff_started")
+    data class HandoffStarted(
+        val fromAgent: String,
+        val toAgent: String,
+        val handoffIndex: Int,
+        val context: String = "",
+    ) : AgentEvent()
+
+    /**
+     * An inter-agent handoff completed — output was passed to the next agent.
+     *
+     * @param fromAgent      Name of the agent that completed.
+     * @param toAgent        Name of the agent that will receive the output.
+     * @param handoffIndex   Zero-based handoff index.
+     * @param outputSummary  First 200 characters of the output that was passed forward.
+     */
+    @Serializable
+    @SerialName("handoff_completed")
+    data class HandoffCompleted(
+        val fromAgent: String,
+        val toAgent: String,
+        val handoffIndex: Int,
+        val outputSummary: String = "",
+    ) : AgentEvent()
+
     // ── Terminal events ──────────────────────────────────────────────────────
 
     /**

@@ -20,6 +20,16 @@
  *   - Cancellation: collecting coroutine cancels the Flow which propagates
  *     through all inner callbackFlow / collect calls automatically
  *   - The orchestrator NEVER contains hardcoded agent-specific logic
+ *   - Phase 8: HandoffStarted/HandoffCompleted events surface inter-agent
+ *     transitions; recursion protection rejects plans with >MAX_SAME_AGENT
+ *     consecutive same-agent steps
+ *
+ * Bug fixes (Phase 8):
+ *   - stepResult was always null because execution.result is never mutated by
+ *     agents (they emit events, not mutations). Fixed by tracking the last
+ *     AgentEvent.Completed emitted during collection.
+ *   - checkLimits() handoff guard condition was a tautology; now uses
+ *     fixed DefaultAgentPlanner.checkLimits().
  *
  * Design Decision:
  *   DefaultAgentOrchestrator is in :domain (not :data) so domain tests can
@@ -52,6 +62,8 @@ sealed class OrchestratorError {
     data class TimeoutExceeded(val timeoutMs: Long) : OrchestratorError()
     data class HandoffFailed(val fromAgent: String, val toAgent: String, val reason: String) : OrchestratorError()
     data class Cancelled(val reason: String = "Cancelled by caller.") : OrchestratorError()
+    /** Phase 8: emitted when a plan contains a recursive agent cycle. */
+    data class RecursionDetected(val agentName: String, val cycleLength: Int) : OrchestratorError()
 }
 
 /**
@@ -73,6 +85,7 @@ interface AgentOrchestrator {
      *   → for each step:
      *       AgentPlanner.checkLimits()
      *       Agent.execute()          (emit events, collect result)
+     *       emit HandoffStarted / HandoffCompleted
      *       if nextAction.type == "HANDOFF" → route again for next step
      *   → emit terminal AgentEvent
      * ```
@@ -135,6 +148,21 @@ class DefaultAgentOrchestrator(
             return@channelFlow
         }
 
+        // ── 2b. Recursion check (Phase 8) ────────────────────────────────────
+        val recursionError = detectRecursion(plan)
+        if (recursionError != null) {
+            val result = terminalFailedResult(
+                executionId = newId(),
+                request = request,
+                agentName = firstAgent.name,
+                code = "RECURSION_DETECTED",
+                message = "Recursive agent cycle detected: ${recursionError.agentName} " +
+                    "appears ${recursionError.cycleLength + 1} consecutive times.",
+            )
+            send(AgentEvent.Failed(result))
+            return@channelFlow
+        }
+
         // ── 3. Execute plan under timeout ────────────────────────────────────
         val timedOut = withTimeoutOrNull(plan.timeoutMs) {
             executePlan(
@@ -160,6 +188,10 @@ class DefaultAgentOrchestrator(
 
     /**
      * Execute all steps of [plan], emitting events via [emit].
+     *
+     * Bug fix (Phase 8): stepResult is now tracked from the last
+     * [AgentEvent.Completed] emitted during collection, not from
+     * `execution.result` (which agents never set).
      *
      * @return `true` when the plan completed (successfully or with failure);
      *         the coroutine returns early if the collector is cancelled.
@@ -229,14 +261,24 @@ class DefaultAgentOrchestrator(
                     capabilities = request.capabilities,
                     context = request.context,
                     maxSteps = request.maxSteps,
-                    timeoutMs = request.timeoutMs - (System.currentTimeMillis() - startMs),
+                    timeoutMs = (request.timeoutMs - (System.currentTimeMillis() - startMs))
+                        .coerceAtLeast(1L),
                     streamingEnabled = request.streamingEnabled,
                     metadata = request.metadata,
                 )
             }
 
-            // Emit handoff event for steps > 0
+            // ── Phase 8: Emit HandoffStarted before steps > 0 ───────────────
             if (stepIndex > 0) {
+                val previousAgentName = plan.steps[stepIndex - 1].agentName
+                emit(
+                    AgentEvent.HandoffStarted(
+                        fromAgent = previousAgentName,
+                        toAgent = planStep.agentName,
+                        handoffIndex = handoffsDone,
+                        context = currentInput.take(200),
+                    )
+                )
                 emit(
                     AgentEvent.StatusChanged(
                         executionId = newId(),
@@ -253,8 +295,10 @@ class DefaultAgentOrchestrator(
                 status = AgentStatus.STARTED,
             )
 
-            // Execute this step, collecting all events
-            var stepResult: AgentResult? = null
+            // Execute this step, collecting all events.
+            // Phase 8 fix: track last AgentEvent.Completed from emitted events
+            // (execution.result is never set by agents — they emit events only)
+            var lastCompletedResult: AgentResult? = null
             try {
                 agent.execute(stepRequest, execution)
                     .onEach { event ->
@@ -262,13 +306,14 @@ class DefaultAgentOrchestrator(
                         if (event is AgentEvent.ToolCompleted || event is AgentEvent.ToolFailed) {
                             toolCallsMade++
                         }
+                        // Track last completed result for handoff content passing
+                        if (event is AgentEvent.Completed) {
+                            lastCompletedResult = event.result
+                        }
                         emit(event)
                     }
                     .collect()
 
-                // After collection ends, the last Completed/Failed event was emitted.
-                // We trust the agent emitted the correct terminal event — just track result.
-                stepResult = execution.result
                 stepsTaken++
             } catch (e: CancellationException) {
                 emit(AgentEvent.Cancelled("Step ${stepIndex + 1} cancelled."))
@@ -285,9 +330,25 @@ class DefaultAgentOrchestrator(
                 return true
             }
 
-            // If this step produced a result and there are more steps, use content as next input
-            if (stepIndex < plan.steps.size - 1 && stepResult != null) {
-                currentInput = stepResult.content ?: currentInput
+            // ── Phase 8: Emit HandoffCompleted after step ────────────────────
+            if (stepIndex < plan.steps.size - 1 && lastCompletedResult != null) {
+                val nextAgentName = plan.steps[stepIndex + 1].agentName
+                emit(
+                    AgentEvent.HandoffCompleted(
+                        fromAgent = agent.name,
+                        toAgent = nextAgentName,
+                        handoffIndex = handoffsDone - 1,
+                        outputSummary = lastCompletedResult!!.content?.take(200) ?: "",
+                    )
+                )
+            }
+
+            // Phase 8 fix: pass last completed result content to next step
+            // (was always null before because execution.result was never set)
+            if (stepIndex < plan.steps.size - 1) {
+                currentInput = lastCompletedResult?.content
+                    ?.takeIf { it.isNotBlank() }
+                    ?: currentInput
             }
         }
 
@@ -295,6 +356,34 @@ class DefaultAgentOrchestrator(
     }
 
     // ── Helpers ──────────────────────────────────────────────────────────────
+
+    /**
+     * Detect recursive agent cycles in a plan.
+     *
+     * A cycle is defined as the same agent appearing more than
+     * [MAX_CONSECUTIVE_SAME_AGENT] consecutive times in the step list.
+     * This prevents plans like "pdf,pdf,pdf" from running indefinitely.
+     *
+     * @return [OrchestratorError.RecursionDetected] if a cycle is found, or null.
+     */
+    private fun detectRecursion(plan: AgentPlan): OrchestratorError.RecursionDetected? {
+        if (plan.steps.size <= 1) return null
+        var consecutiveCount = 1
+        for (i in 1 until plan.steps.size) {
+            if (plan.steps[i].agentName == plan.steps[i - 1].agentName) {
+                consecutiveCount++
+                if (consecutiveCount > MAX_CONSECUTIVE_SAME_AGENT) {
+                    return OrchestratorError.RecursionDetected(
+                        agentName = plan.steps[i].agentName,
+                        cycleLength = consecutiveCount,
+                    )
+                }
+            } else {
+                consecutiveCount = 1
+            }
+        }
+        return null
+    }
 
     private fun newId(): String = java.util.UUID.randomUUID().toString()
 
@@ -311,4 +400,14 @@ class DefaultAgentOrchestrator(
         status = AgentStatus.FAILED,
         error = AgentError(code = code, message = message),
     )
+
+    companion object {
+        /**
+         * Maximum number of times the same agent name may appear consecutively
+         * in a plan before it is flagged as recursive.
+         *
+         * A Code→Code→Code plan (3× same agent) is rejected; Code→RAG→Code (alternating) is fine.
+         */
+        const val MAX_CONSECUTIVE_SAME_AGENT: Int = 2
+    }
 }

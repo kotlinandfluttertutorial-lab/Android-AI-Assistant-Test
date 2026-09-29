@@ -243,7 +243,9 @@ class DefaultAgentPlanner : AgentPlanner {
         if (counters.stepsTaken >= plan.maxSteps) {
             return LimitViolation.MaxStepsExceeded(counters.stepsTaken, plan.maxSteps)
         }
-        if (counters.handoffsDone >= plan.maxHandoffs + 1 && plan.maxHandoffs < counters.handoffsDone) {
+        // Phase 8 fix: the previous condition was a tautology. Correct check:
+        // handoffs already done must not exceed the plan's maxHandoffs limit.
+        if (counters.handoffsDone > plan.maxHandoffs) {
             return LimitViolation.MaxHandoffsExceeded(counters.handoffsDone, plan.maxHandoffs)
         }
         if (counters.toolCallsMade >= plan.maxToolCalls) {
