@@ -408,6 +408,10 @@ jobs:
         # chromadb CVEs (GHSA-2wm9/36p7/xph7/f4j7) affect 0.4.17 to latest Python.
         # No patched version exists. Mitigation: ChromaDB only reachable internally
         # (Cloud Run ingress=internal). Suppressed until a patch is released.
+        # starlette CVE-2026-48710 (BadHost) — fix: >=1.0.1. Current floor is
+        # >=1.3.1 so this is already resolved; no --ignore-vuln entry required.
+        # python-multipart PYSEC-2026-3041/CVE-2026-53537 and CVE-2026-53540 —
+        # resolved by the 0.0.32 pin in requirements.txt.
         # Retries on transient PyPI 503/ServiceError; real vuln findings still fail fast.
         run: |
           for attempt in 1 2 3; do

@@ -57,7 +57,14 @@ cryptography==50.0.0
 # ──────────────────────────────────────────────────────────────────────────────
 httpx==0.28.1
 # PYSEC-2026-1852/3038/3037/3036/3040/3039 — fix: >=0.0.31
-python-multipart==0.0.31
+# PYSEC-2026-3041 / CVE-2026-53537 (GHSA-vffw-93wf-4j4q) —
+#   Content-Disposition parameter smuggling via RFC 2231/5987 extended
+#   parameters; RFC 7578 §4.2 forbids the filename* form in
+#   multipart/form-data yet the parser decoded and surfaced it,
+#   allowing field/filename smuggling past WAFs and proxies.
+#   fix: >=0.0.32
+# CVE-2026-53540 — negative Content-Length DoS; fix: >=0.0.31 (already covered above)
+python-multipart==0.0.32
 
 # ──────────────────────────────────────────────────────────────────────────────
 # Vector store
