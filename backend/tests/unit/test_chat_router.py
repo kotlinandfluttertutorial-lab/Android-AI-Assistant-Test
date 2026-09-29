@@ -84,9 +84,10 @@ class TestChatRouterEndpoints:
     def _make_client(self, llm_service_mock=None, detector_mock=None):
         """Build a TestClient for the chat router in isolation."""
         from fastapi import FastAPI
+
         from app.api.chat.router import router, v1_router
-        from app.security.dependencies import get_current_user
         from app.database import get_db
+        from app.security.dependencies import get_current_user
 
         app = FastAPI()
         app.include_router(router)

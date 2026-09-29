@@ -252,7 +252,7 @@ def seed(knowledge_dir: Path = KNOWLEDGE_DIR) -> None:
                 {
                     "source": relative,
                     "chunk_index": idx,
-                    "category": relative.split("/")[0],  # runbooks|incidents|architecture|deployment
+                    "category": relative.split("/")[0],  # runbooks|incidents|architecture
                     "document_name": doc_path.name,
                 }
                 for _, idx in chunks

@@ -262,7 +262,10 @@ async def _handle_chat(
         raise HTTPException(
             status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
             detail={
-                "error": {"code": "LLM_UNAVAILABLE", "message": "AI service is currently unavailable."}
+                "error": {
+                    "code": "LLM_UNAVAILABLE",
+                    "message": "AI service is currently unavailable.",
+                }
             },
         )
     except LLMError as exc:

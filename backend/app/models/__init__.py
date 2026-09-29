@@ -43,10 +43,8 @@ __all__ = [
     "Base",
     "CalendarEvent",
     "Conversation",
-    "decrypt_api_key",
     "Document",
     "DocumentChunk",
-    "encrypt_api_key",
     "ErrorLog",
     "Feedback",
     "HabitDefinition",
@@ -70,4 +68,6 @@ __all__ = [
     "UsageFeature",
     "User",
     "UserRole",
+    "decrypt_api_key",
+    "encrypt_api_key",
 ]

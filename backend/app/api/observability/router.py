@@ -54,8 +54,12 @@ class ObservabilityEventPayload(BaseModel):
     event_type: str = Field(alias="eventType", description="Machine-readable event category")
     message: str = Field(description="PII-filtered human-readable description")
     session_id: str = Field(alias="sessionId", description="App session UUID")
-    request_id: str | None = Field(default=None, alias="requestId", description="Per-HTTP-call UUID")
-    trace_id: str | None = Field(default=None, alias="traceId", description="User-action flow trace ID")
+    request_id: str | None = Field(
+        default=None, alias="requestId", description="Per-HTTP-call UUID"
+    )
+    trace_id: str | None = Field(
+        default=None, alias="traceId", description="User-action flow trace ID"
+    )
     screen: str | None = Field(default=None, description="Active Compose route")
     metadata: dict[str, Any] = Field(
         default_factory=dict,

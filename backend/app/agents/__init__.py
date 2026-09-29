@@ -18,6 +18,7 @@ from app.agents.llm_client import (
     LLMServiceAdapter,
     LocalGemmaAdapter,
 )
+from app.agents.image_agent import IMAGE_AGENT_NAME, ImageAgent
 from app.agents.model_router import InferencePath, ModelRouter, ModelRoutingDecision
 from app.agents.models import (
     AgentAttachment,
@@ -57,14 +58,11 @@ from app.agents.planner import (
     PlanCounters,
 )
 from app.agents.rag_agent import RAG_AGENT_NAME, RagAgent
-
-# Phase 2 — registry, router, planner, orchestrator, llm_client, model_router
 from app.agents.registry import AgentNotFoundError, AgentRegistry
 from app.agents.router import AgentRouter, RoutingOutcome
 from app.agents.tool_agent import TOOL_AGENT_NAME, ToolAgent
-from app.agents.web_agent import WEB_AGENT_NAME, WebAgent
-from app.agents.image_agent import IMAGE_AGENT_NAME, ImageAgent
 from app.agents.voice_agent import VOICE_AGENT_NAME, VoiceAgent
+from app.agents.web_agent import WEB_AGENT_NAME, WebAgent
 
 __all__ = [
     "CHAT_AGENT_NAME",
@@ -108,6 +106,7 @@ __all__ = [
     "ContextMemory",
     "ContextMessage",
     "FinishDecision",
+    "ImageAgent",
     "InferencePath",
     "LLMClient",
     "LLMClientError",
@@ -124,8 +123,8 @@ __all__ = [
     "RoutingOutcome",
     "ToolAgent",
     "VoiceAgent",
-    "WebAgent",
-    "ImageAgent",
+    "WEB_AGENT_NAME",
     "WaitDecision",
+    "WebAgent",
 ]
 

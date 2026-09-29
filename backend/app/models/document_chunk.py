@@ -80,7 +80,8 @@ class DocumentChunk(Base):
         nullable=True,
         index=True,
         comment=(
-            "Legacy ChromaDB document ID — kept for backwards compat, unused when pgvector is active"
+            "Legacy ChromaDB document ID — kept for backwards compat,"
+            " unused when pgvector is active"
         ),
     )
     citation_type: Mapped[str] = mapped_column(

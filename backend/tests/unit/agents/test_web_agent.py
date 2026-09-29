@@ -20,7 +20,7 @@ from app.agents.models import (
     AgentStatusChangedEvent,
     AgentTokenEvent,
 )
-from app.agents.web_agent import WEB_AGENT_NAME, WebAgent, _StubWebSearchProvider
+from app.agents.web_agent import WEB_AGENT_NAME, WebAgent
 
 
 # ---------------------------------------------------------------------------

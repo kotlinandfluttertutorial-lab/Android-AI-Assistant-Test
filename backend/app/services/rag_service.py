@@ -200,10 +200,10 @@ class RAGService:
         This replaces the previous HttpClient approach which was unreliable due to
         Cloud Run's ingress returning HTML 404 pages for the chromadb service.
         """
-        import chromadb as _chromadb
-
         import os as _os
         import tempfile as _tempfile
+
+        import chromadb as _chromadb
         persist_dir = getattr(
             self._settings, "CHROMA_PERSIST_DIR",
             _os.path.join(_tempfile.gettempdir(), "chroma"),

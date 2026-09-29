@@ -186,7 +186,7 @@ class DevOpsAssistantService:
         tool_calls: list[ToolCallRecord] = []
 
         # Describe available tools for the prompt
-        tool_schemas = self._broker.discover()
+        self._broker.discover()  # pre-warm tool registry
 
         # Build the conversation: system + user question + accumulating tool results
         messages: list[dict] = [

@@ -79,7 +79,9 @@ class SearchLogsConnector(MCPToolConnector):
                     },
                     "level": {
                         "type": "string",
-                        "description": "Severity: DEBUG|INFO|WARN|ERROR|CRITICAL. Omit for all levels.",
+                        "description": (
+                        "Severity: DEBUG|INFO|WARN|ERROR|CRITICAL. Omit for all levels."
+                    ),
                     },
                     "event_type": {
                         "type": "string",
