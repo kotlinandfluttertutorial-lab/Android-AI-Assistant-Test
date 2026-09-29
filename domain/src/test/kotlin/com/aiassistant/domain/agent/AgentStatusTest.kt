@@ -1,4 +1,4 @@
-/*
+﻿/*
  * ============================================================
  * Android AI Assistant (Enterprise Edition)
  * ============================================================
@@ -6,7 +6,7 @@
  * File       : AgentStatusTest.kt
  * Purpose    : Unit tests for AgentStatus lifecycle and transition rules.
  *
- * Architecture Layer : Domain — agent sub-package (test)
+ * Architecture Layer : Domain â€” agent sub-package (test)
  * Pattern Used       : JUnit4 + Kotest assertions
  *
  * Dependencies: junit, kotest-assertions-core
@@ -17,11 +17,11 @@ package com.aiassistant.domain.agent
 
 import io.kotest.matchers.booleans.shouldBeFalse
 import io.kotest.matchers.booleans.shouldBeTrue
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 class AgentStatusTest {
 
-    // ── isTerminal ──────────────────────────────────────────────────────────
+    // â”€â”€ isTerminal â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test
     fun `COMPLETED is terminal`() = AgentStatus.COMPLETED.isTerminal.shouldBeTrue()
@@ -47,7 +47,7 @@ class AgentStatusTest {
     @Test
     fun `WAITING is not terminal`() = AgentStatus.WAITING.isTerminal.shouldBeFalse()
 
-    // ── isSuccess ───────────────────────────────────────────────────────────
+    // â”€â”€ isSuccess â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test
     fun `COMPLETED is success`() = AgentStatus.COMPLETED.isSuccess.shouldBeTrue()
@@ -64,7 +64,7 @@ class AgentStatusTest {
     @Test
     fun `RUNNING is not success`() = AgentStatus.RUNNING.isSuccess.shouldBeFalse()
 
-    // ── canTransitionTo — valid forward transitions ─────────────────────────
+    // â”€â”€ canTransitionTo â€” valid forward transitions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test
     fun `REQUESTED can transition to STARTED`() =
@@ -122,7 +122,7 @@ class AgentStatusTest {
     fun `WAITING can transition to CANCELLED`() =
         AgentStatus.WAITING.canTransitionTo(AgentStatus.CANCELLED).shouldBeTrue()
 
-    // ── canTransitionTo — invalid transitions ────────────────────────────────
+    // â”€â”€ canTransitionTo â€” invalid transitions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     @Test
     fun `REQUESTED cannot transition to RUNNING directly`() =

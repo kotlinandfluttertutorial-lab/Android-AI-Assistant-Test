@@ -1,4 +1,4 @@
-/*
+﻿/*
  * Domain unit tests for Tool types and DefaultToolRegistry.
  */
 package com.aiassistant.domain.agent
@@ -10,7 +10,7 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.runTest
-import org.junit.Test
+import org.junit.jupiter.api.Test
 
 class ToolRegistryTest {
 
