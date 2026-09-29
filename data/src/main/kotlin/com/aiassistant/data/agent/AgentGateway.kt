@@ -10,6 +10,7 @@
  *              Phase 5: PdfAgent, ToolAgent.
  *              Phase 6: WebAgent, ImageAgent, VoiceAgent.
  *              Phase 7: OnDeviceAgent.
+ *              Phase 9: AgentMode routing hint in executeChat.
  *
  * Architecture Layer : Data — agent sub-package
  * Pattern Used       : Repository implementation (Gateway adapter)
@@ -36,6 +37,7 @@ import com.aiassistant.domain.agent.AgentGatewayMediaExtension
 import com.aiassistant.domain.agent.AgentGatewayOnDeviceExtension
 import com.aiassistant.domain.agent.AgentGatewayRepository
 import com.aiassistant.domain.agent.AgentGatewayWebExtension
+import com.aiassistant.domain.agent.AgentMode
 import com.aiassistant.domain.agent.AgentRequest
 import com.aiassistant.domain.agent.DefaultAgentOrchestrator
 import com.aiassistant.domain.agent.DefaultAgentPlanner
@@ -115,17 +117,28 @@ class AgentGateway @Inject constructor(
         content: String,
         provider: String,
         context: AgentContext?,
+        mode: AgentMode,
     ): Flow<AgentEvent> {
+        // Build routing-hint metadata from the requested AgentMode.
+        // AUTO adds no constraint — the orchestrator decides.
+        val metaBuilder = mutableMapOf(
+            ChatAgent.METADATA_AGENT_NAME to (AgentMode.toAgentNameHint(mode) ?: ChatAgent.NAME),
+            AgentMode.METADATA_KEY to mode.name,
+        )
+        // For LOCAL mode, set the routing_mode metadata so OnDeviceAgent enforces
+        // LOCAL_ONLY and never silently falls back to cloud.
+        if (mode == AgentMode.LOCAL) {
+            metaBuilder[OnDeviceAgent.METADATA_ROUTING_MODE] = ModelRoutingMode.LOCAL_ONLY.name
+        }
+        val capabilities = AgentMode.toCapabilities(mode)
         val request = AgentRequest(
             userId = resolveUserId(context),
             input = content,
             conversationId = conversationId,
             provider = provider.takeIf { it.isNotBlank() },
-            capabilities = emptySet(),
+            capabilities = capabilities,
             context = context,
-            metadata = mapOf(
-                ChatAgent.METADATA_AGENT_NAME to ChatAgent.NAME,
-            ),
+            metadata = metaBuilder,
         )
         return orchestrator.execute(request)
     }
