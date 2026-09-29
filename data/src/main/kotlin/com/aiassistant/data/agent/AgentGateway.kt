@@ -9,6 +9,7 @@
  *              Phase 3: ChatAgent. Phase 4: CodeAgent, RagAgent.
  *              Phase 5: PdfAgent, ToolAgent.
  *              Phase 6: WebAgent, ImageAgent, VoiceAgent.
+ *              Phase 7: OnDeviceAgent.
  *
  * Architecture Layer : Data — agent sub-package
  * Pattern Used       : Repository implementation (Gateway adapter)
@@ -17,10 +18,10 @@
  *   - Implements AgentGatewayRepository (domain interface)
  *   - ViewModels depend only on domain interfaces
  *   - All agents registered at singleton init time; no hardcoded routing
- *   - Phase 6 adds executeWebSearch(), executeImageAnalysis(), executeVoice()
+ *   - Phase 7 adds executeOnDevice() + isOnDeviceReady
  *
  * Dependencies: domain (AgentGatewayRepository, orchestrator types),
- *               data (ChatAgent, CodeAgent, RagAgent, WebAgent, ImageAgent, VoiceAgent)
+ *               data (all agents including OnDeviceAgent)
  * ============================================================
  */
 
@@ -32,6 +33,7 @@ import com.aiassistant.domain.agent.AgentEvent
 import com.aiassistant.domain.agent.AgentGatewayCodeExtension
 import com.aiassistant.domain.agent.AgentGatewayDocumentExtension
 import com.aiassistant.domain.agent.AgentGatewayMediaExtension
+import com.aiassistant.domain.agent.AgentGatewayOnDeviceExtension
 import com.aiassistant.domain.agent.AgentGatewayRepository
 import com.aiassistant.domain.agent.AgentGatewayWebExtension
 import com.aiassistant.domain.agent.AgentRequest
@@ -40,6 +42,8 @@ import com.aiassistant.domain.agent.DefaultAgentPlanner
 import com.aiassistant.domain.agent.DefaultAgentRegistry
 import com.aiassistant.domain.agent.DefaultAgentRouter
 import com.aiassistant.domain.agent.METADATA_KEY_PLAN_STEPS
+import com.aiassistant.domain.agent.ModelRoutingMode
+import com.aiassistant.domain.agent.OnDeviceInferencePort
 import com.aiassistant.domain.agent.ToolPermission
 import com.aiassistant.domain.agent.ToolSchema
 import javax.inject.Inject
@@ -53,14 +57,16 @@ import kotlinx.coroutines.flow.Flow
  * uses [DefaultAgentRouter] to dispatch based on metadata hints or
  * capability requirements — no hardcoded routing logic here.
  *
- * @param chatAgent   Conversational agent (Phase 3)
- * @param codeAgent   Code analysis/generation agent (Phase 4)
- * @param ragAgent    RAG retrieval agent (Phase 4)
- * @param pdfAgent    PDF processing agent (Phase 5)
- * @param toolAgent   Tool execution agent (Phase 5)
- * @param webAgent    Web search agent (Phase 6)
- * @param imageAgent  Image analysis agent (Phase 6)
- * @param voiceAgent  Voice pipeline agent (Phase 6)
+ * @param chatAgent     Conversational agent (Phase 3)
+ * @param codeAgent     Code analysis/generation agent (Phase 4)
+ * @param ragAgent      RAG retrieval agent (Phase 4)
+ * @param pdfAgent      PDF processing agent (Phase 5)
+ * @param toolAgent     Tool execution agent (Phase 5)
+ * @param webAgent      Web search agent (Phase 6)
+ * @param imageAgent    Image analysis agent (Phase 6)
+ * @param voiceAgent    Voice pipeline agent (Phase 6)
+ * @param onDeviceAgent On-device inference agent (Phase 7)
+ * @param inferencePort Domain port for on-device readiness check (Phase 7)
  */
 @Singleton
 class AgentGateway @Inject constructor(
@@ -72,12 +78,15 @@ class AgentGateway @Inject constructor(
     private val webAgent: WebAgent,
     private val imageAgent: ImageAgent,
     private val voiceAgent: VoiceAgent,
+    private val onDeviceAgent: OnDeviceAgent,
+    private val inferencePort: OnDeviceInferencePort,
     private val toolRegistry: com.aiassistant.domain.agent.ToolRegistry,
 ) : AgentGatewayRepository,
     AgentGatewayCodeExtension,
     AgentGatewayDocumentExtension,
     AgentGatewayWebExtension,
-    AgentGatewayMediaExtension {
+    AgentGatewayMediaExtension,
+    AgentGatewayOnDeviceExtension {
 
     // ── Registry and orchestrator ─────────────────────────────────────────────
 
@@ -90,6 +99,7 @@ class AgentGateway @Inject constructor(
         reg.register(webAgent)
         reg.register(imageAgent)
         reg.register(voiceAgent)
+        reg.register(onDeviceAgent)
     }
 
     private val orchestrator = DefaultAgentOrchestrator(
@@ -375,4 +385,48 @@ class AgentGateway @Inject constructor(
         )
         return orchestrator.execute(request)
     }
+
+    // ── Phase 7: On-Device ────────────────────────────────────────────────────
+
+    /**
+     * Execute an on-device inference request via [OnDeviceAgent].
+     *
+     * When [routingMode] is [ModelRoutingMode.LOCAL_ONLY], this NEVER routes to
+     * the cloud — [OnDeviceAgent] emits [AgentEvent.Failed] with
+     * `LOCAL_ONLY_UNAVAILABLE` if the model is not ready.
+     *
+     * @param prompt        The user's input.
+     * @param conversationId Optional conversation identifier for logging.
+     * @param routingMode   [ModelRoutingMode.AUTO] (default), [ModelRoutingMode.LOCAL_ONLY],
+     *                      or [ModelRoutingMode.CLOUD].
+     * @param context       Optional [AgentContext].
+     */
+    override fun executeOnDevice(
+        prompt: String,
+        conversationId: String?,
+        routingMode: ModelRoutingMode,
+        context: AgentContext?,
+    ): Flow<AgentEvent> {
+        val meta = mutableMapOf(
+            OnDeviceAgent.METADATA_AGENT_NAME to OnDeviceAgent.NAME,
+            OnDeviceAgent.METADATA_ROUTING_MODE to routingMode.name,
+        )
+        conversationId?.let { meta[OnDeviceAgent.METADATA_CONVERSATION_ID] = it }
+        val request = AgentRequest(
+            userId = resolveUserId(context),
+            input = prompt,
+            conversationId = conversationId,
+            capabilities = setOf(AgentCapability.ON_DEVICE_INFERENCE),
+            context = context,
+            metadata = meta,
+        )
+        return orchestrator.execute(request)
+    }
+
+    /**
+     * Returns `true` when the on-device model is downloaded, verified, and ready.
+     * Feature modules can use this to show/hide the "Run locally" UI option.
+     */
+    override val isOnDeviceReady: Boolean
+        get() = inferencePort.isReady
 }

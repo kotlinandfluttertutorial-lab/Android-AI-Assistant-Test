@@ -25,9 +25,11 @@
 package com.aiassistant.feature.ondeviceai.di
 
 import com.aiassistant.core.ai.OnDeviceCapabilityProvider
+import com.aiassistant.domain.agent.OnDeviceInferencePort
 import com.aiassistant.feature.ondeviceai.OnDeviceCapabilityChecker
 import com.aiassistant.feature.ondeviceai.OnDeviceEngine
 import com.aiassistant.feature.ondeviceai.OnDeviceInferenceClient
+import com.aiassistant.feature.ondeviceai.OnDeviceInferencePortImpl
 import com.aiassistant.feature.ondeviceai.RamMonitor
 import com.aiassistant.feature.ondeviceai.StubOnDeviceEngine
 import dagger.Binds
@@ -99,4 +101,16 @@ abstract class OnDeviceEngineModule {
     @Binds
     @Singleton
     abstract fun bindOnDeviceCapabilityProvider(impl: OnDeviceCapabilityChecker): OnDeviceCapabilityProvider
+
+    /**
+     * Binds [OnDeviceInferencePortImpl] as the [OnDeviceInferencePort] so that
+     * :data's [com.aiassistant.data.agent.OnDeviceAgent] can inject the domain port
+     * without taking a forbidden :data → :feature dependency.
+     *
+     * The implementation delegates to [OnDeviceInferenceClient] which guarantees
+     * zero network calls (Requirement 31.2).
+     */
+    @Binds
+    @Singleton
+    abstract fun bindOnDeviceInferencePort(impl: OnDeviceInferencePortImpl): OnDeviceInferencePort
 }
