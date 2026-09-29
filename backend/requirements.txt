@@ -45,7 +45,10 @@ celery==5.4.0
 # CVE-2026-32597 — unknown `crit` header extensions accepted instead of rejected
 #   (RFC 7515 §4.1.11 MUST violation); fix: >=2.12.0
 # CVE-2026-48526 — Auth bypass due to forged JWTs; fix: >=2.13.0
-PyJWT[crypto]==2.13.0
+# GHSA-w6j9-cwv2-h6wq / CVE-2026-102274 — malformed RSA JWK aborts JWK Set
+#   parsing (DoS); ValueError from RSAAlgorithm.from_jwk not caught by
+#   PyJWKSet's except PyJWTError guard; fix: >=2.14.0
+PyJWT[crypto]==2.14.0
 passlib[bcrypt]==1.7.4
 bcrypt==4.2.0
 # PYSEC-2026-35/1284/2141/3553/3554, GHSA-537c-gmf6-5ccf — fix: >=49.0.0
