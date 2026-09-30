@@ -58,7 +58,9 @@ void main() {
         response: Response(
           requestOptions: RequestOptions(path: '/test'),
           statusCode: 429,
-          headers: Headers.fromMap({'Retry-After': ['30']}),
+          headers: Headers.fromMap({
+            'Retry-After': ['30']
+          }),
           data: {'detail': 'Too many requests'},
         ),
       );

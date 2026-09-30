@@ -78,8 +78,7 @@ class AuthRepository {
   /// The backend verifies the ID token with Google's public keys.
   /// On success, stores tokens identically to a regular login.
   Future<Result<AuthUser>> googleSignIn(String idToken) async {
-    final result =
-        await _api.googleSignIn(GoogleAuthRequest(idToken: idToken));
+    final result = await _api.googleSignIn(GoogleAuthRequest(idToken: idToken));
     return result.when(
       onSuccess: (response) async {
         await _persistTokens(

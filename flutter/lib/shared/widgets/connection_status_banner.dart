@@ -27,8 +27,8 @@ class ConnectionStatusBanner extends StatelessWidget {
               padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
               child: const Row(
                 children: [
-                  Icon(Icons.wifi_off, size: 18, color: Colors.white,
-                      semanticLabel: 'Offline'),
+                  Icon(Icons.wifi_off,
+                      size: 18, color: Colors.white, semanticLabel: 'Offline'),
                   SizedBox(width: 8),
                   Text(
                     'No internet connection',

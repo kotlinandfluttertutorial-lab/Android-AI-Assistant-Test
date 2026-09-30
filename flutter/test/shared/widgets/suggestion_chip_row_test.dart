@@ -22,10 +22,11 @@ void main() {
       ));
 
       expect(find.text('Ask about errors'), findsOneWidget);
-      expect(find.text('Show incidents'),  findsOneWidget);
+      expect(find.text('Show incidents'), findsOneWidget);
     });
 
-    testWidgets('renders nothing visible when visible is false', (tester) async {
+    testWidgets('renders nothing visible when visible is false',
+        (tester) async {
       await tester.pumpWidget(_wrap(
         SuggestionChipRow(
           suggestions: suggestions,

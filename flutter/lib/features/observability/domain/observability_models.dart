@@ -89,8 +89,7 @@ class ObservabilityEvent extends Equatable {
       };
 
   @override
-  List<Object?> get props =>
-      [timestamp, level, eventType, message, sessionId];
+  List<Object?> get props => [timestamp, level, eventType, message, sessionId];
 }
 
 // ── Batch request / response ─────────────────────────────────────────────────
@@ -110,8 +109,7 @@ class IngestResponse {
     required this.total,
   });
 
-  factory IngestResponse.fromJson(Map<String, dynamic> json) =>
-      IngestResponse(
+  factory IngestResponse.fromJson(Map<String, dynamic> json) => IngestResponse(
         accepted: (json['accepted'] as int?) ?? 0,
         total: (json['total'] as int?) ?? 0,
       );

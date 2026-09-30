@@ -124,8 +124,7 @@ class AdaptiveShell extends StatelessWidget {
             minWidth: 72,
             minExtendedWidth: 180,
             backgroundColor: Theme.of(context).colorScheme.surface,
-            indicatorColor:
-                Theme.of(context).colorScheme.primary.withAlpha(25),
+            indicatorColor: Theme.of(context).colorScheme.primary.withAlpha(25),
             selectedIconTheme: IconThemeData(
               color: Theme.of(context).colorScheme.primary,
             ),

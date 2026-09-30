@@ -50,8 +50,7 @@ void main() {
     });
 
     test('isPremium is true for premium and admin', () {
-      const premium =
-          AuthUser(userId: '3', email: 'c@b.com', role: 'premium');
+      const premium = AuthUser(userId: '3', email: 'c@b.com', role: 'premium');
       const admin = AuthUser(userId: '4', email: 'd@b.com', role: 'admin');
       const regular = AuthUser(userId: '5', email: 'e@b.com', role: 'user');
       expect(premium.isPremium, isTrue);

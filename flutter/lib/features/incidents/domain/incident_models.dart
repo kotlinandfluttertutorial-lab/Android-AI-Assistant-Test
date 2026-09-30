@@ -20,11 +20,11 @@ enum IncidentSeverity {
   low;
 
   static IncidentSeverity parse(String v) => switch (v.toUpperCase()) {
-    'CRITICAL' => IncidentSeverity.critical,
-    'HIGH' => IncidentSeverity.high,
-    'MEDIUM' => IncidentSeverity.medium,
-    _ => IncidentSeverity.low,
-  };
+        'CRITICAL' => IncidentSeverity.critical,
+        'HIGH' => IncidentSeverity.high,
+        'MEDIUM' => IncidentSeverity.medium,
+        _ => IncidentSeverity.low,
+      };
 
   String get label => name.toUpperCase();
 }
@@ -36,11 +36,11 @@ enum IncidentStatus {
   dismissed;
 
   static IncidentStatus parse(String v) => switch (v.toUpperCase()) {
-    'INVESTIGATING' => IncidentStatus.investigating,
-    'RESOLVED' => IncidentStatus.resolved,
-    'DISMISSED' => IncidentStatus.dismissed,
-    _ => IncidentStatus.open,
-  };
+        'INVESTIGATING' => IncidentStatus.investigating,
+        'RESOLVED' => IncidentStatus.resolved,
+        'DISMISSED' => IncidentStatus.dismissed,
+        _ => IncidentStatus.open,
+      };
 
   String get label => name.toUpperCase();
 }
@@ -123,9 +123,8 @@ class IncidentListResponse {
   factory IncidentListResponse.fromJson(Map<String, dynamic> json) {
     final raw = json['incidents'] as List<dynamic>? ?? [];
     return IncidentListResponse(
-      incidents: raw
-          .map((e) => Incident.fromJson(e as Map<String, dynamic>))
-          .toList(),
+      incidents:
+          raw.map((e) => Incident.fromJson(e as Map<String, dynamic>)).toList(),
       total: (json['total'] as int?) ?? 0,
       openCount: (json['open_count'] as int?) ?? 0,
     );
@@ -219,11 +218,10 @@ class RcaAnalysisResponse extends Equatable {
         summary: (json['summary'] as String?) ?? '',
         overallConfidence:
             ((json['overall_confidence'] as num?) ?? 0).toDouble(),
-        rootCauseCandidates:
-            (json['root_cause_candidates'] as List<dynamic>? ?? [])
-                .map((e) =>
-                    RootCauseCandidate.fromJson(e as Map<String, dynamic>))
-                .toList(),
+        rootCauseCandidates: (json['root_cause_candidates'] as List<dynamic>? ??
+                [])
+            .map((e) => RootCauseCandidate.fromJson(e as Map<String, dynamic>))
+            .toList(),
         timeline: (json['timeline'] as List<dynamic>? ?? [])
             .map((e) => TimelineEvent.fromJson(e as Map<String, dynamic>))
             .toList(),

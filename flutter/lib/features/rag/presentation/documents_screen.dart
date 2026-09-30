@@ -40,7 +40,8 @@ class DocumentsScreen extends ConsumerWidget {
         title: Row(
           children: [
             Icon(Icons.folder_open_outlined,
-                size: 20, color: context.colors.primary,
+                size: 20,
+                color: context.colors.primary,
                 semanticLabel: 'Documents'),
             const SizedBox(width: 8),
             const Text('Documents'),
@@ -55,8 +56,7 @@ class DocumentsScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: 'Refresh',
-            onPressed: () =>
-                ref.read(documentsProvider.notifier).refresh(),
+            onPressed: () => ref.read(documentsProvider.notifier).refresh(),
           ),
         ],
       ),
@@ -72,12 +72,11 @@ class DocumentsScreen extends ConsumerWidget {
           // ── Documents list ─────────────────────────────────────────────
           Expanded(
             child: docsAsync.when(
-              loading: () => const LoadingIndicator(
-                  message: 'Loading documents…'),
+              loading: () =>
+                  const LoadingIndicator(message: 'Loading documents…'),
               error: (e, _) => ErrorView(
                 message: e.toString(),
-                onRetry: () =>
-                    ref.read(documentsProvider.notifier).refresh(),
+                onRetry: () => ref.read(documentsProvider.notifier).refresh(),
               ),
               data: (docs) {
                 if (docs.isEmpty) {
@@ -98,8 +97,7 @@ class DocumentsScreen extends ConsumerWidget {
                     itemCount: docs.length,
                     separatorBuilder: (_, __) =>
                         const Divider(height: 1, indent: 72),
-                    itemBuilder: (ctx, i) =>
-                        _DocumentTile(document: docs[i]),
+                    itemBuilder: (ctx, i) => _DocumentTile(document: docs[i]),
                   ),
                 );
               },
@@ -204,8 +202,8 @@ class _UploadBanner extends StatelessWidget {
               ),
             )
           else
-            Icon(Icons.check_circle, size: 16, color: color,
-                semanticLabel: 'Complete'),
+            Icon(Icons.check_circle,
+                size: 16, color: color, semanticLabel: 'Complete'),
           const SizedBox(width: 10),
           Text(_label, style: TextStyle(color: color, fontSize: 13)),
         ],
@@ -226,8 +224,8 @@ class _ErrorBanner extends StatelessWidget {
       color: context.critical.withAlpha(18),
       child: Row(
         children: [
-          Icon(Icons.error_outline, size: 16, color: context.critical,
-              semanticLabel: 'Upload error'),
+          Icon(Icons.error_outline,
+              size: 16, color: context.critical, semanticLabel: 'Upload error'),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -266,15 +264,15 @@ class _DocumentTile extends ConsumerWidget {
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 24),
         color: context.critical,
-        child: const Icon(Icons.delete, color: Colors.white,
-            semanticLabel: 'Delete document'),
+        child: const Icon(Icons.delete,
+            color: Colors.white, semanticLabel: 'Delete document'),
       ),
       confirmDismiss: (_) => showDialog<bool>(
         context: context,
         builder: (ctx) => AlertDialog(
           title: const Text('Delete document?'),
-          content:
-              const Text('This removes the document and all its indexed chunks.'),
+          content: const Text(
+              'This removes the document and all its indexed chunks.'),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(ctx, false),
@@ -282,8 +280,7 @@ class _DocumentTile extends ConsumerWidget {
             ),
             TextButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: Text('Delete',
-                  style: TextStyle(color: context.critical)),
+              child: Text('Delete', style: TextStyle(color: context.critical)),
             ),
           ],
         ),
@@ -293,9 +290,10 @@ class _DocumentTile extends ConsumerWidget {
       ),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor:
-              context.colors.primary.withAlpha(15),
-          child: Icon(_icon(), size: 20, color: context.colors.primary,
+          backgroundColor: context.colors.primary.withAlpha(15),
+          child: Icon(_icon(),
+              size: 20,
+              color: context.colors.primary,
               semanticLabel: document.filename),
         ),
         title: Text(
@@ -306,11 +304,9 @@ class _DocumentTile extends ConsumerWidget {
         subtitle: Text(
           [
             if (document.displaySize.isNotEmpty) document.displaySize,
-            if (document.chunkCount != null)
-              '${document.chunkCount} chunks',
+            if (document.chunkCount != null) '${document.chunkCount} chunks',
           ].join(' · '),
-          style: context.texts.bodySmall
-              ?.copyWith(color: context.mutedColor),
+          style: context.texts.bodySmall?.copyWith(color: context.mutedColor),
         ),
         trailing: IconButton(
           icon: const Icon(Icons.send_outlined, size: 18),
@@ -320,8 +316,7 @@ class _DocumentTile extends ConsumerWidget {
             extra: document.id,
           ),
         ),
-        onTap: () =>
-            context.push(Routes.ragQuery, extra: document.id),
+        onTap: () => context.push(Routes.ragQuery, extra: document.id),
       ),
     );
   }

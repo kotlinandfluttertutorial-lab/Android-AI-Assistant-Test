@@ -25,9 +25,8 @@ class AppCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final content = padding != null
-        ? Padding(padding: padding!, child: child)
-        : child;
+    final content =
+        padding != null ? Padding(padding: padding!, child: child) : child;
 
     Widget card = Card(
       elevation: elevation,

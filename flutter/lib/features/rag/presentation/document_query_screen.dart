@@ -171,8 +171,7 @@ class _DocumentFilterRow extends StatelessWidget {
       height: 48,
       child: ListView(
         scrollDirection: Axis.horizontal,
-        padding:
-            const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
         children: [
           if (selectedIds.isNotEmpty)
             Padding(
@@ -189,8 +188,7 @@ class _DocumentFilterRow extends StatelessWidget {
             return Padding(
               padding: const EdgeInsets.only(right: 8),
               child: Semantics(
-                label:
-                    '${doc.filename}${isSelected ? ', selected' : ''}',
+                label: '${doc.filename}${isSelected ? ', selected' : ''}',
                 child: FilterChip(
                   label: Text(
                     doc.filename,
@@ -224,8 +222,7 @@ class _AnswerView extends StatelessWidget {
         Row(
           children: [
             Icon(Icons.auto_awesome,
-                size: 18, color: context.aiAccent,
-                semanticLabel: 'AI answer'),
+                size: 18, color: context.aiAccent, semanticLabel: 'AI answer'),
             const SizedBox(width: 8),
             Text('Answer', style: context.texts.labelMedium),
           ],
@@ -261,7 +258,8 @@ class _AnswerView extends StatelessWidget {
           Row(
             children: [
               Icon(Icons.format_quote,
-                  size: 18, color: context.colors.primary,
+                  size: 18,
+                  color: context.colors.primary,
                   semanticLabel: 'Sources'),
               const SizedBox(width: 8),
               Text(
@@ -336,9 +334,9 @@ class _QueryInputBar extends StatelessWidget {
   });
 
   final TextEditingController controller;
-  final bool                  canSearch;
-  final bool                  isLoading;
-  final VoidCallback          onSearch;
+  final bool canSearch;
+  final bool isLoading;
+  final VoidCallback onSearch;
 
   @override
   Widget build(BuildContext context) {
@@ -349,9 +347,9 @@ class _QueryInputBar extends StatelessWidget {
           color: context.cardColor,
           boxShadow: [
             BoxShadow(
-              color:     Colors.black.withAlpha(10),
+              color: Colors.black.withAlpha(10),
               blurRadius: 8,
-              offset:    const Offset(0, -2),
+              offset: const Offset(0, -2),
             ),
           ],
         ),
@@ -360,26 +358,25 @@ class _QueryInputBar extends StatelessWidget {
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
-                  color:        context.cardTonal,
+                  color: context.cardTonal,
                   borderRadius: BorderRadius.circular(24),
                 ),
                 child: TextField(
                   controller: controller,
-                  maxLines:   3,
-                  minLines:   1,
-                  enabled:    !isLoading,
+                  maxLines: 3,
+                  minLines: 1,
+                  enabled: !isLoading,
                   textInputAction: TextInputAction.search,
                   decoration: const InputDecoration(
-                    hintText:     'Ask about your documents…',
-                    border:       InputBorder.none,
+                    hintText: 'Ask about your documents…',
+                    border: InputBorder.none,
                     enabledBorder: InputBorder.none,
                     focusedBorder: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
+                    contentPadding:
+                        EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   ),
-                  onSubmitted: canSearch && !isLoading
-                      ? (_) => onSearch()
-                      : null,
+                  onSubmitted:
+                      canSearch && !isLoading ? (_) => onSearch() : null,
                 ),
               ),
             ),
@@ -390,7 +387,7 @@ class _QueryInputBar extends StatelessWidget {
               child: GestureDetector(
                 onTap: (canSearch && !isLoading) ? onSearch : null,
                 child: Container(
-                  width:  44,
+                  width: 44,
                   height: 44,
                   decoration: BoxDecoration(
                     color: isLoading

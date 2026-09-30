@@ -42,8 +42,7 @@ class UiMessage extends Equatable {
       );
 
   @override
-  List<Object?> get props =>
-      [localId, role, content, isStreaming, hasError];
+  List<Object?> get props => [localId, role, content, isStreaming, hasError];
 }
 
 /// Top-level state for the [ChatNotifier].

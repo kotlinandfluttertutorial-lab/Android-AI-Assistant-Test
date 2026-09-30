@@ -99,10 +99,12 @@ void main() {
 
     test('MessageRole has user and assistant variants', () {
       expect(MessageRole.values.length, 2);
-      expect(MessageRole.values, containsAll([
-        MessageRole.user,
-        MessageRole.assistant,
-      ]));
+      expect(
+          MessageRole.values,
+          containsAll([
+            MessageRole.user,
+            MessageRole.assistant,
+          ]));
     });
   });
 }

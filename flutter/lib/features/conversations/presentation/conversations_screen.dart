@@ -35,8 +35,7 @@ class _ConversationsScreenState extends ConsumerState<ConversationsScreen> {
   String? _selectedConversationId;
 
   void _openConversation(BuildContext context, String id) {
-    final isTablet =
-        MediaQuery.of(context).size.width >= _twoPaneBreakpoint;
+    final isTablet = MediaQuery.of(context).size.width >= _twoPaneBreakpoint;
     if (isTablet) {
       setState(() => _selectedConversationId = id);
     } else {
@@ -47,8 +46,7 @@ class _ConversationsScreenState extends ConsumerState<ConversationsScreen> {
   @override
   Widget build(BuildContext context) {
     final conversationsAsync = ref.watch(conversationsProvider);
-    final isTablet =
-        MediaQuery.of(context).size.width >= _twoPaneBreakpoint;
+    final isTablet = MediaQuery.of(context).size.width >= _twoPaneBreakpoint;
 
     final listPane = _ConversationListPane(
       conversationsAsync: conversationsAsync,
@@ -152,8 +150,7 @@ class _ConversationListPane extends ConsumerWidget {
             child: ListView.separated(
               padding: const EdgeInsets.symmetric(vertical: 8),
               itemCount: conversations.length,
-              separatorBuilder: (_, __) =>
-                  const Divider(height: 1, indent: 72),
+              separatorBuilder: (_, __) => const Divider(height: 1, indent: 72),
               itemBuilder: (ctx, i) => _ConversationTile(
                 conversation: conversations[i],
                 isSelected: conversations[i].id == selectedId,
@@ -206,8 +203,7 @@ class _ConversationTile extends ConsumerWidget {
             ),
             TextButton(
               onPressed: () => Navigator.pop(ctx, true),
-              child: Text('Delete',
-                  style: TextStyle(color: context.critical)),
+              child: Text('Delete', style: TextStyle(color: context.critical)),
             ),
           ],
         ),
@@ -217,8 +213,7 @@ class _ConversationTile extends ConsumerWidget {
           .deleteConversation(conversation.id)),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor:
-              Theme.of(context).colorScheme.primary.withAlpha(20),
+          backgroundColor: Theme.of(context).colorScheme.primary.withAlpha(20),
           child: const Icon(Icons.chat_bubble_outline, size: 20),
         ),
         title: Text(
@@ -238,8 +233,7 @@ class _ConversationTile extends ConsumerWidget {
         trailing: Text(
           DateFormatter.relative(
               conversation.updatedAt ?? conversation.createdAt),
-          style:
-              context.texts.labelSmall?.copyWith(color: context.mutedColor),
+          style: context.texts.labelSmall?.copyWith(color: context.mutedColor),
         ),
         onTap: () {
           if (onTap != null) {
@@ -250,8 +244,7 @@ class _ConversationTile extends ConsumerWidget {
         },
         onLongPress: () => _showExportSheet(context, ref),
         selected: isSelected,
-        selectedTileColor:
-            Theme.of(context).colorScheme.primary.withAlpha(12),
+        selectedTileColor: Theme.of(context).colorScheme.primary.withAlpha(12),
       ),
     );
   }

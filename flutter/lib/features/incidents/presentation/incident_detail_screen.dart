@@ -100,11 +100,11 @@ class _IncidentHeaderCard extends StatelessWidget {
   final Incident incident;
 
   Color _severityColor(BuildContext ctx) => switch (incident.severity) {
-    IncidentSeverity.critical => ctx.critical,
-    IncidentSeverity.high => ctx.critical.withAlpha(200),
-    IncidentSeverity.medium => ctx.warning,
-    IncidentSeverity.low => ctx.infoColor,
-  };
+        IncidentSeverity.critical => ctx.critical,
+        IncidentSeverity.high => ctx.critical.withAlpha(200),
+        IncidentSeverity.medium => ctx.warning,
+        IncidentSeverity.low => ctx.infoColor,
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -164,8 +164,8 @@ class _IncidentHeaderCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               'Detected ${incident.detectedAt}',
-              style: context.texts.bodySmall
-                  ?.copyWith(color: context.mutedColor),
+              style:
+                  context.texts.bodySmall?.copyWith(color: context.mutedColor),
             ),
           ],
         ),
@@ -225,14 +225,12 @@ class _RcaSection extends ConsumerWidget {
                     color: context.aiAccent,
                     semanticLabel: 'AI analysis'),
                 const SizedBox(width: 8),
-                Text('Root Cause Analysis',
-                    style: context.texts.titleSmall),
+                Text('Root Cause Analysis', style: context.texts.titleSmall),
               ],
             ),
             TextButton.icon(
-              onPressed: () => ref
-                  .read(rcaProvider(incidentId).notifier)
-                  .runRca(),
+              onPressed: () =>
+                  ref.read(rcaProvider(incidentId).notifier).runRca(),
               icon: const Icon(Icons.play_arrow, size: 16),
               label: const Text('Run RCA'),
             ),
@@ -329,8 +327,7 @@ class _RcaCard extends StatelessWidget {
             // Top candidates
             if (rca.rootCauseCandidates.isNotEmpty) ...[
               const SizedBox(height: 16),
-              Text('Root cause candidates',
-                  style: context.texts.labelMedium),
+              Text('Root cause candidates', style: context.texts.labelMedium),
               const SizedBox(height: 8),
               ...rca.rootCauseCandidates
                   .take(3)
@@ -368,8 +365,8 @@ class _RcaCard extends StatelessWidget {
                           ),
                           const SizedBox(width: 8),
                           Expanded(
-                            child: Text(e.value,
-                                style: context.texts.bodySmall),
+                            child:
+                                Text(e.value, style: context.texts.bodySmall),
                           ),
                         ],
                       ),
@@ -466,8 +463,7 @@ class _CandidateRow extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Expanded(
-            child:
-                Text(candidate.cause, style: context.texts.bodySmall),
+            child: Text(candidate.cause, style: context.texts.bodySmall),
           ),
           Text(
             '$pct%',
@@ -569,10 +565,10 @@ class _RemediationActionCard extends ConsumerWidget {
   final String incidentId;
 
   Color _riskColor(BuildContext ctx) => switch (action.riskTier.toUpperCase()) {
-    'HIGH' => ctx.critical,
-    'MEDIUM' => ctx.warning,
-    _ => ctx.healthy,
-  };
+        'HIGH' => ctx.critical,
+        'MEDIUM' => ctx.warning,
+        _ => ctx.healthy,
+      };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -589,12 +585,11 @@ class _RemediationActionCard extends ConsumerWidget {
             Row(
               children: [
                 Expanded(
-                  child: Text(action.title,
-                      style: context.texts.titleSmall),
+                  child: Text(action.title, style: context.texts.titleSmall),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 8, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                   decoration: BoxDecoration(
                     color: riskColor.withAlpha(20),
                     borderRadius: BorderRadius.circular(6),
@@ -725,14 +720,10 @@ class _RemediationActionCard extends ConsumerWidget {
       if (confirmed != true) return;
     }
 
-    await ref
-        .read(remediationProvider(incidentId).notifier)
-        .approve(action.id);
+    await ref.read(remediationProvider(incidentId).notifier).approve(action.id);
   }
 
   Future<void> _reject(BuildContext context, WidgetRef ref) async {
-    await ref
-        .read(remediationProvider(incidentId).notifier)
-        .reject(action.id);
+    await ref.read(remediationProvider(incidentId).notifier).reject(action.id);
   }
 }

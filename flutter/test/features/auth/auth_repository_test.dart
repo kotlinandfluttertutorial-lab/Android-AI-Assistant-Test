@@ -139,8 +139,7 @@ void main() {
     test('clears storage regardless of API result', () async {
       fakeStorage.accessToken = 'some_token';
       fakeStorage.valid = true;
-      when(() => mockApi.logout())
-          .thenAnswer((_) async => const Success(null));
+      when(() => mockApi.logout()).thenAnswer((_) async => const Success(null));
 
       final repo = makeRepo();
       await repo.logout();

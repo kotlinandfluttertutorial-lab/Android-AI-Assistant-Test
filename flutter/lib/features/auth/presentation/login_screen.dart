@@ -199,9 +199,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
                       style: context.texts.bodyMedium,
                     ),
                     TextButton(
-                      onPressed: isLoading
-                          ? null
-                          : () => context.go(Routes.register),
+                      onPressed:
+                          isLoading ? null : () => context.go(Routes.register),
                       child: const Text('Create account'),
                     ),
                   ],
@@ -233,9 +232,7 @@ class _ErrorBanner extends StatelessWidget {
       child: Row(
         children: [
           Icon(Icons.error_outline,
-              color: context.critical,
-              size: 20,
-              semanticLabel: 'Error'),
+              color: context.critical, size: 20, semanticLabel: 'Error'),
           const SizedBox(width: 8),
           Expanded(
             child: Text(

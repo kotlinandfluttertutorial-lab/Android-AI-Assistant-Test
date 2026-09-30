@@ -8,10 +8,13 @@ import 'package:flutter/material.dart';
 enum AiProviderStatus {
   /// Provider availability is unknown (initial state).
   loading,
+
   /// Provider is available and ready.
   available,
+
   /// Provider is not configured (no API key).
   unavailable,
+
   /// An error occurred checking provider status.
   error,
 }

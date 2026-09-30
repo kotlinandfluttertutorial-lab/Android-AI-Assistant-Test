@@ -64,7 +64,8 @@ class StubOnDeviceAiService implements OnDeviceAiService {
   OnDeviceAiState get state => OnDeviceAiState.unsupported;
 
   @override
-  String? get lastError => 'On-device inference is not available in this build.';
+  String? get lastError =>
+      'On-device inference is not available in this build.';
 
   @override
   Future<bool> checkSupport() async => false;

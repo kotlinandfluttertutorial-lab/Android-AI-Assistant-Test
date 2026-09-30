@@ -73,11 +73,9 @@ class DevOpsChatResponse extends Equatable {
         sessionId: (json['session_id'] as String?) ?? '',
         question: (json['question'] as String?) ?? '',
         answer: (json['answer'] as String?) ?? '',
-        citations:
-            List<String>.from(json['citations'] as List<dynamic>? ?? []),
+        citations: List<String>.from(json['citations'] as List<dynamic>? ?? []),
         toolCalls: (json['tool_calls'] as List<dynamic>? ?? [])
-            .map((e) =>
-                ToolCallSummary.fromJson(e as Map<String, dynamic>))
+            .map((e) => ToolCallSummary.fromJson(e as Map<String, dynamic>))
             .toList(),
         roundsUsed: (json['rounds_used'] as int?) ?? 0,
         llmProvider: (json['llm_provider'] as String?) ?? '',

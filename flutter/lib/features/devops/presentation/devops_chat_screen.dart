@@ -96,9 +96,8 @@ class _DevOpsChatScreenState extends ConsumerState<DevOpsChatScreen> {
             IconButton(
               icon: const Icon(Icons.delete_outline),
               tooltip: 'Clear history',
-              onPressed: () => ref
-                  .read(devOpsChatProvider.notifier)
-                  .clearHistory(),
+              onPressed: () =>
+                  ref.read(devOpsChatProvider.notifier).clearHistory(),
             ),
         ],
       ),
@@ -159,8 +158,7 @@ class _TurnWidget extends StatelessWidget {
               constraints: BoxConstraints(
                 maxWidth: MediaQuery.of(context).size.width * 0.78,
               ),
-              padding: const EdgeInsets.symmetric(
-                  horizontal: 16, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
               decoration: BoxDecoration(
                 color: context.userBubble,
                 borderRadius: const BorderRadius.only(
@@ -317,8 +315,8 @@ class _AnswerBubble extends StatelessWidget {
               child: MarkdownBody(
                 data: resp.answer,
                 selectable: true,
-                styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context))
-                    .copyWith(
+                styleSheet:
+                    MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
                   p: Theme.of(context)
                       .textTheme
                       .bodyMedium
@@ -372,8 +370,7 @@ class _ToolCallBadges extends StatelessWidget {
             (tc) => Tooltip(
               message: 'Tool: ${tc.toolName}',
               child: Container(
-                padding: const EdgeInsets.symmetric(
-                    horizontal: 8, vertical: 3),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
                 decoration: BoxDecoration(
                   color: context.aiAccent.withAlpha(20),
                   borderRadius: BorderRadius.circular(6),
@@ -563,8 +560,8 @@ class _DevOpsInputBar extends StatelessWidget {
                     border: InputBorder.none,
                     enabledBorder: InputBorder.none,
                     focusedBorder: InputBorder.none,
-                    contentPadding: EdgeInsets.symmetric(
-                        horizontal: 16, vertical: 12),
+                    contentPadding:
+                        EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                   ),
                   onSubmitted: canSend && !isAsking ? (_) => onSend() : null,
                 ),

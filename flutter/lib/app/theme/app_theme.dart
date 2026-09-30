@@ -71,17 +71,15 @@ class AppTheme {
           return TextStyle(
             fontSize: 12,
             fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
-            color: isSelected
-                ? colorScheme.primary
-                : colorScheme.onSurfaceVariant,
+            color:
+                isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
           );
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           final isSelected = states.contains(WidgetState.selected);
           return IconThemeData(
-            color: isSelected
-                ? colorScheme.primary
-                : colorScheme.onSurfaceVariant,
+            color:
+                isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
           );
         }),
       ),

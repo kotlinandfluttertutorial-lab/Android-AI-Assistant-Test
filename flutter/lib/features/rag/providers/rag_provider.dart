@@ -10,7 +10,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 // ── API provider ──────────────────────────────────────────────────────────────
 
-final ragApiProvider = Provider<RagApi>((ref) => RagApi(ref.watch(dioProvider)));
+final ragApiProvider =
+    Provider<RagApi>((ref) => RagApi(ref.watch(dioProvider)));
 
 // ── Document list ─────────────────────────────────────────────────────────────
 

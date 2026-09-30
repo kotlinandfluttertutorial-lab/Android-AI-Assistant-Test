@@ -47,8 +47,7 @@ void main() {
     });
 
     test('defaults display_name to empty string when missing', () {
-      final json = Map<String, dynamic>.from(fullJson)
-        ..remove('display_name');
+      final json = Map<String, dynamic>.from(fullJson)..remove('display_name');
       final r = GoogleAuthResponse.fromJson(json);
       expect(r.displayName, '');
     });
@@ -66,8 +65,7 @@ void main() {
     });
 
     test('isNewUser is false for returning user', () {
-      final json = Map<String, dynamic>.from(fullJson)
-        ..['is_new_user'] = false;
+      final json = Map<String, dynamic>.from(fullJson)..['is_new_user'] = false;
       final r = GoogleAuthResponse.fromJson(json);
       expect(r.isNewUser, isFalse);
     });

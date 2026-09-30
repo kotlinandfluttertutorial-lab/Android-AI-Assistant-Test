@@ -22,11 +22,11 @@ enum IngestJobStatus {
   failed;
 
   static IngestJobStatus parse(String v) => switch (v.toLowerCase()) {
-    'running' => IngestJobStatus.running,
-    'completed' => IngestJobStatus.completed,
-    'failed' => IngestJobStatus.failed,
-    _ => IngestJobStatus.queued,
-  };
+        'running' => IngestJobStatus.running,
+        'completed' => IngestJobStatus.completed,
+        'failed' => IngestJobStatus.failed,
+        _ => IngestJobStatus.queued,
+      };
 
   bool get isTerminal => this == completed || this == failed;
   bool get isCompleted => this == completed;
@@ -46,8 +46,7 @@ class DocumentUploadResponse {
       DocumentUploadResponse(
         documentId: (json['document_id'] as String?) ?? '',
         jobId: (json['job_id'] as String?) ?? '',
-        status: IngestJobStatus.parse(
-            (json['status'] as String?) ?? 'queued'),
+        status: IngestJobStatus.parse((json['status'] as String?) ?? 'queued'),
       );
 
   final String documentId;
@@ -67,8 +66,7 @@ class IngestJob extends Equatable {
 
   factory IngestJob.fromJson(Map<String, dynamic> json) => IngestJob(
         jobId: (json['job_id'] as String?) ?? '',
-        status: IngestJobStatus.parse(
-            (json['status'] as String?) ?? 'queued'),
+        status: IngestJobStatus.parse((json['status'] as String?) ?? 'queued'),
         documentId: json['document_id'] as String?,
         errorMessage: json['error_message'] as String?,
       );

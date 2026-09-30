@@ -22,8 +22,7 @@ class IncidentFilter {
   final String? status;
   final String? severity;
 
-  IncidentFilter copyWith({String? status, String? severity}) =>
-      IncidentFilter(
+  IncidentFilter copyWith({String? status, String? severity}) => IncidentFilter(
         status: status ?? this.status,
         severity: severity ?? this.severity,
       );
@@ -146,8 +145,7 @@ class RemediationNotifier
   }
 }
 
-final remediationProvider =
-    AsyncNotifierProviderFamily<RemediationNotifier, RemediationPlanResponse?,
-        String>(
+final remediationProvider = AsyncNotifierProviderFamily<RemediationNotifier,
+    RemediationPlanResponse?, String>(
   RemediationNotifier.new,
 );

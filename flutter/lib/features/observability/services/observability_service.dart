@@ -86,34 +86,37 @@ class ObservabilityService {
     String eventType,
     String message, {
     Map<String, dynamic> metadata = const {},
-  }) => capture(
-    level: EventLevel.info,
-    eventType: eventType,
-    message: message,
-    metadata: metadata,
-  );
+  }) =>
+      capture(
+        level: EventLevel.info,
+        eventType: eventType,
+        message: message,
+        metadata: metadata,
+      );
 
   void warn(
     String eventType,
     String message, {
     Map<String, dynamic> metadata = const {},
-  }) => capture(
-    level: EventLevel.warn,
-    eventType: eventType,
-    message: message,
-    metadata: metadata,
-  );
+  }) =>
+      capture(
+        level: EventLevel.warn,
+        eventType: eventType,
+        message: message,
+        metadata: metadata,
+      );
 
   void error(
     String eventType,
     String message, {
     Map<String, dynamic> metadata = const {},
-  }) => capture(
-    level: EventLevel.error,
-    eventType: eventType,
-    message: message,
-    metadata: metadata,
-  );
+  }) =>
+      capture(
+        level: EventLevel.error,
+        eventType: eventType,
+        message: message,
+        metadata: metadata,
+      );
 
   void networkError({
     required String url,
@@ -216,8 +219,8 @@ class ObservabilityService {
   static String _sanitize(String text) {
     return text
         // Bearer tokens
-        .replaceAll(RegExp(r'Bearer\s+\S+', caseSensitive: false),
-            'Bearer [REDACTED]')
+        .replaceAll(
+            RegExp(r'Bearer\s+\S+', caseSensitive: false), 'Bearer [REDACTED]')
         // Email addresses
         .replaceAll(RegExp(r'\b[\w.+-]+@[\w-]+\.[a-z]{2,}\b'), '[EMAIL]')
         // Truncate very long messages to avoid log bloat.

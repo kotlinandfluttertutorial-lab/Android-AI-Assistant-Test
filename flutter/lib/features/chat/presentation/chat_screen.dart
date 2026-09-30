@@ -82,7 +82,9 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     if (text.isEmpty) return;
     _inputCtrl.clear();
     setState(() => _canSend = false);
-    await ref.read(chatProvider(widget.conversationId).notifier).sendMessage(text);
+    await ref
+        .read(chatProvider(widget.conversationId).notifier)
+        .sendMessage(text);
     _scrollToBottom();
   }
 
@@ -161,9 +163,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     itemBuilder: (context, i) {
                       final msg = chatState.messages[i];
                       return MessageBubble(
-                        role: msg.isUser
-                            ? BubbleRole.user
-                            : BubbleRole.assistant,
+                        role:
+                            msg.isUser ? BubbleRole.user : BubbleRole.assistant,
                         content: msg.content,
                         isStreaming: msg.isStreaming,
                         timestamp: msg.createdAt,
@@ -324,7 +325,8 @@ class _InputBar extends StatelessWidget {
                   maxLines: 5,
                   minLines: 1,
                   maxLength: 4000,
-                  buildCounter: (_, {
+                  buildCounter: (
+                    _, {
                     required currentLength,
                     required isFocused,
                     required maxLength,
@@ -342,8 +344,7 @@ class _InputBar extends StatelessWidget {
                       vertical: 12,
                     ),
                   ),
-                  onSubmitted:
-                      canSend && !isStreaming ? (_) => onSend() : null,
+                  onSubmitted: canSend && !isStreaming ? (_) => onSend() : null,
                 ),
               ),
             ),

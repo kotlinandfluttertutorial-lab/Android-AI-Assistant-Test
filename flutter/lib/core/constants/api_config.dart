@@ -38,18 +38,18 @@ class ApiConfig {
 
   /// Base HTTP URL — no trailing slash.
   static String get baseUrl => switch (currentEnvironment) {
-    // Android emulator reaches the host machine via 10.0.2.2
-    AppEnvironment.local => 'http://10.0.2.2:8000',
-    AppEnvironment.stage => 'https://api-stage.ai-assistant.example.com',
-    AppEnvironment.production => 'https://api.ai-assistant.example.com',
-  };
+        // Android emulator reaches the host machine via 10.0.2.2
+        AppEnvironment.local => 'http://10.0.2.2:8000',
+        AppEnvironment.stage => 'https://api-stage.ai-assistant.example.com',
+        AppEnvironment.production => 'https://api.ai-assistant.example.com',
+      };
 
   /// Base WebSocket URL — no trailing slash.
   static String get wsBaseUrl => switch (currentEnvironment) {
-    AppEnvironment.local => 'ws://10.0.2.2:8000',
-    AppEnvironment.stage => 'wss://api-stage.ai-assistant.example.com',
-    AppEnvironment.production => 'wss://api.ai-assistant.example.com',
-  };
+        AppEnvironment.local => 'ws://10.0.2.2:8000',
+        AppEnvironment.stage => 'wss://api-stage.ai-assistant.example.com',
+        AppEnvironment.production => 'wss://api.ai-assistant.example.com',
+      };
 
   // ── Endpoint paths ──────────────────────────────────────────────────────
   static const String authLogin = '/auth/login';
@@ -100,8 +100,7 @@ class ApiConfig {
   static String memoryById(String id) => '/memory/$id';
 
   /// WebSocket chat path — append ?token=<jwt> before connecting.
-  static String wsChatPath(String conversationId) =>
-      '/ws/chat/$conversationId';
+  static String wsChatPath(String conversationId) => '/ws/chat/$conversationId';
 
   static const String health = '/health';
   static const String ready = '/ready';

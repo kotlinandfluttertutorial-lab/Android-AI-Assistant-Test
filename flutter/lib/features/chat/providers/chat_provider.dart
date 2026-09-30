@@ -171,9 +171,8 @@ class ChatNotifier extends FamilyNotifier<ChatState, String> {
   /// Send all messages in the queue that belong to [conversationId].
   Future<void> _flushPendingQueue(String conversationId) async {
     final queue = ref.read(pendingMessageQueueProvider);
-    final pending = queue.all
-        .where((m) => m.conversationId == conversationId)
-        .toList();
+    final pending =
+        queue.all.where((m) => m.conversationId == conversationId).toList();
 
     if (pending.isEmpty) return;
 
@@ -294,8 +293,7 @@ class ChatNotifier extends FamilyNotifier<ChatState, String> {
     final messages = List<UiMessage>.from(state.messages);
     final lastIndex = messages.lastIndexWhere((m) => !m.isUser);
     if (lastIndex != -1) {
-      messages[lastIndex] =
-          messages[lastIndex].copyWith(isStreaming: false);
+      messages[lastIndex] = messages[lastIndex].copyWith(isStreaming: false);
     }
     state = state.copyWith(messages: messages, isStreaming: false);
   }
@@ -334,7 +332,6 @@ class ChatNotifier extends FamilyNotifier<ChatState, String> {
   }
 }
 
-final chatProvider =
-    NotifierProviderFamily<ChatNotifier, ChatState, String>(
+final chatProvider = NotifierProviderFamily<ChatNotifier, ChatState, String>(
   ChatNotifier.new,
 );

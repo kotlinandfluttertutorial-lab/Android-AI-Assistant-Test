@@ -25,11 +25,11 @@ enum AnalysisSeverity {
   low;
 
   static AnalysisSeverity parse(String v) => switch (v.toUpperCase()) {
-    'CRITICAL' => AnalysisSeverity.critical,
-    'HIGH' => AnalysisSeverity.high,
-    'MEDIUM' => AnalysisSeverity.medium,
-    _ => AnalysisSeverity.low,
-  };
+        'CRITICAL' => AnalysisSeverity.critical,
+        'HIGH' => AnalysisSeverity.high,
+        'MEDIUM' => AnalysisSeverity.medium,
+        _ => AnalysisSeverity.low,
+      };
 
   String get label => name.toUpperCase();
 }
@@ -84,8 +84,8 @@ class ErrorAnalysisResponse extends Equatable {
   factory ErrorAnalysisResponse.fromJson(Map<String, dynamic> json) =>
       ErrorAnalysisResponse(
         analysisId: (json['analysis_id'] as String?) ?? '',
-        severity: AnalysisSeverity.parse(
-            (json['severity'] as String?) ?? 'LOW'),
+        severity:
+            AnalysisSeverity.parse((json['severity'] as String?) ?? 'LOW'),
         summary: (json['summary'] as String?) ?? '',
         likelyRootCause: (json['likely_root_cause'] as String?) ?? '',
         confidence: ((json['confidence'] as num?) ?? 0).toDouble(),
@@ -93,14 +93,13 @@ class ErrorAnalysisResponse extends Equatable {
         evidence: List<String>.from(json['evidence'] as List? ?? []),
         possibleCauses:
             List<String>.from(json['possible_causes'] as List? ?? []),
-        relatedDocumentation: List<String>.from(
-            json['related_documentation'] as List? ?? []),
+        relatedDocumentation:
+            List<String>.from(json['related_documentation'] as List? ?? []),
         factsVsInference: json['facts_vs_inference'] != null
             ? FactsVsInference.fromJson(
                 json['facts_vs_inference'] as Map<String, dynamic>)
             : const FactsVsInference(),
-        lowConfidenceWarning:
-            json['low_confidence_warning'] as String?,
+        lowConfidenceWarning: json['low_confidence_warning'] as String?,
         eventsAnalysed: (json['events_analysed'] as int?) ?? 0,
         knowledgeChunksRetrieved:
             (json['knowledge_chunks_retrieved'] as int?) ?? 0,

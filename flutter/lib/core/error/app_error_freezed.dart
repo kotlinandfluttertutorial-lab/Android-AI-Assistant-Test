@@ -52,7 +52,8 @@ sealed class AppErrorF with _$AppErrorF {
 
   const factory AppErrorF.serverError({String? detail}) = ServerError;
 
-  const factory AppErrorF.aiProvider({required String detail}) = AiProviderError;
+  const factory AppErrorF.aiProvider({required String detail}) =
+      AiProviderError;
 
   const factory AppErrorF.websocketDisconnect() = WebSocketDisconnectError;
 
@@ -65,10 +66,8 @@ sealed class AppErrorF with _$AppErrorF {
         networkUnavailable: () =>
             'No internet connection. Please check your network.',
         timeout: () => 'The request timed out. Please try again.',
-        unauthorized: () =>
-            'Your session has expired. Please sign in again.',
-        forbidden: () =>
-            'You do not have permission to perform this action.',
+        unauthorized: () => 'Your session has expired. Please sign in again.',
+        forbidden: () => 'You do not have permission to perform this action.',
         notFound: (String r) => '$r was not found.',
         validation: (String msg, String? _) =>
             msg.isNotEmpty ? msg : 'Please check your input and try again.',
@@ -79,8 +78,7 @@ sealed class AppErrorF with _$AppErrorF {
             'Something went wrong on our end. Please try again.',
         aiProvider: (String _) =>
             'The AI service is currently unavailable. Please try again.',
-        websocketDisconnect: () =>
-            'Connection lost. Attempting to reconnect…',
+        websocketDisconnect: () => 'Connection lost. Attempting to reconnect…',
         unknown: (String? _) =>
             'An unexpected error occurred. Please try again.',
       );

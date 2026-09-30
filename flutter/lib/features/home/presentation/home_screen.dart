@@ -43,8 +43,7 @@ class HomeScreen extends ConsumerWidget {
         ],
       ),
       body: RefreshIndicator(
-        onRefresh: () =>
-            ref.read(conversationsProvider.notifier).refresh(),
+        onRefresh: () => ref.read(conversationsProvider.notifier).refresh(),
         child: CustomScrollView(
           slivers: [
             SliverPadding(
@@ -90,8 +89,7 @@ class HomeScreen extends ConsumerWidget {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text('Recent chats',
-                          style: context.texts.titleSmall),
+                      Text('Recent chats', style: context.texts.titleSmall),
                       TextButton(
                         onPressed: () => context.go(Routes.conversations),
                         child: const Text('See all'),
@@ -192,9 +190,7 @@ class _HeroCard extends StatelessWidget {
           const Row(
             children: [
               Icon(Icons.auto_awesome,
-                  color: Colors.white,
-                  size: 28,
-                  semanticLabel: 'AI ready'),
+                  color: Colors.white, size: 28, semanticLabel: 'AI ready'),
               SizedBox(width: 12),
               Expanded(
                 child: Text(
@@ -264,8 +260,7 @@ class _ConversationCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 8),
       child: ListTile(
         leading: CircleAvatar(
-          backgroundColor:
-              Theme.of(context).colorScheme.primary.withAlpha(20),
+          backgroundColor: Theme.of(context).colorScheme.primary.withAlpha(20),
           child: const Icon(Icons.chat_bubble_outline, size: 18),
         ),
         title: Text(
@@ -277,8 +272,7 @@ class _ConversationCard extends StatelessWidget {
         subtitle: Text(
           DateFormatter.relative(
               conversation.updatedAt ?? conversation.createdAt),
-          style: context.texts.bodySmall
-              ?.copyWith(color: context.mutedColor),
+          style: context.texts.bodySmall?.copyWith(color: context.mutedColor),
         ),
         trailing: const Icon(Icons.arrow_forward_ios, size: 14),
         onTap: () => context.push(Routes.chatPath(conversation.id)),

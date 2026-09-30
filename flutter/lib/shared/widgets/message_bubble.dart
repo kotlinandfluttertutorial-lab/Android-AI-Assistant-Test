@@ -47,10 +47,12 @@ class MessageBubble extends StatelessWidget {
           Flexible(
             child: GestureDetector(
               onLongPress: () => _showActions(context),
-              child: _isUser ? _UserBubble(content: content) : _AiBubble(
-                content: content,
-                isStreaming: isStreaming,
-              ),
+              child: _isUser
+                  ? _UserBubble(content: content)
+                  : _AiBubble(
+                      content: content,
+                      isStreaming: isStreaming,
+                    ),
             ),
           ),
           if (_isUser) const SizedBox(width: 8),
@@ -134,7 +136,8 @@ class _UserBubble extends StatelessWidget {
         label: 'You: $content',
         child: Text(
           content,
-          style: const TextStyle(color: Colors.white, fontSize: 15, height: 1.4),
+          style:
+              const TextStyle(color: Colors.white, fontSize: 15, height: 1.4),
         ),
       ),
     );
@@ -180,8 +183,8 @@ class _AiBubble extends StatelessWidget {
                 )
               : MarkdownBody(
                   data: content,
-                  styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context))
-                      .copyWith(
+                  styleSheet:
+                      MarkdownStyleSheet.fromTheme(Theme.of(context)).copyWith(
                     p: Theme.of(context)
                         .textTheme
                         .bodyMedium

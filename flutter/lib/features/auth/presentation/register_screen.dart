@@ -162,8 +162,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     decoration: BoxDecoration(
                       color: context.critical.withAlpha(20),
                       borderRadius: BorderRadius.circular(12),
-                      border:
-                          Border.all(color: context.critical.withAlpha(60)),
+                      border: Border.all(color: context.critical.withAlpha(60)),
                     ),
                     child: Text(
                       _errorMessage!,

@@ -70,9 +70,8 @@ class SettingsScreen extends ConsumerWidget {
                           ? Theme.of(context).colorScheme.primary
                           : context.mutedColor)
                   : null,
-              onChanged: (_) => ref
-                  .read(selectedProviderProvider.notifier)
-                  .select(provider),
+              onChanged: (_) =>
+                  ref.read(selectedProviderProvider.notifier).select(provider),
             );
           }),
           const Divider(),
@@ -168,14 +167,14 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   String _statusLabel(OnDeviceAiState status) => switch (status) {
-    OnDeviceAiState.checking => 'Checking…',
-    OnDeviceAiState.unsupported => 'Not supported',
-    OnDeviceAiState.supported => 'Model not loaded',
-    OnDeviceAiState.loadingModel => 'Loading model…',
-    OnDeviceAiState.ready => 'Ready',
-    OnDeviceAiState.running => 'Running',
-    OnDeviceAiState.error => 'Error',
-  };
+        OnDeviceAiState.checking => 'Checking…',
+        OnDeviceAiState.unsupported => 'Not supported',
+        OnDeviceAiState.supported => 'Model not loaded',
+        OnDeviceAiState.loadingModel => 'Loading model…',
+        OnDeviceAiState.ready => 'Ready',
+        OnDeviceAiState.running => 'Running',
+        OnDeviceAiState.error => 'Error',
+      };
 }
 
 class _SectionHeader extends StatelessWidget {

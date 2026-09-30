@@ -26,17 +26,16 @@ void main() {
     test('calls NotificationsApi.registerDeviceToken with correct params',
         () async {
       when(() => mockApi.registerDeviceToken(
-                token:    any(named: 'token'),
-                platform: any(named: 'platform'),
-              ))
-          .thenAnswer((_) async => const Success(null));
+            token: any(named: 'token'),
+            platform: any(named: 'platform'),
+          )).thenAnswer((_) async => const Success(null));
 
       final service = FcmTokenService(mockApi);
       await service.registerToken('fcm-test-token-abc');
 
       verify(
         () => mockApi.registerDeviceToken(
-          token:    'fcm-test-token-abc',
+          token: 'fcm-test-token-abc',
           platform: any(named: 'platform'),
         ),
       ).called(1);
@@ -44,10 +43,9 @@ void main() {
 
     test('does not throw when backend returns an error', () async {
       when(() => mockApi.registerDeviceToken(
-                token:    any(named: 'token'),
-                platform: any(named: 'platform'),
-              ))
-          .thenAnswer((_) async => Failure(AppError.serverError()));
+            token: any(named: 'token'),
+            platform: any(named: 'platform'),
+          )).thenAnswer((_) async => Failure(AppError.serverError()));
 
       final service = FcmTokenService(mockApi);
 
@@ -61,14 +59,13 @@ void main() {
     test('platform is "android" on non-Apple platforms', () async {
       String? capturedPlatform;
       when(() => mockApi.registerDeviceToken(
-                token:    any(named: 'token'),
-                platform: any(named: 'platform'),
-              ))
-          .thenAnswer((invocation) async {
-            capturedPlatform =
-                invocation.namedArguments[const Symbol('platform')] as String;
-            return const Success(null);
-          });
+            token: any(named: 'token'),
+            platform: any(named: 'platform'),
+          )).thenAnswer((invocation) async {
+        capturedPlatform =
+            invocation.namedArguments[const Symbol('platform')] as String;
+        return const Success(null);
+      });
 
       final service = FcmTokenService(mockApi);
       await service.registerToken('tok');
@@ -80,10 +77,9 @@ void main() {
 
     test('handles exception from API gracefully', () async {
       when(() => mockApi.registerDeviceToken(
-                token:    any(named: 'token'),
-                platform: any(named: 'platform'),
-              ))
-          .thenThrow(Exception('Network error'));
+            token: any(named: 'token'),
+            platform: any(named: 'platform'),
+          )).thenThrow(Exception('Network error'));
 
       final service = FcmTokenService(mockApi);
 
@@ -104,7 +100,7 @@ void main() {
       await service.registerIfAvailable();
 
       verifyNever(() => mockApi.registerDeviceToken(
-            token:    any(named: 'token'),
+            token: any(named: 'token'),
             platform: any(named: 'platform'),
           ));
     });

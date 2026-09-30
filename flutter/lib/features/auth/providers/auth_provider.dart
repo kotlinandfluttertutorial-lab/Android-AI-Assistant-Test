@@ -106,7 +106,6 @@ class AuthStateNotifier extends AsyncNotifier<AuthState> {
   }
 }
 
-final authStateProvider =
-    AsyncNotifierProvider<AuthStateNotifier, AuthState>(
+final authStateProvider = AsyncNotifierProvider<AuthStateNotifier, AuthState>(
   AuthStateNotifier.new,
 );

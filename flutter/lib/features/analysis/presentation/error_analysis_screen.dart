@@ -148,8 +148,7 @@ class _ControlsBar extends ConsumerWidget {
           FilledButton.icon(
             onPressed: state.isLoading
                 ? null
-                : () =>
-                    ref.read(analysisProvider.notifier).analyseRecent(),
+                : () => ref.read(analysisProvider.notifier).analyseRecent(),
             icon: const Icon(Icons.play_arrow, size: 18),
             label: const Text('Run Analysis'),
           ),
@@ -202,18 +201,18 @@ class _SeveritySummaryCard extends StatelessWidget {
   final ErrorAnalysisResponse result;
 
   Color _severityColor(BuildContext ctx) => switch (result.severity) {
-    AnalysisSeverity.critical => ctx.critical,
-    AnalysisSeverity.high => ctx.critical.withAlpha(200),
-    AnalysisSeverity.medium => ctx.warning,
-    AnalysisSeverity.low => ctx.infoColor,
-  };
+        AnalysisSeverity.critical => ctx.critical,
+        AnalysisSeverity.high => ctx.critical.withAlpha(200),
+        AnalysisSeverity.medium => ctx.warning,
+        AnalysisSeverity.low => ctx.infoColor,
+      };
 
   IconData _severityIcon() => switch (result.severity) {
-    AnalysisSeverity.critical => Icons.error,
-    AnalysisSeverity.high => Icons.error_outline,
-    AnalysisSeverity.medium => Icons.warning_amber,
-    AnalysisSeverity.low => Icons.info_outline,
-  };
+        AnalysisSeverity.critical => Icons.error,
+        AnalysisSeverity.high => Icons.error_outline,
+        AnalysisSeverity.medium => Icons.warning_amber,
+        AnalysisSeverity.low => Icons.info_outline,
+      };
 
   @override
   Widget build(BuildContext context) {
@@ -240,8 +239,8 @@ class _SeveritySummaryCard extends StatelessWidget {
                     semanticLabel: '${result.severity.label} severity'),
                 const SizedBox(width: 8),
                 Container(
-                  padding: const EdgeInsets.symmetric(
-                      horizontal: 10, vertical: 3),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
                   decoration: BoxDecoration(
                     color: color.withAlpha(20),
                     borderRadius: BorderRadius.circular(6),
@@ -303,8 +302,7 @@ class _ConfidenceSection extends StatelessWidget {
                         color: context.aiAccent,
                         semanticLabel: 'AI confidence'),
                     const SizedBox(width: 8),
-                    Text('AI Confidence',
-                        style: context.texts.labelMedium),
+                    Text('AI Confidence', style: context.texts.labelMedium),
                   ],
                 ),
                 Text(
@@ -335,8 +333,7 @@ class _ConfidenceSection extends StatelessWidget {
                 decoration: BoxDecoration(
                   color: context.warning.withAlpha(18),
                   borderRadius: BorderRadius.circular(8),
-                  border: Border.all(
-                      color: context.warning.withAlpha(60)),
+                  border: Border.all(color: context.warning.withAlpha(60)),
                 ),
                 child: Row(
                   children: [
@@ -386,12 +383,10 @@ class _FactsInferencesCard extends StatelessWidget {
                     color: context.colors.primary,
                     semanticLabel: 'Facts vs inferences'),
                 const SizedBox(width: 8),
-                Text('Facts vs Inferences',
-                    style: context.texts.labelMedium),
+                Text('Facts vs Inferences', style: context.texts.labelMedium),
               ],
             ),
             const SizedBox(height: 12),
-
             if (fvi.facts.isNotEmpty) ...[
               Text('Facts',
                   style: context.texts.labelSmall
@@ -403,7 +398,6 @@ class _FactsInferencesCard extends StatelessWidget {
                     icon: Icons.check_circle_outline,
                   )),
             ],
-
             if (fvi.inferences.isNotEmpty) ...[
               const SizedBox(height: 10),
               Text('Inferences',
@@ -472,8 +466,7 @@ class _PossibleCausesCard extends StatelessWidget {
                     color: context.colors.primary,
                     semanticLabel: 'Possible causes'),
                 const SizedBox(width: 8),
-                Text('Possible Causes',
-                    style: context.texts.labelMedium),
+                Text('Possible Causes', style: context.texts.labelMedium),
               ],
             ),
             const SizedBox(height: 10),
@@ -503,8 +496,7 @@ class _PossibleCausesCard extends StatelessWidget {
                         ),
                         const SizedBox(width: 8),
                         Expanded(
-                          child: Text(e.value,
-                              style: context.texts.bodySmall),
+                          child: Text(e.value, style: context.texts.bodySmall),
                         ),
                       ],
                     ),
@@ -538,8 +530,7 @@ class _RecommendedFixCard extends StatelessWidget {
                     color: context.aiAccent,
                     semanticLabel: 'Recommended fix'),
                 const SizedBox(width: 8),
-                Text('Recommended Fix',
-                    style: context.texts.labelMedium),
+                Text('Recommended Fix', style: context.texts.labelMedium),
               ],
             ),
             const SizedBox(height: 4),
@@ -576,9 +567,8 @@ class _EvidenceCardState extends State<_EvidenceCard> {
 
   @override
   Widget build(BuildContext context) {
-    final shown = _expanded
-        ? widget.evidence
-        : widget.evidence.take(3).toList();
+    final shown =
+        _expanded ? widget.evidence : widget.evidence.take(3).toList();
 
     return Card(
       child: Padding(
@@ -625,8 +615,7 @@ class _EvidenceCardState extends State<_EvidenceCard> {
             ),
             if (widget.evidence.length > 3)
               TextButton(
-                onPressed: () =>
-                    setState(() => _expanded = !_expanded),
+                onPressed: () => setState(() => _expanded = !_expanded),
                 child: Text(
                   _expanded
                       ? 'Show less'
@@ -685,8 +674,7 @@ class _MetaChip extends StatelessWidget {
         const SizedBox(width: 4),
         Text(
           label,
-          style: context.texts.labelSmall
-              ?.copyWith(color: context.mutedColor),
+          style: context.texts.labelSmall?.copyWith(color: context.mutedColor),
         ),
       ],
     );
