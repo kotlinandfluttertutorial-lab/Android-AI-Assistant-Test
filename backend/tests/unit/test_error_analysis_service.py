@@ -78,7 +78,6 @@ from app.schemas.error_analysis import AnalyseErrorRequest, ErrorSeverity
 from app.services.error_analysis_service import (
     ErrorAnalysisService,
     _LOW_CONFIDENCE_THRESHOLD,
-    _MAX_EVENTS_IN_PROMPT,
 )
 
 

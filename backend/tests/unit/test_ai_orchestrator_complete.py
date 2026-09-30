@@ -578,7 +578,7 @@ class TestTokenUsageProviderMatchesActiveProvider:
             # Primary fails, fallback succeeds
             async def _failing_stream(context):
                 raise RuntimeError("primary down")
-                yield  # noqa: unreachable
+                yield  # unreachable — needed to make this an async generator
 
             primary_client = AsyncMock(spec=BaseLLMClient)
             primary_client.stream = _failing_stream

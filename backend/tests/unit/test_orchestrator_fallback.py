@@ -142,7 +142,7 @@ class TestStreamChatFallback:
 
         async def _stream(context):
             raise error
-            yield  # make it a generator  # noqa: unreachable
+            yield  # make it a generator
 
         client = AsyncMock(spec=BaseLLMClient)
         client.stream = _stream

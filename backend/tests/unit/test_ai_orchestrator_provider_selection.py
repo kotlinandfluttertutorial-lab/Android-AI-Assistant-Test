@@ -114,7 +114,7 @@ def _make_failing_client(error: Exception) -> AsyncMock:
 
     async def _stream(context):
         raise error
-        yield  # make it an async generator  # noqa: unreachable
+        yield  # make it an async generator
 
     client = AsyncMock(spec=BaseLLMClient)
     client.stream = _stream
