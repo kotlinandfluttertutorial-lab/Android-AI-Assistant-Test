@@ -1,0 +1,78 @@
+﻿
+> Configure project :app
+WARNING: The option setting 'android.r8.maxWorkers=1' is experimental.
+
+> Task :domain:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core-common:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core-common:preBuild UP-TO-DATE
+> Task :domain:preBuild UP-TO-DATE
+> Task :core-common:preReleaseBuild UP-TO-DATE
+> Task :domain:preReleaseBuild UP-TO-DATE
+> Task :domain:generateReleaseResources
+> Task :core-common:generateReleaseResources
+> Task :domain:packageReleaseResources
+> Task :core-common:packageReleaseResources
+> Task :domain:parseReleaseLocalResources
+> Task :core-common:parseReleaseLocalResources
+> Task :core-common:javaPreCompileRelease
+> Task :domain:generateReleaseRFile
+> Task :domain:javaPreCompileRelease
+> Task :domain:preReleaseUnitTestBuild UP-TO-DATE
+> Task :domain:javaPreCompileReleaseUnitTest
+> Task :core-common:generateReleaseRFile
+> Task :domain:generateReleaseUnitTestStubRFile
+> Task :core-common:compileReleaseKotlin
+> Task :core-common:compileReleaseJavaWithJavac NO-SOURCE
+> Task :core-common:processReleaseJavaRes
+> Task :core-common:bundleLibRuntimeToJarRelease
+> Task :core-common:bundleLibCompileToJarRelease
+> Task :domain:compileReleaseKotlin
+> Task :domain:compileReleaseJavaWithJavac NO-SOURCE
+> Task :domain:bundleLibCompileToJarRelease
+> Task :domain:bundleLibRuntimeToJarRelease
+> Task :domain:processReleaseJavaRes
+
+> Task :domain:compileReleaseUnitTestKotlin
+w: file:///J:/Android/AndroidStudioProjects/Kiro/TestBranch/Develop_Main/Android-AI-Assistant-Test/domain/src/test/kotlin/com/aiassistant/domain/agent/AgentModeTest.kt:450:40 Call uses reflection API which is not found in compilation classpath. Make sure you have kotlin-reflect.jar in the classpath.
+
+> Task :domain:compileReleaseUnitTestJavaWithJavac NO-SOURCE
+> Task :domain:processReleaseUnitTestJavaRes
+> Task :domain:testReleaseUnitTest
+
+.\gradlew.bat : Java HotSpot(TM) 
+64-Bit Server VM warning: Sharing is 
+only supported for boot loader 
+classes because bootstrap classpath 
+has been appended
+At line:1 char:1
++ .\gradlew.bat 
+:domain:testReleaseUnitTest 
+--rerun-tasks 2>&1 | Out-Fi ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpe 
+   cified: (Java HotSpot(TM...s bee  
+  n appended:String) [], RemoteExc   
+ eption
+    + FullyQualifiedErrorId : Native 
+   CommandError
+ 
+Java HotSpot(TM) 64-Bit Server VM 
+warning: Sharing is only supported 
+for boot loader classes because 
+bootstrap classpath has been appended
+Java HotSpot(TM) 64-Bit Server VM 
+warning: Sharing is only supported 
+for boot loader classes because 
+bootstrap classpath has been appended
+Java HotSpot(TM) 64-Bit Server VM 
+warning: Sharing is only supported 
+for boot loader classes because 
+bootstrap classpath has been appended
+Java HotSpot(TM) 64-Bit Server VM 
+warning: Sharing is only supported 
+for boot loader classes because 
+bootstrap classpath has been appended
+
+BUILD SUCCESSFUL in 4m 35s
+23 actionable tasks: 23 executed

@@ -112,12 +112,67 @@ class DefaultAgentOrchestrator(
     private val registry: AgentRegistry,
     private val router: AgentRouter,
     private val planner: AgentPlanner,
+    /**
+     * Maximum number of concurrent agent executions per user.
+     *
+     * Phase 10 hardening: prevents a single user from spawning unlimited
+     * parallel agent runs that would exhaust server resources.
+     * Set to 0 to disable per-user concurrency limiting.
+     *
+     * Default: [MAX_CONCURRENT_PER_USER].
+     */
+    private val maxConcurrentPerUser: Int = MAX_CONCURRENT_PER_USER,
 ) : AgentOrchestrator {
+
+    /**
+     * Tracks active execution counts per userId.
+     * Guarded by the ConcurrentHashMap's atomicity guarantees + compareAndSet.
+     */
+    private val activeCountByUser = java.util.concurrent.ConcurrentHashMap<String, java.util.concurrent.atomic.AtomicInteger>()
 
     override fun execute(request: AgentRequest): Flow<AgentEvent> = channelFlow {
         val startMs = System.currentTimeMillis()
 
-        // ── 1. Route ────────────────────────────────────────────────────────
+        // ── 0. Per-user concurrency gate (Phase 10) ──────────────────────────
+        if (maxConcurrentPerUser > 0) {
+            val counter = activeCountByUser.computeIfAbsent(request.userId) {
+                java.util.concurrent.atomic.AtomicInteger(0)
+            }
+            val current = counter.incrementAndGet()
+            if (current > maxConcurrentPerUser) {
+                counter.decrementAndGet()
+                val result = terminalFailedResult(
+                    executionId = newId(),
+                    request = request,
+                    agentName = "orchestrator",
+                    code = "CONCURRENCY_LIMIT_EXCEEDED",
+                    message = "Too many concurrent agent executions. " +
+                        "Maximum $maxConcurrentPerUser active request(s) per user.",
+                )
+                send(AgentEvent.Failed(result))
+                return@channelFlow
+            }
+            // Decrement on completion — ensure it fires even on cancellation
+            invokeOnClose { counter.decrementAndGet() }
+        }
+
+        // ── 1. Authenticate (Phase 10) ───────────────────────────────────────
+        when (val auth = AgentAuthGuard.validate(request)) {
+            is AgentAuthResult.Unauthenticated -> {
+                val result = terminalFailedResult(
+                    executionId = newId(),
+                    request = request,
+                    agentName = "orchestrator",
+                    code = "UNAUTHENTICATED",
+                    message = auth.reason,
+                )
+                send(AgentEvent.Failed(result))
+                return@channelFlow
+            }
+            is AgentAuthResult.Authenticated -> { /* continue */ }
+        }
+
+        // ── 2. Route ────────────────────────────────────────────────────────
         val routingOutcome = router.route(request, registry)
         if (routingOutcome is RoutingOutcome.NoAgentFound) {
             val result = terminalFailedResult(
@@ -132,7 +187,7 @@ class DefaultAgentOrchestrator(
         }
         val firstAgent = (routingOutcome as RoutingOutcome.Routed).agent
 
-        // ── 2. Plan ─────────────────────────────────────────────────────────
+        // ── 3. Plan ─────────────────────────────────────────────────────────
         val plan: AgentPlan
         try {
             plan = planner.buildPlan(request, firstAgent, registry)
@@ -163,7 +218,7 @@ class DefaultAgentOrchestrator(
             return@channelFlow
         }
 
-        // ── 3. Execute plan under timeout ────────────────────────────────────
+        // ── 4. Execute plan under timeout ────────────────────────────────────
         val timedOut = withTimeoutOrNull(plan.timeoutMs) {
             executePlan(
                 request = request,
@@ -405,9 +460,16 @@ class DefaultAgentOrchestrator(
         /**
          * Maximum number of times the same agent name may appear consecutively
          * in a plan before it is flagged as recursive.
-         *
-         * A Code→Code→Code plan (3× same agent) is rejected; Code→RAG→Code (alternating) is fine.
          */
         const val MAX_CONSECUTIVE_SAME_AGENT: Int = 2
+
+        /**
+         * Default maximum number of concurrent agent executions per user.
+         *
+         * Phase 10: prevents resource exhaustion from a single user spawning
+         * unlimited parallel executions. Set [maxConcurrentPerUser] to 0 in
+         * tests to disable this gate.
+         */
+        const val MAX_CONCURRENT_PER_USER: Int = 5
     }
 }

@@ -1,0 +1,90 @@
+﻿
+> Configure project :app
+WARNING: The option setting 'android.r8.maxWorkers=1' is experimental.
+
+> Task :core-common:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core-common:preBuild UP-TO-DATE
+> Task :core-common:preReleaseBuild UP-TO-DATE
+> Task :domain:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :domain:preBuild UP-TO-DATE
+> Task :domain:preReleaseBuild UP-TO-DATE
+> Task :domain:generateReleaseResources
+> Task :core-common:generateReleaseResources
+> Task :domain:packageReleaseResources
+> Task :core-common:packageReleaseResources
+> Task :domain:parseReleaseLocalResources
+> Task :core-common:parseReleaseLocalResources
+> Task :core-common:javaPreCompileRelease
+> Task :core-common:generateReleaseRFile
+> Task :domain:generateReleaseRFile
+> Task :domain:javaPreCompileRelease
+> Task :domain:preReleaseUnitTestBuild UP-TO-DATE
+> Task :domain:generateReleaseUnitTestStubRFile
+> Task :domain:javaPreCompileReleaseUnitTest
+> Task :core-common:compileReleaseKotlin
+> Task :core-common:compileReleaseJavaWithJavac NO-SOURCE
+> Task :core-common:bundleLibRuntimeToJarRelease
+> Task :core-common:processReleaseJavaRes
+> Task :core-common:bundleLibCompileToJarRelease
+> Task :domain:compileReleaseKotlin
+> Task :domain:compileReleaseJavaWithJavac NO-SOURCE
+> Task :domain:bundleLibCompileToJarRelease
+> Task :domain:bundleLibRuntimeToJarRelease
+> Task :domain:processReleaseJavaRes
+
+> Task :domain:compileReleaseUnitTestKotlin
+.\gradlew.bat : e: file:///J:/Android
+/AndroidStudioProjects/Kiro/TestBranc
+h/Develop_Main/Android-AI-Assistant-T
+est/domain/src/test/kotlin/com/aiassi
+stant/domain/agent/AgentAuthGuardTest
+.kt:175:50 Unresolved reference 
+'launch'.
+At line:1 char:1
++ .\gradlew.bat 
+:domain:testReleaseUnitTest 
+--rerun-tasks 2>&1 | Out-Fi ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpe 
+   cified: (e: file:///J:/A...rence  
+   'launch'.:String) [], RemoteExc   
+ eption
+    + FullyQualifiedErrorId : Native 
+   CommandError
+ 
+e: file:///J:/Android/AndroidStudioPr
+ojects/Kiro/TestBranch/Develop_Main/A
+ndroid-AI-Assistant-Test/domain/src/t
+est/kotlin/com/aiassistant/domain/age
+nt/AgentAuthGuardTest.kt:176:34 
+Suspension functions can only be 
+called within coroutine body.
+
+> Task :domain:compileReleaseUnitTestKotlin FAILED
+
+FAILURE: Build failed with an 
+exception.
+
+* What went wrong:
+Execution failed for task ':domain:co
+mpileReleaseUnitTestKotlin'.
+> A failure occurred while executing 
+org.jetbrains.kotlin.compilerRunner.G
+radleCompilerRunnerWithWorkers$Gradle
+KotlinCompilerWorkAction
+   > Compilation error. See log for 
+more details
+
+* Try:
+> Run with --stacktrace option to 
+get the stack trace.
+> Run with --info or --debug option 
+to get more log output.
+> Run with --scan to get full 
+insights.
+> Get more help at 
+https://help.gradle.org.
+
+BUILD FAILED in 1m 24s
+21 actionable tasks: 21 executed

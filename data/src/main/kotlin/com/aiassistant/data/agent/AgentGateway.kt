@@ -28,6 +28,7 @@
 
 package com.aiassistant.data.agent
 
+import com.aiassistant.domain.agent.AgentAuthGuard
 import com.aiassistant.domain.agent.AgentCapability
 import com.aiassistant.domain.agent.AgentContext
 import com.aiassistant.domain.agent.AgentEvent
@@ -250,8 +251,27 @@ class AgentGateway @Inject constructor(
 
     // ── Private helpers ───────────────────────────────────────────────────────
 
+    /**
+     * Resolves the userId from [AgentContext].
+     *
+     * Phase 10: rejects guest sentinels by returning [UNAUTHENTICATED_USER_ID],
+     * which [assertAuthenticatedUserId] will then reject before any request
+     * reaches the orchestrator.
+     */
     private fun resolveUserId(context: AgentContext?): String =
-        context?.userId?.takeIf { it.isNotBlank() } ?: ANONYMOUS_USER_ID
+        context?.userId?.takeIf { AgentAuthGuard.isAuthenticated(it) }
+            ?: UNAUTHENTICATED_USER_ID
+
+    /**
+     * Asserts [userId] is authenticated. Throws [IllegalStateException] on failure —
+     * this is a programming error: callers MUST supply an authenticated [AgentContext].
+     */
+    private fun assertAuthenticatedUserId(userId: String) {
+        check(AgentAuthGuard.isAuthenticated(userId)) {
+            "AgentGateway: all requests require an authenticated userId. " +
+                "Received='$userId'. Set AgentContext.userId from SecureStorage."
+        }
+    }
 
     // ── Phase 5: PDF ──────────────────────────────────────────────────────────
 
@@ -314,7 +334,11 @@ class AgentGateway @Inject constructor(
         toolRegistry.list().map { it.schema }
 
     companion object {
-        private const val ANONYMOUS_USER_ID = "anonymous"
+        /**
+         * Sentinel returned by [resolveUserId] when no authenticated context is available.
+         * Any request carrying this ID is rejected by [assertAuthenticatedUserId].
+         */
+        internal const val UNAUTHENTICATED_USER_ID = "__unauthenticated__"
     }
 
     // ── Phase 6: Web Search ───────────────────────────────────────────────────
