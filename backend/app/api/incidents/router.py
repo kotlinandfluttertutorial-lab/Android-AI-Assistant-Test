@@ -345,56 +345,57 @@ async def get_rca(
 class RemediationActionResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id:               uuid.UUID
-    incident_id:      str
-    title:            str
-    action_type:      str
-    risk_tier:        str
-    reasoning:        str
-    confidence:       float | None
-    rank:             int
-    params:           dict
-    status:           str
-    reviewed_by:      str | None
+    id: uuid.UUID
+    incident_id: str
+    title: str
+    action_type: str
+    risk_tier: str
+    reasoning: str
+    confidence: float | None
+    rank: int
+    params: dict
+    status: str
+    reviewed_by: str | None
     rejection_reason: str | None
-    created_at:       str
-    reviewed_at:      str | None
+    created_at: str
+    reviewed_at: str | None
 
     @classmethod
     def from_orm_model(cls, a) -> RemediationActionResponse:
         import json as _json
+
         try:
             params = _json.loads(a.params_json or "{}")
         except Exception:
             params = {}
         return cls(
-            id               = a.id,
-            incident_id      = a.incident_id,
-            title            = a.title,
-            action_type      = a.action_type,
-            risk_tier        = a.risk_tier,
-            reasoning        = a.reasoning,
-            confidence       = a.confidence,
-            rank             = a.rank,
-            params           = params,
-            status           = a.status,
-            reviewed_by      = a.reviewed_by,
-            rejection_reason = a.rejection_reason,
-            created_at       = a.created_at.isoformat() if a.created_at else "",
-            reviewed_at      = a.reviewed_at.isoformat() if a.reviewed_at else None,
+            id=a.id,
+            incident_id=a.incident_id,
+            title=a.title,
+            action_type=a.action_type,
+            risk_tier=a.risk_tier,
+            reasoning=a.reasoning,
+            confidence=a.confidence,
+            rank=a.rank,
+            params=params,
+            status=a.status,
+            reviewed_by=a.reviewed_by,
+            rejection_reason=a.rejection_reason,
+            created_at=a.created_at.isoformat() if a.created_at else "",
+            reviewed_at=a.reviewed_at.isoformat() if a.reviewed_at else None,
         )
 
 
 class RemediationPlanResponse(BaseModel):
-    incident_id:             str
-    incident_title:          str
-    ai_summary:              str
-    actions:                 list[RemediationActionResponse]
-    low_confidence_warning:  str | None
+    incident_id: str
+    incident_title: str
+    ai_summary: str
+    actions: list[RemediationActionResponse]
+    low_confidence_warning: str | None
 
 
 class ApproveRequest(BaseModel):
-    pass   # reviewer ID comes from JWT
+    pass  # reviewer ID comes from JWT
 
 
 class RejectRequest(BaseModel):
@@ -425,32 +426,32 @@ async def recommend_remediation(
     from app.services.remediation_service import RemediationService
 
     service = RemediationService(db)
-    plan    = await service.recommend(incident_id)
+    plan = await service.recommend(incident_id)
 
     return RemediationPlanResponse(
-        incident_id            = plan.incident_id,
-        incident_title         = plan.incident_title,
-        ai_summary             = plan.ai_summary,
-        actions                = [
+        incident_id=plan.incident_id,
+        incident_title=plan.incident_title,
+        ai_summary=plan.ai_summary,
+        actions=[
             RemediationActionResponse(
-                id               = uuid.uuid4(),  # not yet persisted — temp
-                incident_id      = plan.incident_id,
-                title            = r.title,
-                action_type      = r.action_type,
-                risk_tier        = r.risk_tier,
-                reasoning        = r.reasoning,
-                confidence       = r.confidence,
-                rank             = r.rank,
-                params           = r.params,
-                status           = "RECOMMENDED",
-                reviewed_by      = None,
-                rejection_reason = None,
-                created_at       = "",
-                reviewed_at      = None,
+                id=uuid.uuid4(),  # not yet persisted — temp
+                incident_id=plan.incident_id,
+                title=r.title,
+                action_type=r.action_type,
+                risk_tier=r.risk_tier,
+                reasoning=r.reasoning,
+                confidence=r.confidence,
+                rank=r.rank,
+                params=r.params,
+                status="RECOMMENDED",
+                reviewed_by=None,
+                rejection_reason=None,
+                created_at="",
+                reviewed_at=None,
             )
             for r in plan.recommendations
         ],
-        low_confidence_warning = plan.low_confidence_warning,
+        low_confidence_warning=plan.low_confidence_warning,
     )
 
 
@@ -490,7 +491,7 @@ async def list_remediation(
 )
 async def approve_remediation(
     incident_id: uuid.UUID,
-    action_id:   uuid.UUID,
+    action_id: uuid.UUID,
     current_user: TokenPayload = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> RemediationActionResponse:
@@ -501,9 +502,9 @@ async def approve_remediation(
     from app.services.remediation_service import RemediationService
 
     service = RemediationService(db)
-    action  = await service.approve(
-        action_id        = action_id,
-        reviewer_user_id = current_user.sub,
+    action = await service.approve(
+        action_id=action_id,
+        reviewer_user_id=current_user.sub,
     )
     if action is None:
         raise HTTPException(
@@ -520,8 +521,8 @@ async def approve_remediation(
 )
 async def reject_remediation(
     incident_id: uuid.UUID,
-    action_id:   uuid.UUID,
-    body:        RejectRequest,
+    action_id: uuid.UUID,
+    body: RejectRequest,
     current_user: TokenPayload = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> RemediationActionResponse:
@@ -532,10 +533,10 @@ async def reject_remediation(
     from app.services.remediation_service import RemediationService
 
     service = RemediationService(db)
-    action  = await service.reject(
-        action_id        = action_id,
-        reviewer_user_id = current_user.sub,
-        reason           = body.reason,
+    action = await service.reject(
+        action_id=action_id,
+        reviewer_user_id=current_user.sub,
+        reason=body.reason,
     )
     if action is None:
         raise HTTPException(

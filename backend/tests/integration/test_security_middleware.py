@@ -42,9 +42,7 @@ def _make_bearer_jwt(payload: dict) -> str:
         .rstrip(b"=")
         .decode()
     )
-    payload_b64 = (
-        base64.urlsafe_b64encode(json.dumps(payload).encode()).rstrip(b"=").decode()
-    )
+    payload_b64 = base64.urlsafe_b64encode(json.dumps(payload).encode()).rstrip(b"=").decode()
     return f"Bearer {header_b64}.{payload_b64}.fakesignature"
 
 
@@ -284,9 +282,7 @@ class TestDataResidencyIntegration:
         def _patched_get_settings(self):
             return settings_stub
 
-        with patch.object(
-            DataResidencyMiddleware, "_get_settings", _patched_get_settings
-        ):
+        with patch.object(DataResidencyMiddleware, "_get_settings", _patched_get_settings):
             client = TestClient(app, raise_server_exceptions=False)
             if method == "GET":
                 return client.get("/test", headers=headers or {})

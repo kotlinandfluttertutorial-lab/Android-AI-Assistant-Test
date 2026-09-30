@@ -111,12 +111,14 @@ class VoiceAgent(Agent):
 
     @property
     def capabilities(self) -> frozenset[AgentCapability]:
-        return frozenset({
-            AgentCapability.SPEECH_TO_TEXT,
-            AgentCapability.TEXT_TO_SPEECH,
-            AgentCapability.TEXT_GENERATION,
-            AgentCapability.STREAMING,
-        })
+        return frozenset(
+            {
+                AgentCapability.SPEECH_TO_TEXT,
+                AgentCapability.TEXT_TO_SPEECH,
+                AgentCapability.TEXT_GENERATION,
+                AgentCapability.STREAMING,
+            }
+        )
 
     async def execute(
         self,
@@ -142,7 +144,9 @@ class VoiceAgent(Agent):
                 yield event
         else:
             yield self._failed(
-                execution, request, "UNKNOWN_ACTION",
+                execution,
+                request,
+                "UNKNOWN_ACTION",
                 f"Unknown voice_action '{action}'. "
                 "Supported: listen_and_respond, speak_only, listen_only.",
             )
@@ -157,20 +161,26 @@ class VoiceAgent(Agent):
     ) -> AsyncIterator[AgentEvent]:
         text = (metadata.get("text_to_speak") or request.input or "").strip()
         if not text:
-            yield self._failed(execution, request, "BLANK_TEXT",
-                               "No text to speak. Provide metadata['text_to_speak'].")
+            yield self._failed(
+                execution,
+                request,
+                "BLANK_TEXT",
+                "No text to speak. Provide metadata['text_to_speak'].",
+            )
             return
 
         # Server returns the text token; client synthesises speech on-device.
         yield AgentTokenEvent(token=text)
-        yield AgentCompletedEvent(result=AgentResult(
-            execution_id=execution.execution_id,
-            request_id=request.request_id,
-            agent_name=self.name,
-            status=AgentStatus.COMPLETED,
-            content=text,
-            metadata={"action": "speak_only"},
-        ))
+        yield AgentCompletedEvent(
+            result=AgentResult(
+                execution_id=execution.execution_id,
+                request_id=request.request_id,
+                agent_name=self.name,
+                status=AgentStatus.COMPLETED,
+                content=text,
+                metadata={"action": "speak_only"},
+            )
+        )
 
     # ── listen_only ───────────────────────────────────────────────────────────
 
@@ -185,14 +195,16 @@ class VoiceAgent(Agent):
             return  # error already yielded by _transcribe
 
         yield AgentTokenEvent(token=transcript)
-        yield AgentCompletedEvent(result=AgentResult(
-            execution_id=execution.execution_id,
-            request_id=request.request_id,
-            agent_name=self.name,
-            status=AgentStatus.COMPLETED,
-            content=transcript,
-            metadata={"action": "listen_only"},
-        ))
+        yield AgentCompletedEvent(
+            result=AgentResult(
+                execution_id=execution.execution_id,
+                request_id=request.request_id,
+                agent_name=self.name,
+                status=AgentStatus.COMPLETED,
+                content=transcript,
+                metadata={"action": "listen_only"},
+            )
+        )
 
     # ── listen_and_respond ────────────────────────────────────────────────────
 
@@ -211,14 +223,16 @@ class VoiceAgent(Agent):
         # ── LLM step ─────────────────────────────────────────────────────────
         if AIOrchestrator is None or AsyncSessionLocal is None:
             # LLM unavailable — return transcript only
-            yield AgentCompletedEvent(result=AgentResult(
-                execution_id=execution.execution_id,
-                request_id=request.request_id,
-                agent_name=self.name,
-                status=AgentStatus.COMPLETED,
-                content=transcript,
-                metadata={"action": "listen_and_respond", "llm": "unavailable"},
-            ))
+            yield AgentCompletedEvent(
+                result=AgentResult(
+                    execution_id=execution.execution_id,
+                    request_id=request.request_id,
+                    agent_name=self.name,
+                    status=AgentStatus.COMPLETED,
+                    content=transcript,
+                    metadata={"action": "listen_and_respond", "llm": "unavailable"},
+                )
+            )
             return
 
         yield AgentThinkingEvent(step_index=1, thought="Generating response…")
@@ -241,29 +255,31 @@ class VoiceAgent(Agent):
                     timeout=_LLM_TIMEOUT,
                 )
         except asyncio.TimeoutError:
-            yield self._failed(execution, request, "LLM_TIMEOUT",
-                               f"LLM response timed out after {_LLM_TIMEOUT}s.")
+            yield self._failed(
+                execution, request, "LLM_TIMEOUT", f"LLM response timed out after {_LLM_TIMEOUT}s."
+            )
             return
         except Exception as exc:
             logger.exception("VoiceAgent: LLM error: %s", exc)
-            yield self._failed(execution, request, "LLM_ERROR",
-                               "LLM response generation failed.")
+            yield self._failed(execution, request, "LLM_ERROR", "LLM response generation failed.")
             return
 
         llm_text: str = llm_response if isinstance(llm_response, str) else str(llm_response)
         yield AgentTokenEvent(token=llm_text)
-        yield AgentCompletedEvent(result=AgentResult(
-            execution_id=execution.execution_id,
-            request_id=request.request_id,
-            agent_name=self.name,
-            status=AgentStatus.COMPLETED,
-            content=llm_text,
-            metadata={
-                "action": "listen_and_respond",
-                "transcript": transcript,
-                "provider": provider,
-            },
-        ))
+        yield AgentCompletedEvent(
+            result=AgentResult(
+                execution_id=execution.execution_id,
+                request_id=request.request_id,
+                agent_name=self.name,
+                status=AgentStatus.COMPLETED,
+                content=llm_text,
+                metadata={
+                    "action": "listen_and_respond",
+                    "transcript": transcript,
+                    "provider": provider,
+                },
+            )
+        )
 
     # ── Shared transcription helper ───────────────────────────────────────────
 
@@ -305,8 +321,10 @@ class VoiceAgent(Agent):
         # Flatten transcript segments into a single string
         segments = getattr(result, "transcript", []) or []
         if isinstance(segments, list):
-            parts = [getattr(s, "text", "") or (s.get("text", "") if isinstance(s, dict) else "")
-                     for s in segments]
+            parts = [
+                getattr(s, "text", "") or (s.get("text", "") if isinstance(s, dict) else "")
+                for s in segments
+            ]
             return " ".join(p for p in parts if p).strip()
         return str(segments).strip()
 
@@ -317,10 +335,12 @@ class VoiceAgent(Agent):
         code: str,
         msg: str,
     ) -> AgentFailedEvent:
-        return AgentFailedEvent(result=AgentResult(
-            execution_id=execution.execution_id,
-            request_id=request.request_id,
-            agent_name=VOICE_AGENT_NAME,
-            status=AgentStatus.FAILED,
-            error=AgentError(code=code, message=msg),
-        ))
+        return AgentFailedEvent(
+            result=AgentResult(
+                execution_id=execution.execution_id,
+                request_id=request.request_id,
+                agent_name=VOICE_AGENT_NAME,
+                status=AgentStatus.FAILED,
+                error=AgentError(code=code, message=msg),
+            )
+        )

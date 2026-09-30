@@ -66,9 +66,7 @@ _usage_record = st.fixed_dictionaries(
         "input_tokens": st.integers(min_value=1, max_value=10_000),
         "output_tokens": st.integers(min_value=1, max_value=5_000),
         "cost_usd": st.floats(min_value=0.000001, max_value=50.0, allow_nan=False),
-        "feature": st.sampled_from(
-            ["chat", "rag", "code", "voice", "comparison", "suggestions"]
-        ),
+        "feature": st.sampled_from(["chat", "rag", "code", "voice", "comparison", "suggestions"]),
         "provider": st.sampled_from(
             ["openai", "anthropic", "gemini", "ollama", "llama", "mistral"]
         ),
@@ -96,9 +94,7 @@ def _build_db_rows_for_user(user_id: uuid.UUID, raw_records: list[dict]):
     rows = []
     for rec in raw_records:
         row = MagicMock()
-        row.feature = UsageFeature(
-            rec["feature"]
-        )  # actual enum so isinstance check passes
+        row.feature = UsageFeature(rec["feature"])  # actual enum so isinstance check passes
         row.provider = rec["provider"]
         row.day = MagicMock()
         row.day.isoformat.return_value = rec["day"]
@@ -232,8 +228,7 @@ def test_property_33b_user_b_gets_empty_when_only_user_a_has_records(
         f"but expected 0."
     )
     assert summary_b.total_cost_usd == 0.0, (
-        f"Property 33B violated: user B total_cost_usd={summary_b.total_cost_usd} "
-        f"but expected 0."
+        f"Property 33B violated: user B total_cost_usd={summary_b.total_cost_usd} but expected 0."
     )
 
 
@@ -370,9 +365,9 @@ class TestCostDataIsolationEdgeCases:
                 authenticated_user_id=user_a,
             )
 
-        assert (
-            exc_info.value.status_code == 403
-        ), f"Expected HTTP 403, got {exc_info.value.status_code}"
+        assert exc_info.value.status_code == 403, (
+            f"Expected HTTP 403, got {exc_info.value.status_code}"
+        )
 
     def test_same_user_id_does_not_raise(self) -> None:
         """_assert_no_foreign_user must NOT raise when IDs are identical.
@@ -390,9 +385,7 @@ class TestCostDataIsolationEdgeCases:
                 authenticated_user_id=user_id,
             )
         except Exception as exc:
-            pytest.fail(
-                f"_assert_no_foreign_user raised unexpectedly for same user_id: {exc!r}"
-            )
+            pytest.fail(f"_assert_no_foreign_user raised unexpectedly for same user_id: {exc!r}")
 
     def test_none_claimed_user_id_is_not_blocked(self) -> None:
         """_assert_no_foreign_user must NOT raise when claimed_user_id is None (normal path).

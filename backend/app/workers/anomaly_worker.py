@@ -69,8 +69,7 @@ async def _run_detection() -> None:
                 )
             else:
                 logger.debug(
-                    "anomaly_detection: cycle complete — no anomalies detected "
-                    "(dedup_skipped=%d)",
+                    "anomaly_detection: cycle complete — no anomalies detected (dedup_skipped=%d)",
                     len(summary.skipped_dedup),
                 )
 

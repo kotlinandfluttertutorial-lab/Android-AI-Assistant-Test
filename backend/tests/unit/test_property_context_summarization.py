@@ -67,9 +67,7 @@ def _make_mock_message(content: str, role_value: str = "user") -> MagicMock:
     return msg
 
 
-def _make_history_tokens_above(
-    target_tokens: int, num_messages: int = 4
-) -> list[MagicMock]:
+def _make_history_tokens_above(target_tokens: int, num_messages: int = 4) -> list[MagicMock]:
     """Create messages whose *total* token count is EXACTLY *target_tokens*.
 
     Uses ``math.ceil`` so the token count never falls short due to floor division.
@@ -170,9 +168,7 @@ async def test_4a_estimated_tokens_below_provider_max_after_build_prompt(
     mock_openai_client.max_context_tokens = 8192
 
     with (
-        patch(
-            "app.services.ai_orchestrator.build_base_system_prompt", return_value="sys"
-        ),
+        patch("app.services.ai_orchestrator.build_base_system_prompt", return_value="sys"),
         patch(
             "app.services.ai_orchestrator.build_summarization_prompt",
             return_value="sum",
@@ -202,9 +198,7 @@ async def test_4a_estimated_tokens_below_provider_max_after_build_prompt(
 @given(
     # Generate percentage above the 80% threshold — map to token counts
     # that STRICTLY exceed TOKEN_BUDGET when combined with system + message tokens
-    history_tokens=st.integers(
-        min_value=TOKEN_BUDGET + 10, max_value=FALLBACK_MAX_CONTEXT * 2
-    ),
+    history_tokens=st.integers(min_value=TOKEN_BUDGET + 10, max_value=FALLBACK_MAX_CONTEXT * 2),
     num_messages=st.integers(min_value=3, max_value=8),
 )
 @settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow], deadline=None)
@@ -233,26 +227,18 @@ async def test_4b_summarization_triggered_above_threshold(
         nonlocal summarize_called
         summarize_called = True
         # Return a valid minimal PromptMessage list so _build_prompt can continue
-        return [
-            PromptMessage(
-                role="system", content="[Conversation Summary] Short summary."
-            )
-        ]
+        return [PromptMessage(role="system", content="[Conversation Summary] Short summary.")]
 
     orch._summarize_history = _spy_summarize
 
     # complete() should not be called directly in this test path (spy handles it),
     # but stub it just in case _summarize_history calls it internally
     orch.complete = AsyncMock(
-        return_value=CompletionResult(
-            text="Short summary.", input_tokens=2, output_tokens=2
-        )
+        return_value=CompletionResult(text="Short summary.", input_tokens=2, output_tokens=2)
     )
 
     with (
-        patch(
-            "app.services.ai_orchestrator.build_base_system_prompt", return_value="sys"
-        ),
+        patch("app.services.ai_orchestrator.build_base_system_prompt", return_value="sys"),
         patch(
             "app.services.ai_orchestrator.build_summarization_prompt",
             return_value="sum",
@@ -313,15 +299,11 @@ async def test_4c_no_summarization_below_threshold(
 
     orch._summarize_history = _spy_summarize
     orch.complete = AsyncMock(
-        return_value=CompletionResult(
-            text="Short summary.", input_tokens=2, output_tokens=2
-        )
+        return_value=CompletionResult(text="Short summary.", input_tokens=2, output_tokens=2)
     )
 
     with (
-        patch(
-            "app.services.ai_orchestrator.build_base_system_prompt", return_value="sys"
-        ),
+        patch("app.services.ai_orchestrator.build_base_system_prompt", return_value="sys"),
         patch(
             "app.services.ai_orchestrator.build_summarization_prompt",
             return_value="sum",
@@ -372,21 +354,15 @@ async def test_4b_edge_summarization_triggered_at_exact_boundary() -> None:
     async def _spy_summarize(*args, **kwargs):
         nonlocal summarize_called
         summarize_called = True
-        return [
-            PromptMessage(role="system", content="[Conversation Summary] Edge summary.")
-        ]
+        return [PromptMessage(role="system", content="[Conversation Summary] Edge summary.")]
 
     orch._summarize_history = _spy_summarize
     orch.complete = AsyncMock(
-        return_value=CompletionResult(
-            text="Edge summary.", input_tokens=2, output_tokens=2
-        )
+        return_value=CompletionResult(text="Edge summary.", input_tokens=2, output_tokens=2)
     )
 
     with (
-        patch(
-            "app.services.ai_orchestrator.build_base_system_prompt", return_value="sys"
-        ),
+        patch("app.services.ai_orchestrator.build_base_system_prompt", return_value="sys"),
         patch(
             "app.services.ai_orchestrator.build_summarization_prompt",
             return_value="sum",
@@ -438,9 +414,7 @@ async def test_4c_edge_no_summarization_below_threshold() -> None:
     orch._summarize_history = _spy_summarize
 
     with (
-        patch(
-            "app.services.ai_orchestrator.build_base_system_prompt", return_value="sys"
-        ),
+        patch("app.services.ai_orchestrator.build_base_system_prompt", return_value="sys"),
         patch(
             "app.services.ai_orchestrator.build_summarization_prompt",
             return_value="sum",

@@ -97,12 +97,12 @@ class AgentStatus(enum.StrEnum):
 # treats class-level assignments in enums as additional members, not attributes).
 _STATUS_TRANSITIONS: dict[str, set[str]] = {
     "REQUESTED": {"STARTED", "CANCELLED"},
-    "STARTED":   {"RUNNING", "WAITING", "FAILED", "CANCELLED"},
-    "RUNNING":   {"WAITING", "COMPLETED", "PARTIAL", "FAILED", "CANCELLED"},
-    "WAITING":   {"RUNNING", "FAILED", "CANCELLED"},
+    "STARTED": {"RUNNING", "WAITING", "FAILED", "CANCELLED"},
+    "RUNNING": {"WAITING", "COMPLETED", "PARTIAL", "FAILED", "CANCELLED"},
+    "WAITING": {"RUNNING", "FAILED", "CANCELLED"},
     "COMPLETED": set(),
-    "PARTIAL":   set(),
-    "FAILED":    set(),
+    "PARTIAL": set(),
+    "FAILED": set(),
     "CANCELLED": set(),
 }
 
@@ -358,9 +358,7 @@ class AgentUsage(BaseModel):
     @classmethod
     def set_total_tokens(cls, values: dict[str, Any]) -> dict[str, Any]:
         if "total_tokens" not in values:
-            values["total_tokens"] = (
-                values.get("input_tokens", 0) + values.get("output_tokens", 0)
-            )
+            values["total_tokens"] = values.get("input_tokens", 0) + values.get("output_tokens", 0)
         return values
 
 
@@ -439,9 +437,7 @@ class AgentResult(BaseModel):
     @classmethod
     def status_must_be_terminal(cls, v: AgentStatus) -> AgentStatus:
         if not v.is_terminal:
-            raise ValueError(
-                f"AgentResult may only be created with a terminal status, got {v}."
-            )
+            raise ValueError(f"AgentResult may only be created with a terminal status, got {v}.")
         return v
 
     # ── Computed helpers ──────────────────────────────────────────────────────
@@ -603,12 +599,8 @@ class AgentExecution(BaseModel):
     status: AgentStatus = AgentStatus.REQUESTED
     steps: list[AgentStep] = Field(default_factory=list)
     result: AgentResult | None = None
-    created_at: int = Field(
-        default_factory=lambda: int(__import__("time").time() * 1000)
-    )
-    updated_at: int = Field(
-        default_factory=lambda: int(__import__("time").time() * 1000)
-    )
+    created_at: int = Field(default_factory=lambda: int(__import__("time").time() * 1000))
+    updated_at: int = Field(default_factory=lambda: int(__import__("time").time() * 1000))
     completed_at: int | None = None
 
     @field_validator("execution_id")
@@ -638,19 +630,23 @@ class AgentExecution(BaseModel):
                 f"for execution {self.execution_id}."
             )
         now = int(__import__("time").time() * 1000)
-        return self.model_copy(update={
-            "status": new_status,
-            "updated_at": now,
-            "completed_at": now if new_status.is_terminal else self.completed_at,
-        })
+        return self.model_copy(
+            update={
+                "status": new_status,
+                "updated_at": now,
+                "completed_at": now if new_status.is_terminal else self.completed_at,
+            }
+        )
 
     def with_step(self, step: AgentStep) -> AgentExecution:
         """Return a copy with *step* appended to steps."""
         now = int(__import__("time").time() * 1000)
-        return self.model_copy(update={
-            "steps": [*list(self.steps), step],
-            "updated_at": now,
-        })
+        return self.model_copy(
+            update={
+                "steps": [*list(self.steps), step],
+                "updated_at": now,
+            }
+        )
 
     def with_result(self, result: AgentResult) -> AgentExecution:
         """Return a copy with *result* set and status updated to result.status."""

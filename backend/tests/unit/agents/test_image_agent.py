@@ -1,5 +1,6 @@
 # tests/unit/agents/test_image_agent.py
 """Unit tests for ImageAgent (Phase 6)."""
+
 from __future__ import annotations
 
 import base64
@@ -123,6 +124,7 @@ async def test_service_unavailable_emits_service_unavailable() -> None:
     req = make_request()
 
     import app.agents.image_agent as _mod
+
     orig = _mod.ImageAnalysisService
     _mod.ImageAnalysisService = None  # type: ignore[assignment]
     try:
@@ -149,8 +151,7 @@ async def test_missing_image_base64_emits_missing_image() -> None:
         events = await collect(agent.execute(req, make_exec(req)))
 
     assert any(
-        isinstance(e, AgentFailedEvent) and "MISSING_IMAGE" in e.result.error.code
-        for e in events
+        isinstance(e, AgentFailedEvent) and "MISSING_IMAGE" in e.result.error.code for e in events
     )
 
 
@@ -162,8 +163,7 @@ async def test_invalid_base64_emits_invalid_base64() -> None:
         events = await collect(agent.execute(req, make_exec(req)))
 
     assert any(
-        isinstance(e, AgentFailedEvent) and "INVALID_BASE64" in e.result.error.code
-        for e in events
+        isinstance(e, AgentFailedEvent) and "INVALID_BASE64" in e.result.error.code for e in events
     )
 
 
@@ -223,11 +223,13 @@ async def test_bounding_box_count_in_ocr_response() -> None:
 async def test_vision_action_returns_vision_analysis() -> None:
     with _mock_service(vision_result=_make_vision_result("A dog playing fetch.")):
         agent = ImageAgent()
-        req = make_request(metadata={
-            "image_action": "vision",
-            "image_base64": _SAMPLE_B64,
-            "prompt": "What animal is this?",
-        })
+        req = make_request(
+            metadata={
+                "image_action": "vision",
+                "image_base64": _SAMPLE_B64,
+                "prompt": "What animal is this?",
+            }
+        )
         events = await collect(agent.execute(req, make_exec(req)))
 
     token = next(e for e in events if isinstance(e, AgentTokenEvent))
@@ -238,12 +240,14 @@ async def test_vision_action_returns_vision_analysis() -> None:
 async def test_vision_action_forwards_prompt_and_provider() -> None:
     with _mock_service() as mock_ctx:
         agent = ImageAgent()
-        req = make_request(metadata={
-            "image_action": "vision",
-            "image_base64": _SAMPLE_B64,
-            "prompt": "Describe this.",
-            "provider": "claude",
-        })
+        req = make_request(
+            metadata={
+                "image_action": "vision",
+                "image_base64": _SAMPLE_B64,
+                "prompt": "Describe this.",
+                "provider": "claude",
+            }
+        )
         events = await collect(agent.execute(req, make_exec(req)))
 
     # analyze_with_vision was called on the service instance
@@ -265,8 +269,7 @@ async def test_analysis_exception_emits_analysis_error() -> None:
         events = await collect(agent.execute(req, make_exec(req)))
 
     assert any(
-        isinstance(e, AgentFailedEvent) and "ANALYSIS_ERROR" in e.result.error.code
-        for e in events
+        isinstance(e, AgentFailedEvent) and "ANALYSIS_ERROR" in e.result.error.code for e in events
     )
 
 

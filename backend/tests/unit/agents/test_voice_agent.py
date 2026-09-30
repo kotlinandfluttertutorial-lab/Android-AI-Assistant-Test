@@ -1,5 +1,6 @@
 # tests/unit/agents/test_voice_agent.py
 """Unit tests for VoiceAgent (Phase 6)."""
+
 from __future__ import annotations
 
 import base64
@@ -134,10 +135,12 @@ def test_declares_text_generation() -> None:
 @pytest.mark.asyncio
 async def test_speak_only_emits_token_and_completed() -> None:
     agent = VoiceAgent()
-    req = make_request(metadata={
-        "voice_action": "speak_only",
-        "text_to_speak": "Hello there",
-    })
+    req = make_request(
+        metadata={
+            "voice_action": "speak_only",
+            "text_to_speak": "Hello there",
+        }
+    )
     events = await collect(agent.execute(req, make_exec(req)))
 
     token = next((e for e in events if isinstance(e, AgentTokenEvent)), None)
@@ -200,10 +203,12 @@ async def test_speak_only_completed_metadata_has_action() -> None:
 async def test_listen_only_returns_transcript_token() -> None:
     with _TranscriptionStack(transcript_text="Transcribed text here"):
         agent = VoiceAgent()
-        req = make_request(metadata={
-            "voice_action": "listen_only",
-            "audio_base64": _SAMPLE_AUDIO_B64,
-        })
+        req = make_request(
+            metadata={
+                "voice_action": "listen_only",
+                "audio_base64": _SAMPLE_AUDIO_B64,
+            }
+        )
         events = await collect(agent.execute(req, make_exec(req)))
 
     token_texts = [e.token for e in events if isinstance(e, AgentTokenEvent)]
@@ -218,6 +223,7 @@ async def test_listen_only_returns_transcript_token() -> None:
 async def test_listen_only_missing_audio_returns_no_transcript() -> None:
     """listen_only with no audio_base64 returns None transcript → no Completed."""
     import app.agents.voice_agent as _mod
+
     orig = _mod.TranscriptionService
     _mod.TranscriptionService = None  # type: ignore[assignment]
     try:
@@ -240,11 +246,13 @@ async def test_listen_only_missing_audio_returns_no_transcript() -> None:
 async def test_listen_and_respond_full_pipeline() -> None:
     with _TranscriptionStack(transcript_text="What is Python?"):
         agent = VoiceAgent()
-        req = make_request(metadata={
-            "voice_action": "listen_and_respond",
-            "audio_base64": _SAMPLE_AUDIO_B64,
-            "provider": "gemini",
-        })
+        req = make_request(
+            metadata={
+                "voice_action": "listen_and_respond",
+                "audio_base64": _SAMPLE_AUDIO_B64,
+                "provider": "gemini",
+            }
+        )
         events = await collect(agent.execute(req, make_exec(req)))
 
     # Transcript token
@@ -262,10 +270,12 @@ async def test_listen_and_respond_full_pipeline() -> None:
 async def test_listen_and_respond_transcription_error_still_completes_gracefully() -> None:
     with _TranscriptionStack(raise_exc=RuntimeError("mic error")):
         agent = VoiceAgent()
-        req = make_request(metadata={
-            "voice_action": "listen_and_respond",
-            "audio_base64": _SAMPLE_AUDIO_B64,
-        })
+        req = make_request(
+            metadata={
+                "voice_action": "listen_and_respond",
+                "audio_base64": _SAMPLE_AUDIO_B64,
+            }
+        )
         events = await collect(agent.execute(req, make_exec(req)))
 
     # Transcription error → transcript is None → no completed event
@@ -278,16 +288,19 @@ async def test_listen_and_respond_llm_unavailable_returns_transcript() -> None:
     """When AIOrchestrator is unavailable, agent returns transcript with COMPLETED."""
     with _TranscriptionStack():
         import app.agents.voice_agent as _mod
+
         orig_orc = _mod.AIOrchestrator
         orig_db = _mod.AsyncSessionLocal
         _mod.AIOrchestrator = None  # type: ignore[assignment]
         _mod.AsyncSessionLocal = None  # type: ignore[assignment]
         try:
             agent = VoiceAgent()
-            req = make_request(metadata={
-                "voice_action": "listen_and_respond",
-                "audio_base64": _SAMPLE_AUDIO_B64,
-            })
+            req = make_request(
+                metadata={
+                    "voice_action": "listen_and_respond",
+                    "audio_base64": _SAMPLE_AUDIO_B64,
+                }
+            )
             events = await collect(agent.execute(req, make_exec(req)))
         finally:
             _mod.AIOrchestrator = orig_orc
@@ -310,8 +323,7 @@ async def test_unknown_action_emits_unknown_action() -> None:
     events = await collect(agent.execute(req, make_exec(req)))
 
     assert any(
-        isinstance(e, AgentFailedEvent) and "UNKNOWN_ACTION" in e.result.error.code
-        for e in events
+        isinstance(e, AgentFailedEvent) and "UNKNOWN_ACTION" in e.result.error.code for e in events
     )
 
 

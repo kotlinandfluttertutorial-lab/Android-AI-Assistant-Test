@@ -83,18 +83,31 @@ class ConversationRepository:
         )
         return list(result.scalars().all())
 
-    async def get_by_id(self, conversation_id: uuid.UUID) -> Conversation | None:
+    async def get_by_id(
+        self,
+        conversation_id: uuid.UUID,
+        user_id: uuid.UUID | None = None,
+    ) -> Conversation | None:
         """Return the conversation with the given primary key, or ``None``.
+
+        Phase 10 hardening: accepts an optional ``user_id`` parameter. When
+        provided, the query adds ``AND user_id = ?`` preventing cross-user
+        access. Callers outside of administrative/background contexts MUST
+        supply the authenticated user's UUID.
 
         Args:
             conversation_id: UUID primary key to look up.
+            user_id: When provided, restricts the result to conversations owned
+                by this user. Background workers that do not have a user context
+                may omit this, but must not expose the result to an API response.
 
         Returns:
             The matching :class:`~app.models.conversation.Conversation`, or ``None``.
         """
-        result = await self._db.execute(
-            select(Conversation).where(Conversation.id == conversation_id)
-        )
+        query = select(Conversation).where(Conversation.id == conversation_id)
+        if user_id is not None:
+            query = query.where(Conversation.user_id == user_id)
+        result = await self._db.execute(query)
         return result.scalar_one_or_none()
 
     async def count_by_user(self, user_id: uuid.UUID) -> int:
@@ -155,24 +168,31 @@ class ConversationRepository:
     async def update(
         self,
         conversation_id: uuid.UUID,
+        user_id: uuid.UUID,
         **kwargs: Any,
     ) -> Conversation | None:
-        """Update arbitrary fields on a conversation.
+        """Update arbitrary fields on a conversation, scoped to the owning user.
+
+        Phase 10 hardening: ``user_id`` is now required so that no update can
+        touch a conversation owned by a different user. The method calls
+        ``get_by_id(conversation_id, user_id=user_id)`` which adds an
+        ownership filter.
 
         Only the following fields are accepted: ``title``, ``is_pinned``.
         Unknown keys are silently ignored to protect against mass-assignment.
 
         Args:
             conversation_id: UUID of the conversation to update.
+            user_id: UUID of the authenticated requesting user.
             **kwargs:         Field–value pairs to apply.
 
         Returns:
             The updated :class:`~app.models.conversation.Conversation`, or
-            ``None`` if not found.
+            ``None`` if not found or not owned by ``user_id``.
 
         Requirements: 11.4
         """
-        conversation = await self.get_by_id(conversation_id)
+        conversation = await self.get_by_id(conversation_id, user_id=user_id)
         if conversation is None:
             return None
 

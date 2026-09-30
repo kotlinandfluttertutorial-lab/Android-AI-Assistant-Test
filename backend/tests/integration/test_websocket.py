@@ -194,12 +194,8 @@ class TestValidJwtTokenStreaming:
 
         with (
             patch("app.api.websocket.router.AIOrchestrator", return_value=mock_orch),
-            patch(
-                "app.api.websocket.manager.get_redis_client", return_value=mock_redis
-            ),
-            patch(
-                "app.api.websocket.router.AsyncSessionLocal", return_value=mock_session
-            ),
+            patch("app.api.websocket.manager.get_redis_client", return_value=mock_redis),
+            patch("app.api.websocket.router.AsyncSessionLocal", return_value=mock_session),
             TestClient(_app) as client,
             client.websocket_connect(f"/ws/chat/{conv_id}?token={token}") as ws,
         ):
@@ -211,9 +207,9 @@ class TestValidJwtTokenStreaming:
         token_msgs = [m for m in received_msgs if m.get("type") == "token"]
         done_msgs = [m for m in received_msgs if m.get("type") == "done"]
 
-        assert len(token_msgs) == len(
-            expected_tokens
-        ), f"Expected {len(expected_tokens)} token events, got {len(token_msgs)}"
+        assert len(token_msgs) == len(expected_tokens), (
+            f"Expected {len(expected_tokens)} token events, got {len(token_msgs)}"
+        )
         assert [m["data"] for m in token_msgs] == expected_tokens
         assert len(done_msgs) == 1, f"Expected 1 done event, got {len(done_msgs)}"
         assert "usage" in done_msgs[0], "done event must contain a 'usage' field"
@@ -232,12 +228,8 @@ class TestValidJwtTokenStreaming:
 
         with (
             patch("app.api.websocket.router.AIOrchestrator", return_value=mock_orch),
-            patch(
-                "app.api.websocket.manager.get_redis_client", return_value=mock_redis
-            ),
-            patch(
-                "app.api.websocket.router.AsyncSessionLocal", return_value=mock_session
-            ),
+            patch("app.api.websocket.manager.get_redis_client", return_value=mock_redis),
+            patch("app.api.websocket.router.AsyncSessionLocal", return_value=mock_session),
             TestClient(_app) as client,
             client.websocket_connect(f"/ws/chat/{conv_id}?token={token}") as ws,
         ):
@@ -263,12 +255,8 @@ class TestValidJwtTokenStreaming:
 
         with (
             patch("app.api.websocket.router.AIOrchestrator", return_value=mock_orch),
-            patch(
-                "app.api.websocket.manager.get_redis_client", return_value=mock_redis
-            ),
-            patch(
-                "app.api.websocket.router.AsyncSessionLocal", return_value=mock_session
-            ),
+            patch("app.api.websocket.manager.get_redis_client", return_value=mock_redis),
+            patch("app.api.websocket.router.AsyncSessionLocal", return_value=mock_session),
             TestClient(_app) as client,
             client.websocket_connect(f"/ws/chat/{conv_id}?token={token}") as ws,
         ):
@@ -327,9 +315,7 @@ class TestInvalidJwtRejection:
 
         with (
             TestClient(_app) as client,
-            client.websocket_connect(
-                f"/ws/chat/{conv_id}?token=this.is.not.a.valid.jwt"
-            ) as ws,
+            client.websocket_connect(f"/ws/chat/{conv_id}?token=this.is.not.a.valid.jwt") as ws,
         ):
             msg = ws.receive_json()
 
@@ -430,12 +416,8 @@ class TestBufferDeliveryOnReconnect:
 
         with (
             patch("app.api.websocket.router.AIOrchestrator", return_value=mock_orch),
-            patch(
-                "app.api.websocket.manager.get_redis_client", return_value=mock_redis
-            ),
-            patch(
-                "app.api.websocket.router.AsyncSessionLocal", return_value=mock_session
-            ),
+            patch("app.api.websocket.manager.get_redis_client", return_value=mock_redis),
+            patch("app.api.websocket.router.AsyncSessionLocal", return_value=mock_session),
             TestClient(_app) as client,
             client.websocket_connect(f"/ws/chat/{conv_id}?token={token}") as ws,
         ):
@@ -460,9 +442,7 @@ class TestBufferDeliveryOnReconnect:
         )
 
         # New stream tokens follow.
-        assert [
-            m["data"] for m in new_token_events
-        ] == new_tokens, (
+        assert [m["data"] for m in new_token_events] == new_tokens, (
             f"New stream tokens incorrect: {[m['data'] for m in new_token_events]!r}"
         )
 
@@ -484,12 +464,8 @@ class TestBufferDeliveryOnReconnect:
 
         with (
             patch("app.api.websocket.router.AIOrchestrator", return_value=mock_orch),
-            patch(
-                "app.api.websocket.manager.get_redis_client", return_value=mock_redis
-            ),
-            patch(
-                "app.api.websocket.router.AsyncSessionLocal", return_value=mock_session
-            ),
+            patch("app.api.websocket.manager.get_redis_client", return_value=mock_redis),
+            patch("app.api.websocket.router.AsyncSessionLocal", return_value=mock_session),
             TestClient(_app) as client,
             client.websocket_connect(f"/ws/chat/{conv_id}?token={token}") as ws,
         ):
@@ -514,12 +490,8 @@ class TestBufferDeliveryOnReconnect:
 
         with (
             patch("app.api.websocket.router.AIOrchestrator", return_value=mock_orch),
-            patch(
-                "app.api.websocket.manager.get_redis_client", return_value=mock_redis
-            ),
-            patch(
-                "app.api.websocket.router.AsyncSessionLocal", return_value=mock_session
-            ),
+            patch("app.api.websocket.manager.get_redis_client", return_value=mock_redis),
+            patch("app.api.websocket.router.AsyncSessionLocal", return_value=mock_session),
             TestClient(_app) as client,
             client.websocket_connect(f"/ws/chat/{conv_id}?token={token}") as ws,
         ):
@@ -567,21 +539,13 @@ class TestHeartbeatTimeoutClose:
         original_heartbeat_cls = HeartbeatMonitor
 
         def _fast_heartbeat(ws, interval=None, timeout=None):
-            return original_heartbeat_cls(
-                ws, interval=_fast_interval, timeout=_fast_timeout
-            )
+            return original_heartbeat_cls(ws, interval=_fast_interval, timeout=_fast_timeout)
 
         with (
             patch("app.api.websocket.router.AIOrchestrator", return_value=mock_orch),
-            patch(
-                "app.api.websocket.manager.get_redis_client", return_value=mock_redis
-            ),
-            patch(
-                "app.api.websocket.router.AsyncSessionLocal", return_value=mock_session
-            ),
-            patch(
-                "app.api.websocket.router.HeartbeatMonitor", side_effect=_fast_heartbeat
-            ),
+            patch("app.api.websocket.manager.get_redis_client", return_value=mock_redis),
+            patch("app.api.websocket.router.AsyncSessionLocal", return_value=mock_session),
+            patch("app.api.websocket.router.HeartbeatMonitor", side_effect=_fast_heartbeat),
             TestClient(_app) as client,
             client.websocket_connect(f"/ws/chat/{conv_id}?token={token}") as ws,
         ):
@@ -622,21 +586,13 @@ class TestHeartbeatTimeoutClose:
         original_heartbeat_cls = HeartbeatMonitor
 
         def _fast_heartbeat(ws, interval=None, timeout=None):
-            return original_heartbeat_cls(
-                ws, interval=_fast_interval, timeout=_fast_timeout
-            )
+            return original_heartbeat_cls(ws, interval=_fast_interval, timeout=_fast_timeout)
 
         with (
             patch("app.api.websocket.router.AIOrchestrator", return_value=mock_orch),
-            patch(
-                "app.api.websocket.manager.get_redis_client", return_value=mock_redis
-            ),
-            patch(
-                "app.api.websocket.router.AsyncSessionLocal", return_value=mock_session
-            ),
-            patch(
-                "app.api.websocket.router.HeartbeatMonitor", side_effect=_fast_heartbeat
-            ),
+            patch("app.api.websocket.manager.get_redis_client", return_value=mock_redis),
+            patch("app.api.websocket.router.AsyncSessionLocal", return_value=mock_session),
+            patch("app.api.websocket.router.HeartbeatMonitor", side_effect=_fast_heartbeat),
             TestClient(_app) as client,
             client.websocket_connect(f"/ws/chat/{conv_id}?token={token}") as ws,
         ):

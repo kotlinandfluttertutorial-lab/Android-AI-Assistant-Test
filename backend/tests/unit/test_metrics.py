@@ -22,9 +22,7 @@ from prometheus_client import CollectorRegistry, Counter
 # ---------------------------------------------------------------------------
 
 
-def _make_counter(
-    name: str, labelnames: list[str], registry: CollectorRegistry
-) -> Counter:
+def _make_counter(name: str, labelnames: list[str], registry: CollectorRegistry) -> Counter:
     """Create a fresh Counter on *registry* for use in isolated tests."""
     return Counter(name, "test counter", labelnames=labelnames, registry=registry)
 
@@ -174,9 +172,7 @@ class TestSetupCeleryMetrics:
         celery_mock = MagicMock()
         celery_mock.signals = signals_mock
 
-        with patch.dict(
-            "sys.modules", {"celery": celery_mock, "celery.signals": signals_mock}
-        ):
+        with patch.dict("sys.modules", {"celery": celery_mock, "celery.signals": signals_mock}):
             import app.workers.metrics as metrics_mod
 
             mock_app = MagicMock()
@@ -191,9 +187,7 @@ class TestSetupCeleryMetrics:
         signals_mock = self._make_celery_signals_mock()
         celery_mock = MagicMock()
 
-        with patch.dict(
-            "sys.modules", {"celery": celery_mock, "celery.signals": signals_mock}
-        ):
+        with patch.dict("sys.modules", {"celery": celery_mock, "celery.signals": signals_mock}):
             import app.workers.metrics as metrics_mod
 
             mock_app = MagicMock()
@@ -225,9 +219,7 @@ class TestOnTaskFailure:
 
             _on_task_failure(sender=mock_sender, task_id="abc-123", exception=None)
 
-        value = failed_ctr.labels(
-            task_name="app.workers.tasks.process_document"
-        )._value.get()
+        value = failed_ctr.labels(task_name="app.workers.tasks.process_document")._value.get()
         assert value == 1.0, f"Expected 1.0, got {value}"
 
     def test_uses_sender_name_attribute(self) -> None:
@@ -287,9 +279,7 @@ class TestOnTaskSuccess:
     def test_increments_completed_counter_with_task_name(self) -> None:
         """_on_task_success increments celery_completed_tasks_total with sender task name."""
         registry = CollectorRegistry()
-        completed_ctr = _make_counter(
-            "celery_completed_tasks_total", ["task_name"], registry
-        )
+        completed_ctr = _make_counter("celery_completed_tasks_total", ["task_name"], registry)
 
         with patch("app.workers.metrics.celery_completed_tasks_total", completed_ctr):
             from app.workers.metrics import _on_task_success
@@ -299,17 +289,13 @@ class TestOnTaskSuccess:
 
             _on_task_success(sender=mock_sender, result="ok")
 
-        value = completed_ctr.labels(
-            task_name="app.workers.tasks.send_notification"
-        )._value.get()
+        value = completed_ctr.labels(task_name="app.workers.tasks.send_notification")._value.get()
         assert value == 1.0, f"Expected 1.0, got {value}"
 
     def test_uses_sender_name_attribute(self) -> None:
         """_on_task_success reads task name from sender.name."""
         registry = CollectorRegistry()
-        completed_ctr = _make_counter(
-            "celery_completed_tasks_total", ["task_name"], registry
-        )
+        completed_ctr = _make_counter("celery_completed_tasks_total", ["task_name"], registry)
 
         with patch("app.workers.metrics.celery_completed_tasks_total", completed_ctr):
             from app.workers.metrics import _on_task_success
@@ -324,9 +310,7 @@ class TestOnTaskSuccess:
     def test_handles_none_sender_gracefully(self) -> None:
         """_on_task_success uses 'unknown' when sender is None."""
         registry = CollectorRegistry()
-        completed_ctr = _make_counter(
-            "celery_completed_tasks_total", ["task_name"], registry
-        )
+        completed_ctr = _make_counter("celery_completed_tasks_total", ["task_name"], registry)
 
         with patch("app.workers.metrics.celery_completed_tasks_total", completed_ctr):
             from app.workers.metrics import _on_task_success
@@ -338,9 +322,7 @@ class TestOnTaskSuccess:
     def test_increments_by_one_per_call(self) -> None:
         """_on_task_success increments the counter by exactly 1 per call."""
         registry = CollectorRegistry()
-        completed_ctr = _make_counter(
-            "celery_completed_tasks_total", ["task_name"], registry
-        )
+        completed_ctr = _make_counter("celery_completed_tasks_total", ["task_name"], registry)
 
         with patch("app.workers.metrics.celery_completed_tasks_total", completed_ctr):
             from app.workers.metrics import _on_task_success
@@ -351,6 +333,4 @@ class TestOnTaskSuccess:
             _on_task_success(sender=sender)
             _on_task_success(sender=sender)
 
-        assert (
-            completed_ctr.labels(task_name="repeated.success.task")._value.get() == 2.0
-        )
+        assert completed_ctr.labels(task_name="repeated.success.task")._value.get() == 2.0

@@ -24,10 +24,11 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 class ErrorSeverity(str, Enum):
     """Severity of the detected error condition."""
+
     CRITICAL = "CRITICAL"
-    HIGH     = "HIGH"
-    MEDIUM   = "MEDIUM"
-    LOW      = "LOW"
+    HIGH = "HIGH"
+    MEDIUM = "MEDIUM"
+    LOW = "LOW"
 
 
 # ── Sub-schemas ───────────────────────────────────────────────────────────────
@@ -81,14 +82,10 @@ class ErrorAnalysisResponse(BaseModel):
     model_config = ConfigDict(use_enum_values=True)
 
     # ── Identity ──────────────────────────────────────────────────────────────
-    analysis_id: str = Field(
-        description="Unique ID for this analysis run (UUID string)."
-    )
+    analysis_id: str = Field(description="Unique ID for this analysis run (UUID string).")
 
     # ── Severity and summary ──────────────────────────────────────────────────
-    severity: ErrorSeverity = Field(
-        description="Overall severity of the detected error condition."
-    )
+    severity: ErrorSeverity = Field(description="Overall severity of the detected error condition.")
     summary: str = Field(
         description="One-line human-readable description of what went wrong.",
         max_length=300,

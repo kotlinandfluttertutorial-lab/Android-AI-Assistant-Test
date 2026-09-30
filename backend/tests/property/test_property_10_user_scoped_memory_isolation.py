@@ -178,9 +178,7 @@ def test_property_10a_cross_user_memory_retrieval_isolation(
             return []
 
         with (
-            patch.object(
-                service._repo, "search_memories", side_effect=_mock_search_memories
-            ),
+            patch.object(service._repo, "search_memories", side_effect=_mock_search_memories),
             patch.object(
                 service._repo,
                 "get_recent_memories",
@@ -261,9 +259,7 @@ def test_property_10b_prompt_context_memory_isolation(
         orchestrator = AIOrchestrator(db=mock_db)
 
         # Mock get_relevant_memories: user A gets data, user B gets empty
-        async def _mock_get_relevant_memories(
-            user_id: uuid.UUID, query: str, top_k: int = 3
-        ):
+        async def _mock_get_relevant_memories(user_id: uuid.UUID, query: str, top_k: int = 3):
             if user_id == user_a_id:
                 return user_a_entries[:top_k]
             return []
@@ -378,9 +374,7 @@ def test_property_10c_memory_store_retrieve_user_scoping(
 
         with (
             patch.object(service._repo, "search_memories", side_effect=_mock_search),
-            patch.object(
-                service._repo, "get_recent_memories", side_effect=_mock_recent
-            ),
+            patch.object(service._repo, "get_recent_memories", side_effect=_mock_recent),
         ):
             # Retrieve for user B — must be empty even though user A has memories
             result_b = await service.get_relevant_memories(
@@ -500,12 +494,8 @@ class TestUserScopedMemoryIsolationEdgeCases:
                 return user_a_results[:top_k] if user_id == user_a_id else []
 
             with (
-                patch.object(
-                    service._repo, "search_memories", side_effect=_mock_search
-                ),
-                patch.object(
-                    service._repo, "get_recent_memories", side_effect=_mock_recent
-                ),
+                patch.object(service._repo, "search_memories", side_effect=_mock_search),
+                patch.object(service._repo, "get_recent_memories", side_effect=_mock_recent),
             ):
                 return await service.get_relevant_memories(
                     user_id=user_b_id,
@@ -572,12 +562,8 @@ class TestUserScopedMemoryIsolationEdgeCases:
                 return []
 
             with (
-                patch.object(
-                    service._repo, "search_memories", side_effect=_empty_search
-                ),
-                patch.object(
-                    service._repo, "get_recent_memories", side_effect=_empty_recent
-                ),
+                patch.object(service._repo, "search_memories", side_effect=_empty_search),
+                patch.object(service._repo, "get_recent_memories", side_effect=_empty_recent),
             ):
                 return await service.get_relevant_memories(
                     user_id=new_user_id,
@@ -593,9 +579,7 @@ class TestUserScopedMemoryIsolationEdgeCases:
                 f"new user (should return empty list). exception={exc!r}"
             )
 
-        assert (
-            result == []
-        ), f"Edge case failed: expected empty list for new user, got {result!r}"
+        assert result == [], f"Edge case failed: expected empty list for new user, got {result!r}"
 
     def test_prompt_context_for_user_b_excludes_user_a_memories(self) -> None:
         """_build_prompt for user B must not include any of user A's memory strings."""
@@ -648,12 +632,12 @@ class TestUserScopedMemoryIsolationEdgeCases:
 
         all_text = " ".join(msg.content for msg in context.messages)
 
-        assert (
-            "dark mode" not in all_text
-        ), "Edge case failed: user A's 'dark mode' preference found in user B's prompt."
-        assert (
-            "AcmeCorp" not in all_text
-        ), "Edge case failed: user A's 'AcmeCorp' fact found in user B's prompt."
-        assert (
-            "User A secret preference" not in all_text
-        ), "Edge case failed: user A's memory content found verbatim in user B's prompt."
+        assert "dark mode" not in all_text, (
+            "Edge case failed: user A's 'dark mode' preference found in user B's prompt."
+        )
+        assert "AcmeCorp" not in all_text, (
+            "Edge case failed: user A's 'AcmeCorp' fact found in user B's prompt."
+        )
+        assert "User A secret preference" not in all_text, (
+            "Edge case failed: user A's memory content found verbatim in user B's prompt."
+        )

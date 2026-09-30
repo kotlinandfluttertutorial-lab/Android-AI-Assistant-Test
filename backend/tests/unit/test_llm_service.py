@@ -1,4 +1,4 @@
-﻿"""Unit tests for app.llm.service.LLMService.
+"""Unit tests for app.llm.service.LLMService.
 
 Covers:
 - generate(): routes to GeminiProvider for simple/complex requests.
@@ -37,6 +37,7 @@ from app.llm.service import LLMService
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_request(complexity: str = "simple", user_id: str = "user-1") -> LLMRequest:
     return LLMRequest(
@@ -78,6 +79,7 @@ def _make_mock_provider(
 # Fixtures
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def service():
     """Return a fresh LLMService with an empty provider cache."""
@@ -89,6 +91,7 @@ def service():
 # ---------------------------------------------------------------------------
 # Routing tests
 # ---------------------------------------------------------------------------
+
 
 class TestLLMServiceRouting:
     @pytest.mark.asyncio
@@ -130,6 +133,7 @@ class TestLLMServiceRouting:
 
         with patch.dict(os.environ, {"DEFAULT_LLM_PROVIDER": "gemma"}):
             from app.config.settings import get_settings
+
             get_settings.cache_clear()
             resp = await service.generate(_make_request(complexity="simple"))
             get_settings.cache_clear()
@@ -140,6 +144,7 @@ class TestLLMServiceRouting:
 # ---------------------------------------------------------------------------
 # Fallback tests
 # ---------------------------------------------------------------------------
+
 
 class TestLLMServiceFallback:
     @pytest.mark.asyncio
@@ -154,6 +159,7 @@ class TestLLMServiceFallback:
 
         with patch.dict(os.environ, {"LLM_FALLBACK_PROVIDER": "ollama"}):
             from app.config.settings import get_settings
+
             get_settings.cache_clear()
             resp = await service.generate(_make_request())
             get_settings.cache_clear()
@@ -163,15 +169,14 @@ class TestLLMServiceFallback:
     @pytest.mark.asyncio
     async def test_configuration_error_bypasses_fallback(self, service) -> None:
         """LLMConfigurationError must NOT trigger provider-level fallback."""
-        primary = _make_mock_provider(
-            "gemini", side_effect=LLMConfigurationError("bad config")
-        )
+        primary = _make_mock_provider("gemini", side_effect=LLMConfigurationError("bad config"))
         fallback = _make_mock_provider("ollama")
         service._providers["gemini"] = primary
         service._providers["ollama"] = fallback
 
         with patch.dict(os.environ, {"LLM_FALLBACK_PROVIDER": "ollama"}):
             from app.config.settings import get_settings
+
             get_settings.cache_clear()
             with pytest.raises(LLMConfigurationError):
                 await service.generate(_make_request())
@@ -193,6 +198,7 @@ class TestLLMServiceFallback:
 
         with patch.dict(os.environ, {"LLM_FALLBACK_PROVIDER": "ollama"}):
             from app.config.settings import get_settings
+
             get_settings.cache_clear()
             with pytest.raises(LLMProviderError):
                 await service.generate(_make_request())
@@ -208,6 +214,7 @@ class TestLLMServiceFallback:
 
         with patch.dict(os.environ, {"LLM_FALLBACK_PROVIDER": "", "FALLBACK_LLM_PROVIDER": ""}):
             from app.config.settings import get_settings
+
             get_settings.cache_clear()
             with pytest.raises(LLMError):
                 await service.generate(_make_request())
@@ -217,6 +224,7 @@ class TestLLMServiceFallback:
 # ---------------------------------------------------------------------------
 # Provider caching
 # ---------------------------------------------------------------------------
+
 
 class TestLLMServiceProviderCache:
     def test_same_instance_returned_on_repeated_calls(self, service) -> None:
@@ -238,10 +246,12 @@ class TestLLMServiceProviderCache:
 # get_llm_service singleton
 # ---------------------------------------------------------------------------
 
+
 class TestGetLLMService:
     def test_returns_same_singleton(self) -> None:
         """get_llm_service() must return the same object on every call."""
         from app.llm.service import get_llm_service
+
         s1 = get_llm_service()
         s2 = get_llm_service()
         assert s1 is s2

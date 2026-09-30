@@ -93,9 +93,7 @@ class PromptTemplateRepository:
         )
         template = result.scalar_one_or_none()
         if template is None:
-            raise TemplateNotFoundError(
-                f"No active prompt template found with name={name!r}"
-            )
+            raise TemplateNotFoundError(f"No active prompt template found with name={name!r}")
         return template
 
     async def get_version(self, name: str, version: int) -> PromptTemplate:
@@ -123,9 +121,7 @@ class PromptTemplateRepository:
         )
         template = result.scalar_one_or_none()
         if template is None:
-            raise TemplateNotFoundError(
-                f"No version {version} found for template name={name!r}"
-            )
+            raise TemplateNotFoundError(f"No version {version} found for template name={name!r}")
         return template
 
     async def list_versions(self, name: str) -> list[PromptTemplate]:

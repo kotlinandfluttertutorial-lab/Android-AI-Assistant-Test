@@ -159,27 +159,25 @@ class TestUserScoping:
                 patch("chromadb.HttpClient", return_value=mock_client),
                 patch.object(service, "_get_embedding_model", return_value=mock_model),
             ):
-                return await service.semantic_search(
-                    user_id=user_id, query="test query"
-                )
+                return await service.semantic_search(user_id=user_id, query="test query")
 
         results = _run(_run_search())
 
         # Only user A's note should appear
-        assert all(
-            r.source_name != "Other Note" for r in results
-        ), "Cross-user result returned! User scoping violation."
+        assert all(r.source_name != "Other Note" for r in results), (
+            "Cross-user result returned! User scoping violation."
+        )
 
         # Verify no call was made to other user's collections
         queried_collections = [
             call_args[0][0] for call_args in mock_client.get_collection.call_args_list
         ]
-        assert not any(
-            str(other_user_id) in name for name in queried_collections
-        ), "Other user's collection was queried — scoping violation."
-        assert all(
-            str(user_id) in name for name in queried_collections
-        ), "Queried collection does not belong to the requesting user."
+        assert not any(str(other_user_id) in name for name in queried_collections), (
+            "Other user's collection was queried — scoping violation."
+        )
+        assert all(str(user_id) in name for name in queried_collections), (
+            "Queried collection does not belong to the requesting user."
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -233,12 +231,12 @@ class TestThresholdFiltering:
 
         result_names = [r.source_name for r in results]
         assert "High Note" in result_names, "High relevance result should be included."
-        assert (
-            "Medium Note" in result_names
-        ), "Medium relevance result (distance=0.49) should be included."
-        assert (
-            "Low Note" not in result_names
-        ), "Low relevance result (distance=0.51) must be excluded by threshold filter."
+        assert "Medium Note" in result_names, (
+            "Medium relevance result (distance=0.49) should be included."
+        )
+        assert "Low Note" not in result_names, (
+            "Low relevance result (distance=0.51) must be excluded by threshold filter."
+        )
 
     def test_all_results_above_threshold_have_score_ge_0_5(self) -> None:
         """All returned results must have relevance_score ≥ 0.5.
@@ -249,9 +247,7 @@ class TestThresholdFiltering:
         note_collection = _make_mock_collection(
             ids=[f"n{i}" for i in range(10)],
             documents=[f"Doc {i}" for i in range(10)],
-            metadatas=[
-                {"source_name": f"Note {i}", "source_id": f"n{i}"} for i in range(10)
-            ],
+            metadatas=[{"source_name": f"Note {i}", "source_id": f"n{i}"} for i in range(10)],
             distances=[i * 0.1 for i in range(10)],  # 0.0, 0.1, ..., 0.9
         )
 
@@ -274,9 +270,9 @@ class TestThresholdFiltering:
 
         # All returned results must have score >= 0.5
         for r in results:
-            assert (
-                r.relevance_score >= 0.5
-            ), f"Result with score {r.relevance_score} below threshold was returned."
+            assert r.relevance_score >= 0.5, (
+                f"Result with score {r.relevance_score} below threshold was returned."
+            )
 
     def test_no_results_above_threshold_returns_empty_list(self) -> None:
         """When all results are below threshold, an empty list is returned.
@@ -356,9 +352,9 @@ class TestEmptyGroupOmission:
         results = _run(_run_search())
 
         # Should only get notes results; no errors from missing collections
-        assert all(
-            r.source_type == "note" for r in results
-        ), "Results from non-existent collections should not appear."
+        assert all(r.source_type == "note" for r in results), (
+            "Results from non-existent collections should not appear."
+        )
 
     def test_empty_collection_is_skipped(self) -> None:
         """Collections with count=0 are skipped without querying.
@@ -456,12 +452,8 @@ class TestResponseSLA:
 
         # Build mock results: 50 results all above threshold
         ids = [f"doc{i}" for i in range(n)]
-        documents = [
-            f"Document content number {i} with some meaningful text." for i in range(n)
-        ]
-        metadatas = [
-            {"source_name": f"Doc {i}", "source_id": f"doc{i}"} for i in range(n)
-        ]
+        documents = [f"Document content number {i} with some meaningful text." for i in range(n)]
+        metadatas = [{"source_name": f"Doc {i}", "source_id": f"doc{i}"} for i in range(n)]
         distances = [0.01 + (i * 0.001) for i in range(n)]  # All well within threshold
 
         # Collection with 100,000 count but only returns top-50
@@ -489,17 +481,15 @@ class TestResponseSLA:
                 patch("chromadb.HttpClient", return_value=mock_client),
                 patch.object(service, "_get_embedding_model", return_value=mock_model),
             ):
-                return await service.semantic_search(
-                    user_id=user_id, query="test query"
-                )
+                return await service.semantic_search(user_id=user_id, query="test query")
 
         start_time = time.perf_counter()
         results = _run(_run_search())
         elapsed = time.perf_counter() - start_time
 
-        assert (
-            elapsed < 3.0
-        ), f"Semantic search exceeded 3-second SLA with 100k mock entries: {elapsed:.3f}s"
+        assert elapsed < 3.0, (
+            f"Semantic search exceeded 3-second SLA with 100k mock entries: {elapsed:.3f}s"
+        )
         assert len(results) == n, f"Expected {n} results, got {len(results)}."
 
     def test_relevance_score_is_rounded_to_2_decimal_places(self) -> None:
@@ -534,13 +524,11 @@ class TestResponseSLA:
         assert len(results) == 1
         score = results[0].relevance_score
         # round(1.0 - 0.123456789, 2) = round(0.876543211, 2) = 0.88
-        assert score == round(
-            1.0 - 0.123456789, 2
-        ), f"Expected score {round(1.0 - 0.123456789, 2)}, got {score}"
+        assert score == round(1.0 - 0.123456789, 2), (
+            f"Expected score {round(1.0 - 0.123456789, 2)}, got {score}"
+        )
         # Verify it has at most 2 decimal places
-        assert score == round(
-            score, 2
-        ), f"Score {score} has more than 2 decimal places."
+        assert score == round(score, 2), f"Score {score} has more than 2 decimal places."
 
     def test_excerpt_truncated_to_300_chars(self) -> None:
         """Excerpt must be truncated to 300 characters.
@@ -573,9 +561,9 @@ class TestResponseSLA:
 
         results = _run(_run_search())
         assert len(results) == 1
-        assert (
-            len(results[0].excerpt) <= 300
-        ), f"Excerpt exceeds 300 chars: {len(results[0].excerpt)} chars."
+        assert len(results[0].excerpt) <= 300, (
+            f"Excerpt exceeds 300 chars: {len(results[0].excerpt)} chars."
+        )
 
     def test_deep_link_format_is_correct(self) -> None:
         """Deep links must follow the aiassistant://{type}s/{id} format.
@@ -607,6 +595,6 @@ class TestResponseSLA:
 
         results = _run(_run_search())
         assert len(results) == 1
-        assert (
-            results[0].deep_link == "aiassistant://notes/note-abc-123"
-        ), f"Unexpected deep link: {results[0].deep_link}"
+        assert results[0].deep_link == "aiassistant://notes/note-abc-123", (
+            f"Unexpected deep link: {results[0].deep_link}"
+        )

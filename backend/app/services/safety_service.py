@@ -171,8 +171,7 @@ class SafetyService:
                     pattern.pattern,
                 )
                 raise SafetyFilterError(
-                    "Safety filter failed to redact harmful content; "
-                    "blocking entire response."
+                    "Safety filter failed to redact harmful content; blocking entire response."
                 )
 
         return sanitised
@@ -270,9 +269,7 @@ class InjectionDetector:
         try:
             user_uuid = uuid.UUID(user_id)
         except (ValueError, AttributeError):
-            logger.warning(
-                "Could not parse user_id %r as UUID for audit log entry.", user_id
-            )
+            logger.warning("Could not parse user_id %r as UUID for audit log entry.", user_id)
 
         # Write the audit log entry.
         audit_entry = AuditLog(

@@ -122,12 +122,7 @@ class GmailReadConnector(MCPToolConnector):
 
         if action == "list_messages":
             max_results = params.get("max_results", 10)
-            result = (
-                service.users()
-                .messages()
-                .list(userId="me", maxResults=max_results)
-                .execute()
-            )
+            result = service.users().messages().list(userId="me", maxResults=max_results).execute()
             return MCPToolResult(
                 tool_name=self.tool_name,
                 success=True,
@@ -138,10 +133,7 @@ class GmailReadConnector(MCPToolConnector):
         elif action == "get_message":
             message_id = params.get("message_id", "")
             msg = (
-                service.users()
-                .messages()
-                .get(userId="me", id=message_id, format="full")
-                .execute()
+                service.users().messages().get(userId="me", id=message_id, format="full").execute()
             )
             return MCPToolResult(
                 tool_name=self.tool_name,
@@ -229,12 +221,7 @@ class GmailWriteConnector(MCPToolConnector):
         raw = base64.urlsafe_b64encode(mime_msg.as_bytes()).decode()
 
         if action == "send_email":
-            result = (
-                service.users()
-                .messages()
-                .send(userId="me", body={"raw": raw})
-                .execute()
-            )
+            result = service.users().messages().send(userId="me", body={"raw": raw}).execute()
             return MCPToolResult(
                 tool_name=self.tool_name,
                 success=True,

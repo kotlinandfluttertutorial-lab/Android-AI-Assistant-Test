@@ -133,9 +133,7 @@ def _make_valid_token() -> str:
 def _make_mock_db():
     """Return a mock AsyncSession that records calls to ``add`` and ``flush``."""
     db = MagicMock()
-    db.add = (
-        MagicMock()
-    )  # synchronous — InjectionDetector calls db.add() not await db.add()
+    db.add = MagicMock()  # synchronous — InjectionDetector calls db.add() not await db.add()
     db.flush = AsyncMock()
     db.commit = AsyncMock()
     db.rollback = AsyncMock()
@@ -226,9 +224,7 @@ def test_known_injection_phrase_returns_400(phrase: str) -> None:
     suffix=noise_text_strategy,
 )
 @settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow])
-def test_injection_phrase_with_noise_still_blocked(
-    phrase: str, prefix: str, suffix: str
-) -> None:
+def test_injection_phrase_with_noise_still_blocked(phrase: str, prefix: str, suffix: str) -> None:
     """**Validates: Requirements 9.6, 25.4**
 
     Surrounding an injection phrase with arbitrary prefix/suffix text must
@@ -308,15 +304,12 @@ def test_injection_creates_audit_log_and_llm_not_called(phrase: str) -> None:
 
     # Verify db.add() was called with an AuditLog row with event_type="prompt_injection".
     assert mock_db.add.called, (
-        f"Expected db.add() to be called for injection phrase {phrase!r}, "
-        "but it was never called."
+        f"Expected db.add() to be called for injection phrase {phrase!r}, but it was never called."
     )
 
     # Find the AuditLog argument among all add() calls.
     audit_log_entries = [
-        call.args[0]
-        for call in mock_db.add.call_args_list
-        if isinstance(call.args[0], AuditLog)
+        call.args[0] for call in mock_db.add.call_args_list if isinstance(call.args[0], AuditLog)
     ]
     assert audit_log_entries, (
         f"Expected at least one AuditLog object passed to db.add() for phrase {phrase!r}. "
@@ -385,8 +378,7 @@ def test_clean_input_does_not_create_injection_audit_log() -> None:
         injection_audit_entries = [
             call.args[0]
             for call in mock_db.add.call_args_list
-            if isinstance(call.args[0], AuditLog)
-            and call.args[0].event_type == "prompt_injection"
+            if isinstance(call.args[0], AuditLog) and call.args[0].event_type == "prompt_injection"
         ]
         assert not injection_audit_entries, (
             f"Unexpected prompt_injection audit log entry for clean message {message!r}. "

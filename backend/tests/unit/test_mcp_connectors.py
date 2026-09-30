@@ -97,39 +97,29 @@ def _make_http_response(json_data: dict, status_code: int = 200) -> MagicMock:
 class TestGetSchema:
     """Every connector must return a valid MCPToolSchema from get_schema()."""
 
-    @pytest.mark.parametrize(
-        "connector, expected_name", READ_CONNECTORS + WRITE_CONNECTORS
-    )
+    @pytest.mark.parametrize("connector, expected_name", READ_CONNECTORS + WRITE_CONNECTORS)
     def test_schema_is_mcp_tool_schema(self, connector, expected_name) -> None:
         schema = connector.get_schema()
         assert isinstance(schema, MCPToolSchema)
 
-    @pytest.mark.parametrize(
-        "connector, expected_name", READ_CONNECTORS + WRITE_CONNECTORS
-    )
+    @pytest.mark.parametrize("connector, expected_name", READ_CONNECTORS + WRITE_CONNECTORS)
     def test_schema_tool_name_matches_connector(self, connector, expected_name) -> None:
         schema = connector.get_schema()
         assert schema.tool_name == expected_name
         assert schema.tool_name == connector.tool_name
 
-    @pytest.mark.parametrize(
-        "connector, expected_name", READ_CONNECTORS + WRITE_CONNECTORS
-    )
+    @pytest.mark.parametrize("connector, expected_name", READ_CONNECTORS + WRITE_CONNECTORS)
     def test_schema_has_non_empty_description(self, connector, expected_name) -> None:
         schema = connector.get_schema()
         assert schema.description
         assert len(schema.description) > 0
 
-    @pytest.mark.parametrize(
-        "connector, expected_name", READ_CONNECTORS + WRITE_CONNECTORS
-    )
+    @pytest.mark.parametrize("connector, expected_name", READ_CONNECTORS + WRITE_CONNECTORS)
     def test_schema_has_parameters_dict(self, connector, expected_name) -> None:
         schema = connector.get_schema()
         assert isinstance(schema.parameters, dict)
 
-    @pytest.mark.parametrize(
-        "connector, expected_name", READ_CONNECTORS + WRITE_CONNECTORS
-    )
+    @pytest.mark.parametrize("connector, expected_name", READ_CONNECTORS + WRITE_CONNECTORS)
     def test_schema_requires_confirmation_matches_connector_property(
         self, connector, expected_name
     ) -> None:
@@ -160,9 +150,7 @@ class TestRequiresConfirmation:
     def test_all_write_connector_schemas_have_requires_confirmation_true(self) -> None:
         for connector, _ in WRITE_CONNECTORS:
             schema = connector.get_schema()
-            assert (
-                schema.requires_confirmation is True
-            ), f"{connector.tool_name} schema mismatch"
+            assert schema.requires_confirmation is True, f"{connector.tool_name} schema mismatch"
 
 
 # ---------------------------------------------------------------------------
@@ -188,9 +176,7 @@ class TestInvokeSuccessGitHub:
             "app.services.mcp_connectors.github_connector.httpx.AsyncClient",
             return_value=mock_client,
         ):
-            result = await connector.invoke(
-                {"action": "search_repos", "query": "fastapi"}, USER_ID
-            )
+            result = await connector.invoke({"action": "search_repos", "query": "fastapi"}, USER_ID)
 
         assert isinstance(result, MCPToolResult)
         assert result.success is True
@@ -346,9 +332,7 @@ class TestInvokeSuccessJira:
     @pytest.mark.asyncio
     async def test_jira_read_search_issues(self) -> None:
         connector = JiraReadConnector()
-        mock_resp = _make_http_response(
-            {"issues": [{"id": "10000", "key": "PROJ-1"}], "total": 1}
-        )
+        mock_resp = _make_http_response({"issues": [{"id": "10000", "key": "PROJ-1"}], "total": 1})
         mock_client = AsyncMock()
         mock_client.__aenter__ = AsyncMock(return_value=mock_client)
         mock_client.__aexit__ = AsyncMock(return_value=False)
@@ -474,9 +458,7 @@ class TestInvokeSuccessFigma:
             "app.services.mcp_connectors.figma_connector.httpx.AsyncClient",
             return_value=mock_client,
         ):
-            result = await connector.invoke(
-                {"action": "get_file", "file_key": "abc123"}, USER_ID
-            )
+            result = await connector.invoke({"action": "get_file", "file_key": "abc123"}, USER_ID)
 
         assert result.success is True
         assert result.tool_name == "figma_read"
@@ -594,9 +576,7 @@ class TestInvokeHttpError:
             ),
             pytest.raises(httpx.HTTPStatusError),
         ):
-            await connector.invoke(
-                {"action": "get_file", "file_key": "missing"}, USER_ID
-            )
+            await connector.invoke({"action": "get_file", "file_key": "missing"}, USER_ID)
 
 
 # ---------------------------------------------------------------------------
@@ -674,9 +654,7 @@ class TestBrokerErrorIsolation:
             ),
             patch("app.services.mcp_broker.AuditService", return_value=mock_audit),
         ):
-            result = await broker.invoke(
-                "slack_read", {"action": "list_channels"}, USER_ID
-            )
+            result = await broker.invoke("slack_read", {"action": "list_channels"}, USER_ID)
 
         assert result.success is False
         assert result.result_status == "error"

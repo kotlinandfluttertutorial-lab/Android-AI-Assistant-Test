@@ -104,10 +104,7 @@ async def analyse_errors(
         logger.error("analysis/errors: unexpected error — %s", exc, exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=(
-                "AI error analysis failed unexpectedly. "
-                "Check application logs for details."
-            ),
+            detail=("AI error analysis failed unexpectedly. Check application logs for details."),
         ) from exc
 
 
@@ -223,9 +220,7 @@ async def analyse_event(
         service = ErrorAnalysisService(db)
         return await service.analyse(request)
     except Exception as exc:
-        logger.error(
-            "analysis/errors/%s: unexpected error — %s", event_id, exc, exc_info=True
-        )
+        logger.error("analysis/errors/%s: unexpected error — %s", event_id, exc, exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="AI error analysis failed unexpectedly.",

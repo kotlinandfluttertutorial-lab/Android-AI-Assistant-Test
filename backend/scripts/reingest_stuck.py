@@ -18,6 +18,7 @@ os.environ.setdefault("ENVIRONMENT", "production")
 
 try:
     from app.config.settings import get_settings
+
     settings = get_settings()
     print(f"Settings loaded OK (env={settings.ENVIRONMENT})", flush=True)
 except Exception as e:
@@ -26,6 +27,7 @@ except Exception as e:
 
 try:
     from app.database import AsyncSessionLocal
+
     print("AsyncSessionLocal imported OK", flush=True)
 except Exception as e:
     print(f"ERROR importing database: {type(e).__name__}: {e}", flush=True)
@@ -36,6 +38,7 @@ try:
 
     from app.models.document import Document, IngestionStatus
     from app.workers.rag_worker import ingest_document_task
+
     print("All imports OK", flush=True)
 except Exception as e:
     print(f"ERROR importing models/worker: {type(e).__name__}: {e}", flush=True)

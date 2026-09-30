@@ -151,18 +151,14 @@ class TestUpdateUserDeactivation:
 
         # Mock the DB execute for update(RefreshToken)
         update_result = MagicMock()
-        update_result.fetchall = MagicMock(
-            return_value=[MagicMock(), MagicMock()]
-        )  # 2 rows
+        update_result.fetchall = MagicMock(return_value=[MagicMock(), MagicMock()])  # 2 rows
 
         # execute is called twice: once for select(User) and once for update(RefreshToken)
         mock_db.execute = AsyncMock(side_effect=[user_select_result, update_result])
         mock_db.flush = AsyncMock()
         mock_redis.setex = AsyncMock()
 
-        result = await admin_service.update_user(
-            mock_db, mock_redis, user_id, "deactivate"
-        )
+        result = await admin_service.update_user(mock_db, mock_redis, user_id, "deactivate")
 
         # User should be deactivated
         assert mock_user.is_active is False
@@ -226,9 +222,7 @@ class TestUpdateUserDeactivation:
         mock_db.execute = AsyncMock(return_value=user_select_result)
         mock_db.flush = AsyncMock()
 
-        result = await admin_service.update_user(
-            mock_db, mock_redis, user_id, "promote"
-        )
+        result = await admin_service.update_user(mock_db, mock_redis, user_id, "promote")
 
         # No token revocation
         assert result.tokens_revoked == 0
@@ -377,15 +371,11 @@ class TestListUsers:
         }
 
         users_result = AsyncMock()
-        users_result.scalars = MagicMock(
-            return_value=MagicMock(all=MagicMock(return_value=[]))
-        )
+        users_result.scalars = MagicMock(return_value=MagicMock(all=MagicMock(return_value=[])))
 
         mock_db.execute = AsyncMock(side_effect=[count_result, users_result])
 
-        result = await admin_service.list_users(
-            mock_db, page=1, page_size=20, search=None
-        )
+        result = await admin_service.list_users(mock_db, page=1, page_size=20, search=None)
 
         assert isinstance(result, PaginatedUsersResponse)
         assert result.total == 1
@@ -403,15 +393,11 @@ class TestListUsers:
         count_result.scalar_one = MagicMock(return_value=0)
 
         users_result = AsyncMock()
-        users_result.scalars = MagicMock(
-            return_value=MagicMock(all=MagicMock(return_value=[]))
-        )
+        users_result.scalars = MagicMock(return_value=MagicMock(all=MagicMock(return_value=[])))
 
         mock_db.execute = AsyncMock(side_effect=[count_result, users_result])
 
-        result = await admin_service.list_users(
-            mock_db, page=1, page_size=20, search=None
-        )
+        result = await admin_service.list_users(mock_db, page=1, page_size=20, search=None)
 
         assert result.total == 0
         assert result.items == []
@@ -432,9 +418,7 @@ class TestFeedbackExport:
 
         mock_db = AsyncMock()
         result_mock = AsyncMock()
-        result_mock.scalars = MagicMock(
-            return_value=MagicMock(all=MagicMock(return_value=[]))
-        )
+        result_mock.scalars = MagicMock(return_value=MagicMock(all=MagicMock(return_value=[])))
         mock_db.execute = AsyncMock(return_value=result_mock)
 
         csv_str = await admin_service.export_feedback_csv(mock_db)
@@ -462,9 +446,7 @@ class TestFeedbackExport:
         item.created_at = datetime(2024, 1, 15, 12, 0, 0, tzinfo=timezone.utc)
 
         result_mock = AsyncMock()
-        result_mock.scalars = MagicMock(
-            return_value=MagicMock(all=MagicMock(return_value=[item]))
-        )
+        result_mock.scalars = MagicMock(return_value=MagicMock(all=MagicMock(return_value=[item])))
         mock_db.execute = AsyncMock(return_value=result_mock)
 
         csv_str = await admin_service.export_feedback_csv(mock_db)
@@ -665,9 +647,7 @@ class TestCeleryMetrics:
 
         mock_celery_app = MagicMock()
         inspect_mock = MagicMock()
-        inspect_mock.active.return_value = {
-            "worker1": [{"id": "task1"}, {"id": "task2"}]
-        }
+        inspect_mock.active.return_value = {"worker1": [{"id": "task1"}, {"id": "task2"}]}
         inspect_mock.reserved.return_value = {"worker1": [{"id": "task3"}]}
         inspect_mock.revoked.return_value = {"worker1": ["task_a", "task_b"]}
         mock_celery_app.control.inspect.return_value = inspect_mock

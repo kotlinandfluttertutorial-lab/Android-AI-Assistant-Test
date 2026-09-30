@@ -76,8 +76,7 @@ class FigmaReadConnector(MCPToolConnector):
         return MCPToolSchema(
             tool_name="figma_read",
             description=(
-                "Read from Figma: get files, list projects, get project files,"
-                " get comments."
+                "Read from Figma: get files, list projects, get project files, get comments."
             ),
             parameters={
                 "type": "object",

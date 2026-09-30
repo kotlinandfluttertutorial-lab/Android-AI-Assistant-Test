@@ -126,6 +126,4 @@ def require_roles(*roles: UserRole | str) -> Callable[..., Any]:
 require_admin: Callable[..., Any] = require_roles(UserRole.admin)
 
 #: Dependency that allows ``premium`` **and** ``admin`` users.
-require_premium_or_admin: Callable[..., Any] = require_roles(
-    UserRole.premium, UserRole.admin
-)
+require_premium_or_admin: Callable[..., Any] = require_roles(UserRole.premium, UserRole.admin)

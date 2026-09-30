@@ -46,11 +46,11 @@ logger = logging.getLogger(__name__)
 # ── Constants ─────────────────────────────────────────────────────────────────
 
 _LOW_CONFIDENCE_THRESHOLD = 0.6
-_MAX_EVENTS_IN_PROMPT     = 40   # observability events
-_MAX_ERROR_LOGS_IN_PROMPT = 20   # server error logs
-_MAX_KB_CHUNKS            = 5    # per category (runbooks + incidents)
-_LLM_MAX_TOKENS           = 1536 # larger than Phase 10 — chain-of-thought needs space
-_LLM_TIMEOUT              = 60.0 # seconds
+_MAX_EVENTS_IN_PROMPT = 40  # observability events
+_MAX_ERROR_LOGS_IN_PROMPT = 20  # server error logs
+_MAX_KB_CHUNKS = 5  # per category (runbooks + incidents)
+_LLM_MAX_TOKENS = 1536  # larger than Phase 10 — chain-of-thought needs space
+_LLM_TIMEOUT = 60.0  # seconds
 
 
 class RcaService:
@@ -63,10 +63,10 @@ class RcaService:
     """
 
     def __init__(self, db: AsyncSession) -> None:
-        self._db           = db
-        self._inc_repo     = IncidentRepository(db)
-        self._obs_repo     = ObservabilityEventRepository(db)
-        self._errlog_repo  = ErrorLogRepository(db)
+        self._db = db
+        self._inc_repo = IncidentRepository(db)
+        self._obs_repo = ObservabilityEventRepository(db)
+        self._errlog_repo = ErrorLogRepository(db)
 
     # ── Public entry point ────────────────────────────────────────────────────
 
@@ -118,16 +118,18 @@ class RcaService:
         search_query = self._derive_search_query(incident, obs_events, error_logs)
 
         runbook_chunks = await rag_service.query_knowledge_base(
-            query=search_query, top_k=_MAX_KB_CHUNKS, categories=["runbooks"],
+            query=search_query,
+            top_k=_MAX_KB_CHUNKS,
+            categories=["runbooks"],
         )
         incident_chunks = await rag_service.query_knowledge_base(
-            query=search_query, top_k=_MAX_KB_CHUNKS, categories=["incidents"],
+            query=search_query,
+            top_k=_MAX_KB_CHUNKS,
+            categories=["incidents"],
         )
 
         # ── Step 5: Build chain-of-thought LLM prompt ────────────────────────
-        prompt = self._build_prompt(
-            incident, timeline, runbook_chunks, incident_chunks
-        )
+        prompt = self._build_prompt(incident, timeline, runbook_chunks, incident_chunks)
 
         # ── Step 6: LLM reasoning ─────────────────────────────────────────────
         llm_text, provider_name = await self._call_llm(prompt, request.provider)
@@ -161,27 +163,31 @@ class RcaService:
 
         for evt in obs_events:
             ts = datetime.fromtimestamp(evt.timestamp_ms / 1000, tz=UTC).isoformat()
-            events.append(TimelineEvent(
-                timestamp=ts,
-                source="observability_event",
-                level=evt.level,
-                event_type=evt.event_type,
-                message=evt.message,
-                screen=evt.screen,
-            ))
+            events.append(
+                TimelineEvent(
+                    timestamp=ts,
+                    source="observability_event",
+                    level=evt.level,
+                    event_type=evt.event_type,
+                    message=evt.message,
+                    screen=evt.screen,
+                )
+            )
 
         for log in error_logs:
             ts = log.created_at
             if ts.tzinfo is None:
                 ts = ts.replace(tzinfo=UTC)
-            events.append(TimelineEvent(
-                timestamp=ts.isoformat(),
-                source="error_log",
-                level="ERROR",
-                event_type=log.error_type,
-                message=f"[{log.endpoint}] {log.message[:300]}",
-                screen=None,
-            ))
+            events.append(
+                TimelineEvent(
+                    timestamp=ts.isoformat(),
+                    source="error_log",
+                    level="ERROR",
+                    event_type=log.error_type,
+                    message=f"[{log.endpoint}] {log.message[:300]}",
+                    screen=None,
+                )
+            )
 
         events.sort(key=lambda e: e.timestamp)
         return events
@@ -255,9 +261,9 @@ class RcaService:
         explicit phases: Analyse → Hypothesise → Rank → Conclude.
         This produces better ranked candidates than a direct "give me the answer" prompt.
         """
-        timeline_block   = self._format_timeline_for_prompt(timeline)
-        runbooks_block   = self._format_kb_chunks(runbook_chunks,  "Relevant Runbooks")
-        incidents_block  = self._format_kb_chunks(incident_chunks, "Historical Incidents")
+        timeline_block = self._format_timeline_for_prompt(timeline)
+        runbooks_block = self._format_kb_chunks(runbook_chunks, "Relevant Runbooks")
+        incidents_block = self._format_kb_chunks(incident_chunks, "Historical Incidents")
 
         phase10_context = ""
         if incident.ai_summary:
@@ -275,7 +281,7 @@ INCIDENT
   ID:          {incident.id}
   Title:       {incident.title}
   Severity:    {incident.severity}
-  Detected at: {incident.detected_at.isoformat() if incident.detected_at else 'unknown'}
+  Detected at: {incident.detected_at.isoformat() if incident.detected_at else "unknown"}
   Triggered by: {incident.triggered_by}
   Metric: value={incident.metric_value}, threshold={incident.threshold_value}
 {phase10_context}
@@ -331,9 +337,7 @@ Respond with ONLY valid JSON matching this exact schema (no markdown, no explana
 
     # ── LLM call ──────────────────────────────────────────────────────────────
 
-    async def _call_llm(
-        self, prompt: str, provider_override: str | None
-    ) -> tuple[str, str]:
+    async def _call_llm(self, prompt: str, provider_override: str | None) -> tuple[str, str]:
         import asyncio
 
         from app.config.settings import get_settings
@@ -374,7 +378,7 @@ Respond with ONLY valid JSON matching this exact schema (no markdown, no explana
             text = "\n".join(line for line in lines if not line.strip().startswith("```"))
 
         start = text.find("{")
-        end   = text.rfind("}") + 1
+        end = text.rfind("}") + 1
         if start == -1 or end == 0:
             logger.warning("RcaService: no JSON in LLM response")
             return {}
@@ -408,13 +412,15 @@ Respond with ONLY valid JSON matching this exact schema (no markdown, no explana
         candidates: list[RootCauseCandidate] = []
         for c in parsed.get("root_cause_candidates", []):
             try:
-                candidates.append(RootCauseCandidate(
-                    rank=int(c.get("rank", len(candidates) + 1)),
-                    cause=str(c.get("cause", "")),
-                    confidence=float(c.get("confidence", 0.0)),
-                    supporting_evidence=[str(e) for e in c.get("supporting_evidence", []) if e],
-                    reasoning=str(c.get("reasoning", "")),
-                ))
+                candidates.append(
+                    RootCauseCandidate(
+                        rank=int(c.get("rank", len(candidates) + 1)),
+                        cause=str(c.get("cause", "")),
+                        confidence=float(c.get("confidence", 0.0)),
+                        supporting_evidence=[str(e) for e in c.get("supporting_evidence", []) if e],
+                        reasoning=str(c.get("reasoning", "")),
+                    )
+                )
             except Exception as _exc:
                 logger.debug("RCA: skipping malformed candidate entry: %s", _exc)
                 continue
@@ -446,11 +452,13 @@ Respond with ONLY valid JSON matching this exact schema (no markdown, no explana
 
         # Related documentation — from LLM + RAG source names
         llm_docs = [str(d) for d in parsed.get("related_documentation", []) if d]
-        kb_docs = list({
-            c["document_name"]
-            for c in (runbook_chunks + incident_chunks)
-            if c.get("document_name")
-        })
+        kb_docs = list(
+            {
+                c["document_name"]
+                for c in (runbook_chunks + incident_chunks)
+                if c.get("document_name")
+            }
+        )
         related_docs = list(dict.fromkeys(llm_docs + kb_docs))
 
         return RcaAnalysisResponse(
@@ -474,9 +482,7 @@ Respond with ONLY valid JSON matching this exact schema (no markdown, no explana
 
     async def _persist(self, incident_id: uuid.UUID, response: RcaAnalysisResponse) -> None:
         try:
-            candidates_json = json.dumps(
-                [c.model_dump() for c in response.root_cause_candidates]
-            )
+            candidates_json = json.dumps([c.model_dump() for c in response.root_cause_candidates])
             steps_json = json.dumps(response.investigation_steps)
 
             await self._inc_repo.attach_rca(
@@ -570,7 +576,7 @@ Respond with ONLY valid JSON matching this exact schema (no markdown, no explana
             summary=incident.rca_summary or "Cached RCA result.",
             root_cause_candidates=candidates,
             overall_confidence=incident.rca_confidence or 0.0,
-            timeline=[],   # not stored on the row — re-run with force_rerun=True to get it
+            timeline=[],  # not stored on the row — re-run with force_rerun=True to get it
             chain_of_thought=(
                 "(Cached result — re-run with force_rerun=True to get full chain of thought)"
             ),

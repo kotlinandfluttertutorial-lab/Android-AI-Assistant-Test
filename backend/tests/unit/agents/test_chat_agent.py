@@ -319,8 +319,9 @@ async def test_conversation_id_from_metadata_fallback() -> None:
     # Confirm the correct conversation_id was forwarded
     call_kwargs = mock_orc.stream_chat.call_args
     assert call_kwargs is not None
-    assert call_kwargs.kwargs.get("conversation_id") == "meta-conv-1" or \
-           (len(call_kwargs.args) > 0 and call_kwargs.args[0] == "meta-conv-1")
+    assert call_kwargs.kwargs.get("conversation_id") == "meta-conv-1" or (
+        len(call_kwargs.args) > 0 and call_kwargs.args[0] == "meta-conv-1"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -336,6 +337,7 @@ async def test_db_unavailable_emits_failed() -> None:
 
     # Patch the module-level AsyncSessionLocal to None to simulate DB unavailability
     import app.agents.chat_agent as _chat_mod
+
     original = _chat_mod.AsyncSessionLocal
     _chat_mod.AsyncSessionLocal = None
     try:
@@ -402,9 +404,7 @@ async def test_conversation_context_userId_used() -> None:
             ContextMessage(role="user", content="Previous message"),
         ],
     )
-    request = make_request(conversation_id="conv-1").model_copy(
-        update={"context": ctx}
-    )
+    request = make_request(conversation_id="conv-1").model_copy(update={"context": ctx})
     execution = make_execution(request)
 
     frames = [{"type": "done", "usage": {"inputTokens": 0, "outputTokens": 0}}]

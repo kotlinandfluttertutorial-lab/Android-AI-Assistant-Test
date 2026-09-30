@@ -87,8 +87,7 @@ class GDriveReadConnector(MCPToolConnector):
         return MCPToolSchema(
             tool_name="gdrive_read",
             description=(
-                "Read from Google Drive: list files, get metadata,"
-                " search, download content."
+                "Read from Google Drive: list files, get metadata, search, download content."
             ),
             parameters={
                 "type": "object",
@@ -187,9 +186,7 @@ class GDriveReadConnector(MCPToolConnector):
         elif action == "download_file":
             file_id = params.get("file_id", "")
             mime_type = params.get("mime_type", "text/plain")
-            content = (
-                service.files().export(fileId=file_id, mimeType=mime_type).execute()
-            )
+            content = service.files().export(fileId=file_id, mimeType=mime_type).execute()
             if isinstance(content, bytes):
                 content = content.decode("utf-8", errors="replace")
             return MCPToolResult(
@@ -280,9 +277,7 @@ class GDriveWriteConnector(MCPToolConnector):
                 metadata["parents"] = [parent_id]
             media = MediaInMemoryUpload(content, mimetype="text/plain")
             result = (
-                service.files()
-                .create(body=metadata, media_body=media, fields="id,name")
-                .execute()
+                service.files().create(body=metadata, media_body=media, fields="id,name").execute()
             )
             return MCPToolResult(
                 tool_name=self.tool_name,

@@ -169,6 +169,7 @@ class LLMServiceAdapter(LLMClient):
     def _get_service(self) -> object:
         if self._service is None:
             from app.llm.service import get_llm_service
+
             self._service = get_llm_service()
         return self._service
 
@@ -268,6 +269,7 @@ class LocalGemmaAdapter(LLMClient):
     def _get_provider(self) -> object:
         if self._provider is None:
             from app.llm.providers.local_gemma_provider import LocalGemmaProvider
+
             self._provider = LocalGemmaProvider(model_name=self._model_name)
         return self._provider
 
@@ -279,6 +281,7 @@ class LocalGemmaAdapter(LLMClient):
     def is_available(self) -> bool:
         try:
             from app.config.settings import get_settings
+
             url = get_settings().OLLAMA_BASE_URL
             return bool(url and url.strip())
         except Exception:
@@ -313,9 +316,7 @@ class LocalGemmaAdapter(LLMClient):
             response = await provider.generate(req)  # type: ignore[attr-defined]
             return response.text
         except LLMError as exc:
-            raise LLMClientError(
-                str(exc), provider=self.provider_name, retryable=True
-            ) from exc
+            raise LLMClientError(str(exc), provider=self.provider_name, retryable=True) from exc
 
     async def stream(  # type: ignore[override]
         self,
@@ -346,7 +347,4 @@ class LocalGemmaAdapter(LLMClient):
             async for token in provider.stream(req):  # type: ignore[attr-defined]
                 yield token
         except LLMError as exc:
-            raise LLMClientError(
-                str(exc), provider=self.provider_name, retryable=True
-            ) from exc
-
+            raise LLMClientError(str(exc), provider=self.provider_name, retryable=True) from exc

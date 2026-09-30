@@ -128,9 +128,7 @@ class JiraReadConnector(MCPToolConnector):
 
             elif action == "get_issue":
                 issue_key = params.get("issue_key", "")
-                resp = await client.get(
-                    f"{base}/rest/api/3/issue/{issue_key}", headers=headers
-                )
+                resp = await client.get(f"{base}/rest/api/3/issue/{issue_key}", headers=headers)
                 resp.raise_for_status()
                 return MCPToolResult(
                     tool_name=self.tool_name,
@@ -254,9 +252,7 @@ class JiraWriteConnector(MCPToolConnector):
                         "issuetype": {"name": params.get("issue_type", "Task")},
                     }
                 }
-                resp = await client.post(
-                    f"{base}/rest/api/3/issue", headers=headers, json=payload
-                )
+                resp = await client.post(f"{base}/rest/api/3/issue", headers=headers, json=payload)
                 resp.raise_for_status()
                 return MCPToolResult(
                     tool_name=self.tool_name,
@@ -290,9 +286,7 @@ class JiraWriteConnector(MCPToolConnector):
                         "content": [
                             {
                                 "type": "paragraph",
-                                "content": [
-                                    {"type": "text", "text": params.get("body", "")}
-                                ],
+                                "content": [{"type": "text", "text": params.get("body", "")}],
                             }
                         ],
                     }

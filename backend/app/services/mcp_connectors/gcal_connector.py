@@ -144,9 +144,7 @@ class GCalReadConnector(MCPToolConnector):
 
         elif action == "get_event":
             event_id = params.get("event_id", "")
-            result = (
-                service.events().get(calendarId=calendar_id, eventId=event_id).execute()
-            )
+            result = service.events().get(calendarId=calendar_id, eventId=event_id).execute()
             return MCPToolResult(
                 tool_name=self.tool_name,
                 success=True,
@@ -224,8 +222,7 @@ class GCalWriteConnector(MCPToolConnector):
                     "end_datetime": {
                         "type": "string",
                         "description": (
-                            "RFC3339 end datetime,"
-                            " e.g. '2024-01-15T11:00:00Z' (for create_event)."
+                            "RFC3339 end datetime, e.g. '2024-01-15T11:00:00Z' (for create_event)."
                         ),
                     },
                     "description": {
@@ -275,11 +272,7 @@ class GCalWriteConnector(MCPToolConnector):
             if params.get("attendees"):
                 event_body["attendees"] = [{"email": e} for e in params["attendees"]]
 
-            result = (
-                service.events()
-                .insert(calendarId=calendar_id, body=event_body)
-                .execute()
-            )
+            result = service.events().insert(calendarId=calendar_id, body=event_body).execute()
             return MCPToolResult(
                 tool_name=self.tool_name,
                 success=True,

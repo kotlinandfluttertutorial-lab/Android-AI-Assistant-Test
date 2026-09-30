@@ -59,13 +59,10 @@ class TestExponentialBackoff:
             (2, 4),  # 2^2 = 4
         ],
     )
-    def test_countdown_is_power_of_two(
-        self, attempt: int, expected_countdown: int
-    ) -> None:
+    def test_countdown_is_power_of_two(self, attempt: int, expected_countdown: int) -> None:
         """Countdown for attempt N must be exactly 2^N seconds (Property 29)."""
         assert 2**attempt == expected_countdown, (
-            f"Attempt {attempt}: expected countdown {expected_countdown}, "
-            f"got {2**attempt}"
+            f"Attempt {attempt}: expected countdown {expected_countdown}, got {2**attempt}"
         )
 
     def test_countdown_sequence_doubles(self) -> None:
@@ -226,9 +223,7 @@ class TestPermanentFailure:
 
         overrides = {
             "app.database": mock_db_module,
-            "app.models.document": MagicMock(
-                IngestionStatus=MagicMock(failed="failed")
-            ),
+            "app.models.document": MagicMock(IngestionStatus=MagicMock(failed="failed")),
             "app.models.job": MagicMock(
                 Job=mock_job_cls,
                 JobStatus=MagicMock(failed="failed"),
@@ -288,18 +283,12 @@ class TestPermanentFailure:
 
         mock_rag_svc = MagicMock()
         mock_rag_svc.rag_service = MagicMock()
-        mock_rag_svc.rag_service.send_ingestion_failure_notification = (
-            mock_send_notification
-        )
+        mock_rag_svc.rag_service.send_ingestion_failure_notification = mock_send_notification
 
         overrides = {
             "app.database": mock_db_module,
-            "app.models.document": MagicMock(
-                IngestionStatus=MagicMock(failed="failed")
-            ),
-            "app.models.job": MagicMock(
-                Job=MagicMock, JobStatus=MagicMock(failed="failed")
-            ),
+            "app.models.document": MagicMock(IngestionStatus=MagicMock(failed="failed")),
+            "app.models.job": MagicMock(Job=MagicMock, JobStatus=MagicMock(failed="failed")),
             "app.repositories.document_repository": mock_doc_repo_module,
             "app.repositories.job_repository": mock_job_repo_module,
             "app.services.rag_service": mock_rag_svc,
@@ -425,9 +414,7 @@ class TestDeliveryNotificationTask:
 
 def _make_import_interceptor(**overrides):
     """Create a custom __import__ function that intercepts specific module imports."""
-    original_import = (
-        __builtins__.__import__ if hasattr(__builtins__, "__import__") else __import__
-    )
+    original_import = __builtins__.__import__ if hasattr(__builtins__, "__import__") else __import__
 
     def _interceptor(name, *args, **kwargs):
         # Pass through — not used in tests, just a helper stub
@@ -474,9 +461,7 @@ class TestBestEffortNotification:
             mock_get_settings.return_value = mock_settings
 
             # Make asyncio.to_thread raise an exception to simulate Firebase failure
-            with patch(
-                "asyncio.to_thread", side_effect=RuntimeError("Firebase unavailable")
-            ):
+            with patch("asyncio.to_thread", side_effect=RuntimeError("Firebase unavailable")):
                 # Should NOT raise — best-effort swallows errors at the task level
                 # The inner async function itself will raise, but the task wrapper catches it.
                 # Test the inner function raises (confirming the task wrapper is needed):
@@ -562,9 +547,7 @@ class TestCeleryMetrics:
         # Read counter value before
         before = celery_failed_tasks_total.labels(task_name=task_name)._value.get()
 
-        _on_task_failure(
-            sender=sender, task_id="task-123", exception=RuntimeError("boom")
-        )
+        _on_task_failure(sender=sender, task_id="task-123", exception=RuntimeError("boom"))
 
         after = celery_failed_tasks_total.labels(task_name=task_name)._value.get()
         assert after == before + 1.0
@@ -576,9 +559,7 @@ class TestCeleryMetrics:
             celery_completed_tasks_total,
         )
 
-        task_name = (
-            "app.workers.notification_worker.send_message_delivery_notification_task"
-        )
+        task_name = "app.workers.notification_worker.send_message_delivery_notification_task"
         sender = MagicMock()
         sender.name = task_name
 
@@ -597,9 +578,7 @@ class TestCeleryMetrics:
         )
 
         task_a = "app.workers.rag_worker.ingest_document_task"
-        task_b = (
-            "app.workers.notification_worker.send_message_delivery_notification_task"
-        )
+        task_b = "app.workers.notification_worker.send_message_delivery_notification_task"
 
         sender_a = MagicMock()
         sender_a.name = task_a

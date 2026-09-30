@@ -73,7 +73,7 @@ _DEFAULT_MAX_TOKENS: dict[str, int] = {
 
 # Map new Phase 4 actions to existing backend action strings
 _ACTION_BACKEND_MAP: dict[str, str] = {
-    "generate": "explain",   # uses AIOrchestrator.complete with custom prompt
+    "generate": "explain",  # uses AIOrchestrator.complete with custom prompt
     "refactor": "fix_bug",
     "review": "explain",
 }
@@ -119,11 +119,13 @@ class CodeAgent(Agent):
 
     @property
     def capabilities(self) -> frozenset[AgentCapability]:
-        return frozenset({
-            AgentCapability.CODE_ANALYSIS,
-            AgentCapability.TEXT_GENERATION,
-            AgentCapability.STREAMING,
-        })
+        return frozenset(
+            {
+                AgentCapability.CODE_ANALYSIS,
+                AgentCapability.TEXT_GENERATION,
+                AgentCapability.STREAMING,
+            }
+        )
 
     async def execute(
         self,
@@ -169,9 +171,7 @@ class CodeAgent(Agent):
             except Exception as exc:
                 exc_type = type(exc).__name__
                 if "injection" in exc_type.lower() or "prompt" in str(exc).lower():
-                    yield self._failed(
-                        execution, request, "PROMPT_INJECTION_DETECTED", str(exc)
-                    )
+                    yield self._failed(execution, request, "PROMPT_INJECTION_DETECTED", str(exc))
                     return
                 # Other errors from injection check → log and continue
 
@@ -192,8 +192,7 @@ class CodeAgent(Agent):
                 )
         except asyncio.TimeoutError:
             yield self._failed(
-                execution, request, "TIMEOUT",
-                f"Code {action} request timed out after {timeout}s."
+                execution, request, "TIMEOUT", f"Code {action} request timed out after {timeout}s."
             )
             return
         except Exception as exc:

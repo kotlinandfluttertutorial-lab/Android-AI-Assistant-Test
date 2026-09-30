@@ -83,6 +83,7 @@ def _get_google_http_request() -> object:
     global _google_http_request
     if _google_http_request is None:
         import google.auth.transport.requests as g_requests
+
         _google_http_request = g_requests.Request()
     return _google_http_request
 
@@ -457,9 +458,7 @@ async def _google_auth_impl(
                 valid_audiences.discard("")
                 token_aud = id_info.get("aud", "")
                 if token_aud not in valid_audiences:
-                    raise ValueError(
-                        f"Token audience '{token_aud}' is not in the allowed set."
-                    )
+                    raise ValueError(f"Token audience '{token_aud}' is not in the allowed set.")
             return id_info
 
         id_info: dict = await loop.run_in_executor(None, _verify)

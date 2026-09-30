@@ -161,8 +161,7 @@ def test_property_11a_top_k_count_enforcement(n: int, query_text: str) -> None:
     expected_count = min(n, 3)
 
     assert len(result) == expected_count, (
-        f"Property 11A violated: expected {expected_count} results for N={n}, "
-        f"got {len(result)}."
+        f"Property 11A violated: expected {expected_count} results for N={n}, got {len(result)}."
     )
 
 
@@ -223,9 +222,7 @@ def test_property_11b_top_3_highest_relevance_entries(
     result = _run_async(_run())
 
     # There are len(scores) >= 5 entries; top_k=3, so there are non-returned entries
-    assert (
-        len(result) == 3
-    ), f"Property 11B violated: expected 3 results, got {len(result)}."
+    assert len(result) == 3, f"Property 11B violated: expected 3 results, got {len(result)}."
 
     returned_scores = {entry.relevance_score for entry in result}
     all_scores_set = set(sorted_scores)
@@ -233,9 +230,7 @@ def test_property_11b_top_3_highest_relevance_entries(
 
     # Every returned score must be >= every non-returned score
     min_returned = min(returned_scores)
-    max_non_returned = (
-        max(non_returned_scores) if non_returned_scores else float("-inf")
-    )
+    max_non_returned = max(non_returned_scores) if non_returned_scores else float("-inf")
 
     assert min_returned >= max_non_returned, (
         f"Property 11B violated: a non-returned entry has a higher relevance score "
@@ -331,8 +326,7 @@ def test_property_11c_cross_user_contamination_absence(
     # Verify user A only receives her own content
     for entry in result:
         assert f"user_a_exclusive_{user_a_id.hex[:8]}" in entry.content, (
-            f"Property 11C violated: unexpected content in user A's results: "
-            f"{entry.content!r}."
+            f"Property 11C violated: unexpected content in user A's results: {entry.content!r}."
         )
 
 
@@ -385,9 +379,7 @@ def test_property_11d_graceful_degradation_on_exception(query_text: str) -> None
             f"instead of returning []. exception={exc!r}"
         ) from exc
 
-    assert (
-        result == []
-    ), f"Property 11D violated: expected [] on exception, got {result!r}."
+    assert result == [], f"Property 11D violated: expected [] on exception, got {result!r}."
 
 
 # ===========================================================================
@@ -441,9 +433,7 @@ class TestTopKMemoryRelevanceEdgeCases:
                 )
 
         result = _run_async(_run())
-        assert (
-            len(result) == 2
-        ), f"N=2 edge case failed: expected 2 results, got {len(result)}."
+        assert len(result) == 2, f"N=2 edge case failed: expected 2 results, got {len(result)}."
 
     def test_n5_memories_returns_exactly_3(self) -> None:
         """N=5 memories → get_relevant_memories returns exactly 3 (top_k limit)."""
@@ -464,9 +454,9 @@ class TestTopKMemoryRelevanceEdgeCases:
                 )
 
         result = _run_async(_run())
-        assert (
-            len(result) == 3
-        ), f"N=5 edge case failed: expected 3 results (top_k), got {len(result)}."
+        assert len(result) == 3, (
+            f"N=5 edge case failed: expected 3 results (top_k), got {len(result)}."
+        )
 
     def test_top_k_1_returns_exactly_1_memory(self) -> None:
         """top_k=1 → get_relevant_memories returns exactly 1 memory."""
@@ -487,6 +477,4 @@ class TestTopKMemoryRelevanceEdgeCases:
                 )
 
         result = _run_async(_run())
-        assert (
-            len(result) == 1
-        ), f"top_k=1 edge case failed: expected 1 result, got {len(result)}."
+        assert len(result) == 1, f"top_k=1 edge case failed: expected 1 result, got {len(result)}."

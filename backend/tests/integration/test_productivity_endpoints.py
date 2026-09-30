@@ -318,9 +318,7 @@ class TestTodoCrud:
             patch("app.security.dependencies._is_jti_revoked", return_value=False),
         ):
             svc = MockSvc.return_value
-            svc.get_todo = AsyncMock(
-                side_effect=HTTPException(status_code=404, detail="Not found")
-            )
+            svc.get_todo = AsyncMock(side_effect=HTTPException(status_code=404, detail="Not found"))
 
             with TestClient(_app) as client:
                 resp = client.get(
@@ -460,9 +458,7 @@ class TestCalendarEventCrud:
         user_id = _make_user_id()
         token = _make_token(user_id)
         event_id = uuid.uuid4()
-        updated = _make_event(
-            event_id=event_id, user_id=user_id, title="Updated standup"
-        )
+        updated = _make_event(event_id=event_id, user_id=user_id, title="Updated standup")
 
         with (
             patch("app.api.productivity.router.ProductivityService") as MockSvc,
@@ -589,9 +585,7 @@ class TestReminderCrud:
         """
         user_id = _make_user_id()
         token = _make_token(user_id)
-        reminders = [
-            _make_reminder(user_id=user_id, title=f"Reminder {i}") for i in range(2)
-        ]
+        reminders = [_make_reminder(user_id=user_id, title=f"Reminder {i}") for i in range(2)]
 
         with (
             patch("app.api.productivity.router.ProductivityService") as MockSvc,

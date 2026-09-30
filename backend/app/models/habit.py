@@ -125,9 +125,7 @@ class HabitEntry(Base, TimestampMixin):
     # ------------------------------------------------------------------
     # Relationships
     # ------------------------------------------------------------------
-    habit: Mapped[HabitDefinition] = relationship(
-        "HabitDefinition", back_populates="entries"
-    )
+    habit: Mapped[HabitDefinition] = relationship("HabitDefinition", back_populates="entries")
     user: Mapped[User] = relationship("User", back_populates="habit_entries")
 
     def __repr__(self) -> str:

@@ -76,11 +76,28 @@ class JsonFormatter(logging.Formatter):
     # promoted to a top-level JSON key.
     _STDLIB_FIELDS = frozenset(
         {
-            "args", "created", "exc_info", "exc_text", "filename",
-            "funcName", "levelname", "levelno", "lineno", "message",
-            "module", "msecs", "msg", "name", "pathname", "process",
-            "processName", "relativeCreated", "stack_info", "thread",
-            "threadName", "taskName",
+            "args",
+            "created",
+            "exc_info",
+            "exc_text",
+            "filename",
+            "funcName",
+            "levelname",
+            "levelno",
+            "lineno",
+            "message",
+            "module",
+            "msecs",
+            "msg",
+            "name",
+            "pathname",
+            "process",
+            "processName",
+            "relativeCreated",
+            "stack_info",
+            "thread",
+            "threadName",
+            "taskName",
         }
     )
 
@@ -149,8 +166,8 @@ def configure_logging(level: str = "INFO") -> None:
     # Silence noisy third-party loggers that produce debug-level chatter
     # which is not useful in production.
     for noisy_logger in (
-        "uvicorn.access",      # raw HTTP access log — we have our own middleware
-        "httpx",               # HTTP client debug output
+        "uvicorn.access",  # raw HTTP access log — we have our own middleware
+        "httpx",  # HTTP client debug output
         "httpcore",
         "multipart",
         "passlib",

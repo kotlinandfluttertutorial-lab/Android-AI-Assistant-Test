@@ -56,7 +56,7 @@ class ErrorLogRepository:
             centre = centre.replace(tzinfo=UTC)
 
         start = centre - timedelta(minutes=window_minutes)
-        end   = centre + timedelta(minutes=window_minutes)
+        end = centre + timedelta(minutes=window_minutes)
 
         result = await self._db.execute(
             select(ErrorLog)

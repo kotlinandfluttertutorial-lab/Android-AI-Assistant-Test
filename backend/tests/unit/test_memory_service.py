@@ -156,9 +156,7 @@ class TestMemoryServiceStore:
         user = _make_user(user_id=user_id, privacy_mode=False)
         db = _make_db_session(user=user)
 
-        with patch.object(
-            MemoryRepository, "store_memory", new_callable=AsyncMock
-        ) as mock_store:
+        with patch.object(MemoryRepository, "store_memory", new_callable=AsyncMock) as mock_store:
             expected_memory = _make_memory(user_id=user_id)
             mock_store.return_value = expected_memory
 
@@ -187,9 +185,7 @@ class TestMemoryServiceStore:
         user = _make_user(user_id=user_id, privacy_mode=True)
         db = _make_db_session(user=user)
 
-        with patch.object(
-            MemoryRepository, "store_memory", new_callable=AsyncMock
-        ) as mock_store:
+        with patch.object(MemoryRepository, "store_memory", new_callable=AsyncMock) as mock_store:
             service = MemoryService(db)
             result = await service.store_memory(
                 user_id=user_id,
@@ -209,9 +205,7 @@ class TestMemoryServiceStore:
         user_id = uuid.uuid4()
         db = _make_db_session(user=None)  # user not found
 
-        with patch.object(
-            MemoryRepository, "store_memory", new_callable=AsyncMock
-        ) as mock_store:
+        with patch.object(MemoryRepository, "store_memory", new_callable=AsyncMock) as mock_store:
             expected_memory = _make_memory(user_id=user_id)
             mock_store.return_value = expected_memory
 
@@ -401,9 +395,7 @@ class TestMemoryServiceDelete:
         memory_id = uuid.uuid4()
         db = _make_db_session()
 
-        with patch.object(
-            MemoryRepository, "delete_memory", new_callable=AsyncMock
-        ) as mock_del:
+        with patch.object(MemoryRepository, "delete_memory", new_callable=AsyncMock) as mock_del:
             mock_del.return_value = True
 
             service = MemoryService(db)
@@ -425,9 +417,7 @@ class TestMemoryServiceDelete:
         memory_id = uuid.uuid4()
         db = _make_db_session()
 
-        with patch.object(
-            MemoryRepository, "delete_memory", new_callable=AsyncMock
-        ) as mock_del:
+        with patch.object(MemoryRepository, "delete_memory", new_callable=AsyncMock) as mock_del:
             mock_del.return_value = False
 
             service = MemoryService(db)
@@ -448,9 +438,7 @@ class TestMemoryServiceDelete:
         victim_memory_id = uuid.uuid4()
         db = _make_db_session()
 
-        with patch.object(
-            MemoryRepository, "delete_memory", new_callable=AsyncMock
-        ) as mock_del:
+        with patch.object(MemoryRepository, "delete_memory", new_callable=AsyncMock) as mock_del:
             # Simulate the repository returning False because user_id doesn't match
             mock_del.return_value = False
 
@@ -537,9 +525,7 @@ class TestMemoryServicePrivacyMode:
 
         service = MemoryService(db)
 
-        with patch.object(
-            MemoryRepository, "delete_memory", new_callable=AsyncMock
-        ) as mock_del:
+        with patch.object(MemoryRepository, "delete_memory", new_callable=AsyncMock) as mock_del:
             await service.set_privacy_mode(user_id=user_id, privacy_mode=True)
 
         # delete_memory must never be called during a privacy mode toggle
@@ -564,9 +550,7 @@ class TestMemoryServiceList:
         db = _make_db_session()
         stored_memories = [_make_memory(user_id=user_id) for _ in range(3)]
 
-        with patch.object(
-            MemoryRepository, "list_memories", new_callable=AsyncMock
-        ) as mock_list:
+        with patch.object(MemoryRepository, "list_memories", new_callable=AsyncMock) as mock_list:
             mock_list.return_value = stored_memories
 
             service = MemoryService(db)
@@ -584,9 +568,7 @@ class TestMemoryServiceList:
         user_id = uuid.uuid4()
         db = _make_db_session()
 
-        with patch.object(
-            MemoryRepository, "list_memories", new_callable=AsyncMock
-        ) as mock_list:
+        with patch.object(MemoryRepository, "list_memories", new_callable=AsyncMock) as mock_list:
             mock_list.return_value = []
 
             service = MemoryService(db)

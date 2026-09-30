@@ -3,6 +3,7 @@
 # Unit tests for AgentRouter deterministic routing logic.
 # ============================================================
 """Unit tests for AgentRouter."""
+
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
@@ -41,7 +42,9 @@ class StubAgent(Agent):
             return False
         return super().can_handle(request)
 
-    async def execute(self, request: AgentRequest, execution: AgentExecution) -> AsyncIterator[AgentEvent]:
+    async def execute(
+        self, request: AgentRequest, execution: AgentExecution
+    ) -> AsyncIterator[AgentEvent]:
         return
         yield
 

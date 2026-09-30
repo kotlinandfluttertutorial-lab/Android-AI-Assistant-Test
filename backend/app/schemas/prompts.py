@@ -53,18 +53,10 @@ class PromptTemplateResponse(BaseModel):
     version: int = Field(
         description="Monotonically increasing version number within the named template."
     )
-    author_id: uuid.UUID = Field(
-        description="UUID of the admin who authored this version."
-    )
-    is_active: bool = Field(
-        description="Whether this version is the currently active one."
-    )
-    created_at: datetime = Field(
-        description="UTC timestamp when this version was created."
-    )
-    updated_at: datetime = Field(
-        description="UTC timestamp of the last ORM-level update."
-    )
+    author_id: uuid.UUID = Field(description="UUID of the admin who authored this version.")
+    is_active: bool = Field(description="Whether this version is the currently active one.")
+    created_at: datetime = Field(description="UTC timestamp when this version was created.")
+    updated_at: datetime = Field(description="UTC timestamp of the last ORM-level update.")
 
 
 class PromptTemplateListResponse(BaseModel):
@@ -75,9 +67,7 @@ class PromptTemplateListResponse(BaseModel):
     Requirements: 25.1
     """
 
-    names: list[str] = Field(
-        description="Alphabetically sorted list of distinct template names."
-    )
+    names: list[str] = Field(description="Alphabetically sorted list of distinct template names.")
     total: int = Field(description="Total number of distinct template names.")
 
 

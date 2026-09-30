@@ -86,9 +86,7 @@ long_text_strategy = st.lists(
 ).map(lambda words: " ".join(words))
 
 # Combined strategy covering all length ranges
-any_text_strategy = st.one_of(
-    short_text_strategy, medium_text_strategy, long_text_strategy
-)
+any_text_strategy = st.one_of(short_text_strategy, medium_text_strategy, long_text_strategy)
 
 
 # ---------------------------------------------------------------------------
@@ -124,9 +122,7 @@ def test_property_7_chunk_coverage_no_gaps(text: str) -> None:
         # Hypothesis may generate text that encodes to zero tokens (very rare)
         return
 
-    assert (
-        len(chunks) >= 1
-    ), f"Non-empty text must produce at least one chunk. text={text!r:.80}"
+    assert len(chunks) >= 1, f"Non-empty text must produce at least one chunk. text={text!r:.80}"
 
     covered: set[int] = set()
     for chunk in chunks:
@@ -182,8 +178,7 @@ def test_property_7_short_text_coverage(text: str) -> None:
 
     missing = source_token_ids - covered
     assert not missing, (
-        f"Short text not fully covered — missing tokens: {sorted(missing)[:10]}. "
-        f"text={text!r}"
+        f"Short text not fully covered — missing tokens: {sorted(missing)[:10]}. text={text!r}"
     )
 
 
@@ -241,9 +236,9 @@ def test_property_7_coverage_with_varied_chunk_sizes(
 
     chunks = service.chunk_text(text, chunk_size=chunk_size, overlap=safe_overlap)
 
-    assert (
-        len(chunks) >= 1
-    ), f"Non-empty text with {len(words)} words should yield at least one chunk"
+    assert len(chunks) >= 1, (
+        f"Non-empty text with {len(words)} words should yield at least one chunk"
+    )
 
     # Verify coverage using original token indices, not re-encoded chunks.
     # Re-encoding decoded text can produce different token IDs at chunk boundaries.

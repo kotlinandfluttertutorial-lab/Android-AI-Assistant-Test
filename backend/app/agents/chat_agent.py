@@ -97,6 +97,7 @@ class _CaptureProxy:
 
     def __init__(self) -> None:
         import asyncio
+
         self._queue: asyncio.Queue[dict[str, Any]] = asyncio.Queue()
         self._done = False
 
@@ -145,13 +146,15 @@ class ChatAgent(Agent):
 
     @property
     def capabilities(self) -> frozenset[AgentCapability]:
-        return frozenset({
-            AgentCapability.TEXT_GENERATION,
-            AgentCapability.STREAMING,
-            AgentCapability.MEMORY_ACCESS,
-            AgentCapability.TOOL_USE,
-            AgentCapability.MULTI_STEP_REASONING,
-        })
+        return frozenset(
+            {
+                AgentCapability.TEXT_GENERATION,
+                AgentCapability.STREAMING,
+                AgentCapability.MEMORY_ACCESS,
+                AgentCapability.TOOL_USE,
+                AgentCapability.MULTI_STEP_REASONING,
+            }
+        )
 
     async def execute(
         self,
@@ -191,15 +194,16 @@ class ChatAgent(Agent):
         )
         if not conversation_id:
             yield self._failed(
-                execution, request,
+                execution,
+                request,
                 "MISSING_CONVERSATION_ID",
                 "ChatAgent requires a conversationId.",
             )
             return
 
-        user_id = request.user_id or (
-            request.context.user_id if request.context else None
-        ) or "anonymous"
+        user_id = (
+            request.user_id or (request.context.user_id if request.context else None) or "anonymous"
+        )
 
         # Resolve provider — use module-level LLMProvider (may be None without pgvector)
         provider_str = (request.provider or "").strip().lower() or "gemini"
@@ -275,9 +279,7 @@ class ChatAgent(Agent):
                         pass
 
             except Exception as exc:
-                logger.exception(
-                    "ChatAgent: unexpected error collecting stream frames: %s", exc
-                )
+                logger.exception("ChatAgent: unexpected error collecting stream frames: %s", exc)
                 stream_task.cancel()
                 yield self._failed(execution, request, "UNEXPECTED_ERROR", str(exc))
                 return

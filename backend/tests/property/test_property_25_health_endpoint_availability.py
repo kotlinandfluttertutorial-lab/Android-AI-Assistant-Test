@@ -210,9 +210,9 @@ def test_property_25b_health_body_structure(db_ok: bool, redis_ok: bool) -> None
 
     body = response.json()
 
-    assert (
-        "status" in body
-    ), f"Property 25B violated: GET /health body missing 'status' key. Body: {body!r}"
+    assert "status" in body, (
+        f"Property 25B violated: GET /health body missing 'status' key. Body: {body!r}"
+    )
     assert body["status"] == "ok", (
         f"Property 25B violated: GET /health body 'status' is {body['status']!r} "
         f"instead of 'ok'. Body: {body!r}"
@@ -287,26 +287,23 @@ def test_property_25d_ready_body_all_deps_ready(
 
     body = response.json()
 
-    assert (
-        "status" in body
-    ), f"Property 25D violated: GET /ready body missing 'status' key. Body: {body!r}"
+    assert "status" in body, (
+        f"Property 25D violated: GET /ready body missing 'status' key. Body: {body!r}"
+    )
     assert body["status"] == "ready", (
         f"Property 25D violated: GET /ready body 'status' is {body['status']!r} "
         f"instead of 'ready' when all deps are up. Body: {body!r}"
     )
 
     assert "dependencies" in body, (
-        f"Property 25D violated: GET /ready body missing 'dependencies' key. "
-        f"Body: {body!r}"
+        f"Property 25D violated: GET /ready body missing 'dependencies' key. Body: {body!r}"
     )
 
     deps: dict = body["dependencies"]
-    assert isinstance(
-        deps, dict
-    ), f"Property 25D violated: 'dependencies' must be a dict, got {type(deps)}."
-    assert (
-        len(deps) > 0
-    ), "Property 25D violated: 'dependencies' dict must not be empty."
+    assert isinstance(deps, dict), (
+        f"Property 25D violated: 'dependencies' must be a dict, got {type(deps)}."
+    )
+    assert len(deps) > 0, "Property 25D violated: 'dependencies' dict must not be empty."
 
     non_ok = {k: v for k, v in deps.items() if v != "ok"}
     assert not non_ok, (
@@ -387,14 +384,13 @@ def test_property_25f_ready_body_reports_unreachable_dependencies(
     body = response.json()
 
     assert "dependencies" in body, (
-        f"Property 25F violated: GET /ready 503 body missing 'dependencies' key. "
-        f"Body: {body!r}"
+        f"Property 25F violated: GET /ready 503 body missing 'dependencies' key. Body: {body!r}"
     )
 
     deps: dict = body["dependencies"]
-    assert isinstance(
-        deps, dict
-    ), f"Property 25F violated: 'dependencies' must be a dict, got {type(deps)}."
+    assert isinstance(deps, dict), (
+        f"Property 25F violated: 'dependencies' must be a dict, got {type(deps)}."
+    )
 
     unhealthy = {k: v for k, v in deps.items() if v != "ok"}
     assert unhealthy, (

@@ -29,6 +29,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
+
 @pytest.fixture(autouse=True)
 def mock_redis():
     """Mock Redis client for all tests to avoid connection errors."""
@@ -39,5 +40,6 @@ def mock_redis():
         mock_client.exists.return_value = 0
         mock_get_client.return_value = mock_client
         yield mock_client
+
 
 from unittest.mock import patch

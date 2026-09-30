@@ -172,9 +172,7 @@ invalid_password_strategy: st.SearchStrategy[str] = st.one_of(
     suppress_health_check=[HealthCheck.too_slow, HealthCheck.filter_too_much],
     deadline=None,
 )
-def test_property_33a_valid_email_and_password_accepted(
-    email: str, password: str
-) -> None:
+def test_property_33a_valid_email_and_password_accepted(email: str, password: str) -> None:
     """**Validates: Requirements 1.1**
 
     Property 33A: For any combination of a valid RFC 5321 email address and a
@@ -199,12 +197,12 @@ def test_property_33a_valid_email_and_password_accepted(
     # After successful parsing the email must be non-empty (normalised)
     assert req.email, "Property 33A violated: Parsed email is empty after validation."
     # Password must be preserved
-    assert (
-        len(req.password) >= 12
-    ), f"Property 33A violated: Parsed password length {len(req.password)} < 12."
-    assert (
-        len(req.password) <= 128
-    ), f"Property 33A violated: Parsed password length {len(req.password)} > 128."
+    assert len(req.password) >= 12, (
+        f"Property 33A violated: Parsed password length {len(req.password)} < 12."
+    )
+    assert len(req.password) <= 128, (
+        f"Property 33A violated: Parsed password length {len(req.password)} > 128."
+    )
 
 
 # ===========================================================================
@@ -316,9 +314,7 @@ def test_property_33d_both_fields_invalid_rejected(email: str, password: str) ->
     suppress_health_check=[HealthCheck.too_slow, HealthCheck.filter_too_much],
     deadline=None,
 )
-def test_property_33e_schema_raises_only_validation_error(
-    email: str, password: str
-) -> None:
+def test_property_33e_schema_raises_only_validation_error(email: str, password: str) -> None:
     """**Validates: Requirements 1.1**
 
     Property 33E: For any arbitrary (email, password) string pair,

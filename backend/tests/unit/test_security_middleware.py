@@ -32,15 +32,11 @@ def _make_bearer_jwt(payload: dict) -> str:
         .rstrip(b"=")
         .decode()
     )
-    payload_b64 = (
-        base64.urlsafe_b64encode(json.dumps(payload).encode()).rstrip(b"=").decode()
-    )
+    payload_b64 = base64.urlsafe_b64encode(json.dumps(payload).encode()).rstrip(b"=").decode()
     return f"Bearer {header_b64}.{payload_b64}.fakesignature"
 
 
-def _make_rate_limit_settings(
-    auth_limit: int = 60, unauth_limit: int = 20
-) -> MagicMock:
+def _make_rate_limit_settings(auth_limit: int = 60, unauth_limit: int = 20) -> MagicMock:
     s = MagicMock()
     s.RATE_LIMIT_REQUESTS_PER_MINUTE = auth_limit
     s.RATE_LIMIT_UNAUTH_REQUESTS_PER_MINUTE = unauth_limit
@@ -92,9 +88,7 @@ def _make_request(
     return request
 
 
-def _build_rate_middleware(
-    redis_mock: AsyncMock, settings_stub: MagicMock
-) -> RateLimitMiddleware:
+def _build_rate_middleware(redis_mock: AsyncMock, settings_stub: MagicMock) -> RateLimitMiddleware:
     app_stub = MagicMock()
     mw = RateLimitMiddleware(app_stub)
     mw._get_redis = AsyncMock(return_value=redis_mock)
@@ -117,9 +111,7 @@ class TestUnauthenticatedIPRateLimit:
         redis_mock.incr = AsyncMock(return_value=1)
         redis_mock.expire = AsyncMock()
 
-        mw = _build_rate_middleware(
-            redis_mock, _make_rate_limit_settings(unauth_limit=20)
-        )
+        mw = _build_rate_middleware(redis_mock, _make_rate_limit_settings(unauth_limit=20))
         call_next = AsyncMock(return_value=MagicMock(status_code=200))
         request = _make_request(user_id=None)
 
@@ -135,9 +127,7 @@ class TestUnauthenticatedIPRateLimit:
         redis_mock.incr = AsyncMock(return_value=21)
         redis_mock.expire = AsyncMock()
 
-        mw = _build_rate_middleware(
-            redis_mock, _make_rate_limit_settings(unauth_limit=20)
-        )
+        mw = _build_rate_middleware(redis_mock, _make_rate_limit_settings(unauth_limit=20))
         call_next = AsyncMock()
         request = _make_request(user_id=None)
 
@@ -153,9 +143,7 @@ class TestUnauthenticatedIPRateLimit:
         redis_mock.incr = AsyncMock(return_value=21)
         redis_mock.expire = AsyncMock()
 
-        mw = _build_rate_middleware(
-            redis_mock, _make_rate_limit_settings(unauth_limit=20)
-        )
+        mw = _build_rate_middleware(redis_mock, _make_rate_limit_settings(unauth_limit=20))
         request = _make_request(user_id=None)
 
         response = await mw.dispatch(request, AsyncMock())
@@ -169,9 +157,7 @@ class TestUnauthenticatedIPRateLimit:
         redis_mock.incr = AsyncMock(return_value=21)
         redis_mock.expire = AsyncMock()
 
-        mw = _build_rate_middleware(
-            redis_mock, _make_rate_limit_settings(unauth_limit=20)
-        )
+        mw = _build_rate_middleware(redis_mock, _make_rate_limit_settings(unauth_limit=20))
         request = _make_request(user_id=None, xff_header="1.2.3.4, 5.6.7.8")
 
         await mw.dispatch(request, AsyncMock(return_value=MagicMock(status_code=200)))
@@ -186,9 +172,7 @@ class TestUnauthenticatedIPRateLimit:
         redis_mock.incr = AsyncMock(return_value=1)
         redis_mock.expire = AsyncMock()
 
-        mw = _build_rate_middleware(
-            redis_mock, _make_rate_limit_settings(unauth_limit=20)
-        )
+        mw = _build_rate_middleware(redis_mock, _make_rate_limit_settings(unauth_limit=20))
         request = _make_request(user_id=None, client_host="10.20.30.40")
 
         await mw.dispatch(request, AsyncMock(return_value=MagicMock(status_code=200)))
@@ -203,9 +187,7 @@ class TestUnauthenticatedIPRateLimit:
         redis_mock.incr = AsyncMock(return_value=1)
         redis_mock.expire = AsyncMock()
 
-        mw = _build_rate_middleware(
-            redis_mock, _make_rate_limit_settings(auth_limit=60)
-        )
+        mw = _build_rate_middleware(redis_mock, _make_rate_limit_settings(auth_limit=60))
         call_next = AsyncMock(return_value=MagicMock(status_code=200))
         request = _make_request(user_id="user-42")
 
@@ -438,9 +420,7 @@ class TestSendPushNotification:
 
         mock_session_local = MagicMock(return_value=mock_db)
 
-        with patch(
-            "app.workers.notification_worker.AsyncSessionLocal", mock_session_local
-        ):
+        with patch("app.workers.notification_worker.AsyncSessionLocal", mock_session_local):
             from app.workers.notification_worker import _run_refresh_device_token
 
             result = await _run_refresh_device_token(
@@ -466,9 +446,7 @@ class TestSendPushNotification:
         mock_redis.set = AsyncMock()
 
         with (
-            patch(
-                "app.workers.notification_worker.AsyncSessionLocal", mock_session_local
-            ),
+            patch("app.workers.notification_worker.AsyncSessionLocal", mock_session_local),
             patch(
                 "app.workers.notification_worker.get_redis_client",
                 return_value=mock_redis,
@@ -481,9 +459,7 @@ class TestSendPushNotification:
             )
 
             user_id = "123e4567-e89b-12d3-a456-426614174000"
-            await _run_refresh_device_token(
-                MagicMock(), user_id, "old-token", "new-token"
-            )
+            await _run_refresh_device_token(MagicMock(), user_id, "old-token", "new-token")
 
             # Now verify the helper sets the right Redis key
             mock_redis.set.reset_mock()

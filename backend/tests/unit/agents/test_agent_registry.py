@@ -3,6 +3,7 @@
 # Unit tests for AgentRegistry.
 # ============================================================
 """Unit tests for AgentRegistry."""
+
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
@@ -35,7 +36,9 @@ class StubAgent(Agent):
     def capabilities(self) -> frozenset[AgentCapability]:
         return self._caps
 
-    async def execute(self, request: AgentRequest, execution: AgentExecution) -> AsyncIterator[AgentEvent]:
+    async def execute(
+        self, request: AgentRequest, execution: AgentExecution
+    ) -> AsyncIterator[AgentEvent]:
         return
         yield
 

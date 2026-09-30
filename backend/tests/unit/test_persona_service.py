@@ -107,9 +107,7 @@ class TestPersonaServiceCreate:
             mock_detector.check_input = AsyncMock(return_value=None)
 
             svc = PersonaService()
-            result = await svc.create_persona(
-                user_id=user_id, user_role="user", data=data, db=db
-            )
+            result = await svc.create_persona(user_id=user_id, user_role="user", data=data, db=db)
 
         assert result is persona
 
@@ -142,9 +140,7 @@ class TestPersonaServiceCreate:
 
             svc = PersonaService()
             with pytest.raises(HTTPException) as exc_info:
-                await svc.create_persona(
-                    user_id=user_id, user_role="user", data=data, db=db
-                )
+                await svc.create_persona(user_id=user_id, user_role="user", data=data, db=db)
 
         assert exc_info.value.status_code == 422
         assert exc_info.value.detail["error"]["code"] == "PROMPT_INJECTION_DETECTED"
@@ -160,9 +156,7 @@ class TestPersonaServiceCreate:
 
         user_id = uuid.uuid4()
         db = _make_db()
-        data = PersonaCreate(
-            name="Extra", system_prompt="Hello.", tone=PersonaTone.concise
-        )
+        data = PersonaCreate(name="Extra", system_prompt="Hello.", tone=PersonaTone.concise)
 
         with (
             patch("app.services.persona_service.PersonaRepository") as MockRepo,
@@ -176,9 +170,7 @@ class TestPersonaServiceCreate:
 
             svc = PersonaService()
             with pytest.raises(HTTPException) as exc_info:
-                await svc.create_persona(
-                    user_id=user_id, user_role="user", data=data, db=db
-                )
+                await svc.create_persona(user_id=user_id, user_role="user", data=data, db=db)
 
         assert exc_info.value.status_code == 422
         assert exc_info.value.detail["error"]["code"] == "PERSONA_LIMIT_REACHED"
@@ -193,9 +185,7 @@ class TestPersonaServiceCreate:
         user_id = uuid.uuid4()
         db = _make_db()
         persona = _make_persona(user_id=user_id)
-        data = PersonaCreate(
-            name="Almost", system_prompt="Almost full.", tone=PersonaTone.detailed
-        )
+        data = PersonaCreate(name="Almost", system_prompt="Almost full.", tone=PersonaTone.detailed)
 
         with (
             patch("app.services.persona_service.PersonaRepository") as MockRepo,
@@ -209,9 +199,7 @@ class TestPersonaServiceCreate:
             mock_detector.check_input = AsyncMock(return_value=None)
 
             svc = PersonaService()
-            result = await svc.create_persona(
-                user_id=user_id, user_role="user", data=data, db=db
-            )
+            result = await svc.create_persona(user_id=user_id, user_role="user", data=data, db=db)
 
         assert result is persona
 
@@ -246,15 +234,11 @@ class TestPersonaServiceCreate:
             mock_repo.count_user_personas = AsyncMock(return_value=20)
 
             mock_detector = MockDetector.return_value
-            mock_detector.check_input = AsyncMock(
-                side_effect=PromptInjectionError("injection")
-            )
+            mock_detector.check_input = AsyncMock(side_effect=PromptInjectionError("injection"))
 
             svc = PersonaService()
             with pytest.raises(HTTPException) as exc_info:
-                await svc.create_persona(
-                    user_id=user_id, user_role="user", data=data, db=db
-                )
+                await svc.create_persona(user_id=user_id, user_role="user", data=data, db=db)
 
         # Injection error takes precedence over limit error
         assert exc_info.value.status_code == 422
@@ -314,9 +298,7 @@ class TestPersonaServiceUpdate:
         user_id = uuid.uuid4()
         db = _make_db()
         locked_persona = _make_persona(persona_id=persona_id, admin_locked=True)
-        updated_persona = _make_persona(
-            persona_id=persona_id, name="Updated", admin_locked=True
-        )
+        updated_persona = _make_persona(persona_id=persona_id, name="Updated", admin_locked=True)
         data = PersonaUpdate(name="Updated")
 
         with (
@@ -425,9 +407,7 @@ class TestPersonaServiceUpdate:
             mock_repo.get_persona_by_id = AsyncMock(return_value=persona)
 
             mock_detector = MockDetector.return_value
-            mock_detector.check_input = AsyncMock(
-                side_effect=PromptInjectionError("injection")
-            )
+            mock_detector.check_input = AsyncMock(side_effect=PromptInjectionError("injection"))
 
             svc = PersonaService()
             with pytest.raises(HTTPException) as exc_info:
@@ -632,9 +612,7 @@ class TestPersonaServiceList:
             mock_repo.get_personas_for_user = AsyncMock(return_value=expected)
 
             svc = PersonaService()
-            result = await svc.list_personas(
-                user_id=user_id, user_role=user_role, db=db
-            )
+            result = await svc.list_personas(user_id=user_id, user_role=user_role, db=db)
 
         assert result == expected
         mock_repo.get_personas_for_user.assert_awaited_once_with(user_id, user_role)

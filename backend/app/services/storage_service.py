@@ -46,12 +46,13 @@ logger = logging.getLogger(__name__)
 # Helper — derive MIME type from file extension
 # ---------------------------------------------------------------------------
 
+
 def _mime_from_extension(ext: str) -> str:
     mapping = {
-        ".pdf":  "application/pdf",
+        ".pdf": "application/pdf",
         ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        ".txt":  "text/plain",
-        ".md":   "text/markdown",
+        ".txt": "text/plain",
+        ".md": "text/markdown",
     }
     return mapping.get(ext.lower(), "application/octet-stream")
 
@@ -59,6 +60,7 @@ def _mime_from_extension(ext: str) -> str:
 # ---------------------------------------------------------------------------
 # Abstract base
 # ---------------------------------------------------------------------------
+
 
 class StorageBackend(ABC):
     """Protocol implemented by every storage backend."""
@@ -85,6 +87,7 @@ class StorageBackend(ABC):
 # ---------------------------------------------------------------------------
 # GCS backend — production (Cloud Run + ADC)
 # ---------------------------------------------------------------------------
+
 
 class GCSStorageBackend(StorageBackend):
     """Google Cloud Storage backend.
@@ -113,6 +116,7 @@ class GCSStorageBackend(StorageBackend):
     def _get_client(self):
         if self._client is None:
             from google.cloud import storage as gcs
+
             self._client = gcs.Client()
         return self._client
 
@@ -177,6 +181,7 @@ class GCSStorageBackend(StorageBackend):
 # MinIO backend — local development (Docker Compose)
 # ---------------------------------------------------------------------------
 
+
 class MinioStorageBackend(StorageBackend):
     """MinIO S3-compatible backend for local Docker Compose development.
 
@@ -192,13 +197,14 @@ class MinioStorageBackend(StorageBackend):
         secret_key: str,
         bucket_name: str,
     ) -> None:
-        self._endpoint    = endpoint
-        self._access_key  = access_key or None
-        self._secret_key  = secret_key or None
+        self._endpoint = endpoint
+        self._access_key = access_key or None
+        self._secret_key = secret_key or None
         self._bucket_name = bucket_name
 
     def _get_client(self):
         from minio import Minio
+
         return Minio(
             self._endpoint,
             access_key=self._access_key,
@@ -208,6 +214,7 @@ class MinioStorageBackend(StorageBackend):
 
     def _ensure_bucket(self, client) -> None:
         from minio.error import S3Error
+
         try:
             if not client.bucket_exists(self._bucket_name):
                 client.make_bucket(self._bucket_name)
@@ -269,6 +276,7 @@ class MinioStorageBackend(StorageBackend):
 # StorageService — thin facade used by rag_service
 # ---------------------------------------------------------------------------
 
+
 class StorageService:
     """Facade that delegates to whichever backend is configured.
 
@@ -291,6 +299,7 @@ class StorageService:
             return self._backend
 
         from app.config.settings import get_settings
+
         s = get_settings()
         backend = s.STORAGE_BACKEND.lower().strip()
 
@@ -299,9 +308,7 @@ class StorageService:
             self._backend = GCSStorageBackend(bucket_name=s.GCS_BUCKET_NAME)
         else:
             if backend != "minio":
-                logger.warning(
-                    "Unknown STORAGE_BACKEND=%r — falling back to 'minio'.", backend
-                )
+                logger.warning("Unknown STORAGE_BACKEND=%r — falling back to 'minio'.", backend)
             logger.info(
                 "Storage backend: MinIO (endpoint=%s, bucket=%s)",
                 s.MINIO_ENDPOINT,

@@ -1,5 +1,6 @@
 # tests/unit/agents/test_web_agent.py
 """Unit tests for WebAgent (Phase 6)."""
+
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
@@ -239,8 +240,7 @@ async def test_search_exception_emits_search_error() -> None:
     events = await collect(agent.execute(req, make_exec(req)))
 
     assert any(
-        isinstance(e, AgentFailedEvent) and "SEARCH_ERROR" in e.result.error.code
-        for e in events
+        isinstance(e, AgentFailedEvent) and "SEARCH_ERROR" in e.result.error.code for e in events
     )
 
 

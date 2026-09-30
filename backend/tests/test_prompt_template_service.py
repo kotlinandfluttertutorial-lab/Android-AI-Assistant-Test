@@ -103,9 +103,7 @@ class TestUpdateTemplate:
         repo = _make_repo(create_version=AsyncMock(return_value=new_row))
         service = PromptTemplateService(repo)
 
-        result = await service.update_template(
-            "chat_system", "Updated content", AUTHOR_ID
-        )
+        result = await service.update_template("chat_system", "Updated content", AUTHOR_ID)
 
         assert result is new_row
 
@@ -154,9 +152,7 @@ class TestUpdateTemplate:
         repo = _make_repo(create_version=AsyncMock(return_value=new_row))
         service = PromptTemplateService(repo)
 
-        result = await service.update_template(
-            "chat_system", expected_content, AUTHOR_ID
-        )
+        result = await service.update_template("chat_system", expected_content, AUTHOR_ID)
 
         assert result.content == expected_content
 
@@ -177,9 +173,7 @@ class TestRollbackTemplate:
         """rollback_template returns the new version row whose content matches version V."""
         historic_content = "Original system prompt from v2."
         target = _make_template(version=2, content=historic_content, is_active=False)
-        rolled_back_row = _make_template(
-            version=5, content=historic_content, is_active=True
-        )
+        rolled_back_row = _make_template(version=5, content=historic_content, is_active=True)
 
         repo = _make_repo(
             get_version=AsyncMock(return_value=target),
@@ -195,9 +189,7 @@ class TestRollbackTemplate:
     async def test_new_version_is_active(self) -> None:
         """The rolled-back row has is_active=True."""
         target = _make_template(version=1, content="v1 content", is_active=False)
-        rolled_back_row = _make_template(
-            version=3, content="v1 content", is_active=True
-        )
+        rolled_back_row = _make_template(version=3, content="v1 content", is_active=True)
 
         repo = _make_repo(
             get_version=AsyncMock(return_value=target),
@@ -273,9 +265,7 @@ class TestRollbackTemplate:
         )
         service = PromptTemplateService(repo)
 
-        await service.rollback_template(
-            "chat_system", version=1, author_id=OTHER_AUTHOR_ID
-        )
+        await service.rollback_template("chat_system", version=1, author_id=OTHER_AUTHOR_ID)
 
         repo.rollback.assert_called_once_with(
             name="chat_system",
@@ -315,9 +305,7 @@ class TestGetTemplate:
     @pytest.mark.asyncio
     async def test_returns_active_content_string(self) -> None:
         """Returns the content string of the active version."""
-        active_row = _make_template(
-            version=3, content="You are a code assistant.", is_active=True
-        )
+        active_row = _make_template(version=3, content="You are a code assistant.", is_active=True)
         repo = _make_repo(get_active=AsyncMock(return_value=active_row))
         service = PromptTemplateService(repo)
 
@@ -340,9 +328,7 @@ class TestGetTemplate:
     async def test_raises_when_no_active_version(self) -> None:
         """Propagates TemplateNotFoundError when no active version exists."""
         repo = _make_repo(
-            get_active=AsyncMock(
-                side_effect=TemplateNotFoundError("No active template")
-            )
+            get_active=AsyncMock(side_effect=TemplateNotFoundError("No active template"))
         )
         service = PromptTemplateService(repo)
 
@@ -375,9 +361,7 @@ class TestGetActiveTemplate:
     @pytest.mark.asyncio
     async def test_raises_for_missing_template(self) -> None:
         """Propagates TemplateNotFoundError for unknown template names."""
-        repo = _make_repo(
-            get_active=AsyncMock(side_effect=TemplateNotFoundError("missing"))
-        )
+        repo = _make_repo(get_active=AsyncMock(side_effect=TemplateNotFoundError("missing")))
         service = PromptTemplateService(repo)
 
         with pytest.raises(TemplateNotFoundError):

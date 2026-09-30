@@ -1,0 +1,94 @@
+﻿
+> Configure project :app
+WARNING: The option setting 'android.r8.maxWorkers=1' is experimental.
+
+> Task :core-ai:preBuild UP-TO-DATE
+> Task :core-common:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core-ai:preDebugBuild UP-TO-DATE
+> Task :core-common:preBuild UP-TO-DATE
+> Task :core-common:preDebugBuild UP-TO-DATE
+> Task :core-ai:generateDebugResources UP-TO-DATE
+> Task :core-common:generateDebugResources UP-TO-DATE
+> Task :core-common:packageDebugResources UP-TO-DATE
+> Task :core-ai:packageDebugResources UP-TO-DATE
+> Task :core-ai:parseDebugLocalResources UP-TO-DATE
+> Task :core-common:parseDebugLocalResources UP-TO-DATE
+> Task :core-ai:generateDebugRFile UP-TO-DATE
+> Task :core-ai:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core-common:generateDebugRFile UP-TO-DATE
+> Task :core-database:preBuild UP-TO-DATE
+> Task :core-database:preDebugBuild UP-TO-DATE
+> Task :core-database:generateDebugResources UP-TO-DATE
+> Task :core-database:packageDebugResources UP-TO-DATE
+> Task :core-database:parseDebugLocalResources UP-TO-DATE
+> Task :core-database:generateDebugRFile UP-TO-DATE
+> Task :core-database:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core-database:javaPreCompileDebug UP-TO-DATE
+> Task :core-ai:javaPreCompileDebug UP-TO-DATE
+> Task :core-network:preBuild UP-TO-DATE
+> Task :core-network:preProductionDebugBuild UP-TO-DATE
+> Task :core-network:generateProductionDebugResources UP-TO-DATE
+> Task :core-common:compileDebugKotlin UP-TO-DATE
+> Task :core-common:javaPreCompileDebug UP-TO-DATE
+> Task :core-network:packageProductionDebugResources UP-TO-DATE
+> Task :core-common:compileDebugJavaWithJavac NO-SOURCE
+> Task :core-common:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :core-network:parseProductionDebugLocalResources UP-TO-DATE
+> Task :core-common:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :core-network:generateProductionDebugRFile UP-TO-DATE
+> Task :core-network:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core-network:generateProductionDebugBuildConfig UP-TO-DATE
+> Task :core-security:preBuild UP-TO-DATE
+> Task :core-security:preDebugBuild UP-TO-DATE
+> Task :core-security:generateDebugResources UP-TO-DATE
+> Task :core-security:packageDebugResources UP-TO-DATE
+> Task :core-security:parseDebugLocalResources UP-TO-DATE
+> Task :core-security:generateDebugRFile UP-TO-DATE
+> Task :core-security:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core-database:kspDebugKotlin UP-TO-DATE
+> Task :core-security:kspDebugKotlin UP-TO-DATE
+> Task :core-database:compileDebugKotlin UP-TO-DATE
+> Task :core-security:compileDebugKotlin UP-TO-DATE
+> Task :core-security:javaPreCompileDebug UP-TO-DATE
+> Task :core-database:compileDebugJavaWithJavac UP-TO-DATE
+> Task :core-security:compileDebugJavaWithJavac UP-TO-DATE
+> Task :core-security:transformDebugClassesWithAsm UP-TO-DATE
+> Task :core-database:transformDebugClassesWithAsm UP-TO-DATE
+> Task :core-security:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :domain:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :domain:preBuild UP-TO-DATE
+> Task :domain:preDebugBuild UP-TO-DATE
+> Task :core-database:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :domain:generateDebugResources UP-TO-DATE
+> Task :core-database:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :domain:packageDebugResources UP-TO-DATE
+> Task :domain:parseDebugLocalResources UP-TO-DATE
+> Task :domain:generateDebugRFile UP-TO-DATE
+> Task :core-ai:kspDebugKotlin UP-TO-DATE
+> Task :core-ai:compileDebugKotlin UP-TO-DATE
+> Task :core-ai:compileDebugJavaWithJavac UP-TO-DATE
+> Task :core-ai:transformDebugClassesWithAsm UP-TO-DATE
+> Task :core-ai:bundleLibCompileToJarDebug UP-TO-DATE
+> Task :core-network:javaPreCompileProductionDebug UP-TO-DATE
+> Task :core-security:bundleLibRuntimeToJarDebug UP-TO-DATE
+> Task :data:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :data:preBuild UP-TO-DATE
+> Task :data:preDebugBuild UP-TO-DATE
+> Task :data:generateDebugResources UP-TO-DATE
+> Task :data:packageDebugResources UP-TO-DATE
+> Task :data:parseDebugLocalResources UP-TO-DATE
+> Task :data:generateDebugRFile UP-TO-DATE
+> Task :domain:javaPreCompileDebug UP-TO-DATE
+> Task :domain:compileDebugKotlin
+> Task :domain:compileDebugJavaWithJavac NO-SOURCE
+> Task :domain:bundleLibCompileToJarDebug
+> Task :domain:bundleLibRuntimeToJarDebug
+> Task :core-network:kspProductionDebugKotlin
+> Task :core-network:compileProductionDebugKotlin
+> Task :core-network:compileProductionDebugJavaWithJavac UP-TO-DATE
+> Task :core-network:transformProductionDebugClassesWithAsm
+> Task :core-network:bundleLibCompileToJarProductionDebug UP-TO-DATE
+> Task :data:kspDebugKotlin
+
+BUILD SUCCESSFUL in 50s
+64 actionable tasks: 7 executed, 57 up-to-date

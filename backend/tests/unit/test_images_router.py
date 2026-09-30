@@ -330,9 +330,7 @@ class TestOCRNoTextFound:
             assert body["no_text_found"] is False
             assert "Hello" in body["extracted_text"]
 
-    def test_bounding_boxes_returned_for_detected_text(
-        self, client: TestClient
-    ) -> None:
+    def test_bounding_boxes_returned_for_detected_text(self, client: TestClient) -> None:
         """Bounding boxes should be returned for each detected word."""
         data = _make_jpeg_bytes()
         with _mock_pil_open(), _mock_tesseract(["Invoice", "Total"]):
@@ -360,9 +358,7 @@ class TestOCRNoTextFound:
 class TestVisionAnalysis:
     """Vision LLM routing and structured error when no vision provider."""
 
-    def test_no_vision_provider_error_for_unsupported_provider(
-        self, client: TestClient
-    ) -> None:
+    def test_no_vision_provider_error_for_unsupported_provider(self, client: TestClient) -> None:
         """Non-vision providers should return structured error."""
         data = _make_jpeg_bytes()
         with _mock_pil_open(), _mock_tesseract(["text"]):
@@ -375,13 +371,10 @@ class TestVisionAnalysis:
             body = response.json()
             # Should contain error key or structured error response
             assert (
-                "no_vision_provider" in body.get("error", "")
-                or body.get("vision_analysis") is None
+                "no_vision_provider" in body.get("error", "") or body.get("vision_analysis") is None
             )
 
-    def test_vision_analysis_returned_when_provider_capable(
-        self, client: TestClient
-    ) -> None:
+    def test_vision_analysis_returned_when_provider_capable(self, client: TestClient) -> None:
         """When vision provider is active and prompt provided, return analysis."""
         data = _make_jpeg_bytes()
         mock_result = MagicMock()

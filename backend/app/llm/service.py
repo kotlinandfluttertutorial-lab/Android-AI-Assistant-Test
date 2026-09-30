@@ -229,10 +229,12 @@ class LLMService:
         """
         if name == "gemini":
             from app.llm.providers.gemini_provider import GeminiProvider
+
             return GeminiProvider()
 
         if name in ("gemma", "local"):
             from app.llm.providers.local_gemma_provider import LocalGemmaProvider
+
             return LocalGemmaProvider()
 
         # Delegate remaining providers to the existing service layer.

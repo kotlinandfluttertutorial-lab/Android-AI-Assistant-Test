@@ -59,11 +59,12 @@ from app.repositories.observability_event_repository import (
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _mock_session() -> AsyncMock:
     """Return a minimal AsyncMock that satisfies repository usage."""
     db = AsyncMock()
     db.add_all = MagicMock()  # synchronous call
-    db.add = MagicMock()      # synchronous call
+    db.add = MagicMock()  # synchronous call
     db.commit = AsyncMock()
     db.execute = AsyncMock()
     return db
@@ -86,11 +87,11 @@ def _make_event_dict(**overrides) -> dict:
 def _make_orm_event(**overrides) -> MagicMock:
     """Return a MagicMock shaped like an ObservabilityEvent ORM row."""
     ev = MagicMock(spec=ObservabilityEvent)
-    ev.id          = uuid.uuid4()
-    ev.level       = overrides.get("level", "ERROR")
-    ev.event_type  = overrides.get("event_type", "network_error")
-    ev.message     = overrides.get("message", "test")
-    ev.session_id  = overrides.get("session_id", "sess-abc-123")
+    ev.id = uuid.uuid4()
+    ev.level = overrides.get("level", "ERROR")
+    ev.event_type = overrides.get("event_type", "network_error")
+    ev.message = overrides.get("message", "test")
+    ev.session_id = overrides.get("session_id", "sess-abc-123")
     ev.received_at = overrides.get("received_at", datetime.now(tz=UTC))
     return ev
 
@@ -104,7 +105,7 @@ class TestBulkInsert:
     """ObservabilityEventRepository.bulk_insert persists rows correctly."""
 
     async def test_returns_zero_for_empty_list(self) -> None:
-        db   = _mock_session()
+        db = _mock_session()
         repo = ObservabilityEventRepository(db)
 
         count = await repo.bulk_insert([])
@@ -114,7 +115,7 @@ class TestBulkInsert:
         db.commit.assert_not_awaited()
 
     async def test_returns_correct_count(self) -> None:
-        db   = _mock_session()
+        db = _mock_session()
         repo = ObservabilityEventRepository(db)
 
         events = [_make_event_dict() for _ in range(3)]
@@ -133,7 +134,7 @@ class TestBulkInsert:
         because it is designed to be called by ObservabilityUploadWorker (not
         a route handler) and needs immediate durability.
         """
-        db   = _mock_session()
+        db = _mock_session()
         repo = ObservabilityEventRepository(db)
 
         await repo.bulk_insert([_make_event_dict()])
@@ -142,8 +143,8 @@ class TestBulkInsert:
 
     async def test_honours_max_batch_size_cap(self) -> None:
         """Events beyond _MAX_BATCH_SIZE are silently discarded."""
-        db     = _mock_session()
-        repo   = ObservabilityEventRepository(db)
+        db = _mock_session()
+        repo = ObservabilityEventRepository(db)
         events = [_make_event_dict(message=f"e{i}") for i in range(_MAX_BATCH_SIZE + 10)]
 
         count = await repo.bulk_insert(events)
@@ -154,51 +155,59 @@ class TestBulkInsert:
 
     async def test_camelcase_android_field_names_mapped_correctly(self) -> None:
         """camelCase Android keys (eventType, sessionId) must be normalised."""
-        db   = _mock_session()
+        db = _mock_session()
         repo = ObservabilityEventRepository(db)
 
-        await repo.bulk_insert([{
-            "timestamp":  1_700_000_000_000,
-            "level":      "INFO",
-            "eventType":  "screen_view",   # camelCase
-            "message":    "ChatScreen",
-            "sessionId":  "sess-xyz",       # camelCase
-            "requestId":  "req-001",        # camelCase
-            "traceId":    "trace-abc",      # camelCase
-            "metadata":   {},
-        }])
+        await repo.bulk_insert(
+            [
+                {
+                    "timestamp": 1_700_000_000_000,
+                    "level": "INFO",
+                    "eventType": "screen_view",  # camelCase
+                    "message": "ChatScreen",
+                    "sessionId": "sess-xyz",  # camelCase
+                    "requestId": "req-001",  # camelCase
+                    "traceId": "trace-abc",  # camelCase
+                    "metadata": {},
+                }
+            ]
+        )
 
         row: ObservabilityEvent = db.add_all.call_args[0][0][0]
         assert row.event_type == "screen_view"
         assert row.session_id == "sess-xyz"
         assert row.request_id == "req-001"
-        assert row.trace_id   == "trace-abc"
+        assert row.trace_id == "trace-abc"
 
     async def test_snake_case_field_names_also_accepted(self) -> None:
         """snake_case aliases (event_type, session_id) must also work."""
-        db   = _mock_session()
+        db = _mock_session()
         repo = ObservabilityEventRepository(db)
 
-        await repo.bulk_insert([{
-            "timestamp":   1_700_000_000_000,
-            "level":       "WARN",
-            "event_type":  "api_latency",   # snake_case
-            "message":     "slow call",
-            "session_id":  "sess-snake",    # snake_case
-            "metadata":    {},
-        }])
+        await repo.bulk_insert(
+            [
+                {
+                    "timestamp": 1_700_000_000_000,
+                    "level": "WARN",
+                    "event_type": "api_latency",  # snake_case
+                    "message": "slow call",
+                    "session_id": "sess-snake",  # snake_case
+                    "metadata": {},
+                }
+            ]
+        )
 
         row: ObservabilityEvent = db.add_all.call_args[0][0][0]
         assert row.event_type == "api_latency"
         assert row.session_id == "sess-snake"
 
     async def test_metadata_dict_serialised_to_json(self) -> None:
-        db   = _mock_session()
+        db = _mock_session()
         repo = ObservabilityEventRepository(db)
 
-        await repo.bulk_insert([_make_event_dict(
-            metadata={"http_status": "500", "endpoint": "/chat"}
-        )])
+        await repo.bulk_insert(
+            [_make_event_dict(metadata={"http_status": "500", "endpoint": "/chat"})]
+        )
 
         row: ObservabilityEvent = db.add_all.call_args[0][0][0]
         parsed = json.loads(row.metadata_json)
@@ -206,7 +215,7 @@ class TestBulkInsert:
         assert parsed["endpoint"] == "/chat"
 
     async def test_metadata_non_dict_defaults_to_empty_json(self) -> None:
-        db   = _mock_session()
+        db = _mock_session()
         repo = ObservabilityEventRepository(db)
 
         await repo.bulk_insert([_make_event_dict(metadata="not-a-dict")])
@@ -215,7 +224,7 @@ class TestBulkInsert:
         assert row.metadata_json == "{}"
 
     async def test_message_truncated_to_4096_chars(self) -> None:
-        db   = _mock_session()
+        db = _mock_session()
         repo = ObservabilityEventRepository(db)
 
         long_msg = "x" * 5000
@@ -225,7 +234,7 @@ class TestBulkInsert:
         assert len(row.message) == 4096
 
     async def test_level_is_uppercased(self) -> None:
-        db   = _mock_session()
+        db = _mock_session()
         repo = ObservabilityEventRepository(db)
 
         await repo.bulk_insert([_make_event_dict(level="error")])
@@ -239,11 +248,11 @@ class TestBulkInsert:
         Teaching note: the repository uses a try/except per event so one
         malformed event doesn't block 499 valid ones.
         """
-        db     = _mock_session()
-        repo   = ObservabilityEventRepository(db)
+        db = _mock_session()
+        repo = ObservabilityEventRepository(db)
         events = [
             _make_event_dict(message="good-1"),
-            {"timestamp": "not-an-int"},   # will fail int() cast
+            {"timestamp": "not-an-int"},  # will fail int() cast
             _make_event_dict(message="good-2"),
         ]
 
@@ -266,13 +275,13 @@ class TestBulkInsert:
         assert count >= 2
 
     async def test_uuid_assigned_to_each_row(self) -> None:
-        db   = _mock_session()
+        db = _mock_session()
         repo = ObservabilityEventRepository(db)
 
         await repo.bulk_insert([_make_event_dict(), _make_event_dict()])
 
         rows = db.add_all.call_args[0][0]
-        ids  = [row.id for row in rows]
+        ids = [row.id for row in rows]
         # Each row must have a distinct UUID
         assert len(set(str(i) for i in ids)) == 2
 
@@ -286,11 +295,11 @@ class TestGetRecentErrors:
     """get_recent_errors queries with correct level and time filters."""
 
     async def test_returns_list_of_events(self) -> None:
-        db     = _mock_session()
+        db = _mock_session()
         events = [_make_orm_event(), _make_orm_event()]
         db.execute.return_value.scalars.return_value.all.return_value = events
 
-        repo   = ObservabilityEventRepository(db)
+        repo = ObservabilityEventRepository(db)
         result = await repo.get_recent_errors()
 
         assert result == events
@@ -319,18 +328,14 @@ class TestGetRecentErrors:
         repo = ObservabilityEventRepository(db)
         await repo.get_recent_errors(levels=["WARN"])
 
-        stmt_str = str(
-            db.execute.call_args[0][0].compile(
-                compile_kwargs={"literal_binds": True}
-            )
-        )
+        stmt_str = str(db.execute.call_args[0][0].compile(compile_kwargs={"literal_binds": True}))
         assert "WARN" in stmt_str
 
     async def test_returns_empty_list_when_no_events(self) -> None:
         db = _mock_session()
         db.execute.return_value.scalars.return_value.all.return_value = []
 
-        repo   = ObservabilityEventRepository(db)
+        repo = ObservabilityEventRepository(db)
         result = await repo.get_recent_errors()
 
         assert result == []
@@ -345,11 +350,11 @@ class TestGetBySession:
     """get_by_session queries by session_id."""
 
     async def test_returns_events_for_session(self) -> None:
-        db     = _mock_session()
+        db = _mock_session()
         events = [_make_orm_event(session_id="sess-xyz")]
         db.execute.return_value.scalars.return_value.all.return_value = events
 
-        repo   = ObservabilityEventRepository(db)
+        repo = ObservabilityEventRepository(db)
         result = await repo.get_by_session("sess-xyz")
 
         assert result == events
@@ -361,11 +366,7 @@ class TestGetBySession:
         repo = ObservabilityEventRepository(db)
         await repo.get_by_session("sess-abc")
 
-        stmt_str = str(
-            db.execute.call_args[0][0].compile(
-                compile_kwargs={"literal_binds": True}
-            )
-        )
+        stmt_str = str(db.execute.call_args[0][0].compile(compile_kwargs={"literal_binds": True}))
         assert "sess-abc" in stmt_str
 
 
@@ -376,11 +377,11 @@ class TestGetBySession:
 
 class TestGetById:
     async def test_returns_event_when_found(self) -> None:
-        db  = _mock_session()
+        db = _mock_session()
         evt = _make_orm_event()
         db.execute.return_value.scalar_one_or_none.return_value = evt
 
-        repo   = ObservabilityEventRepository(db)
+        repo = ObservabilityEventRepository(db)
         result = await repo.get_by_id(evt.id)
 
         assert result is evt
@@ -389,7 +390,7 @@ class TestGetById:
         db = _mock_session()
         db.execute.return_value.scalar_one_or_none.return_value = None
 
-        repo   = ObservabilityEventRepository(db)
+        repo = ObservabilityEventRepository(db)
         result = await repo.get_by_id(uuid.uuid4())
 
         assert result is None
@@ -407,7 +408,7 @@ class TestCountErrorsInWindow:
         db = _mock_session()
         db.execute.return_value.scalar_one.return_value = 7
 
-        repo   = ObservabilityEventRepository(db)
+        repo = ObservabilityEventRepository(db)
         result = await repo.count_errors_in_window(minutes=5)
 
         assert result == 7
@@ -416,7 +417,7 @@ class TestCountErrorsInWindow:
         db = _mock_session()
         db.execute.return_value.scalar_one.return_value = None
 
-        repo   = ObservabilityEventRepository(db)
+        repo = ObservabilityEventRepository(db)
         result = await repo.count_errors_in_window()
 
         assert result == 0
@@ -429,11 +430,7 @@ class TestCountErrorsInWindow:
         repo = ObservabilityEventRepository(db)
         await repo.count_errors_in_window(minutes=60)
 
-        stmt_str = str(
-            db.execute.call_args[0][0].compile(
-                compile_kwargs={"literal_binds": True}
-            )
-        )
+        stmt_str = str(db.execute.call_args[0][0].compile(compile_kwargs={"literal_binds": True}))
         # The cutoff date must appear in the query
         assert "observability_events" in stmt_str.lower()
 
@@ -450,25 +447,23 @@ class TestComputeEventRateStats:
         db = _mock_session()
         db.execute.return_value.all.return_value = []
 
-        repo   = ObservabilityEventRepository(db)
+        repo = ObservabilityEventRepository(db)
         result = await repo.compute_event_rate_stats(level="ERROR")
 
-        assert result["mean"]        == 0.0
-        assert result["std_dev"]     == 0.0
-        assert result["current"]     == 0
+        assert result["mean"] == 0.0
+        assert result["std_dev"] == 0.0
+        assert result["current"] == 0
         assert result["bucket_count"] == 0
-        assert result["is_anomaly"]  is False
+        assert result["is_anomaly"] is False
 
     async def test_result_has_required_keys(self) -> None:
         db = _mock_session()
         db.execute.return_value.all.return_value = []
 
-        repo   = ObservabilityEventRepository(db)
+        repo = ObservabilityEventRepository(db)
         result = await repo.compute_event_rate_stats(level="ERROR")
 
-        assert set(result.keys()) == {
-            "mean", "std_dev", "current", "bucket_count", "is_anomaly"
-        }
+        assert set(result.keys()) == {"mean", "std_dev", "current", "bucket_count", "is_anomaly"}
 
     async def test_is_anomaly_false_with_uniform_counts(self) -> None:
         """Uniform distribution → std_dev = 0 → is_anomaly = False."""
@@ -485,7 +480,7 @@ class TestComputeEventRateStats:
 
         db.execute.return_value.all.return_value = timestamps
 
-        repo   = ObservabilityEventRepository(db)
+        repo = ObservabilityEventRepository(db)
         result = await repo.compute_event_rate_stats(
             level="ERROR",
             window_minutes=60,
@@ -501,7 +496,7 @@ class TestComputeEventRateStats:
         db = _mock_session()
         db.execute.return_value.all.return_value = []
 
-        repo   = ObservabilityEventRepository(db)
+        repo = ObservabilityEventRepository(db)
         result = await repo.compute_event_rate_stats(level="ERROR")
 
         # Even with no data, mean must be a float (0.0, not 0)
@@ -518,11 +513,11 @@ class TestSearchLogs:
     """search_logs applies filters correctly and returns newest-first."""
 
     async def test_returns_list(self) -> None:
-        db     = _mock_session()
+        db = _mock_session()
         events = [_make_orm_event()]
         db.execute.return_value.scalars.return_value.all.return_value = events
 
-        repo   = ObservabilityEventRepository(db)
+        repo = ObservabilityEventRepository(db)
         result = await repo.search_logs(query="connection")
 
         assert result == events
@@ -534,11 +529,7 @@ class TestSearchLogs:
         repo = ObservabilityEventRepository(db)
         await repo.search_logs(query="pool exhausted")
 
-        stmt_str = str(
-            db.execute.call_args[0][0].compile(
-                compile_kwargs={"literal_binds": True}
-            )
-        )
+        stmt_str = str(db.execute.call_args[0][0].compile(compile_kwargs={"literal_binds": True}))
         assert "pool exhausted" in stmt_str
 
     async def test_level_filter_applied(self) -> None:
@@ -548,11 +539,7 @@ class TestSearchLogs:
         repo = ObservabilityEventRepository(db)
         await repo.search_logs(level="ERROR")
 
-        stmt_str = str(
-            db.execute.call_args[0][0].compile(
-                compile_kwargs={"literal_binds": True}
-            )
-        )
+        stmt_str = str(db.execute.call_args[0][0].compile(compile_kwargs={"literal_binds": True}))
         assert "ERROR" in stmt_str
 
     async def test_event_type_filter_applied(self) -> None:
@@ -562,19 +549,15 @@ class TestSearchLogs:
         repo = ObservabilityEventRepository(db)
         await repo.search_logs(event_type="http_error")
 
-        stmt_str = str(
-            db.execute.call_args[0][0].compile(
-                compile_kwargs={"literal_binds": True}
-            )
-        )
+        stmt_str = str(db.execute.call_args[0][0].compile(compile_kwargs={"literal_binds": True}))
         assert "http_error" in stmt_str
 
     async def test_no_filters_returns_all_in_window(self) -> None:
-        db     = _mock_session()
+        db = _mock_session()
         events = [_make_orm_event(), _make_orm_event()]
         db.execute.return_value.scalars.return_value.all.return_value = events
 
-        repo   = ObservabilityEventRepository(db)
+        repo = ObservabilityEventRepository(db)
         result = await repo.search_logs()
 
         assert len(result) == 2

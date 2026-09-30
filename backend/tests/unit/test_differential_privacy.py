@@ -327,7 +327,9 @@ class TestAdminEpsilonEndpoint:
         """
         client, mock_redis = self._make_app_with_mocked_deps()
         response = client.put("/admin/privacy/epsilon", json={"epsilon": 2.0})
-        assert response.status_code == 200, f"Expected 200 but got {response.status_code}: {response.text}"
+        assert response.status_code == 200, (
+            f"Expected 200 but got {response.status_code}: {response.text}"
+        )
         data = response.json()
         assert data["epsilon"] == pytest.approx(2.0)
         assert data["mechanism"] == "Laplace"
@@ -414,9 +416,7 @@ class TestPrivacyBudgetTracking:
 
         assert result is expected_memory
         # Verify privacy_budget was incremented
-        redis.incrbyfloat.assert_called_once_with(
-            f"privacy_budget:{user_id}", pytest.approx(1.0)
-        )
+        redis.incrbyfloat.assert_called_once_with(f"privacy_budget:{user_id}", pytest.approx(1.0))
 
     @pytest.mark.asyncio
     async def test_store_memory_does_not_increment_when_redis_is_none(self) -> None:
@@ -487,9 +487,7 @@ class TestPrivacyBudgetTracking:
 
         redis = _make_redis_mock()
 
-        with patch.object(
-            MemoryRepository, "store_memory", new_callable=AsyncMock
-        ) as mock_store:
+        with patch.object(MemoryRepository, "store_memory", new_callable=AsyncMock) as mock_store:
             service = MemoryService(db)
             result = await service.store_memory(
                 user_id=user_id,

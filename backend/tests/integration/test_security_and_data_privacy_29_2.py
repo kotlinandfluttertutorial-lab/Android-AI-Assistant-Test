@@ -54,9 +54,7 @@ def _make_bearer_jwt(payload: dict) -> str:
         .rstrip(b"=")
         .decode()
     )
-    payload_b64 = (
-        base64.urlsafe_b64encode(json.dumps(payload).encode()).rstrip(b"=").decode()
-    )
+    payload_b64 = base64.urlsafe_b64encode(json.dumps(payload).encode()).rstrip(b"=").decode()
     return f"Bearer {header_b64}.{payload_b64}.fakesignature"
 
 

@@ -75,39 +75,37 @@ from app.services.auth_service import (
 # Shared fixtures
 # ---------------------------------------------------------------------------
 
-_USER_ID  = uuid.UUID("aaaabbbb-cccc-dddd-eeee-ffffffffffff")
-_ROLE     = "user"
-_NOW      = datetime(2025, 6, 15, 12, 0, 0, tzinfo=timezone.utc)
-_FUTURE   = _NOW + timedelta(days=30)
+_USER_ID = uuid.UUID("aaaabbbb-cccc-dddd-eeee-ffffffffffff")
+_ROLE = "user"
+_NOW = datetime(2025, 6, 15, 12, 0, 0, tzinfo=timezone.utc)
+_FUTURE = _NOW + timedelta(days=30)
 
 
 def _make_user(*, role: str = "user", is_active: bool = True) -> MagicMock:
     user = MagicMock()
-    user.id        = _USER_ID
+    user.id = _USER_ID
     user.is_active = is_active
-    role_mock      = MagicMock()
+    role_mock = MagicMock()
     role_mock.value = role
-    user.role      = role_mock
+    user.role = role_mock
     return user
 
 
 def _make_token_record(
     *,
     user: MagicMock,
-    used:    bool = False,
+    used: bool = False,
     revoked: bool = False,
     expired: bool = False,
 ) -> MagicMock:
-    record              = MagicMock()
-    record.id           = uuid.uuid4()
-    record.user         = user
-    record.user_id      = user.id
-    record.family_id    = uuid.uuid4()
-    record.used         = used
-    record.revoked      = revoked
-    record.expires_at   = (
-        _NOW - timedelta(hours=1) if expired else _NOW + timedelta(days=30)
-    )
+    record = MagicMock()
+    record.id = uuid.uuid4()
+    record.user = user
+    record.user_id = user.id
+    record.family_id = uuid.uuid4()
+    record.used = used
+    record.revoked = revoked
+    record.expires_at = _NOW - timedelta(hours=1) if expired else _NOW + timedelta(days=30)
     return record
 
 
@@ -188,9 +186,7 @@ class TestIssueTokensForUser:
 
         mock_repo.create.assert_awaited_once()
 
-    async def test_repository_create_called_with_user_id(
-        self, mock_repo: AsyncMock
-    ) -> None:
+    async def test_repository_create_called_with_user_id(self, mock_repo: AsyncMock) -> None:
         with patch(
             "app.services.auth_service.RefreshTokenRepository",
             return_value=mock_repo,
@@ -204,9 +200,7 @@ class TestIssueTokensForUser:
         create_kwargs = mock_repo.create.call_args.kwargs
         assert create_kwargs["user_id"] == _USER_ID
 
-    async def test_parent_token_id_is_none_for_first_token(
-        self, mock_repo: AsyncMock
-    ) -> None:
+    async def test_parent_token_id_is_none_for_first_token(self, mock_repo: AsyncMock) -> None:
         """First token in a chain has no parent (new family)."""
         with patch(
             "app.services.auth_service.RefreshTokenRepository",
@@ -221,9 +215,7 @@ class TestIssueTokensForUser:
         create_kwargs = mock_repo.create.call_args.kwargs
         assert create_kwargs["parent_token_id"] is None
 
-    async def test_different_users_get_different_tokens(
-        self, mock_repo: AsyncMock
-    ) -> None:
+    async def test_different_users_get_different_tokens(self, mock_repo: AsyncMock) -> None:
         other_id = uuid.uuid4()
         with patch(
             "app.services.auth_service.RefreshTokenRepository",
@@ -250,15 +242,13 @@ class TestRefreshTokens:
     @pytest.fixture()
     def mock_repo(self):
         repo = AsyncMock()
-        repo.create      = AsyncMock()
-        repo.mark_used   = AsyncMock()
+        repo.create = AsyncMock()
+        repo.mark_used = AsyncMock()
         repo.revoke_family = AsyncMock(return_value=3)
         return repo
 
-    async def test_happy_path_returns_six_tuple(
-        self, mock_repo: AsyncMock
-    ) -> None:
-        user   = _make_user()
+    async def test_happy_path_returns_six_tuple(self, mock_repo: AsyncMock) -> None:
+        user = _make_user()
         record = _make_token_record(user=user)
         mock_repo.get_by_hash = AsyncMock(return_value=record)
 
@@ -274,16 +264,14 @@ class TestRefreshTokens:
 
         assert len(result) == 6
         new_access, access_exp, new_refresh, refresh_exp, role, user_id = result
-        assert isinstance(new_access,  str)
+        assert isinstance(new_access, str)
         assert isinstance(new_refresh, str)
-        assert isinstance(access_exp,  datetime)
-        assert role    == _ROLE
+        assert isinstance(access_exp, datetime)
+        assert role == _ROLE
         assert user_id == _USER_ID
 
-    async def test_happy_path_marks_old_token_as_used(
-        self, mock_repo: AsyncMock
-    ) -> None:
-        user   = _make_user()
+    async def test_happy_path_marks_old_token_as_used(self, mock_repo: AsyncMock) -> None:
+        user = _make_user()
         record = _make_token_record(user=user)
         mock_repo.get_by_hash = AsyncMock(return_value=record)
 
@@ -295,10 +283,8 @@ class TestRefreshTokens:
 
         mock_repo.mark_used.assert_awaited_once_with(record.id)
 
-    async def test_happy_path_issues_new_token_with_same_family(
-        self, mock_repo: AsyncMock
-    ) -> None:
-        user   = _make_user()
+    async def test_happy_path_issues_new_token_with_same_family(self, mock_repo: AsyncMock) -> None:
+        user = _make_user()
         record = _make_token_record(user=user)
         mock_repo.get_by_hash = AsyncMock(return_value=record)
 
@@ -311,9 +297,7 @@ class TestRefreshTokens:
         create_kwargs = mock_repo.create.call_args.kwargs
         assert create_kwargs["parent_token_id"] == record.id
 
-    async def test_not_found_raises_invalid_token_error(
-        self, mock_repo: AsyncMock
-    ) -> None:
+    async def test_not_found_raises_invalid_token_error(self, mock_repo: AsyncMock) -> None:
         mock_repo.get_by_hash = AsyncMock(return_value=None)
 
         with patch(
@@ -323,10 +307,8 @@ class TestRefreshTokens:
             with pytest.raises(InvalidTokenError):
                 await refresh_tokens(db=AsyncMock(), raw_refresh_token="bad-token")
 
-    async def test_revoked_token_raises_invalid_token_error(
-        self, mock_repo: AsyncMock
-    ) -> None:
-        user   = _make_user()
+    async def test_revoked_token_raises_invalid_token_error(self, mock_repo: AsyncMock) -> None:
+        user = _make_user()
         record = _make_token_record(user=user, revoked=True)
         mock_repo.get_by_hash = AsyncMock(return_value=record)
 
@@ -337,10 +319,8 @@ class TestRefreshTokens:
             with pytest.raises(InvalidTokenError):
                 await refresh_tokens(db=AsyncMock(), raw_refresh_token="any")
 
-    async def test_expired_token_raises_invalid_token_error(
-        self, mock_repo: AsyncMock
-    ) -> None:
-        user   = _make_user()
+    async def test_expired_token_raises_invalid_token_error(self, mock_repo: AsyncMock) -> None:
+        user = _make_user()
         record = _make_token_record(user=user, expired=True)
         mock_repo.get_by_hash = AsyncMock(return_value=record)
 
@@ -351,9 +331,7 @@ class TestRefreshTokens:
             with pytest.raises(InvalidTokenError):
                 await refresh_tokens(db=AsyncMock(), raw_refresh_token="any")
 
-    async def test_replay_revokes_family_and_raises(
-        self, mock_repo: AsyncMock
-    ) -> None:
+    async def test_replay_revokes_family_and_raises(self, mock_repo: AsyncMock) -> None:
         """Replay detection: used=True → revoke family → TokenFamilyRevokedError.
 
         Teaching note: This is RFC 6819 §5.2.2.3. Revoking the ENTIRE family
@@ -361,9 +339,9 @@ class TestRefreshTokens:
         a new one, all their new tokens are also invalidated. The legitimate
         user must re-authenticate.
         """
-        user   = _make_user()
+        user = _make_user()
         record = _make_token_record(user=user, used=True)
-        mock_repo.get_by_hash   = AsyncMock(return_value=record)
+        mock_repo.get_by_hash = AsyncMock(return_value=record)
         mock_repo.revoke_family = AsyncMock(return_value=3)
 
         with patch(
@@ -375,10 +353,8 @@ class TestRefreshTokens:
 
         mock_repo.revoke_family.assert_awaited_once_with(record.family_id)
 
-    async def test_inactive_user_raises_invalid_token_error(
-        self, mock_repo: AsyncMock
-    ) -> None:
-        user   = _make_user(is_active=False)
+    async def test_inactive_user_raises_invalid_token_error(self, mock_repo: AsyncMock) -> None:
+        user = _make_user(is_active=False)
         record = _make_token_record(user=user)
         mock_repo.get_by_hash = AsyncMock(return_value=record)
 
@@ -389,12 +365,10 @@ class TestRefreshTokens:
             with pytest.raises(InvalidTokenError):
                 await refresh_tokens(db=AsyncMock(), raw_refresh_token="any")
 
-    async def test_new_access_token_is_valid_jwt(
-        self, mock_repo: AsyncMock
-    ) -> None:
+    async def test_new_access_token_is_valid_jwt(self, mock_repo: AsyncMock) -> None:
         from app.security.jwt_handler import verify_access_token
 
-        user   = _make_user(role="premium")
+        user = _make_user(role="premium")
         record = _make_token_record(user=user)
         mock_repo.get_by_hash = AsyncMock(return_value=record)
 
@@ -407,7 +381,7 @@ class TestRefreshTokens:
             )
 
         payload = verify_access_token(new_access)
-        assert payload.sub  == str(_USER_ID)
+        assert payload.sub == str(_USER_ID)
         assert payload.role == "premium"
 
 
@@ -460,12 +434,13 @@ class TestLogoutUser:
         mock_repo = AsyncMock()
         mock_repo.revoke_all_for_user = AsyncMock(return_value=1)
 
-        with patch(
-            "app.services.auth_service.RefreshTokenRepository",
-            return_value=mock_repo,
-        ), patch(
-            "app.services.auth_service.create_access_token"
-        ) as mock_create:
+        with (
+            patch(
+                "app.services.auth_service.RefreshTokenRepository",
+                return_value=mock_repo,
+            ),
+            patch("app.services.auth_service.create_access_token") as mock_create,
+        ):
             await logout_user(db=AsyncMock(), user_id=_USER_ID)
 
         mock_create.assert_not_called()

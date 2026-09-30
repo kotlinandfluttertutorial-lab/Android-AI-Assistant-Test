@@ -1,0 +1,108 @@
+﻿
+> Configure project :app
+WARNING: The option setting 'android.r8.maxWorkers=1' is experimental.
+
+> Task :core-common:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :domain:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core-common:preBuild UP-TO-DATE
+> Task :domain:preBuild UP-TO-DATE
+> Task :core-common:preReleaseBuild UP-TO-DATE
+> Task :domain:preReleaseBuild UP-TO-DATE
+> Task :domain:generateReleaseResources
+> Task :core-common:generateReleaseResources
+> Task :core-common:packageReleaseResources
+> Task :domain:packageReleaseResources
+> Task :core-common:parseReleaseLocalResources
+> Task :domain:parseReleaseLocalResources
+> Task :domain:generateReleaseRFile
+> Task :core-common:javaPreCompileRelease
+> Task :domain:javaPreCompileRelease
+> Task :domain:preReleaseUnitTestBuild UP-TO-DATE
+> Task :core-common:generateReleaseRFile
+> Task :domain:javaPreCompileReleaseUnitTest
+> Task :domain:generateReleaseUnitTestStubRFile
+> Task :core-common:compileReleaseKotlin
+> Task :core-common:compileReleaseJavaWithJavac NO-SOURCE
+> Task :core-common:processReleaseJavaRes
+> Task :core-common:bundleLibRuntimeToJarRelease
+> Task :core-common:bundleLibCompileToJarRelease
+> Task :domain:compileReleaseKotlin
+> Task :domain:compileReleaseJavaWithJavac NO-SOURCE
+> Task :domain:bundleLibCompileToJarRelease
+> Task :domain:bundleLibRuntimeToJarRelease
+> Task :domain:processReleaseJavaRes
+
+> Task :domain:compileReleaseUnitTestKotlin
+w: file:///J:/Android/AndroidStudioProjects/Kiro/TestBranch/Develop_Main/Android-AI-Assistant-Test/domain/src/test/kotlin/com/aiassistant/domain/agent/AgentModeTest.kt:450:40 Call uses reflection API which is not found in compilation classpath. Make sure you have kotlin-reflect.jar in the classpath.
+
+> Task :domain:compileReleaseUnitTestJavaWithJavac NO-SOURCE
+> Task :domain:processReleaseUnitTestJavaRes
+
+> Task :domain:testReleaseUnitTest
+
+AgentAuthGuardTest > isAuthenticated false for unauthenticated sentinel FAILED
+    io.kotest.assertions.AssertionFailedError at AgentAuthGuardTest.kt:66
+
+AgentAuthGuardTest > validate returns Unauthenticated for blank userId FAILED
+    java.lang.IllegalArgumentException at AgentAuthGuardTest.kt:19
+
+.\gradlew.bat : Java HotSpot(TM) 
+64-Bit Server VM warning: Sharing is 
+only supported for boot loader 
+classes because bootstrap classpath 
+has been appended
+At line:1 char:1
++ .\gradlew.bat 
+:domain:testReleaseUnitTest 
+--rerun-tasks 2>&1 | Out-Fi ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpe 
+   cified: (Java HotSpot(TM...s bee  
+  n appended:String) [], RemoteExc   
+ eption
+    + FullyQualifiedErrorId : Native 
+   CommandError
+ 
+Java HotSpot(TM) 64-Bit Server VM 
+warning: Sharing is only supported 
+for boot loader classes because 
+bootstrap classpath has been appended
+Java HotSpot(TM) 64-Bit Server VM 
+warning: Sharing is only supported 
+for boot loader classes because 
+bootstrap classpath has been appended
+Java HotSpot(TM) 64-Bit Server VM 
+warning: Sharing is only supported 
+for boot loader classes because 
+bootstrap classpath has been appended
+Java HotSpot(TM) 64-Bit Server VM 
+warning: Sharing is only supported 
+for boot loader classes because 
+bootstrap classpath has been appended
+
+> Task :domain:testReleaseUnitTest
+
+811 tests completed, 2 failed
+
+> Task :domain:testReleaseUnitTest FAILED
+
+FAILURE: Build failed with an 
+exception.
+
+* What went wrong:
+Execution failed for task 
+':domain:testReleaseUnitTest'.
+> There were failing tests. See the 
+report at: file:///J:/Android/Android
+StudioProjects/Kiro/TestBranch/Develo
+p_Main/Android-AI-Assistant-Test/doma
+in/build/reports/tests/testReleaseUni
+tTest/index.html
+
+* Try:
+> Run with --scan to get full 
+insights.
+
+BUILD FAILED in 3m 35s
+23 actionable tasks: 23 executed

@@ -96,11 +96,13 @@ class RagAgent(Agent):
 
     @property
     def capabilities(self) -> frozenset[AgentCapability]:
-        return frozenset({
-            AgentCapability.DOCUMENT_RETRIEVAL,
-            AgentCapability.TEXT_GENERATION,
-            AgentCapability.STREAMING,
-        })
+        return frozenset(
+            {
+                AgentCapability.DOCUMENT_RETRIEVAL,
+                AgentCapability.TEXT_GENERATION,
+                AgentCapability.STREAMING,
+            }
+        )
 
     async def execute(
         self,
@@ -113,16 +115,16 @@ class RagAgent(Agent):
         )
 
         if AsyncSessionLocal is None or rag_service is None or AIOrchestrator is None:
-            yield self._failed(execution, request, "SERVICE_UNAVAILABLE",
-                               "RAG service or database not available.")
+            yield self._failed(
+                execution, request, "SERVICE_UNAVAILABLE", "RAG service or database not available."
+            )
             return
 
         # Parse metadata
         metadata = request.metadata or {}
         raw_doc_ids = metadata.get("document_ids", "")
         document_ids: list[str] | None = (
-            [d.strip() for d in raw_doc_ids.split(",") if d.strip()]
-            if raw_doc_ids else None
+            [d.strip() for d in raw_doc_ids.split(",") if d.strip()] if raw_doc_ids else None
         )
         top_k = int(metadata.get("top_k", str(_DEFAULT_TOP_K)))
 
@@ -146,8 +148,12 @@ class RagAgent(Agent):
                     timeout=_RAG_TIMEOUT,
                 )
         except asyncio.TimeoutError:
-            yield self._failed(execution, request, "RETRIEVAL_TIMEOUT",
-                               f"RAG retrieval timed out after {_RAG_TIMEOUT}s.")
+            yield self._failed(
+                execution,
+                request,
+                "RETRIEVAL_TIMEOUT",
+                f"RAG retrieval timed out after {_RAG_TIMEOUT}s.",
+            )
             return
         except Exception as exc:
             logger.exception("RagAgent: retrieval error: %s", exc)
@@ -163,8 +169,12 @@ class RagAgent(Agent):
         )
 
         if not chunks:
-            yield self._failed(execution, request, "NO_RELEVANT_CONTENT",
-                               "No relevant document chunks found for the query.")
+            yield self._failed(
+                execution,
+                request,
+                "NO_RELEVANT_CONTENT",
+                "No relevant document chunks found for the query.",
+            )
             return
 
         # ── Step 2: Generate answer via AIOrchestrator ──────────────────────
@@ -188,8 +198,9 @@ class RagAgent(Agent):
                     timeout=30.0,
                 )
         except asyncio.TimeoutError:
-            yield self._failed(execution, request, "GENERATION_TIMEOUT",
-                               "Answer generation timed out.")
+            yield self._failed(
+                execution, request, "GENERATION_TIMEOUT", "Answer generation timed out."
+            )
             return
         except Exception as exc:
             logger.exception("RagAgent: generation error: %s", exc)

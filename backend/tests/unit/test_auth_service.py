@@ -112,9 +112,7 @@ def _make_token_record(
     record.used = used
     record.revoked = revoked
     record.family_id = family_id or uuid.uuid4()
-    record.expires_at = datetime.now(tz=timezone.utc) + timedelta(
-        seconds=expires_seconds
-    )
+    record.expires_at = datetime.now(tz=timezone.utc) + timedelta(seconds=expires_seconds)
     return record
 
 
@@ -369,9 +367,9 @@ class TestJWTIssuance:
 
         now = datetime.now(tz=timezone.utc)
         lifetime_seconds = (access_exp - now).total_seconds()
-        assert (
-            14 * 60 + 50 <= lifetime_seconds <= 15 * 60 + 10
-        ), f"Expected ~15-min expiry, got {lifetime_seconds:.1f}s"
+        assert 14 * 60 + 50 <= lifetime_seconds <= 15 * 60 + 10, (
+            f"Expected ~15-min expiry, got {lifetime_seconds:.1f}s"
+        )
 
     @pytest.mark.asyncio
     async def test_refresh_token_expires_in_approximately_30_days(self) -> None:
@@ -389,9 +387,9 @@ class TestJWTIssuance:
         now = datetime.now(tz=timezone.utc)
         target_seconds = 30 * 24 * 3600
         actual_seconds = (refresh_exp - now).total_seconds()
-        assert (
-            abs(actual_seconds - target_seconds) < 60
-        ), f"Expected ~30-day expiry ({target_seconds}s), got {actual_seconds:.0f}s"
+        assert abs(actual_seconds - target_seconds) < 60, (
+            f"Expected ~30-day expiry ({target_seconds}s), got {actual_seconds:.0f}s"
+        )
 
     @pytest.mark.asyncio
     async def test_access_token_carries_correct_sub_claim(self) -> None:
@@ -402,9 +400,7 @@ class TestJWTIssuance:
         mock_db = AsyncMock()
         with patch("app.services.auth_service.RefreshTokenRepository") as MockRepo:
             MockRepo.return_value.create = AsyncMock(return_value=MagicMock())
-            access_token, _, _, _ = await issue_tokens_for_user(
-                mock_db, SAMPLE_USER_ID, "premium"
-            )
+            access_token, _, _, _ = await issue_tokens_for_user(mock_db, SAMPLE_USER_ID, "premium")
 
         payload = verify_access_token(access_token)
         assert payload.sub == str(SAMPLE_USER_ID)
@@ -419,9 +415,7 @@ class TestJWTIssuance:
         for role in ("user", "premium", "admin"):
             with patch("app.services.auth_service.RefreshTokenRepository") as MockRepo:
                 MockRepo.return_value.create = AsyncMock(return_value=MagicMock())
-                access_token, _, _, _ = await issue_tokens_for_user(
-                    mock_db, SAMPLE_USER_ID, role
-                )
+                access_token, _, _, _ = await issue_tokens_for_user(mock_db, SAMPLE_USER_ID, role)
             payload = verify_access_token(access_token)
             assert payload.role == role, f"Expected role={role!r}, got {payload.role!r}"
 
@@ -434,9 +428,7 @@ class TestJWTIssuance:
         mock_db = AsyncMock()
         with patch("app.services.auth_service.RefreshTokenRepository") as MockRepo:
             MockRepo.return_value.create = AsyncMock(return_value=MagicMock())
-            access_token, _, _, _ = await issue_tokens_for_user(
-                mock_db, SAMPLE_USER_ID, "user"
-            )
+            access_token, _, _, _ = await issue_tokens_for_user(mock_db, SAMPLE_USER_ID, "user")
 
         # Must not raise InvalidTokenError
         payload = verify_access_token(access_token)
@@ -451,15 +443,13 @@ class TestJWTIssuance:
         mock_db = AsyncMock()
         with patch("app.services.auth_service.RefreshTokenRepository") as MockRepo:
             MockRepo.return_value.create = AsyncMock(return_value=MagicMock())
-            _, _, refresh_token, _ = await issue_tokens_for_user(
-                mock_db, SAMPLE_USER_ID, "user"
-            )
+            _, _, refresh_token, _ = await issue_tokens_for_user(mock_db, SAMPLE_USER_ID, "user")
 
         # A JWT would have exactly 2 dots; opaque tokens have none or different structure
         dot_count = refresh_token.count(".")
-        assert (
-            dot_count == 0 or len(refresh_token.split(".")) != 3
-        ), "Refresh token must be opaque, not a JWT with header.payload.signature"
+        assert dot_count == 0 or len(refresh_token.split(".")) != 3, (
+            "Refresh token must be opaque, not a JWT with header.payload.signature"
+        )
 
 
 # ===========================================================================
@@ -504,9 +494,7 @@ class TestTokenRotation:
         user = _make_user()
         family = uuid.uuid4()
         raw = "rotation-family-token-002"
-        old_record = _make_token_record(
-            user=user, token_hash=hash_token(raw), family_id=family
-        )
+        old_record = _make_token_record(user=user, token_hash=hash_token(raw), family_id=family)
 
         with patch("app.services.auth_service.RefreshTokenRepository") as MockRepo:
             repo = MockRepo.return_value
@@ -595,9 +583,7 @@ class TestReplayDetection:
         mock_db = AsyncMock()
         user = _make_user()
         raw = "replay-detection-token-001"
-        used_record = _make_token_record(
-            user=user, token_hash=hash_token(raw), used=True
-        )
+        used_record = _make_token_record(user=user, token_hash=hash_token(raw), used=True)
 
         with patch("app.services.auth_service.RefreshTokenRepository") as MockRepo:
             repo = MockRepo.return_value
@@ -640,9 +626,7 @@ class TestReplayDetection:
         mock_db = AsyncMock()
         user = _make_user()
         raw = "replay-detection-token-003"
-        used_record = _make_token_record(
-            user=user, token_hash=hash_token(raw), used=True
-        )
+        used_record = _make_token_record(user=user, token_hash=hash_token(raw), used=True)
 
         with patch("app.services.auth_service.RefreshTokenRepository") as MockRepo:
             repo = MockRepo.return_value
@@ -667,9 +651,7 @@ class TestReplayDetection:
         mock_db = AsyncMock()
         user = _make_user()
         raw = "replay-type-check-token-004"
-        used_record = _make_token_record(
-            user=user, token_hash=hash_token(raw), used=True
-        )
+        used_record = _make_token_record(user=user, token_hash=hash_token(raw), used=True)
 
         with patch("app.services.auth_service.RefreshTokenRepository") as MockRepo:
             repo = MockRepo.return_value
@@ -686,9 +668,9 @@ class TestReplayDetection:
         assert isinstance(raised, SecurityViolationError)
         # Must NOT be a plain InvalidTokenError (a non-SecurityViolation subclass)
         if isinstance(raised, InvalidTokenError):
-            assert isinstance(
-                raised, SecurityViolationError
-            ), "If InvalidTokenError is also raised, it must be a SecurityViolationError subclass"
+            assert isinstance(raised, SecurityViolationError), (
+                "If InvalidTokenError is also raised, it must be a SecurityViolationError subclass"
+            )
 
 
 # ===========================================================================
@@ -723,9 +705,7 @@ class TestRefreshTokenErrorCases:
         mock_db = AsyncMock()
         user = _make_user()
         raw = "revoked-token-error-001"
-        revoked_record = _make_token_record(
-            user=user, token_hash=hash_token(raw), revoked=True
-        )
+        revoked_record = _make_token_record(user=user, token_hash=hash_token(raw), revoked=True)
         with patch("app.services.auth_service.RefreshTokenRepository") as MockRepo:
             MockRepo.return_value.get_by_hash = AsyncMock(return_value=revoked_record)
             with pytest.raises(InvalidTokenError, match="revoked"):
@@ -788,9 +768,7 @@ class TestLogout:
             MockRepo.return_value.revoke_all_for_user = AsyncMock(return_value=4)
             count = await logout_user(mock_db, SAMPLE_USER_ID)
 
-        MockRepo.return_value.revoke_all_for_user.assert_called_once_with(
-            SAMPLE_USER_ID
-        )
+        MockRepo.return_value.revoke_all_for_user.assert_called_once_with(SAMPLE_USER_ID)
         assert count == 4
 
     @pytest.mark.asyncio
@@ -839,9 +817,7 @@ class TestLogout:
         app.dependency_overrides[get_redis] = _fake_redis
         app.include_router(auth_router)
 
-        token, _ = create_access_token(
-            SAMPLE_USER_ID, "user", expires_delta=timedelta(minutes=5)
-        )
+        token, _ = create_access_token(SAMPLE_USER_ID, "user", expires_delta=timedelta(minutes=5))
 
         with (
             patch("app.api.auth.router.logout_user", new=AsyncMock(return_value=3)),
@@ -1116,16 +1092,12 @@ class TestGoogleOAuth2Unit:
             ),
         ):
             repo = MockRepo.return_value
-            repo.get_by_google_id = AsyncMock(
-                return_value=None
-            )  # no existing google user
+            repo.get_by_google_id = AsyncMock(return_value=None)  # no existing google user
             repo.get_by_email = AsyncMock(return_value=None)  # no existing email user
             repo.create_google_user = AsyncMock(return_value=new_user)
             MockAudit.return_value.log_login = AsyncMock()
 
-            resp = client.post(
-                "/auth/google", json={"id_token": "mock-google-id-token"}
-            )
+            resp = client.post("/auth/google", json={"id_token": "mock-google-id-token"})
 
         assert resp.status_code == 200
         body = resp.json()
@@ -1156,14 +1128,10 @@ class TestGoogleOAuth2Unit:
             ),
         ):
             repo = MockRepo.return_value
-            repo.get_by_google_id = AsyncMock(
-                return_value=existing_user
-            )  # already exists
+            repo.get_by_google_id = AsyncMock(return_value=existing_user)  # already exists
             MockAudit.return_value.log_login = AsyncMock()
 
-            resp = client.post(
-                "/auth/google", json={"id_token": "mock-google-id-token"}
-            )
+            resp = client.post("/auth/google", json={"id_token": "mock-google-id-token"})
 
         assert resp.status_code == 200
         body = resp.json()
@@ -1204,9 +1172,7 @@ class TestGoogleOAuth2Unit:
             repo.update_google_id = AsyncMock(return_value=linked_user)
             MockAudit.return_value.log_login = AsyncMock()
 
-            resp = client.post(
-                "/auth/google", json={"id_token": "mock-google-id-token"}
-            )
+            resp = client.post("/auth/google", json={"id_token": "mock-google-id-token"})
 
         assert resp.status_code == 200
         body = resp.json()
@@ -1253,9 +1219,7 @@ class TestRBACEnforcementUnit:
         return TestClient(rbac_app, raise_server_exceptions=False)
 
     def _get_token(self, role: str) -> str:
-        token, _ = create_access_token(
-            SAMPLE_USER_ID, role, expires_delta=timedelta(minutes=5)
-        )
+        token, _ = create_access_token(SAMPLE_USER_ID, role, expires_delta=timedelta(minutes=5))
         return token
 
     # ---- require_admin ----
@@ -1273,9 +1237,7 @@ class TestRBACEnforcementUnit:
             "app.security.dependencies._is_jti_revoked",
             new=AsyncMock(return_value=False),
         ):
-            resp = client.get(
-                "/protected", headers={"Authorization": f"Bearer {token}"}
-            )
+            resp = client.get("/protected", headers={"Authorization": f"Bearer {token}"})
         assert resp.status_code == 200
 
     def test_user_role_denied_on_admin_endpoint_returns_403(self) -> None:
@@ -1291,9 +1253,7 @@ class TestRBACEnforcementUnit:
             "app.security.dependencies._is_jti_revoked",
             new=AsyncMock(return_value=False),
         ):
-            resp = client.get(
-                "/protected", headers={"Authorization": f"Bearer {token}"}
-            )
+            resp = client.get("/protected", headers={"Authorization": f"Bearer {token}"})
         assert resp.status_code == 403
 
     def test_premium_role_denied_on_admin_endpoint_returns_403(self) -> None:
@@ -1309,9 +1269,7 @@ class TestRBACEnforcementUnit:
             "app.security.dependencies._is_jti_revoked",
             new=AsyncMock(return_value=False),
         ):
-            resp = client.get(
-                "/protected", headers={"Authorization": f"Bearer {token}"}
-            )
+            resp = client.get("/protected", headers={"Authorization": f"Bearer {token}"})
         assert resp.status_code == 403
 
     # ---- require_premium_or_admin ----
@@ -1329,9 +1287,7 @@ class TestRBACEnforcementUnit:
             "app.security.dependencies._is_jti_revoked",
             new=AsyncMock(return_value=False),
         ):
-            resp = client.get(
-                "/protected", headers={"Authorization": f"Bearer {token}"}
-            )
+            resp = client.get("/protected", headers={"Authorization": f"Bearer {token}"})
         assert resp.status_code == 200
 
     def test_admin_role_accesses_premium_endpoint(self) -> None:
@@ -1347,9 +1303,7 @@ class TestRBACEnforcementUnit:
             "app.security.dependencies._is_jti_revoked",
             new=AsyncMock(return_value=False),
         ):
-            resp = client.get(
-                "/protected", headers={"Authorization": f"Bearer {token}"}
-            )
+            resp = client.get("/protected", headers={"Authorization": f"Bearer {token}"})
         assert resp.status_code == 200
 
     def test_user_role_denied_on_premium_endpoint_returns_403(self) -> None:
@@ -1365,9 +1319,7 @@ class TestRBACEnforcementUnit:
             "app.security.dependencies._is_jti_revoked",
             new=AsyncMock(return_value=False),
         ):
-            resp = client.get(
-                "/protected", headers={"Authorization": f"Bearer {token}"}
-            )
+            resp = client.get("/protected", headers={"Authorization": f"Bearer {token}"})
         assert resp.status_code == 403
 
     def test_no_jwt_returns_401_not_403(self) -> None:
@@ -1398,9 +1350,7 @@ class TestRBACEnforcementUnit:
             "app.security.dependencies._is_jti_revoked",
             new=AsyncMock(return_value=False),
         ):
-            resp = client.get(
-                "/protected", headers={"Authorization": f"Bearer {token}"}
-            )
+            resp = client.get("/protected", headers={"Authorization": f"Bearer {token}"})
         assert resp.status_code == 200
 
     def test_require_roles_with_single_role_rejects_other_role(self) -> None:
@@ -1416,9 +1366,7 @@ class TestRBACEnforcementUnit:
             "app.security.dependencies._is_jti_revoked",
             new=AsyncMock(return_value=False),
         ):
-            resp = client.get(
-                "/protected", headers={"Authorization": f"Bearer {token}"}
-            )
+            resp = client.get("/protected", headers={"Authorization": f"Bearer {token}"})
         # admin is NOT in ["user"] → 403
         assert resp.status_code == 403
 
@@ -1484,9 +1432,7 @@ class TestAuthServiceIntegration:
             patch("app.api.auth.router.verify_password", return_value=True),
             patch(
                 "app.api.auth.router.issue_tokens_for_user",
-                new=AsyncMock(
-                    return_value=("acc.tok", access_exp, "ref.tok", refresh_exp)
-                ),
+                new=AsyncMock(return_value=("acc.tok", access_exp, "ref.tok", refresh_exp)),
             ),
             patch(
                 "app.api.auth.router.refresh_tokens",
@@ -1508,9 +1454,7 @@ class TestAuthServiceIntegration:
             ),
         ):
             repo = MockRepo.return_value
-            repo.get_by_email = AsyncMock(
-                side_effect=[None, user]
-            )  # None=register, user=login
+            repo.get_by_email = AsyncMock(side_effect=[None, user])  # None=register, user=login
             repo.create = AsyncMock(return_value=user)
 
             audit = MockAudit.return_value
@@ -1532,9 +1476,7 @@ class TestAuthServiceIntegration:
                         "password": self._VALID_PASSWORD,
                     },
                 )
-                assert (
-                    reg_resp.status_code == 201
-                ), f"Register failed: {reg_resp.json()}"
+                assert reg_resp.status_code == 201, f"Register failed: {reg_resp.json()}"
                 assert "access_token" in reg_resp.json()
 
                 # Step 2: Login
@@ -1545,9 +1487,7 @@ class TestAuthServiceIntegration:
                         "password": self._VALID_PASSWORD,
                     },
                 )
-                assert (
-                    login_resp.status_code == 200
-                ), f"Login failed: {login_resp.json()}"
+                assert login_resp.status_code == 200, f"Login failed: {login_resp.json()}"
                 login_body = login_resp.json()
                 assert "access_token" in login_body
                 assert "refresh_token" in login_body
@@ -1559,9 +1499,7 @@ class TestAuthServiceIntegration:
                         "refresh_token": login_body["refresh_token"],
                     },
                 )
-                assert (
-                    refresh_resp.status_code == 200
-                ), f"Refresh failed: {refresh_resp.json()}"
+                assert refresh_resp.status_code == 200, f"Refresh failed: {refresh_resp.json()}"
                 refresh_body = refresh_resp.json()
                 assert refresh_body["access_token"] == new_access
                 assert refresh_body["refresh_token"] == new_refresh
@@ -1708,9 +1646,7 @@ class TestJWTExpiryBoundaries:
         """
         token, exp = create_access_token(SAMPLE_USER_ID, "user")
         lifetime = (exp - datetime.now(tz=timezone.utc)).total_seconds()
-        assert (
-            lifetime <= 30 * 60
-        ), f"Access token lifetime {lifetime}s exceeds 30 minutes"
+        assert lifetime <= 30 * 60, f"Access token lifetime {lifetime}s exceeds 30 minutes"
 
     def test_refresh_token_expiry_greater_than_29_days(self) -> None:
         """Refresh token lifetime must be at least 29 days.
@@ -1719,9 +1655,9 @@ class TestJWTExpiryBoundaries:
         """
         data = create_refresh_token()
         lifetime = (data.expires_at - datetime.now(tz=timezone.utc)).total_seconds()
-        assert (
-            lifetime >= 29 * 24 * 3600
-        ), f"Refresh token lifetime {lifetime}s is less than 29 days"
+        assert lifetime >= 29 * 24 * 3600, (
+            f"Refresh token lifetime {lifetime}s is less than 29 days"
+        )
 
     def test_expired_access_token_raises_on_verification(self) -> None:
         """verify_access_token must raise InvalidTokenError for expired tokens.

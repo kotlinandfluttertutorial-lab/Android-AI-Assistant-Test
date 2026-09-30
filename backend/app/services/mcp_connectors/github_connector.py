@@ -115,9 +115,7 @@ class GitHubReadConnector(MCPToolConnector):
         async with httpx.AsyncClient(headers=_auth_headers(), timeout=15.0) as client:
             if action == "search_repos":
                 query = params.get("query", "")
-                resp = await client.get(
-                    f"{_GITHUB_BASE}/search/repositories", params={"q": query}
-                )
+                resp = await client.get(f"{_GITHUB_BASE}/search/repositories", params={"q": query})
                 resp.raise_for_status()
                 data = resp.json()
                 return MCPToolResult(
@@ -175,9 +173,7 @@ class GitHubReadConnector(MCPToolConnector):
                     params.get("repo", ""),
                     params.get("path", ""),
                 )
-                resp = await client.get(
-                    f"{_GITHUB_BASE}/repos/{owner}/{repo}/contents/{path}"
-                )
+                resp = await client.get(f"{_GITHUB_BASE}/repos/{owner}/{repo}/contents/{path}")
                 resp.raise_for_status()
                 return MCPToolResult(
                     tool_name=self.tool_name,

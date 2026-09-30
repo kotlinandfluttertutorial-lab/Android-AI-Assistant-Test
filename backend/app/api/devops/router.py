@@ -50,18 +50,18 @@ class DevOpsChatRequest(BaseModel):
 
 class ToolCallSummary(BaseModel):
     tool_name: str
-    params:    dict
-    result:    dict
+    params: dict
+    result: dict
 
 
 class DevOpsChatResponse(BaseModel):
-    session_id:    str
-    question:      str
-    answer:        str
-    citations:     list[str]
-    tool_calls:    list[ToolCallSummary]
-    rounds_used:   int
-    llm_provider:  str
+    session_id: str
+    question: str
+    answer: str
+    citations: list[str]
+    tool_calls: list[ToolCallSummary]
+    rounds_used: int
+    llm_provider: str
 
 
 class DirectInvokeRequest(BaseModel):
@@ -108,11 +108,11 @@ async def devops_chat(
     )
 
     try:
-        service  = DevOpsAssistantService(db)
+        service = DevOpsAssistantService(db)
         response = await service.ask(
-            question          = body.question,
-            user_id           = current_user.sub,
-            provider_override = body.provider,
+            question=body.question,
+            user_id=current_user.sub,
+            provider_override=body.provider,
         )
 
         if response.error:
@@ -122,20 +122,20 @@ async def devops_chat(
             )
 
         return DevOpsChatResponse(
-            session_id   = response.session_id,
-            question     = response.question,
-            answer       = response.answer,
-            citations    = response.citations,
-            tool_calls   = [
+            session_id=response.session_id,
+            question=response.question,
+            answer=response.answer,
+            citations=response.citations,
+            tool_calls=[
                 ToolCallSummary(
-                    tool_name = tc.tool_name,
-                    params    = tc.params,
-                    result    = tc.result,
+                    tool_name=tc.tool_name,
+                    params=tc.params,
+                    result=tc.result,
                 )
                 for tc in response.tool_calls
             ],
-            rounds_used  = response.rounds_used,
-            llm_provider = response.llm_provider,
+            rounds_used=response.rounds_used,
+            llm_provider=response.llm_provider,
         )
 
     except HTTPException:
@@ -190,10 +190,10 @@ async def invoke_devops_tool(
     from app.services.devops_assistant_service import DevOpsAssistantService
 
     service = DevOpsAssistantService(db)
-    result  = await service._broker.invoke(
-        tool_name  = tool_name,
-        params     = body.params,
-        user_id    = current_user.sub,
+    result = await service._broker.invoke(
+        tool_name=tool_name,
+        params=body.params,
+        user_id=current_user.sub,
     )
 
     if not result.success and result.result_status == "error":

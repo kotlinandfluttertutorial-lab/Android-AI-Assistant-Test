@@ -59,9 +59,9 @@ logger = logging.getLogger(__name__)
 
 # ── Constants ─────────────────────────────────────────────────────────────────
 
-_MAX_TOOL_ROUNDS   = 3     # maximum tool calls per conversation turn
-_LLM_MAX_TOKENS    = 1024
-_LLM_TIMEOUT       = 45.0
+_MAX_TOOL_ROUNDS = 3  # maximum tool calls per conversation turn
+_LLM_MAX_TOKENS = 1024
+_LLM_TIMEOUT = 45.0
 
 # ── System prompt ─────────────────────────────────────────────────────────────
 
@@ -109,28 +109,32 @@ RULES:
 
 # ── Data classes ──────────────────────────────────────────────────────────────
 
+
 @dataclass
 class ToolCallRecord:
     """One round of: tool called → result received."""
+
     tool_name: str
-    params:    dict
-    result:    dict  # MCPToolResult.data or {"error": "..."}
+    params: dict
+    result: dict  # MCPToolResult.data or {"error": "..."}
 
 
 @dataclass
 class DevOpsAssistantResponse:
     """Final response from the DevOps assistant."""
-    session_id:     str
-    question:       str
-    answer:         str
-    citations:      list[str] = field(default_factory=list)
-    tool_calls:     list[ToolCallRecord] = field(default_factory=list)
-    rounds_used:    int = 0
-    llm_provider:   str = ""
-    error:          str | None = None
+
+    session_id: str
+    question: str
+    answer: str
+    citations: list[str] = field(default_factory=list)
+    tool_calls: list[ToolCallRecord] = field(default_factory=list)
+    rounds_used: int = 0
+    llm_provider: str = ""
+    error: str | None = None
 
 
 # ── Service ───────────────────────────────────────────────────────────────────
+
 
 class DevOpsAssistantService:
     """Conversational DevOps assistant using a ReAct tool-calling loop.
@@ -142,7 +146,7 @@ class DevOpsAssistantService:
     """
 
     def __init__(self, db: AsyncSession) -> None:
-        self._db     = db
+        self._db = db
         self._broker = self._build_broker(db)
 
     @staticmethod
@@ -163,7 +167,7 @@ class DevOpsAssistantService:
     async def ask(
         self,
         question: str,
-        user_id:  str = "system",
+        user_id: str = "system",
         provider_override: str | None = None,
     ) -> DevOpsAssistantResponse:
         """Run the ReAct loop for one conversation turn.
@@ -190,22 +194,20 @@ class DevOpsAssistantService:
 
         # Build the conversation: system + user question + accumulating tool results
         messages: list[dict] = [
-            {"role": "system",    "content": _SYSTEM_PROMPT},
-            {"role": "user",      "content": f"Question: {question}"},
+            {"role": "system", "content": _SYSTEM_PROMPT},
+            {"role": "user", "content": f"Question: {question}"},
         ]
 
         provider_name = provider_override or ""
-        final_answer  = ""
-        citations:  list[str] = []
+        final_answer = ""
+        citations: list[str] = []
 
         for round_idx in range(_MAX_TOOL_ROUNDS + 1):
             # Build prompt from messages
             prompt = self._messages_to_prompt(messages)
 
             # Call LLM
-            llm_text, provider_name = await self._call_llm(
-                prompt, provider_override, user_id
-            )
+            llm_text, provider_name = await self._call_llm(prompt, provider_override, user_id)
 
             if not llm_text.strip():
                 final_answer = (
@@ -218,54 +220,60 @@ class DevOpsAssistantService:
 
             if action.get("action") == "answer":
                 final_answer = action.get("text", "")
-                citations    = action.get("citations", [])
+                citations = action.get("citations", [])
                 break
 
             if action.get("action") == "tool_call" and round_idx < _MAX_TOOL_ROUNDS:
                 tool_name = action.get("tool", "")
-                params    = action.get("params", {})
+                params = action.get("params", {})
 
                 logger.info(
                     "devops_assistant: round=%d tool=%s user=%s",
-                    round_idx + 1, tool_name, user_id,
+                    round_idx + 1,
+                    tool_name,
+                    user_id,
                 )
 
                 # Execute the tool
                 tool_result = await self._broker.invoke(
-                    tool_name  = tool_name,
-                    params     = params,
-                    user_id    = user_id,
+                    tool_name=tool_name,
+                    params=params,
+                    user_id=user_id,
                 )
 
                 result_data = self._extract_result(tool_result)
-                tool_calls.append(ToolCallRecord(
-                    tool_name = tool_name,
-                    params    = params,
-                    result    = result_data,
-                ))
+                tool_calls.append(
+                    ToolCallRecord(
+                        tool_name=tool_name,
+                        params=params,
+                        result=result_data,
+                    )
+                )
 
                 # Inject tool result into conversation
                 messages.append({"role": "assistant", "content": llm_text})
-                messages.append({
-                    "role":    "tool",
-                    "content": (
-                        f"Tool: {tool_name}\n"
-                        f"Result: {json.dumps(result_data, default=str)[:2000]}"
-                    ),
-                })
+                messages.append(
+                    {
+                        "role": "tool",
+                        "content": (
+                            f"Tool: {tool_name}\n"
+                            f"Result: {json.dumps(result_data, default=str)[:2000]}"
+                        ),
+                    }
+                )
             else:
                 # Unexpected format or max rounds reached
                 final_answer = llm_text  # use raw LLM text as fallback
                 break
 
         return DevOpsAssistantResponse(
-            session_id   = session_id,
-            question     = question,
-            answer       = final_answer or "No answer was produced.",
-            citations    = citations,
-            tool_calls   = tool_calls,
-            rounds_used  = len(tool_calls),
-            llm_provider = provider_name,
+            session_id=session_id,
+            question=question,
+            answer=final_answer or "No answer was produced.",
+            citations=citations,
+            tool_calls=tool_calls,
+            rounds_used=len(tool_calls),
+            llm_provider=provider_name,
         )
 
     # ── Helpers ───────────────────────────────────────────────────────────────
@@ -274,7 +282,7 @@ class DevOpsAssistantService:
         """Convert message list to a single prompt string for `AIOrchestrator.complete()`."""
         lines = []
         for m in messages:
-            role    = m["role"].upper()
+            role = m["role"].upper()
             content = m["content"]
             if role == "SYSTEM":
                 lines.append(f"[SYSTEM]\n{content}")
@@ -294,7 +302,7 @@ class DevOpsAssistantService:
             text = "\n".join(line for line in lines if not line.strip().startswith("```"))
 
         start = text.find("{")
-        end   = text.rfind("}") + 1
+        end = text.rfind("}") + 1
         if start == -1 or end == 0:
             # LLM returned plain prose — treat as final answer
             return {"action": "answer", "text": text, "citations": []}
@@ -314,9 +322,9 @@ class DevOpsAssistantService:
 
     async def _call_llm(
         self,
-        prompt:            str,
+        prompt: str,
         provider_override: str | None,
-        user_id:           str,
+        user_id: str,
     ) -> tuple[str, str]:
         """Call AIOrchestrator.complete() with the assembled prompt."""
         import asyncio
@@ -335,10 +343,10 @@ class DevOpsAssistantService:
             orchestrator = AIOrchestrator(db=self._db)
             completion = await asyncio.wait_for(
                 orchestrator.complete(
-                    prompt     = prompt,
-                    provider   = provider,
-                    max_tokens = _LLM_MAX_TOKENS,
-                    user_id    = user_id,
+                    prompt=prompt,
+                    provider=provider,
+                    max_tokens=_LLM_MAX_TOKENS,
+                    user_id=user_id,
                 ),
                 timeout=_LLM_TIMEOUT,
             )

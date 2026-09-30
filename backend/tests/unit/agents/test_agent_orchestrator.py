@@ -3,6 +3,7 @@
 # Unit tests for AgentOrchestrator — execution, handoffs, timeouts, errors.
 # ============================================================
 """Unit tests for AgentOrchestrator."""
+
 from __future__ import annotations
 
 import asyncio
@@ -161,9 +162,7 @@ async def collect_events(orc: AgentOrchestrator, request: AgentRequest) -> list[
 
 @pytest.mark.asyncio
 async def test_empty_registry_emits_failed_routing() -> None:
-    orc = AgentOrchestrator(
-        registry=AgentRegistry(), router=AgentRouter(), planner=AgentPlanner()
-    )
+    orc = AgentOrchestrator(registry=AgentRegistry(), router=AgentRouter(), planner=AgentPlanner())
     events = await collect_events(orc, make_request())
     failed = next(e for e in events if isinstance(e, AgentFailedEvent))
     assert failed.result.error is not None
@@ -173,9 +172,7 @@ async def test_empty_registry_emits_failed_routing() -> None:
 @pytest.mark.asyncio
 async def test_explicit_unknown_agent_emits_failed() -> None:
     orc = build_orchestrator(SuccessAgent("alpha"))
-    events = await collect_events(
-        orc, make_request(metadata={"agent_name": "missing"})
-    )
+    events = await collect_events(orc, make_request(metadata={"agent_name": "missing"}))
     failed = next((e for e in events if isinstance(e, AgentFailedEvent)), None)
     assert failed is not None
 
@@ -210,9 +207,7 @@ async def test_two_step_handoff_plan_executes_both_agents() -> None:
     orc = AgentOrchestrator(registry=reg, router=AgentRouter(), planner=AgentPlanner())
 
     events: list[AgentEvent] = []
-    gen = await orc.execute(
-        make_request(metadata={METADATA_KEY_PLAN_STEPS: "rag,code"})
-    )
+    gen = await orc.execute(make_request(metadata={METADATA_KEY_PLAN_STEPS: "rag,code"}))
     async for e in gen:
         events.append(e)
         if e.type in ("completed", "failed"):
@@ -255,6 +250,7 @@ async def test_model_router_explicit_gemma_returns_on_device() -> None:
     from unittest.mock import MagicMock
 
     from app.agents.model_router import InferencePath, ModelRouter
+
     mock_local = MagicMock()
     mock_local.provider_name = "gemma"
     mock_local.is_available = True
@@ -319,4 +315,3 @@ async def test_llm_client_exception_carries_provider_and_retryable() -> None:
     assert exc.provider == "gemini"
     assert exc.retryable is True
     assert str(exc) == "oops"
-

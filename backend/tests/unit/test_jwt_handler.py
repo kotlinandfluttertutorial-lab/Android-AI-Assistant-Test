@@ -104,9 +104,7 @@ class TestCreateAccessToken:
 
     def test_custom_expiry_override(self) -> None:
         delta = timedelta(minutes=5)
-        token, exp = create_access_token(
-            SAMPLE_USER_ID, SAMPLE_ROLE, expires_delta=delta
-        )
+        token, exp = create_access_token(SAMPLE_USER_ID, SAMPLE_ROLE, expires_delta=delta)
         decoded = jwt.decode(token, os.environ["SECRET_KEY"], algorithms=["HS256"])
         decoded_exp = datetime.fromtimestamp(decoded["exp"], tz=timezone.utc)
         iat = datetime.fromtimestamp(decoded["iat"], tz=timezone.utc)

@@ -88,11 +88,13 @@ class ImageAgent(Agent):
 
     @property
     def capabilities(self) -> frozenset[AgentCapability]:
-        return frozenset({
-            AgentCapability.IMAGE_UNDERSTANDING,
-            AgentCapability.TEXT_GENERATION,
-            AgentCapability.STREAMING,
-        })
+        return frozenset(
+            {
+                AgentCapability.IMAGE_UNDERSTANDING,
+                AgentCapability.TEXT_GENERATION,
+                AgentCapability.STREAMING,
+            }
+        )
 
     async def execute(
         self,
@@ -105,8 +107,9 @@ class ImageAgent(Agent):
         )
 
         if ImageAnalysisService is None:
-            yield self._failed(execution, request, "SERVICE_UNAVAILABLE",
-                               "Image analysis service not available.")
+            yield self._failed(
+                execution, request, "SERVICE_UNAVAILABLE", "Image analysis service not available."
+            )
             return
 
         metadata = request.metadata or {}
@@ -116,16 +119,21 @@ class ImageAgent(Agent):
         provider = (metadata.get("provider") or "gemini").strip()
 
         if not image_b64:
-            yield self._failed(execution, request, "MISSING_IMAGE",
-                               "metadata['image_base64'] (base64 JPEG/PNG) is required.")
+            yield self._failed(
+                execution,
+                request,
+                "MISSING_IMAGE",
+                "metadata['image_base64'] (base64 JPEG/PNG) is required.",
+            )
             return
 
         # Decode base64 → bytes
         try:
             image_bytes = base64.b64decode(image_b64)
         except Exception as exc:
-            yield self._failed(execution, request, "INVALID_BASE64",
-                               f"Could not decode image_base64: {exc}")
+            yield self._failed(
+                execution, request, "INVALID_BASE64", f"Could not decode image_base64: {exc}"
+            )
             return
 
         yield AgentThinkingEvent(step_index=0, thought=f"Processing image ({action})…")
@@ -147,22 +155,25 @@ class ImageAgent(Agent):
 
         except Exception as exc:
             logger.warning("ImageAgent: analysis error: %s", exc)
-            yield self._failed(execution, request, "ANALYSIS_ERROR",
-                               f"Image analysis failed: {exc}")
+            yield self._failed(
+                execution, request, "ANALYSIS_ERROR", f"Image analysis failed: {exc}"
+            )
             return
 
         # Build response text
         content = self._format_result(action, result)
 
         yield AgentTokenEvent(token=content)
-        yield AgentCompletedEvent(result=AgentResult(
-            execution_id=execution.execution_id,
-            request_id=request.request_id,
-            agent_name=self.name,
-            status=AgentStatus.COMPLETED,
-            content=content,
-            metadata={"action": action},
-        ))
+        yield AgentCompletedEvent(
+            result=AgentResult(
+                execution_id=execution.execution_id,
+                request_id=request.request_id,
+                agent_name=self.name,
+                status=AgentStatus.COMPLETED,
+                content=content,
+                metadata={"action": action},
+            )
+        )
 
     # ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -193,10 +204,12 @@ class ImageAgent(Agent):
         code: str,
         msg: str,
     ) -> AgentFailedEvent:
-        return AgentFailedEvent(result=AgentResult(
-            execution_id=execution.execution_id,
-            request_id=request.request_id,
-            agent_name=IMAGE_AGENT_NAME,
-            status=AgentStatus.FAILED,
-            error=AgentError(code=code, message=msg),
-        ))
+        return AgentFailedEvent(
+            result=AgentResult(
+                execution_id=execution.execution_id,
+                request_id=request.request_id,
+                agent_name=IMAGE_AGENT_NAME,
+                status=AgentStatus.FAILED,
+                error=AgentError(code=code, message=msg),
+            )
+        )

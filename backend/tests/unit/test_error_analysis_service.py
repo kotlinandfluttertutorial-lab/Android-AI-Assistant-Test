@@ -78,7 +78,6 @@ from app.schemas.error_analysis import AnalyseErrorRequest, ErrorSeverity
 from app.services.error_analysis_service import (
     ErrorAnalysisService,
     _LOW_CONFIDENCE_THRESHOLD,
-    _MAX_EVENTS_IN_PROMPT,
 )
 
 
@@ -86,8 +85,8 @@ from app.services.error_analysis_service import (
 # Shared test data helpers
 # ---------------------------------------------------------------------------
 
-_SESSION_ID  = "sess-phase10-test-001"
-_EVENT_ID    = uuid.uuid4()
+_SESSION_ID = "sess-phase10-test-001"
+_EVENT_ID = uuid.uuid4()
 _ANALYSIS_ID = str(uuid.uuid4())
 
 
@@ -95,7 +94,7 @@ def _mock_db() -> AsyncMock:
     """Minimal AsyncMock that satisfies the service constructor."""
     db = AsyncMock()
     db.execute = AsyncMock()
-    db.commit  = AsyncMock()
+    db.commit = AsyncMock()
     return db
 
 
@@ -111,17 +110,17 @@ def _make_orm_event(
     from datetime import UTC, datetime
 
     ev = MagicMock(spec=ObservabilityEvent)
-    ev.id            = _EVENT_ID
-    ev.timestamp_ms  = 1_700_000_000_000
-    ev.level         = level
-    ev.event_type    = event_type
-    ev.message       = message
-    ev.session_id    = session_id
-    ev.request_id    = "req-001"
-    ev.trace_id      = "trace-001"
-    ev.screen        = screen
+    ev.id = _EVENT_ID
+    ev.timestamp_ms = 1_700_000_000_000
+    ev.level = level
+    ev.event_type = event_type
+    ev.message = message
+    ev.session_id = session_id
+    ev.request_id = "req-001"
+    ev.trace_id = "trace-001"
+    ev.screen = screen
     ev.metadata_json = metadata_json
-    ev.received_at   = datetime(2025, 6, 1, 14, 32, 0, tzinfo=UTC)
+    ev.received_at = datetime(2025, 6, 1, 14, 32, 0, tzinfo=UTC)
     return ev
 
 
@@ -131,26 +130,28 @@ def _make_valid_llm_json(
     likely_root_cause: str = "Connection pool exhausted",
 ) -> str:
     """Return a well-formed LLM JSON response string."""
-    return json.dumps({
-        "severity":              severity,
-        "summary":               "Database connection pool exhausted",
-        "evidence":              ["Pool at 20/20 connections", "Latency spike +340%"],
-        "possible_causes":       ["Pool too small", "Slow queries holding connections"],
-        "likely_root_cause":     likely_root_cause,
-        "confidence":            confidence,
-        "recommended_fix":       "1. Increase pool size 10→20. 2. Add query timeout 10s.",
-        "related_documentation": ["runbooks/db-connection.md"],
-        "facts":                 ["Pool at capacity 20/20", "Error rate 23% in 5 min"],
-        "inferences":            ["Slow query in recent deployment may be holding connections"],
-    })
+    return json.dumps(
+        {
+            "severity": severity,
+            "summary": "Database connection pool exhausted",
+            "evidence": ["Pool at 20/20 connections", "Latency spike +340%"],
+            "possible_causes": ["Pool too small", "Slow queries holding connections"],
+            "likely_root_cause": likely_root_cause,
+            "confidence": confidence,
+            "recommended_fix": "1. Increase pool size 10→20. 2. Add query timeout 10s.",
+            "related_documentation": ["runbooks/db-connection.md"],
+            "facts": ["Pool at capacity 20/20", "Error rate 23% in 5 min"],
+            "inferences": ["Slow query in recent deployment may be holding connections"],
+        }
+    )
 
 
 def _make_kb_chunk(source: str = "runbooks/db-connection.md") -> dict:
     """Return a minimal knowledge-base chunk dict."""
     return {
-        "source":        source,
+        "source": source,
         "document_name": source,
-        "content":       "Restart the connection pool if all connections are in use.",
+        "content": "Restart the connection pool if all connections are in use.",
     }
 
 
@@ -158,16 +159,17 @@ def _make_kb_chunk(source: str = "runbooks/db-connection.md") -> dict:
 # Helpers for patching the service's collaborators
 # ---------------------------------------------------------------------------
 
+
 def _patch_repo(
     get_recent_errors_return: list | None = None,
-    get_by_session_return:    list | None = None,
-    get_by_id_return:         MagicMock | None = None,
+    get_by_session_return: list | None = None,
+    get_by_id_return: MagicMock | None = None,
 ):
     """Return a patch context for ObservabilityEventRepository."""
     mock_repo = AsyncMock()
     mock_repo.get_recent_errors.return_value = get_recent_errors_return or []
-    mock_repo.get_by_session.return_value    = get_by_session_return or []
-    mock_repo.get_by_id.return_value         = get_by_id_return
+    mock_repo.get_by_session.return_value = get_by_session_return or []
+    mock_repo.get_by_id.return_value = get_by_id_return
 
     return patch(
         "app.services.error_analysis_service.ObservabilityEventRepository",
@@ -226,7 +228,7 @@ class TestAnalyseNoData:
 
         with patch_repo, _patch_rag(), _patch_orchestrator():
             service = ErrorAnalysisService(_mock_db())
-            result  = await service.analyse(AnalyseErrorRequest())
+            result = await service.analyse(AnalyseErrorRequest())
 
         assert result.events_analysed == 0
         assert result.confidence == 0.0
@@ -237,7 +239,7 @@ class TestAnalyseNoData:
 
         with patch_repo, _patch_rag(), _patch_orchestrator():
             service = ErrorAnalysisService(_mock_db())
-            result  = await service.analyse(AnalyseErrorRequest())
+            result = await service.analyse(AnalyseErrorRequest())
 
         assert result.severity == ErrorSeverity.LOW
 
@@ -246,7 +248,7 @@ class TestAnalyseNoData:
 
         with patch_repo, _patch_rag(), _patch_orchestrator():
             service = ErrorAnalysisService(_mock_db())
-            result  = await service.analyse(AnalyseErrorRequest())
+            result = await service.analyse(AnalyseErrorRequest())
 
         assert "No error events" in result.summary
 
@@ -255,7 +257,7 @@ class TestAnalyseNoData:
 
         with patch_repo, _patch_rag(), _patch_orchestrator():
             service = ErrorAnalysisService(_mock_db())
-            result  = await service.analyse(AnalyseErrorRequest())
+            result = await service.analyse(AnalyseErrorRequest())
 
         uuid.UUID(result.analysis_id)  # raises ValueError if not a UUID
 
@@ -269,33 +271,33 @@ class TestAnalyseHappyPath:
     """analyse() with real events and a well-formed LLM JSON response."""
 
     async def test_returns_error_analysis_response_with_correct_fields(self) -> None:
-        events     = [_make_orm_event()]
-        llm_json   = _make_valid_llm_json(confidence=0.87)
+        events = [_make_orm_event()]
+        llm_json = _make_valid_llm_json(confidence=0.87)
         patch_repo, _ = _patch_repo(get_recent_errors_return=events)
 
         with patch_repo, _patch_rag(), _patch_orchestrator(llm_json):
             service = ErrorAnalysisService(_mock_db())
-            result  = await service.analyse(AnalyseErrorRequest())
+            result = await service.analyse(AnalyseErrorRequest())
 
-        assert result.severity      == ErrorSeverity.HIGH
-        assert result.confidence    == 0.87
-        assert "Connection pool"    in result.likely_root_cause
-        assert "Connection pool"    in result.summary
+        assert result.severity == ErrorSeverity.HIGH
+        assert result.confidence == 0.87
+        assert "Connection pool" in result.likely_root_cause
+        assert "Connection pool" in result.summary
         assert len(result.evidence) == 2
 
     async def test_events_analysed_count_matches_events_returned(self) -> None:
-        events     = [_make_orm_event() for _ in range(5)]
+        events = [_make_orm_event() for _ in range(5)]
         patch_repo, _ = _patch_repo(get_recent_errors_return=events)
 
         with patch_repo, _patch_rag(), _patch_orchestrator(_make_valid_llm_json()):
             service = ErrorAnalysisService(_mock_db())
-            result  = await service.analyse(AnalyseErrorRequest())
+            result = await service.analyse(AnalyseErrorRequest())
 
         assert result.events_analysed == 5
 
     async def test_knowledge_chunks_retrieved_counts_both_rag_results(self) -> None:
-        events         = [_make_orm_event()]
-        runbook_chunk  = _make_kb_chunk("runbooks/db.md")
+        events = [_make_orm_event()]
+        runbook_chunk = _make_kb_chunk("runbooks/db.md")
         incident_chunk = _make_kb_chunk("incidents/INC-101.md")
         patch_repo, _ = _patch_repo(get_recent_errors_return=events)
 
@@ -305,47 +307,47 @@ class TestAnalyseHappyPath:
             _patch_orchestrator(_make_valid_llm_json()),
         ):
             service = ErrorAnalysisService(_mock_db())
-            result  = await service.analyse(AnalyseErrorRequest())
+            result = await service.analyse(AnalyseErrorRequest())
 
         assert result.knowledge_chunks_retrieved == 2
 
     async def test_facts_and_inferences_are_populated_separately(self) -> None:
-        events     = [_make_orm_event()]
+        events = [_make_orm_event()]
         patch_repo, _ = _patch_repo(get_recent_errors_return=events)
 
         with patch_repo, _patch_rag(), _patch_orchestrator(_make_valid_llm_json()):
             service = ErrorAnalysisService(_mock_db())
-            result  = await service.analyse(AnalyseErrorRequest())
+            result = await service.analyse(AnalyseErrorRequest())
 
-        assert len(result.facts_vs_inference.facts)      > 0
+        assert len(result.facts_vs_inference.facts) > 0
         assert len(result.facts_vs_inference.inferences) > 0
 
     async def test_llm_provider_name_is_populated(self) -> None:
-        events     = [_make_orm_event()]
+        events = [_make_orm_event()]
         patch_repo, _ = _patch_repo(get_recent_errors_return=events)
 
         with patch_repo, _patch_rag(), _patch_orchestrator(_make_valid_llm_json()):
             service = ErrorAnalysisService(_mock_db())
-            result  = await service.analyse(AnalyseErrorRequest())
+            result = await service.analyse(AnalyseErrorRequest())
 
         # Provider name should be a non-empty string (e.g. "gemini")
         assert isinstance(result.llm_provider, str)
 
     async def test_low_confidence_warning_is_none_when_confidence_above_threshold(self) -> None:
-        events     = [_make_orm_event()]
+        events = [_make_orm_event()]
         patch_repo, _ = _patch_repo(get_recent_errors_return=events)
-        high_conf  = _make_valid_llm_json(confidence=0.90)
+        high_conf = _make_valid_llm_json(confidence=0.90)
 
         with patch_repo, _patch_rag(), _patch_orchestrator(high_conf):
             service = ErrorAnalysisService(_mock_db())
-            result  = await service.analyse(AnalyseErrorRequest())
+            result = await service.analyse(AnalyseErrorRequest())
 
         assert result.low_confidence_warning is None
 
     async def test_related_docs_merged_from_llm_and_rag_sources(self) -> None:
-        events     = [_make_orm_event()]
-        kb_chunk   = _make_kb_chunk("runbooks/db-restart.md")
-        llm_json   = _make_valid_llm_json()  # includes "runbooks/db-connection.md"
+        events = [_make_orm_event()]
+        kb_chunk = _make_kb_chunk("runbooks/db-restart.md")
+        llm_json = _make_valid_llm_json()  # includes "runbooks/db-connection.md"
         patch_repo, _ = _patch_repo(get_recent_errors_return=events)
 
         with (
@@ -354,17 +356,17 @@ class TestAnalyseHappyPath:
             _patch_orchestrator(llm_json),
         ):
             service = ErrorAnalysisService(_mock_db())
-            result  = await service.analyse(AnalyseErrorRequest())
+            result = await service.analyse(AnalyseErrorRequest())
 
         # Should include both the LLM-cited doc AND the RAG source
         assert "runbooks/db-connection.md" in result.related_documentation
-        assert "runbooks/db-restart.md"    in result.related_documentation
+        assert "runbooks/db-restart.md" in result.related_documentation
 
     async def test_related_docs_are_deduplicated(self) -> None:
         """If LLM cites the same doc that RAG returned, it appears only once."""
-        events     = [_make_orm_event()]
+        events = [_make_orm_event()]
         # RAG returns the same doc that the LLM will cite
-        kb_chunk   = _make_kb_chunk("runbooks/db-connection.md")
+        kb_chunk = _make_kb_chunk("runbooks/db-connection.md")
         patch_repo, _ = _patch_repo(get_recent_errors_return=events)
 
         with (
@@ -373,7 +375,7 @@ class TestAnalyseHappyPath:
             _patch_orchestrator(_make_valid_llm_json()),
         ):
             service = ErrorAnalysisService(_mock_db())
-            result  = await service.analyse(AnalyseErrorRequest())
+            result = await service.analyse(AnalyseErrorRequest())
 
         assert result.related_documentation.count("runbooks/db-connection.md") == 1
 
@@ -387,11 +389,9 @@ class TestConfidenceGate:
     """AI Safety Rule: confidence < 0.6 must override likely_root_cause."""
 
     @pytest.mark.parametrize("confidence", [0.0, 0.1, 0.55, 0.59])
-    async def test_low_confidence_overrides_likely_root_cause(
-        self, confidence: float
-    ) -> None:
-        events     = [_make_orm_event()]
-        llm_json   = _make_valid_llm_json(
+    async def test_low_confidence_overrides_likely_root_cause(self, confidence: float) -> None:
+        events = [_make_orm_event()]
+        llm_json = _make_valid_llm_json(
             confidence=confidence,
             likely_root_cause="Should be overridden",
         )
@@ -399,38 +399,34 @@ class TestConfidenceGate:
 
         with patch_repo, _patch_rag(), _patch_orchestrator(llm_json):
             service = ErrorAnalysisService(_mock_db())
-            result  = await service.analyse(AnalyseErrorRequest())
+            result = await service.analyse(AnalyseErrorRequest())
 
         assert "Evidence is insufficient" in result.likely_root_cause
         assert "manual investigation" in result.likely_root_cause.lower()
 
     @pytest.mark.parametrize("confidence", [0.0, 0.1, 0.59])
-    async def test_low_confidence_sets_low_confidence_warning(
-        self, confidence: float
-    ) -> None:
-        events     = [_make_orm_event()]
-        llm_json   = _make_valid_llm_json(confidence=confidence)
+    async def test_low_confidence_sets_low_confidence_warning(self, confidence: float) -> None:
+        events = [_make_orm_event()]
+        llm_json = _make_valid_llm_json(confidence=confidence)
         patch_repo, _ = _patch_repo(get_recent_errors_return=events)
 
         with patch_repo, _patch_rag(), _patch_orchestrator(llm_json):
             service = ErrorAnalysisService(_mock_db())
-            result  = await service.analyse(AnalyseErrorRequest())
+            result = await service.analyse(AnalyseErrorRequest())
 
         assert result.low_confidence_warning is not None
         assert len(result.low_confidence_warning) > 0
 
     @pytest.mark.parametrize("confidence", [0.60, 0.75, 0.95, 1.0])
-    async def test_adequate_confidence_preserves_likely_root_cause(
-        self, confidence: float
-    ) -> None:
-        events     = [_make_orm_event()]
-        cause      = "Slow query holding DB connections"
-        llm_json   = _make_valid_llm_json(confidence=confidence, likely_root_cause=cause)
+    async def test_adequate_confidence_preserves_likely_root_cause(self, confidence: float) -> None:
+        events = [_make_orm_event()]
+        cause = "Slow query holding DB connections"
+        llm_json = _make_valid_llm_json(confidence=confidence, likely_root_cause=cause)
         patch_repo, _ = _patch_repo(get_recent_errors_return=events)
 
         with patch_repo, _patch_rag(), _patch_orchestrator(llm_json):
             service = ErrorAnalysisService(_mock_db())
-            result  = await service.analyse(AnalyseErrorRequest())
+            result = await service.analyse(AnalyseErrorRequest())
 
         assert result.likely_root_cause == cause
 
@@ -448,47 +444,47 @@ class TestLlmFailurePaths:
     """When the LLM returns nothing useful, analyse() must degrade safely."""
 
     async def test_empty_llm_response_returns_safe_fallback(self) -> None:
-        events     = [_make_orm_event()]
+        events = [_make_orm_event()]
         patch_repo, _ = _patch_repo(get_recent_errors_return=events)
 
         with patch_repo, _patch_rag(), _patch_orchestrator(""):
             service = ErrorAnalysisService(_mock_db())
-            result  = await service.analyse(AnalyseErrorRequest())
+            result = await service.analyse(AnalyseErrorRequest())
 
         assert result.confidence == 0.0
         assert result.low_confidence_warning is not None
         assert "AI analysis unavailable" in result.summary
 
     async def test_malformed_json_returns_safe_fallback(self) -> None:
-        events     = [_make_orm_event()]
+        events = [_make_orm_event()]
         patch_repo, _ = _patch_repo(get_recent_errors_return=events)
 
         with patch_repo, _patch_rag(), _patch_orchestrator("not json at all {{{"):
             service = ErrorAnalysisService(_mock_db())
-            result  = await service.analyse(AnalyseErrorRequest())
+            result = await service.analyse(AnalyseErrorRequest())
 
         assert result.confidence == 0.0
         assert result.low_confidence_warning is not None
 
     async def test_fallback_response_includes_raw_events_as_evidence(self) -> None:
         """Even when LLM fails, the first 5 raw events appear in evidence."""
-        events     = [_make_orm_event(message=f"error-{i}") for i in range(3)]
+        events = [_make_orm_event(message=f"error-{i}") for i in range(3)]
         patch_repo, _ = _patch_repo(get_recent_errors_return=events)
 
         with patch_repo, _patch_rag(), _patch_orchestrator(""):
             service = ErrorAnalysisService(_mock_db())
-            result  = await service.analyse(AnalyseErrorRequest())
+            result = await service.analyse(AnalyseErrorRequest())
 
         # Evidence should contain at least the events we provided
         assert len(result.evidence) > 0
 
     async def test_fallback_response_includes_events_analysed_count(self) -> None:
-        events     = [_make_orm_event() for _ in range(4)]
+        events = [_make_orm_event() for _ in range(4)]
         patch_repo, _ = _patch_repo(get_recent_errors_return=events)
 
         with patch_repo, _patch_rag(), _patch_orchestrator(""):
             service = ErrorAnalysisService(_mock_db())
-            result  = await service.analyse(AnalyseErrorRequest())
+            result = await service.analyse(AnalyseErrorRequest())
 
         assert result.events_analysed == 4
 
@@ -502,7 +498,7 @@ class TestRequestModes:
     """analyse() calls the correct repository method based on request fields."""
 
     async def test_event_id_mode_calls_get_by_id(self) -> None:
-        event      = _make_orm_event()
+        event = _make_orm_event()
         patch_repo, mock_repo = _patch_repo(
             get_by_id_return=event,
             get_by_session_return=[event],
@@ -520,7 +516,7 @@ class TestRequestModes:
         self,
     ) -> None:
         """When the specific event has a session_id, fetch full session context."""
-        event      = _make_orm_event()  # has session_id=_SESSION_ID
+        event = _make_orm_event()  # has session_id=_SESSION_ID
         patch_repo, mock_repo = _patch_repo(
             get_by_id_return=event,
             get_by_session_return=[event],
@@ -538,29 +534,25 @@ class TestRequestModes:
 
         with patch_repo, _patch_rag(), _patch_orchestrator(""):
             service = ErrorAnalysisService(_mock_db())
-            result  = await service.analyse(
-                AnalyseErrorRequest(event_id=str(uuid.uuid4()))
-            )
+            result = await service.analyse(AnalyseErrorRequest(event_id=str(uuid.uuid4())))
 
         assert result.events_analysed == 0
 
     async def test_session_id_mode_calls_get_by_session(self) -> None:
-        events     = [_make_orm_event()]
+        events = [_make_orm_event()]
         patch_repo, mock_repo = _patch_repo(get_by_session_return=events)
 
         with patch_repo, _patch_rag(), _patch_orchestrator(_make_valid_llm_json()):
             service = ErrorAnalysisService(_mock_db())
-            await service.analyse(
-                AnalyseErrorRequest(session_id=_SESSION_ID, lookback_minutes=45)
-            )
+            await service.analyse(AnalyseErrorRequest(session_id=_SESSION_ID, lookback_minutes=45))
 
         mock_repo.get_by_session.assert_awaited_once()
         kwargs = mock_repo.get_by_session.call_args[1]
         assert kwargs["session_id"] == _SESSION_ID
-        assert kwargs["minutes"]    == 45
+        assert kwargs["minutes"] == 45
 
     async def test_default_mode_calls_get_recent_errors(self) -> None:
-        events     = [_make_orm_event()]
+        events = [_make_orm_event()]
         patch_repo, mock_repo = _patch_repo(get_recent_errors_return=events)
 
         with patch_repo, _patch_rag(), _patch_orchestrator(_make_valid_llm_json()):
@@ -584,10 +576,10 @@ class TestParseLlmResponse:
         return ErrorAnalysisService(_mock_db())
 
     def test_parses_clean_json(self) -> None:
-        raw  = json.dumps({"severity": "HIGH", "confidence": 0.9})
-        svc  = self._service()
+        raw = json.dumps({"severity": "HIGH", "confidence": 0.9})
+        svc = self._service()
         result = svc._parse_llm_response(raw)
-        assert result["severity"]   == "HIGH"
+        assert result["severity"] == "HIGH"
         assert result["confidence"] == 0.9
 
     def test_strips_markdown_code_fence(self) -> None:
@@ -623,7 +615,7 @@ class TestParseLlmResponse:
         raw = 'Here is my analysis:\n{"severity": "HIGH", "confidence": 0.8}\nEnd.'
         svc = self._service()
         result = svc._parse_llm_response(raw)
-        assert result["severity"]   == "HIGH"
+        assert result["severity"] == "HIGH"
         assert result["confidence"] == 0.8
 
 
@@ -639,28 +631,28 @@ class TestDeriveSearchQuery:
         return ErrorAnalysisService(_mock_db())
 
     def test_includes_event_types_in_query(self) -> None:
-        events  = [_make_orm_event(event_type="http_timeout")]
-        svc     = self._service()
-        query   = svc._derive_search_query(events)
+        events = [_make_orm_event(event_type="http_timeout")]
+        svc = self._service()
+        query = svc._derive_search_query(events)
         assert "http_timeout" in query
 
     def test_includes_screen_context_when_available(self) -> None:
-        events  = [_make_orm_event(screen="CheckoutScreen")]
-        svc     = self._service()
-        query   = svc._derive_search_query(events)
+        events = [_make_orm_event(screen="CheckoutScreen")]
+        svc = self._service()
+        query = svc._derive_search_query(events)
         assert "CheckoutScreen" in query
 
     def test_returns_fallback_for_empty_list(self) -> None:
-        svc   = self._service()
+        svc = self._service()
         query = svc._derive_search_query([])
         assert query == "application error"
 
     def test_deduplicates_similar_messages(self) -> None:
         """Duplicate message prefixes should not appear multiple times."""
-        msg     = "POST /api returned HTTP 500"
-        events  = [_make_orm_event(message=msg) for _ in range(5)]
-        svc     = self._service()
-        query   = svc._derive_search_query(events)
+        msg = "POST /api returned HTTP 500"
+        events = [_make_orm_event(message=msg) for _ in range(5)]
+        svc = self._service()
+        query = svc._derive_search_query(events)
         # Message text should appear at most once in the query
         assert query.count(msg[:80]) <= 1
 
@@ -670,7 +662,7 @@ class TestDeriveSearchQuery:
             _make_orm_event(level="INFO", event_type="page_view"),
             _make_orm_event(level="ERROR", event_type="db_connection_refused"),
         ]
-        svc   = self._service()
+        svc = self._service()
         query = svc._derive_search_query(events)
         assert "db_connection_refused" in query
 
@@ -687,20 +679,20 @@ class TestBuildPrompt:
         return ErrorAnalysisService(_mock_db())
 
     def test_prompt_contains_ai_safety_rule_no_invented_data(self) -> None:
-        events  = [_make_orm_event()]
-        svc     = self._service()
-        prompt  = svc._build_prompt(events, [], [])
+        events = [_make_orm_event()]
+        svc = self._service()
+        prompt = svc._build_prompt(events, [], [])
         assert "Only use information present" in prompt
 
     def test_prompt_contains_confidence_gate_rule(self) -> None:
         events = [_make_orm_event()]
-        svc    = self._service()
+        svc = self._service()
         prompt = svc._build_prompt(events, [], [])
         assert "0.6" in prompt  # the low-confidence threshold is stated explicitly
 
     def test_prompt_contains_facts_inference_separation_rule(self) -> None:
         events = [_make_orm_event()]
-        svc    = self._service()
+        svc = self._service()
         prompt = svc._build_prompt(events, [], [])
         assert "facts" in prompt.lower()
         assert "inferences" in prompt.lower()
@@ -708,31 +700,31 @@ class TestBuildPrompt:
     def test_prompt_contains_human_approval_safety_rule(self) -> None:
         """Prompt must state that recommended fix is a SUGGESTION, not an action."""
         events = [_make_orm_event()]
-        svc    = self._service()
+        svc = self._service()
         prompt = svc._build_prompt(events, [], [])
         assert "SUGGESTION" in prompt or "suggestion" in prompt.lower()
 
     def test_prompt_includes_event_message_in_evidence_block(self) -> None:
         events = [_make_orm_event(message="Connection refused at pool")]
-        svc    = self._service()
+        svc = self._service()
         prompt = svc._build_prompt(events, [], [])
         assert "Connection refused at pool" in prompt
 
     def test_prompt_includes_runbook_content(self) -> None:
-        events  = [_make_orm_event()]
-        chunk   = _make_kb_chunk()
-        svc     = self._service()
-        prompt  = svc._build_prompt(events, [chunk], [])
+        events = [_make_orm_event()]
+        chunk = _make_kb_chunk()
+        svc = self._service()
+        prompt = svc._build_prompt(events, [chunk], [])
         assert "Restart the connection pool" in prompt
 
     def test_prompt_includes_incident_content(self) -> None:
-        events  = [_make_orm_event()]
-        chunk   = {
+        events = [_make_orm_event()]
+        chunk = {
             "source": "incidents/INC-100.md",
             "document_name": "incidents/INC-100.md",
             "content": "Previous DB failure was caused by a missing index.",
         }
-        svc    = self._service()
+        svc = self._service()
         prompt = svc._build_prompt(events, [], [chunk])
         assert "missing index" in prompt
 
@@ -749,39 +741,41 @@ class TestNoDataResponse:
         return ErrorAnalysisService(_mock_db())
 
     def test_confidence_is_zero(self) -> None:
-        svc    = self._service()
+        svc = self._service()
         result = svc._no_data_response("test-id")
         assert result.confidence == 0.0
 
     def test_severity_is_low(self) -> None:
-        svc    = self._service()
+        svc = self._service()
         result = svc._no_data_response("test-id")
         assert result.severity == ErrorSeverity.LOW
 
     def test_low_confidence_warning_is_set(self) -> None:
-        svc    = self._service()
+        svc = self._service()
         result = svc._no_data_response("test-id")
         assert result.low_confidence_warning is not None
 
     def test_events_analysed_is_zero(self) -> None:
-        svc    = self._service()
+        svc = self._service()
         result = svc._no_data_response("test-id")
         assert result.events_analysed == 0
 
     def test_analysis_id_is_propagated(self) -> None:
-        svc    = self._service()
-        my_id  = str(uuid.uuid4())
+        svc = self._service()
+        my_id = str(uuid.uuid4())
         result = svc._no_data_response(my_id)
         assert result.analysis_id == my_id
 
     def test_likely_root_cause_mentions_no_events(self) -> None:
-        svc    = self._service()
+        svc = self._service()
         result = svc._no_data_response("test-id")
-        assert "no error events" in result.likely_root_cause.lower() \
+        assert (
+            "no error events" in result.likely_root_cause.lower()
             or "insufficient" in result.likely_root_cause.lower()
+        )
 
     def test_possible_causes_list_is_not_empty(self) -> None:
-        svc    = self._service()
+        svc = self._service()
         result = svc._no_data_response("test-id")
         assert len(result.possible_causes) > 0
 
@@ -801,7 +795,7 @@ class TestBuildResponse:
         parsed = json.loads(_make_valid_llm_json())
         parsed["severity"] = "CATASTROPHIC"  # invalid enum value
         events = [_make_orm_event()]
-        svc    = self._service()
+        svc = self._service()
 
         result = svc._build_response(
             analysis_id="test-id",
@@ -818,7 +812,7 @@ class TestBuildResponse:
         parsed = json.loads(_make_valid_llm_json())
         parsed["confidence"] = 1.5  # out of range
         events = [_make_orm_event()]
-        svc    = self._service()
+        svc = self._service()
 
         result = svc._build_response(
             analysis_id="test-id",
@@ -835,7 +829,7 @@ class TestBuildResponse:
         parsed = json.loads(_make_valid_llm_json())
         parsed["confidence"] = -0.5  # out of range
         events = [_make_orm_event()]
-        svc    = self._service()
+        svc = self._service()
 
         result = svc._build_response(
             analysis_id="test-id",
@@ -849,10 +843,10 @@ class TestBuildResponse:
         assert result.confidence >= 0.0
 
     def test_summary_is_truncated_to_300_chars(self) -> None:
-        parsed         = json.loads(_make_valid_llm_json())
+        parsed = json.loads(_make_valid_llm_json())
         parsed["summary"] = "x" * 500
         events = [_make_orm_event()]
-        svc    = self._service()
+        svc = self._service()
 
         result = svc._build_response(
             analysis_id="test-id",
@@ -868,7 +862,7 @@ class TestBuildResponse:
     def test_empty_parsed_dict_returns_fallback_response(self) -> None:
         """When parsed == {}, _build_response returns the LLM-unavailable fallback."""
         events = [_make_orm_event()]
-        svc    = self._service()
+        svc = self._service()
 
         result = svc._build_response(
             analysis_id="test-id",
@@ -885,7 +879,7 @@ class TestBuildResponse:
     def test_provider_name_is_passed_through(self) -> None:
         parsed = json.loads(_make_valid_llm_json())
         events = [_make_orm_event()]
-        svc    = self._service()
+        svc = self._service()
 
         result = svc._build_response(
             analysis_id="test-id",

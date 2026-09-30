@@ -178,9 +178,7 @@ def test_property_29b_attempt_3_is_permanently_failed() -> None:
     raised = False
     try:
         countdown = 2**mock_task.request.retries  # = 8 (would be the next delay)
-        raise mock_task.retry(
-            exc=RuntimeError("fail"), countdown=countdown, max_retries=3
-        )
+        raise mock_task.retry(exc=RuntimeError("fail"), countdown=countdown, max_retries=3)
     except MaxRetriesExceededError:
         raised = True
 
@@ -202,9 +200,7 @@ def test_property_29b_attempt_3_is_permanently_failed() -> None:
 # ===========================================================================
 
 
-async def test_property_29c_permanent_failure_marks_document_failed_and_notifies() -> (
-    None
-):
+async def test_property_29c_permanent_failure_marks_document_failed_and_notifies() -> None:
     """**Validates: Requirements 27.3**
 
     Property 29C: When all 3 retries are exhausted and ``MaxRetriesExceededError``
@@ -266,9 +262,7 @@ async def test_property_29c_permanent_failure_marks_document_failed_and_notifies
             "app.repositories.document_repository.DocumentRepository",
             return_value=mock_doc_repo,
         ),
-        patch(
-            "app.repositories.job_repository.JobRepository", return_value=mock_job_repo
-        ),
+        patch("app.repositories.job_repository.JobRepository", return_value=mock_job_repo),
     ):
         # Make the async context manager work correctly
         mock_session_instance = AsyncMock()
@@ -287,9 +281,7 @@ async def test_property_29c_permanent_failure_marks_document_failed_and_notifies
     # doc_repo.update_status must have been called with IngestionStatus.failed
     update_calls = mock_doc_repo.update_status.call_args_list
     failed_calls = [
-        c
-        for c in update_calls
-        if len(c.args) >= 2 and c.args[1] == IngestionStatus.failed
+        c for c in update_calls if len(c.args) >= 2 and c.args[1] == IngestionStatus.failed
     ]
     assert len(failed_calls) >= 1, (
         f"Property 29C violated: doc_repo.update_status was not called with "
@@ -305,9 +297,7 @@ async def test_property_29c_permanent_failure_marks_document_failed_and_notifies
     notification_call = mock_rag_service.send_ingestion_failure_notification.call_args
     assert notification_call is not None
     # Verify the correct user_id and document_id were passed
-    call_args = (
-        notification_call.args if notification_call.args else notification_call[0]
-    )
+    call_args = notification_call.args if notification_call.args else notification_call[0]
     assert user_id in call_args or user_id in str(notification_call), (
         f"Property 29C violated: send_ingestion_failure_notification called with "
         f"unexpected args: {notification_call}. Expected user_id={user_id}."
@@ -355,9 +345,7 @@ async def test_property_29c_permanent_failure_via_handle_permanent_failure() -> 
             "app.repositories.document_repository.DocumentRepository",
             return_value=mock_doc_repo,
         ),
-        patch(
-            "app.repositories.job_repository.JobRepository", return_value=mock_job_repo
-        ),
+        patch("app.repositories.job_repository.JobRepository", return_value=mock_job_repo),
     ):
         mock_session_instance = AsyncMock()
         mock_session_instance.__aenter__ = AsyncMock(return_value=mock_db)
@@ -369,9 +357,7 @@ async def test_property_29c_permanent_failure_via_handle_permanent_failure() -> 
     # doc_repo.update_status must have been called with IngestionStatus.failed
     update_calls = mock_doc_repo.update_status.call_args_list
     failed_calls = [
-        c
-        for c in update_calls
-        if len(c.args) >= 2 and c.args[1] == IngestionStatus.failed
+        c for c in update_calls if len(c.args) >= 2 and c.args[1] == IngestionStatus.failed
     ]
     assert len(failed_calls) >= 1, (
         f"Property 29C violated: _handle_permanent_failure did not call "

@@ -51,9 +51,7 @@ def _make_user_mock(
     return mock
 
 
-def _make_job_mock(
-    job_id: uuid.UUID | None = None, user_id: uuid.UUID | None = None
-) -> MagicMock:
+def _make_job_mock(job_id: uuid.UUID | None = None, user_id: uuid.UUID | None = None) -> MagicMock:
     jid = job_id or uuid.uuid4()
     uid = user_id or uuid.uuid4()
     mock = MagicMock()
@@ -287,9 +285,7 @@ class TestExportWorker:
             conversation_id=str(uuid.uuid4()),
             content="Hello",
         )
-        doc_row = _make_orm_row(
-            id=str(uuid.uuid4()), user_id=user_id, file_name="doc.pdf"
-        )
+        doc_row = _make_orm_row(id=str(uuid.uuid4()), user_id=user_id, file_name="doc.pdf")
         mem_row = _make_orm_row(id=str(uuid.uuid4()), user_id=user_id, content="memory")
         note_row = _make_orm_row(id=str(uuid.uuid4()), user_id=user_id, content="note")
         todo_row = _make_orm_row(id=str(uuid.uuid4()), user_id=user_id, title="todo")

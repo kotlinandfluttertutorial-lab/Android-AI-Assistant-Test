@@ -98,9 +98,7 @@ class TestRegisterEndpoint:
             patch("app.api.auth.router.hash_password", return_value="$2b$12$fakehash"),
             patch(
                 "app.api.auth.router.issue_tokens_for_user",
-                new=AsyncMock(
-                    return_value=("access_tok", ACCESS_EXP, "refresh_tok", REFRESH_EXP)
-                ),
+                new=AsyncMock(return_value=("access_tok", ACCESS_EXP, "refresh_tok", REFRESH_EXP)),
             ),
             patch("app.api.auth.router.AuditService") as MockAudit,
         ):
@@ -185,9 +183,7 @@ class TestLoginEndpoint:
             patch("app.api.auth.router.verify_password", return_value=True),
             patch(
                 "app.api.auth.router.issue_tokens_for_user",
-                new=AsyncMock(
-                    return_value=("access_tok", ACCESS_EXP, "refresh_tok", REFRESH_EXP)
-                ),
+                new=AsyncMock(return_value=("access_tok", ACCESS_EXP, "refresh_tok", REFRESH_EXP)),
             ),
             patch("app.api.auth.router.AuditService") as MockAudit,
         ):
@@ -323,9 +319,7 @@ class TestRefreshEndpoint:
         ):
             MockAudit.return_value.log_token_refresh = AsyncMock()
 
-            response = client.post(
-                "/auth/refresh", json={"refresh_token": "valid-refresh-token"}
-            )
+            response = client.post("/auth/refresh", json={"refresh_token": "valid-refresh-token"})
 
         assert response.status_code == 200
         data = response.json()
@@ -342,9 +336,7 @@ class TestRefreshEndpoint:
             "app.api.auth.router.refresh_tokens",
             new=AsyncMock(side_effect=InvalidTokenError("expired")),
         ):
-            response = client.post(
-                "/auth/refresh", json={"refresh_token": "expired-token"}
-            )
+            response = client.post("/auth/refresh", json={"refresh_token": "expired-token"})
 
         assert response.status_code == 401
 
@@ -358,9 +350,7 @@ class TestRefreshEndpoint:
             "app.api.auth.router.refresh_tokens",
             new=AsyncMock(side_effect=TokenFamilyRevokedError("replay")),
         ):
-            response = client.post(
-                "/auth/refresh", json={"refresh_token": "reused-token"}
-            )
+            response = client.post("/auth/refresh", json={"refresh_token": "reused-token"})
 
         assert response.status_code == 401
         # Replay detail must be vague — must not mention "replay" or "family"
@@ -447,9 +437,7 @@ class TestRBACEnforcement:
             "app.security.dependencies._is_jti_revoked",
             new=AsyncMock(return_value=False),
         ):
-            response = tc.get(
-                "/admin/test", headers={"Authorization": f"Bearer {user_token}"}
-            )
+            response = tc.get("/admin/test", headers={"Authorization": f"Bearer {user_token}"})
 
         assert response.status_code == 403
 
@@ -476,9 +464,7 @@ class TestRBACEnforcement:
             "app.security.dependencies._is_jti_revoked",
             new=AsyncMock(return_value=False),
         ):
-            response = tc.get(
-                "/admin/test", headers={"Authorization": f"Bearer {admin_token}"}
-            )
+            response = tc.get("/admin/test", headers={"Authorization": f"Bearer {admin_token}"})
 
         assert response.status_code == 200
 
@@ -505,8 +491,6 @@ class TestRBACEnforcement:
             "app.security.dependencies._is_jti_revoked",
             new=AsyncMock(return_value=False),
         ):
-            response = tc.get(
-                "/admin/test", headers={"Authorization": f"Bearer {token}"}
-            )
+            response = tc.get("/admin/test", headers={"Authorization": f"Bearer {token}"})
 
         assert response.status_code == 403

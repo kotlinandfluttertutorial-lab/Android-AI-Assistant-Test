@@ -139,11 +139,18 @@ class ChatAgent @Inject constructor(
         emit(AgentEvent.StatusChanged(execution.executionId, AgentStatus.RUNNING))
 
         // ── 2. Resolve JWT ───────────────────────────────────────────────────
-        // Fixes the 'placeholder_jwt' gap in ChatDetailViewModel without
-        // modifying ChatDetailViewModel's constructor or its streaming logic.
-        val jwt = secureStorage.getJwt() ?: run {
-            Timber.w("ChatAgent: no JWT in SecureStorage — WebSocket auth will fail")
-            ""
+        // Phase 10 hardening: fail-fast when no JWT is available rather than
+        // proceeding with an empty token that will fail at the WebSocket layer.
+        val jwt = secureStorage?.getJwt()
+        if (jwt.isNullOrBlank()) {
+            Timber.w("ChatAgent: no JWT in SecureStorage — rejecting request")
+            val result = failedResult(
+                execution, request,
+                "UNAUTHENTICATED",
+                "No authenticated session found. Please sign in and try again.",
+            )
+            emit(AgentEvent.Failed(result))
+            return@flow
         }
 
         // ── 3. Stream via existing AIStreamClient ────────────────────────────

@@ -84,9 +84,7 @@ def send_push_notification(
 
     Requirements: 16.1, 16.2, 16.5, 16.6
     """
-    return asyncio.run(
-        _run_send_push_notification(self, user_id, title, body, data or {})
-    )
+    return asyncio.run(_run_send_push_notification(self, user_id, title, body, data or {}))
 
 
 async def _run_send_push_notification(
@@ -103,9 +101,7 @@ async def _run_send_push_notification(
     credentials_path = settings.FIREBASE_CREDENTIALS_PATH
 
     if not credentials_path:
-        logger.warning(
-            "send_push_notification: FIREBASE_CREDENTIALS_PATH not set; skipping."
-        )
+        logger.warning("send_push_notification: FIREBASE_CREDENTIALS_PATH not set; skipping.")
         return {"status": "skipped", "reason": "firebase_not_configured"}
 
     def _send() -> None:
@@ -130,9 +126,7 @@ async def _run_send_push_notification(
         return {"status": "sent", "user_id": user_id}
     except MaxRetriesExceededError:
         # All retries exhausted — write a failure record to the DB
-        logger.error(
-            "send_push_notification: max retries exceeded for user=%s", user_id
-        )
+        logger.error("send_push_notification: max retries exceeded for user=%s", user_id)
         await _log_push_failure(user_id, title, body)
         return {"status": "failed", "user_id": user_id}
 
@@ -166,9 +160,7 @@ async def _log_push_failure(user_id: str, title: str, body: str) -> None:
     max_retries=3,
     default_retry_delay=5,
 )
-def refresh_device_token(
-    self: Any, user_id: str, old_token: str, new_token: str
-) -> dict[str, str]:
+def refresh_device_token(self: Any, user_id: str, old_token: str, new_token: str) -> dict[str, str]:
     """Celery task: update a user's FCM device token in the database.
 
     On DB failure, stores a retry counter in Redis key
@@ -206,16 +198,12 @@ async def _run_refresh_device_token(
             if user is not None:
                 user.fcm_token = new_token
                 await db.commit()
-                logger.info(
-                    "refresh_device_token: updated FCM token for user=%s", user_id
-                )
+                logger.info("refresh_device_token: updated FCM token for user=%s", user_id)
             else:
                 logger.warning("refresh_device_token: user=%s not found in DB", user_id)
         return {"status": "updated", "user_id": user_id}
     except Exception as exc:
-        logger.error(
-            "refresh_device_token: DB update failed for user=%s: %s", user_id, exc
-        )
+        logger.error("refresh_device_token: DB update failed for user=%s: %s", user_id, exc)
         # Store retry counter in Redis so the token update is retried later
         await _set_token_retry_counter(user_id, new_token)
         return {"status": "retry_scheduled", "user_id": user_id}
@@ -230,13 +218,9 @@ async def _set_token_retry_counter(user_id: str, new_token: str) -> None:
         key = f"{_FCM_RETRY_KEY_PREFIX}{user_id}"
         # Store the retry count (10) so the token update is retried
         await redis_client.set(key, 10)
-        logger.info(
-            "_set_token_retry_counter: Redis retry counter set for user=%s", user_id
-        )
+        logger.info("_set_token_retry_counter: Redis retry counter set for user=%s", user_id)
     except Exception as exc:
-        logger.warning(
-            "_set_token_retry_counter: could not set Redis retry counter: %s", exc
-        )
+        logger.warning("_set_token_retry_counter: could not set Redis retry counter: %s", exc)
 
 
 @celery_app.task(  # type: ignore[misc]
@@ -272,12 +256,9 @@ def send_message_delivery_notification_task(
             "message_id": message_id,
             "conversation_id": conversation_id,
         }
-    except (
-        Exception
-    ) as exc:  # Best-effort: retry up to max_retries, then give up silently
+    except Exception as exc:  # Best-effort: retry up to max_retries, then give up silently
         logger.warning(
-            "send_message_delivery_notification_task: attempt %d failed for "
-            "user=%s message=%s: %s",
+            "send_message_delivery_notification_task: attempt %d failed for user=%s message=%s: %s",
             self.request.retries,
             user_id,
             message_id,
@@ -321,9 +302,7 @@ async def _send_delivery_notification(
     credentials_path = settings.FIREBASE_CREDENTIALS_PATH
 
     if not credentials_path:
-        logger.debug(
-            "FIREBASE_CREDENTIALS_PATH not set; skipping delivery push notification."
-        )
+        logger.debug("FIREBASE_CREDENTIALS_PATH not set; skipping delivery push notification.")
         return
 
     def _send() -> None:

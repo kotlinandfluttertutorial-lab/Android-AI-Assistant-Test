@@ -330,8 +330,7 @@ class TestPaginationBoundaries:
     def _make_conversations(self, user_id: uuid.UUID, n: int) -> list[MagicMock]:
         """Return n mock conversations for the given user."""
         return [
-            _make_conversation(user_id=user_id, title=f"Conversation {i}")
-            for i in range(1, n + 1)
+            _make_conversation(user_id=user_id, title=f"Conversation {i}") for i in range(1, n + 1)
         ]
 
     def test_first_page_returns_correct_items(self) -> None:
@@ -445,9 +444,9 @@ class TestPaginationBoundaries:
 
         resp1_id_set = {item["id"] for item in resp1_items}
         resp2_id_set = {item["id"] for item in resp2_items}
-        assert resp1_id_set.isdisjoint(
-            resp2_id_set
-        ), "Page 1 and page 2 items overlap — pagination boundary is broken"
+        assert resp1_id_set.isdisjoint(resp2_id_set), (
+            "Page 1 and page 2 items overlap — pagination boundary is broken"
+        )
 
     def test_beyond_last_page_returns_empty_items(self) -> None:
         """Requesting a page beyond the total returns empty items array.
@@ -512,7 +511,9 @@ class TestPaginationBoundaries:
         user_id = _make_user_id()
         token = _make_token(user_id)
 
-        with (patch("app.security.dependencies._is_jti_revoked", return_value=False),):
+        with (
+            patch("app.security.dependencies._is_jti_revoked", return_value=False),
+        ):
             with TestClient(_app) as client:
                 resp = client.get(
                     "/conversations?page=0",
@@ -553,9 +554,7 @@ class TestSearchByTitleAndContent:
         """
         user_id = _make_user_id()
         token = _make_token(user_id)
-        matching_conv = _make_conversation(
-            user_id=user_id, title="Python Tutorial Notes"
-        )
+        matching_conv = _make_conversation(user_id=user_id, title="Python Tutorial Notes")
         # Repository returns only the matching item.
 
         with (
@@ -711,9 +710,7 @@ class TestExportFormatCorrectness:
         )
 
         with (
-            patch(
-                "app.api.conversations.router.ConversationRepository"
-            ) as MockConvRepo,
+            patch("app.api.conversations.router.ConversationRepository") as MockConvRepo,
             patch("app.api.conversations.router.MessageRepository") as MockMsgRepo,
             patch("app.security.dependencies._is_jti_revoked", return_value=False),
         ):
@@ -721,9 +718,7 @@ class TestExportFormatCorrectness:
             conv_repo.get_by_id = AsyncMock(return_value=conv)
 
             msg_repo = MockMsgRepo.return_value
-            msg_repo.get_by_conversation_id = AsyncMock(
-                return_value=[user_msg, asst_msg]
-            )
+            msg_repo.get_by_conversation_id = AsyncMock(return_value=[user_msg, asst_msg])
 
             with TestClient(_app) as client:
                 resp = client.post(
@@ -744,9 +739,7 @@ class TestExportFormatCorrectness:
         conv = _make_conversation(user_id=user_id)
 
         with (
-            patch(
-                "app.api.conversations.router.ConversationRepository"
-            ) as MockConvRepo,
+            patch("app.api.conversations.router.ConversationRepository") as MockConvRepo,
             patch("app.api.conversations.router.MessageRepository") as MockMsgRepo,
             patch("app.security.dependencies._is_jti_revoked", return_value=False),
         ):
@@ -788,16 +781,12 @@ class TestExportFormatCorrectness:
         )
 
         with (
-            patch(
-                "app.api.conversations.router.ConversationRepository"
-            ) as MockConvRepo,
+            patch("app.api.conversations.router.ConversationRepository") as MockConvRepo,
             patch("app.api.conversations.router.MessageRepository") as MockMsgRepo,
             patch("app.security.dependencies._is_jti_revoked", return_value=False),
         ):
             MockConvRepo.return_value.get_by_id = AsyncMock(return_value=conv)
-            MockMsgRepo.return_value.get_by_conversation_id = AsyncMock(
-                return_value=[msg1, msg2]
-            )
+            MockMsgRepo.return_value.get_by_conversation_id = AsyncMock(return_value=[msg1, msg2])
 
             with TestClient(_app) as client:
                 resp = client.post(
@@ -824,16 +813,12 @@ class TestExportFormatCorrectness:
         msg = _make_message(conversation_id=conv.id, content="Hello!")
 
         with (
-            patch(
-                "app.api.conversations.router.ConversationRepository"
-            ) as MockConvRepo,
+            patch("app.api.conversations.router.ConversationRepository") as MockConvRepo,
             patch("app.api.conversations.router.MessageRepository") as MockMsgRepo,
             patch("app.security.dependencies._is_jti_revoked", return_value=False),
         ):
             MockConvRepo.return_value.get_by_id = AsyncMock(return_value=conv)
-            MockMsgRepo.return_value.get_by_conversation_id = AsyncMock(
-                return_value=[msg]
-            )
+            MockMsgRepo.return_value.get_by_conversation_id = AsyncMock(return_value=[msg])
 
             with TestClient(_app) as client:
                 resp = client.post(
@@ -854,9 +839,7 @@ class TestExportFormatCorrectness:
         conv = _make_conversation(user_id=user_id, title="PDF Export Chat")
 
         with (
-            patch(
-                "app.api.conversations.router.ConversationRepository"
-            ) as MockConvRepo,
+            patch("app.api.conversations.router.ConversationRepository") as MockConvRepo,
             patch("app.api.conversations.router.MessageRepository") as MockMsgRepo,
             patch("app.security.dependencies._is_jti_revoked", return_value=False),
         ):
@@ -884,9 +867,7 @@ class TestExportFormatCorrectness:
         conv = _make_conversation(user_id=user_id)
 
         with (
-            patch(
-                "app.api.conversations.router.ConversationRepository"
-            ) as MockConvRepo,
+            patch("app.api.conversations.router.ConversationRepository") as MockConvRepo,
             patch("app.api.conversations.router.MessageRepository") as MockMsgRepo,
             patch("app.security.dependencies._is_jti_revoked", return_value=False),
         ):
@@ -916,9 +897,7 @@ class TestExportFormatCorrectness:
         conv = _make_conversation(user_id=user_id)
 
         with (
-            patch(
-                "app.api.conversations.router.ConversationRepository"
-            ) as MockConvRepo,
+            patch("app.api.conversations.router.ConversationRepository") as MockConvRepo,
             patch("app.security.dependencies._is_jti_revoked", return_value=False),
         ):
             MockConvRepo.return_value.get_by_id = AsyncMock(return_value=conv)
@@ -941,9 +920,7 @@ class TestExportFormatCorrectness:
         deleted_conv = _make_conversation(user_id=user_id, is_deleted=True)
 
         with (
-            patch(
-                "app.api.conversations.router.ConversationRepository"
-            ) as MockConvRepo,
+            patch("app.api.conversations.router.ConversationRepository") as MockConvRepo,
             patch("app.security.dependencies._is_jti_revoked", return_value=False),
         ):
             MockConvRepo.return_value.get_by_id = AsyncMock(return_value=deleted_conv)

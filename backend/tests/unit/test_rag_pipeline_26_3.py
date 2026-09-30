@@ -323,9 +323,7 @@ class TestMinIOUpload:
         service = RAGService()
 
         with patch("minio.Minio", _mock_minio_constructor):
-            key = await service.store_file_minio(
-                b"PDF content", filename, user_id, doc_id
-            )
+            key = await service.store_file_minio(b"PDF content", filename, user_id, doc_id)
 
         assert key.startswith(f"{user_id}/{doc_id}/")
         assert key.endswith(filename)
@@ -350,9 +348,7 @@ class TestMinIOUpload:
         with (
             patch("app.api.rag.router.DocumentRepository", return_value=mock_doc_repo),
             patch("app.api.rag.router.JobRepository", return_value=mock_job_repo),
-            patch(
-                "app.api.rag.router.rag_service.validate_mime_and_upload", MagicMock()
-            ),
+            patch("app.api.rag.router.rag_service.validate_mime_and_upload", MagicMock()),
             patch(
                 "app.api.rag.router.rag_service.store_file_minio",
                 AsyncMock(return_value=_FIXED_MINIO_KEY),
@@ -397,9 +393,7 @@ class TestMinIOUpload:
 
         with (
             patch("app.api.rag.router.DocumentRepository", return_value=mock_doc_repo),
-            patch(
-                "app.api.rag.router.rag_service.validate_mime_and_upload", MagicMock()
-            ),
+            patch("app.api.rag.router.rag_service.validate_mime_and_upload", MagicMock()),
             patch(
                 "app.api.rag.router.rag_service.store_file_minio",
                 AsyncMock(side_effect=OSError("MinIO unreachable")),
@@ -504,12 +498,8 @@ class TestCeleryJobStatusTransitions:
                 result = await _run_ingestion(mock_task, str(doc_id), str(user_id))
 
         assert result["status"] == "completed"
-        assert (
-            "running" in status_log
-        ), f"Expected 'running' in status log: {status_log}"
-        assert (
-            "completed" in status_log
-        ), f"Expected 'completed' in status log: {status_log}"
+        assert "running" in status_log, f"Expected 'running' in status log: {status_log}"
+        assert "completed" in status_log, f"Expected 'completed' in status log: {status_log}"
         assert status_log.index("running") < status_log.index("completed")
 
     @pytest.mark.asyncio
@@ -569,9 +559,7 @@ class TestCeleryJobStatusTransitions:
 
             mock_svc.download_file_minio = AsyncMock(return_value=_SAMPLE_BYTES)
             mock_svc.extract_text = AsyncMock(
-                side_effect=ExtractionError(
-                    "pdf_extraction", "sample.txt", "Corrupt PDF"
-                )
+                side_effect=ExtractionError("pdf_extraction", "sample.txt", "Corrupt PDF")
             )
 
             with (
@@ -805,9 +793,7 @@ class TestChunkingCoverage:
         """chunk_size above max_chunk_size (2048) is clamped to 2048."""
         service = RAGService()
         text = "Short text for max clamp test."
-        chunks = service.chunk_text(
-            text, chunk_size=9999, overlap=0, max_chunk_size=2048
-        )
+        chunks = service.chunk_text(text, chunk_size=9999, overlap=0, max_chunk_size=2048)
         assert len(chunks) == 1
         assert self._all_tokens_covered(text, chunks)
 
@@ -1131,9 +1117,9 @@ class TestCrossUserIsolation:
             await service.query_documents(user_id=user_a, query="sensitive data")
 
         for name in queried_collections:
-            assert (
-                name != f"documents_{user_b}"
-            ), f"User B collection '{name}' was queried during user A's search"
+            assert name != f"documents_{user_b}", (
+                f"User B collection '{name}' was queried during user A's search"
+            )
 
     @pytest.mark.asyncio
     async def test_embed_and_store_scoped_to_user_collection(self) -> None:
@@ -1346,9 +1332,7 @@ class TestDeleteCleanup:
                 app.dependency_overrides.pop(get_db, None)
 
         assert resp.status_code == 204
-        mock_delete_embeddings.assert_called_once_with(
-            str(_FIXED_DOC_ID), str(_FIXED_USER_A)
-        )
+        mock_delete_embeddings.assert_called_once_with(str(_FIXED_DOC_ID), str(_FIXED_USER_A))
 
     @pytest.mark.asyncio
     async def test_delete_endpoint_removes_from_minio(self) -> None:
@@ -1369,9 +1353,7 @@ class TestDeleteCleanup:
         with (
             patch("app.api.rag.router.DocumentRepository", return_value=mock_doc_repo),
             patch("app.api.rag.router.rag_service.delete_embeddings", AsyncMock()),
-            patch(
-                "app.api.rag.router.rag_service.delete_file_minio", mock_delete_minio
-            ),
+            patch("app.api.rag.router.rag_service.delete_file_minio", mock_delete_minio),
         ):
             app.dependency_overrides[get_current_user] = lambda: token_payload
             app.dependency_overrides[get_db] = lambda: mock_db
@@ -1406,12 +1388,8 @@ class TestDeleteCleanup:
 
         with (
             patch("app.api.rag.router.DocumentRepository", return_value=mock_doc_repo),
-            patch(
-                "app.api.rag.router.rag_service.delete_embeddings", mock_chroma_delete
-            ),
-            patch(
-                "app.api.rag.router.rag_service.delete_file_minio", mock_minio_delete
-            ),
+            patch("app.api.rag.router.rag_service.delete_embeddings", mock_chroma_delete),
+            patch("app.api.rag.router.rag_service.delete_file_minio", mock_minio_delete),
         ):
             app.dependency_overrides[get_current_user] = lambda: token_payload
             app.dependency_overrides[get_db] = lambda: mock_db

@@ -110,9 +110,7 @@ class TestMissingToken:
         assert response.status_code in (401, 403)
 
     def test_non_bearer_scheme_returns_401_or_403(self) -> None:
-        response = client.get(
-            "/protected", headers={"Authorization": "Basic dXNlcjpwYXNz"}
-        )
+        response = client.get("/protected", headers={"Authorization": "Basic dXNlcjpwYXNz"})
         assert response.status_code in (401, 403)
 
 

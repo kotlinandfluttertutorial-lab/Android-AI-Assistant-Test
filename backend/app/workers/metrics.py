@@ -163,9 +163,7 @@ def _on_task_failure(
     **kwargs: object,
 ) -> None:
     """Celery ``task_failure`` signal handler — increments the failure counter."""
-    task_name = (
-        getattr(sender, "name", str(sender)) if sender is not None else "unknown"
-    )
+    task_name = getattr(sender, "name", str(sender)) if sender is not None else "unknown"
     logger.debug("celery metrics: task_failure signal for task=%s", task_name)
     try:
         celery_failed_tasks_total.labels(task_name=task_name).inc()
@@ -179,9 +177,7 @@ def _on_task_success(
     **kwargs: object,
 ) -> None:
     """Celery ``task_success`` signal handler — increments the completed counter."""
-    task_name = (
-        getattr(sender, "name", str(sender)) if sender is not None else "unknown"
-    )
+    task_name = getattr(sender, "name", str(sender)) if sender is not None else "unknown"
     logger.debug("celery metrics: task_success signal for task=%s", task_name)
     try:
         celery_completed_tasks_total.labels(task_name=task_name).inc()
@@ -195,9 +191,7 @@ def _on_task_retry(
     **kwargs: object,
 ) -> None:
     """Celery ``task_retry`` signal handler — logs the retry event."""
-    task_name = (
-        getattr(sender, "name", str(sender)) if sender is not None else "unknown"
-    )
+    task_name = getattr(sender, "name", str(sender)) if sender is not None else "unknown"
     logger.info(
         "celery metrics: task_retry signal for task=%s reason=%s",
         task_name,

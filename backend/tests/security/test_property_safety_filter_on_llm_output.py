@@ -112,8 +112,7 @@ def test_harmful_content_never_appears_in_filtered_response(
 
     # Redaction marker must be present.
     assert "[content removed]" in result, (
-        f"Expected '[content removed]' placeholder in output for input {text!r}. "
-        f"Got: {result!r}"
+        f"Expected '[content removed]' placeholder in output for input {text!r}. Got: {result!r}"
     )
 
 
@@ -146,8 +145,7 @@ def test_redaction_replaces_harmful_content_with_placeholder(harmful: str) -> No
 
     # The replacement marker must be present (at least one substitution occurred).
     assert "[content removed]" in result, (
-        f"Expected '[content removed]' in result for harmful input {harmful!r}. "
-        f"Got: {result!r}"
+        f"Expected '[content removed]' in result for harmful input {harmful!r}. Got: {result!r}"
     )
 
 
@@ -176,14 +174,13 @@ def test_clean_output_passes_through_unchanged(text: str) -> None:
 
     # Must be returned verbatim — no modifications to clean content.
     assert result == text, (
-        f"Clean text was modified by filter_response. "
-        f"Input: {text!r}, Output: {result!r}"
+        f"Clean text was modified by filter_response. Input: {text!r}, Output: {result!r}"
     )
 
     # No spurious redaction markers.
-    assert (
-        "[content removed]" not in result or "[content removed]" in text
-    ), f"Unexpected '[content removed]' in output for clean input {text!r}."
+    assert "[content removed]" not in result or "[content removed]" in text, (
+        f"Unexpected '[content removed]' in output for clean input {text!r}."
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -224,8 +221,7 @@ def test_redaction_failure_raises_safety_filter_error(harmful: str) -> None:
 
     # SafetyFilterError must have been raised.
     assert captured_exception is not None, (
-        "Expected SafetyFilterError to be raised when redaction fails, "
-        "but no exception was raised."
+        "Expected SafetyFilterError to be raised when redaction fails, but no exception was raised."
     )
 
     # The harmful text is not accessible — the exception confirms the content
@@ -320,13 +316,9 @@ def test_safety_filter_error_blocks_entire_streaming_response(harmful: str) -> N
             return mock_client
 
         with (
-            patch.object(
-                orchestrator, "_apply_safety_filters", mock_apply_safety_filters
-            ),
+            patch.object(orchestrator, "_apply_safety_filters", mock_apply_safety_filters),
             patch.object(orchestrator, "_build_prompt", mock_build_prompt),
-            patch.object(
-                orchestrator, "_detect_prompt_injection", mock_detect_injection
-            ),
+            patch.object(orchestrator, "_detect_prompt_injection", mock_detect_injection),
             patch.object(orchestrator, "_resolve_provider", mock_resolve_provider),
         ):
             await orchestrator.stream_chat(
@@ -350,9 +342,9 @@ def test_safety_filter_error_blocks_entire_streaming_response(harmful: str) -> N
 
     # The error message must reference the safety filter.
     error_text = error_messages[0].get("message", "")
-    assert (
-        "safety" in error_text.lower() or "blocked" in error_text.lower()
-    ), f"Error message does not mention safety/blocked. Got: {error_text!r}"
+    assert "safety" in error_text.lower() or "blocked" in error_text.lower(), (
+        f"Error message does not mention safety/blocked. Got: {error_text!r}"
+    )
 
     # The harmful token must NOT have been sent as a "token" message.
     token_messages = [m for m in sent_messages if m.get("type") == "token"]

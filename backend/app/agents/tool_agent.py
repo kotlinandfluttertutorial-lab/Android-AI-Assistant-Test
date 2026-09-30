@@ -104,10 +104,12 @@ class ToolAgent(Agent):
 
     @property
     def capabilities(self) -> frozenset[AgentCapability]:
-        return frozenset({
-            AgentCapability.TOOL_USE,
-            AgentCapability.TEXT_GENERATION,
-        })
+        return frozenset(
+            {
+                AgentCapability.TOOL_USE,
+                AgentCapability.TEXT_GENERATION,
+            }
+        )
 
     async def execute(
         self,
@@ -120,15 +122,20 @@ class ToolAgent(Agent):
         )
 
         if AsyncSessionLocal is None or MCPBroker is None:
-            yield self._failed(execution, request, "SERVICE_UNAVAILABLE",
-                               "Tool execution service not available.")
+            yield self._failed(
+                execution, request, "SERVICE_UNAVAILABLE", "Tool execution service not available."
+            )
             return
 
         # ── 1. Authenticate ──────────────────────────────────────────────────
         user_id = (request.user_id or "").strip()
         if not user_id:
-            yield self._failed(execution, request, "UNAUTHENTICATED",
-                               "Tool execution requires an authenticated user.")
+            yield self._failed(
+                execution,
+                request,
+                "UNAUTHENTICATED",
+                "Tool execution requires an authenticated user.",
+            )
             return
 
         metadata = request.metadata or {}
@@ -136,8 +143,9 @@ class ToolAgent(Agent):
         # ── 2. Extract tool name + params ────────────────────────────────────
         tool_name = metadata.get("tool_name", "").strip()
         if not tool_name:
-            yield self._failed(execution, request, "MISSING_TOOL_NAME",
-                               "metadata['tool_name'] is required.")
+            yield self._failed(
+                execution, request, "MISSING_TOOL_NAME", "metadata['tool_name'] is required."
+            )
             return
 
         params_str = metadata.get("tool_params", "{}")
@@ -146,8 +154,9 @@ class ToolAgent(Agent):
             if not isinstance(params, dict):
                 raise ValueError("params must be a JSON object")
         except (json.JSONDecodeError, ValueError) as exc:
-            yield self._failed(execution, request, "INVALID_PARAMS",
-                               f"tool_params is not valid JSON: {exc}")
+            yield self._failed(
+                execution, request, "INVALID_PARAMS", f"tool_params is not valid JSON: {exc}"
+            )
             return
 
         # ── 3. Emit tool-started event ────────────────────────────────────────
@@ -180,17 +189,19 @@ class ToolAgent(Agent):
                     # Emit partial completion — caller must resend with confirmed=true.
                     # PARTIAL is the correct terminal status for "produced output but didn't
                     # complete the full requested action".
-                    yield AgentCompletedEvent(result=AgentResult(
-                        execution_id=execution.execution_id,
-                        request_id=request.request_id,
-                        agent_name=self.name,
-                        status=AgentStatus.PARTIAL,
-                        content=None,
-                        metadata={
-                            "awaiting_confirmation": tool_name,
-                            "action": "resend_with_confirmed_true",
-                        },
-                    ))
+                    yield AgentCompletedEvent(
+                        result=AgentResult(
+                            execution_id=execution.execution_id,
+                            request_id=request.request_id,
+                            agent_name=self.name,
+                            status=AgentStatus.PARTIAL,
+                            content=None,
+                            metadata={
+                                "awaiting_confirmation": tool_name,
+                                "action": "resend_with_confirmed_true",
+                            },
+                        )
+                    )
                     return
 
                 tool_result = await asyncio.wait_for(
@@ -208,7 +219,9 @@ class ToolAgent(Agent):
                 error_message=f"Tool timed out after {_DEFAULT_TOOL_TIMEOUT}s.",
             )
             yield self._failed(
-                execution, request, "TOOL_TIMEOUT",
+                execution,
+                request,
+                "TOOL_TIMEOUT",
                 f"Tool '{tool_name}' exceeded timeout of {_DEFAULT_TOOL_TIMEOUT}s.",
             )
             return
@@ -218,8 +231,12 @@ class ToolAgent(Agent):
                 tool_name=tool_name,
                 error_message="Tool invocation failed unexpectedly.",
             )
-            yield self._failed(execution, request, "TOOL_ERROR",
-                               "Tool invocation failed. Check tool configuration.")
+            yield self._failed(
+                execution,
+                request,
+                "TOOL_ERROR",
+                "Tool invocation failed. Check tool configuration.",
+            )
             return
 
         duration_ms = int(asyncio.get_event_loop().time() * 1000) - start_ms
@@ -230,17 +247,19 @@ class ToolAgent(Agent):
                 tool_name=tool_name, output=output_str, duration_ms=duration_ms
             )
             yield AgentTokenEvent(token=output_str)
-            yield AgentCompletedEvent(result=AgentResult(
-                execution_id=execution.execution_id,
-                request_id=request.request_id,
-                agent_name=self.name,
-                status=AgentStatus.COMPLETED,
-                content=output_str,
-                metadata={
-                    "tool_name": tool_name,
-                    "result_status": tool_result.result_status,
-                },
-            ))
+            yield AgentCompletedEvent(
+                result=AgentResult(
+                    execution_id=execution.execution_id,
+                    request_id=request.request_id,
+                    agent_name=self.name,
+                    status=AgentStatus.COMPLETED,
+                    content=output_str,
+                    metadata={
+                        "tool_name": tool_name,
+                        "result_status": tool_result.result_status,
+                    },
+                )
+            )
         else:
             error_msg = tool_result.error or "Tool returned an error."
             yield AgentToolFailedEvent(tool_name=tool_name, error_message=error_msg)
@@ -253,13 +272,15 @@ class ToolAgent(Agent):
         code: str,
         msg: str,
     ) -> AgentFailedEvent:
-        return AgentFailedEvent(result=AgentResult(
-            execution_id=execution.execution_id,
-            request_id=request.request_id,
-            agent_name=TOOL_AGENT_NAME,
-            status=AgentStatus.FAILED,
-            error=AgentError(code=code, message=msg),
-        ))
+        return AgentFailedEvent(
+            result=AgentResult(
+                execution_id=execution.execution_id,
+                request_id=request.request_id,
+                agent_name=TOOL_AGENT_NAME,
+                status=AgentStatus.FAILED,
+                error=AgentError(code=code, message=msg),
+            )
+        )
 
 
 async def _register_all_connectors(broker: object, db: object) -> object:
@@ -281,14 +302,22 @@ async def _register_all_connectors(broker: object, db: object) -> object:
         SlackReadConnector,
         SlackWriteConnector,
     )
+
     for cls in [
-        GitHubReadConnector, GitHubWriteConnector,
-        GmailReadConnector, GmailWriteConnector,
-        GDriveReadConnector, GDriveWriteConnector,
-        GCalReadConnector, GCalWriteConnector,
-        SlackReadConnector, SlackWriteConnector,
-        JiraReadConnector, JiraWriteConnector,
-        NotionReadConnector, NotionWriteConnector,
+        GitHubReadConnector,
+        GitHubWriteConnector,
+        GmailReadConnector,
+        GmailWriteConnector,
+        GDriveReadConnector,
+        GDriveWriteConnector,
+        GCalReadConnector,
+        GCalWriteConnector,
+        SlackReadConnector,
+        SlackWriteConnector,
+        JiraReadConnector,
+        JiraWriteConnector,
+        NotionReadConnector,
+        NotionWriteConnector,
         FigmaReadConnector,
     ]:
         try:

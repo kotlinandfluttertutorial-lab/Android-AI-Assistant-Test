@@ -106,14 +106,10 @@ class AgentRouter:
         # ── 2. Capability match ────────────────────────────────────────────
         caps = set(request.capabilities)
         if caps:
-            candidates = [
-                a for a in registry.find_by_capability(caps) if a.can_handle(request)
-            ]
+            candidates = [a for a in registry.find_by_capability(caps) if a.can_handle(request)]
             if candidates:
                 caps_list = sorted(c.value for c in caps)
-                return RoutingOutcome.routed(
-                    candidates[0], f"capability_match:{caps_list}"
-                )
+                return RoutingOutcome.routed(candidates[0], f"capability_match:{caps_list}")
             return RoutingOutcome.no_agent_found(
                 f"No agent satisfies requested capabilities: {sorted(c.value for c in caps)}."
             )
