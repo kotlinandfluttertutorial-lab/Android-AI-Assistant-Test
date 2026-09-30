@@ -34,7 +34,7 @@ from fastapi import FastAPI
 # is loaded on the next block so the env var must come from the shell / Cloud
 # Run env vars (which is correct — LOG_LEVEL is a non-secret plain var).
 # ---------------------------------------------------------------------------
-from app.observability.logging_setup import configure_logging  # noqa: E402
+from app.observability.logging_setup import configure_logging
 
 configure_logging()
 
@@ -57,26 +57,26 @@ from prometheus_fastapi_instrumentator import Instrumentator  # noqa: E402
 from sqlalchemy import text  # noqa: E402
 
 from app.api.admin.router import router as admin_router  # noqa: E402
+from app.api.analysis.router import router as analysis_router  # noqa: E402
 from app.api.analytics.router import router as analytics_router  # noqa: E402
-
-# ---------------------------------------------------------------------------
-# API sub-router imports (stubs — full implementation in subsequent tasks)
-# ---------------------------------------------------------------------------
 from app.api.auth.router import router as auth_router  # noqa: E402
 from app.api.chat.router import router as chat_router  # noqa: E402
 from app.api.chat.router import v1_router as chat_v1_router  # noqa: E402
 from app.api.code.router import router as code_router  # noqa: E402
 from app.api.conversations.router import router as conversations_router  # noqa: E402
 from app.api.data.router import router as data_router  # noqa: E402
+from app.api.devops.router import router as devops_router  # noqa: E402
 from app.api.generation.router import (  # noqa: E402
     covers_router,
     emails_router,
     resumes_router,
 )
 from app.api.images.router import router as images_router  # noqa: E402
+from app.api.incidents.router import router as incidents_router  # noqa: E402
 from app.api.mcp.router import router as mcp_router  # noqa: E402
 from app.api.memory.router import router as memory_router  # noqa: E402
 from app.api.notifications.router import router as notifications_router  # noqa: E402
+from app.api.observability.router import router as observability_router  # noqa: E402
 from app.api.personas.router import router as personas_router  # noqa: E402
 from app.api.productivity.router import router as productivity_router  # noqa: E402
 from app.api.prompts.router import router as prompts_router  # noqa: E402
@@ -89,10 +89,6 @@ from app.api.translation.router import router as translation_router  # noqa: E40
 from app.api.usage.router import router as usage_router  # noqa: E402
 from app.api.users.router import router as users_router  # noqa: E402
 from app.api.websocket.router import router as websocket_router  # noqa: E402
-from app.api.observability.router import router as observability_router  # noqa: E402
-from app.api.analysis.router import router as analysis_router  # noqa: E402
-from app.api.incidents.router import router as incidents_router  # noqa: E402
-from app.api.devops.router import router as devops_router  # noqa: E402
 from app.config.settings import get_settings  # noqa: E402
 from app.middleware.data_residency import DataResidencyMiddleware  # noqa: E402
 from app.middleware.logging_middleware import RequestLoggingMiddleware  # noqa: E402
@@ -259,8 +255,6 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
         # Check ChromaDB connectivity and log a clear warning if unreachable.
         try:
-            from app.config.settings import get_settings as _get_settings
-
             def _check_chroma() -> None:
                 from app.services.rag_service import rag_service as _rag_service
                 client = _rag_service._make_chroma_client()

@@ -61,11 +61,11 @@ os.environ.setdefault("DATABASE_URL", "postgresql+asyncpg://test:test@localhost/
 os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
 os.environ.setdefault("AES_ENCRYPTION_KEY", "dGVzdGtleXRlc3RrZXl0ZXN0a2V5dGVzdA==")
 
-from app.security.exceptions import (  # noqa: E402
+from app.security.exceptions import (
     InvalidTokenError,
     TokenFamilyRevokedError,
 )
-from app.services.auth_service import (  # noqa: E402
+from app.services.auth_service import (
     issue_tokens_for_user,
     logout_user,
     refresh_tokens,
@@ -261,8 +261,6 @@ class TestRefreshTokens:
         user   = _make_user()
         record = _make_token_record(user=user)
         mock_repo.get_by_hash = AsyncMock(return_value=record)
-
-        from app.security.jwt_handler import hash_token
 
         raw_token = "raw-valid-refresh-token-string"
         # Make get_by_hash return our record for any hash

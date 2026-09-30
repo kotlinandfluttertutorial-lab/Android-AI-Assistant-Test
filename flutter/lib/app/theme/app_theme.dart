@@ -10,7 +10,7 @@ class AppTheme {
   AppTheme._();
 
   static ThemeData get light => _build(Brightness.light);
-  static ThemeData get dark  => _build(Brightness.dark);
+  static ThemeData get dark => _build(Brightness.dark);
 
   static ThemeData _build(Brightness brightness) {
     final isDark = brightness == Brightness.dark;
@@ -27,8 +27,7 @@ class AppTheme {
       tertiary: isDark ? AppColors.aiAccentDark : AppColors.aiAccentLight,
       surfaceContainerHighest:
           isDark ? AppColors.cardTonalDark : AppColors.cardTonalLight,
-      onSurfaceVariant:
-          isDark ? AppColors.mutedDark : AppColors.mutedLight,
+      onSurfaceVariant: isDark ? AppColors.mutedDark : AppColors.mutedLight,
     );
 
     return ThemeData(
@@ -71,19 +70,16 @@ class AppTheme {
           final isSelected = states.contains(WidgetState.selected);
           return TextStyle(
             fontSize: 12,
-            fontWeight:
-                isSelected ? FontWeight.w600 : FontWeight.w400,
-            color: isSelected
-                ? colorScheme.primary
-                : colorScheme.onSurfaceVariant,
+            fontWeight: isSelected ? FontWeight.w600 : FontWeight.w400,
+            color:
+                isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
           );
         }),
         iconTheme: WidgetStateProperty.resolveWith((states) {
           final isSelected = states.contains(WidgetState.selected);
           return IconThemeData(
-            color: isSelected
-                ? colorScheme.primary
-                : colorScheme.onSurfaceVariant,
+            color:
+                isSelected ? colorScheme.primary : colorScheme.onSurfaceVariant,
           );
         }),
       ),
@@ -260,8 +256,8 @@ class AppTheme {
 /// Custom extensions on [ThemeData] for DevOps/AI tokens not in Material 3.
 extension AppThemeExtension on BuildContext {
   ColorScheme get colors => Theme.of(this).colorScheme;
-  TextTheme   get texts  => Theme.of(this).textTheme;
-  bool        get isDark => Theme.of(this).brightness == Brightness.dark;
+  TextTheme get texts => Theme.of(this).textTheme;
+  bool get isDark => Theme.of(this).brightness == Brightness.dark;
 
   Color get aiAccent =>
       isDark ? AppColors.aiAccentDark : AppColors.aiAccentLight;
@@ -269,23 +265,18 @@ extension AppThemeExtension on BuildContext {
   Color get critical =>
       isDark ? AppColors.criticalDark : AppColors.criticalLight;
 
-  Color get warning =>
-      isDark ? AppColors.warningDark : AppColors.warningLight;
+  Color get warning => isDark ? AppColors.warningDark : AppColors.warningLight;
 
-  Color get healthy =>
-      isDark ? AppColors.healthyDark : AppColors.healthyLight;
+  Color get healthy => isDark ? AppColors.healthyDark : AppColors.healthyLight;
 
-  Color get infoColor =>
-      isDark ? AppColors.infoDark : AppColors.infoLight;
+  Color get infoColor => isDark ? AppColors.infoDark : AppColors.infoLight;
 
-  Color get cardColor =>
-      isDark ? AppColors.cardDark : AppColors.cardLight;
+  Color get cardColor => isDark ? AppColors.cardDark : AppColors.cardLight;
 
   Color get cardTonal =>
       isDark ? AppColors.cardTonalDark : AppColors.cardTonalLight;
 
-  Color get mutedColor =>
-      isDark ? AppColors.mutedDark : AppColors.mutedLight;
+  Color get mutedColor => isDark ? AppColors.mutedDark : AppColors.mutedLight;
 
   Color get userBubble =>
       isDark ? AppColors.userBubbleDark : AppColors.userBubbleLight;

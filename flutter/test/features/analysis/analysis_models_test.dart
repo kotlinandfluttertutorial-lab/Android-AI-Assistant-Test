@@ -5,14 +5,14 @@ void main() {
   group('AnalysisSeverity.parse', () {
     test('parses all known values', () {
       expect(AnalysisSeverity.parse('CRITICAL'), AnalysisSeverity.critical);
-      expect(AnalysisSeverity.parse('HIGH'),     AnalysisSeverity.high);
-      expect(AnalysisSeverity.parse('MEDIUM'),   AnalysisSeverity.medium);
-      expect(AnalysisSeverity.parse('LOW'),      AnalysisSeverity.low);
+      expect(AnalysisSeverity.parse('HIGH'), AnalysisSeverity.high);
+      expect(AnalysisSeverity.parse('MEDIUM'), AnalysisSeverity.medium);
+      expect(AnalysisSeverity.parse('LOW'), AnalysisSeverity.low);
     });
 
     test('is case-insensitive', () {
       expect(AnalysisSeverity.parse('critical'), AnalysisSeverity.critical);
-      expect(AnalysisSeverity.parse('High'),     AnalysisSeverity.high);
+      expect(AnalysisSeverity.parse('High'), AnalysisSeverity.high);
     });
 
     test('defaults to low for unknown value', () {
@@ -23,63 +23,64 @@ void main() {
   group('FactsVsInference.fromJson', () {
     test('parses facts and inferences', () {
       final json = {
-        'facts':      ['DB pool at capacity', 'Latency +340%'],
-        'inferences': ['Likely caused by slow query'],
+        'facts': <String>['DB pool at capacity', 'Latency +340%'],
+        'inferences': <String>['Likely caused by slow query'],
       };
       final fvi = FactsVsInference.fromJson(json);
-      expect(fvi.facts.length,      2);
+      expect(fvi.facts.length, 2);
       expect(fvi.inferences.length, 1);
     });
 
     test('handles empty lists', () {
-      final fvi = FactsVsInference.fromJson({'facts': [], 'inferences': []});
-      expect(fvi.facts,      isEmpty);
+      final fvi = FactsVsInference.fromJson(
+          {'facts': <String>[], 'inferences': <String>[]});
+      expect(fvi.facts, isEmpty);
       expect(fvi.inferences, isEmpty);
     });
 
     test('handles missing keys gracefully', () {
       final fvi = FactsVsInference.fromJson({});
-      expect(fvi.facts,      isEmpty);
+      expect(fvi.facts, isEmpty);
       expect(fvi.inferences, isEmpty);
     });
   });
 
   group('ErrorAnalysisResponse.fromJson', () {
     final fullJson = {
-      'analysis_id':    'ana-001',
-      'severity':       'HIGH',
-      'summary':        'DB connection pool exhausted',
+      'analysis_id': 'ana-001',
+      'severity': 'HIGH',
+      'summary': 'DB connection pool exhausted',
       'likely_root_cause': 'Slow queries blocking connections',
-      'confidence':     0.87,
+      'confidence': 0.87,
       'recommended_fix': '1. Increase pool size\n2. Add query timeout',
-      'evidence':       ['Pool at 20/20 at 14:32', 'Latency +340%'],
+      'evidence': ['Pool at 20/20 at 14:32', 'Latency +340%'],
       'possible_causes': ['Slow query', 'Connection leak'],
       'related_documentation': ['runbook-db.md'],
       'facts_vs_inference': {
-        'facts':      ['Pool at 20/20'],
+        'facts': ['Pool at 20/20'],
         'inferences': ['Likely slow query'],
       },
       'low_confidence_warning': null,
-      'events_analysed':        12,
+      'events_analysed': 12,
       'knowledge_chunks_retrieved': 5,
-      'llm_provider':           'gemini',
+      'llm_provider': 'gemini',
     };
 
     test('parses all fields correctly', () {
       final r = ErrorAnalysisResponse.fromJson(fullJson);
 
-      expect(r.analysisId,               'ana-001');
-      expect(r.severity,                 AnalysisSeverity.high);
-      expect(r.summary,                  isNotEmpty);
-      expect(r.confidence,               closeTo(0.87, 0.001));
-      expect(r.evidence.length,          2);
-      expect(r.possibleCauses.length,    2);
-      expect(r.relatedDocumentation,     ['runbook-db.md']);
+      expect(r.analysisId, 'ana-001');
+      expect(r.severity, AnalysisSeverity.high);
+      expect(r.summary, isNotEmpty);
+      expect(r.confidence, closeTo(0.87, 0.001));
+      expect(r.evidence.length, 2);
+      expect(r.possibleCauses.length, 2);
+      expect(r.relatedDocumentation, const <String>['runbook-db.md']);
       expect(r.factsVsInference.facts.length, 1);
-      expect(r.eventsAnalysed,           12);
+      expect(r.eventsAnalysed, 12);
       expect(r.knowledgeChunksRetrieved, 5);
-      expect(r.llmProvider,              'gemini');
-      expect(r.hasLowConfidence,         isFalse);
+      expect(r.llmProvider, 'gemini');
+      expect(r.hasLowConfidence, isFalse);
     });
 
     test('confidencePct converts to integer percentage', () {
@@ -98,17 +99,17 @@ void main() {
 
     test('defaults missing optional fields to safe values', () {
       final r = ErrorAnalysisResponse.fromJson({
-        'analysis_id':       'x',
-        'severity':          'LOW',
-        'summary':           'test',
+        'analysis_id': 'x',
+        'severity': 'LOW',
+        'summary': 'test',
         'likely_root_cause': 'unknown',
-        'confidence':        0.5,
-        'recommended_fix':   'none',
+        'confidence': 0.5,
+        'recommended_fix': 'none',
       });
-      expect(r.evidence,             isEmpty);
-      expect(r.possibleCauses,       isEmpty);
-      expect(r.eventsAnalysed,       0);
-      expect(r.llmProvider,          '');
+      expect(r.evidence, isEmpty);
+      expect(r.possibleCauses, isEmpty);
+      expect(r.eventsAnalysed, 0);
+      expect(r.llmProvider, '');
     });
   });
 
@@ -132,9 +133,9 @@ void main() {
     test('omits optional fields when null', () {
       const req = AnalyseErrorRequest();
       final json = req.toJson();
-      expect(json.containsKey('event_id'),   isFalse);
+      expect(json.containsKey('event_id'), isFalse);
       expect(json.containsKey('session_id'), isFalse);
-      expect(json.containsKey('provider'),   isFalse);
+      expect(json.containsKey('provider'), isFalse);
     });
 
     test('includes provider when set', () {

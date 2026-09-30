@@ -42,29 +42,29 @@ import 'package:go_router/go_router.dart';
 
 abstract class Routes {
   // Auth
-  static const splash   = '/';
-  static const login    = '/login';
+  static const splash = '/';
+  static const login = '/login';
   static const register = '/register';
 
   // Shell tabs
-  static const home          = '/home';
+  static const home = '/home';
   static const conversations = '/conversations';
-  static const incidents     = '/incidents';
-  static const devops        = '/devops';
-  static const settings      = '/settings';
+  static const incidents = '/incidents';
+  static const devops = '/devops';
+  static const settings = '/settings';
 
   // Full-screen routes (no nav chrome)
   static const newChat = '/chat/new'; // MUST come before /chat/:id
-  static const chat    = '/chat/:conversationId';
+  static const chat = '/chat/:conversationId';
 
   static const incidentDetailRoute = '/incidents/:incidentId';
-  static const errorAnalysis       = '/analysis/errors';
-  static const documents           = '/documents';
-  static const ragQuery            = '/documents/query';
+  static const errorAnalysis = '/analysis/errors';
+  static const documents = '/documents';
+  static const ragQuery = '/documents/query';
 
   // ── Path helpers ──────────────────────────────────────────────────────────
   static String chatPath(String conversationId) => '/chat/$conversationId';
-  static String incidentDetail(String id)        => '/incidents/$id';
+  static String incidentDetail(String id) => '/incidents/$id';
 }
 
 // ── Router provider ───────────────────────────────────────────────────────────
@@ -77,31 +77,31 @@ final routerProvider = Provider<GoRouter>((ref) {
     debugLogDiagnostics: false,
     redirect: (context, state) {
       final isLoggedIn = authState.valueOrNull?.isAuthenticated ?? false;
-      final isLoading  = authState.isLoading;
-      final path       = state.matchedLocation;
+      final isLoading = authState.isLoading;
+      final path = state.matchedLocation;
 
       if (isLoading) return null;
 
       final isAuthPath = path == Routes.login || path == Routes.register;
 
       if (!isLoggedIn && !isAuthPath) return Routes.login;
-      if (isLoggedIn && isAuthPath)   return Routes.home;
+      if (isLoggedIn && isAuthPath) return Routes.home;
       return null;
     },
     routes: [
       // ── Splash ────────────────────────────────────────────────────────
       GoRoute(
-        path:    Routes.splash,
+        path: Routes.splash,
         builder: (_, __) => const _SplashPage(),
       ),
 
       // ── Auth ──────────────────────────────────────────────────────────
       GoRoute(
-        path:    Routes.login,
+        path: Routes.login,
         builder: (_, __) => const LoginScreen(),
       ),
       GoRoute(
-        path:    Routes.register,
+        path: Routes.register,
         builder: (_, __) => const RegisterScreen(),
       ),
 
@@ -110,23 +110,23 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state, child) => AdaptiveShell(child: child),
         routes: [
           GoRoute(
-            path:    Routes.home,
+            path: Routes.home,
             builder: (_, __) => const HomeScreen(),
           ),
           GoRoute(
-            path:    Routes.conversations,
+            path: Routes.conversations,
             builder: (_, __) => const ConversationsScreen(),
           ),
           GoRoute(
-            path:    Routes.incidents,
+            path: Routes.incidents,
             builder: (_, __) => const IncidentsScreen(),
           ),
           GoRoute(
-            path:    Routes.devops,
+            path: Routes.devops,
             builder: (_, __) => const DevOpsChatScreen(),
           ),
           GoRoute(
-            path:    Routes.settings,
+            path: Routes.settings,
             builder: (_, __) => const SettingsScreen(),
           ),
         ],
@@ -134,7 +134,7 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // ── Chat ──────────────────────────────────────────────────────────
       GoRoute(
-        path:    Routes.newChat,
+        path: Routes.newChat,
         builder: (_, __) => const ChatScreen(conversationId: 'new'),
       ),
       GoRoute(
@@ -156,13 +156,13 @@ final routerProvider = Provider<GoRouter>((ref) {
 
       // ── Error analysis ─────────────────────────────────────────────────
       GoRoute(
-        path:    Routes.errorAnalysis,
+        path: Routes.errorAnalysis,
         builder: (_, __) => const ErrorAnalysisScreen(),
       ),
 
       // ── RAG / Documents ────────────────────────────────────────────────
       GoRoute(
-        path:    Routes.documents,
+        path: Routes.documents,
         builder: (_, __) => const DocumentsScreen(),
       ),
       GoRoute(

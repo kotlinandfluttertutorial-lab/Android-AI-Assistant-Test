@@ -18,7 +18,8 @@ void main() {
       expect(find.text('Sign in'), findsOneWidget);
     });
 
-    testWidgets('shows CircularProgressIndicator when isLoading', (tester) async {
+    testWidgets('shows CircularProgressIndicator when isLoading',
+        (tester) async {
       await tester.pumpWidget(_wrap(
         AppButton(label: 'Sign in', onPressed: () {}, isLoading: true),
       ));

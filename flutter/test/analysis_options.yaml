@@ -1,0 +1,8 @@
+include: ../analysis_options.yaml
+
+# Relax const-related infos in test code — test fixtures often build
+# objects that cannot use const due to runtime data dependencies.
+linter:
+  rules:
+    prefer_const_constructors: false
+    prefer_const_literals_to_create_immutables: false

@@ -41,7 +41,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from typing import Optional
+from uuid import UUID
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -211,7 +211,10 @@ class AnomalyDetectionService:
                         f"({error_count} errors in last {DETECTION_WINDOW_MIN} min)"
                     ),
                     event_count=error_count,
-                    detail=f"{error_count} ERROR/CRITICAL events (threshold: {ERROR_COUNT_THRESHOLD})",
+                    detail=(
+                        f"{error_count} ERROR/CRITICAL events"
+                        f" (threshold: {ERROR_COUNT_THRESHOLD})"
+                    ),
                 )
             )
         except Exception as exc:
@@ -264,9 +267,8 @@ class AnomalyDetectionService:
 
     async def _create_incident_with_analysis(
         self, result: DetectionResult
-    ) -> "uuid.UUID":
+    ) -> UUID:
         """Create the Incident row, trigger Phase 10 analysis, attach results."""
-        import uuid
 
         incident = await self._inc_repo.create(
             title=result.title,
@@ -330,7 +332,7 @@ class AnomalyDetectionService:
 
     async def _notify_admins(
         self,
-        incident_id: "uuid.UUID",
+        incident_id: UUID,
         title: str,
         severity: str,
     ) -> None:

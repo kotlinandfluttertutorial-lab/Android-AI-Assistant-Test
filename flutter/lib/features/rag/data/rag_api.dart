@@ -48,7 +48,9 @@ class RagApi {
       final response = await _dio.get<dynamic>(ApiConfig.documents);
       final raw = response.data as List<dynamic>? ?? [];
       return Success(
-        raw.map((e) => RagDocument.fromJson(e as Map<String, dynamic>)).toList(),
+        raw
+            .map((e) => RagDocument.fromJson(e as Map<String, dynamic>))
+            .toList(),
       );
     } catch (e, st) {
       return Failure(ErrorMapper.map(e, st));

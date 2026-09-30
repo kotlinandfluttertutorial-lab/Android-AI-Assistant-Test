@@ -28,24 +28,20 @@ from app.services.llm_clients import (
 from app.services.memory_service import MemoryEntry, MemoryService
 
 __all__ = [
-    # AI Orchestrator
     "AIOrchestrator",
-    "LLMProvider",
-    "PromptContext",
-    "CompletionResult",
-    # Auth
-    "issue_tokens_for_user",
-    "refresh_tokens",
-    "logout_user",
-    # LLM Clients
     "BaseLLMClient",
-    "OpenAIClient",
-    "GeminiClient",
     "ClaudeClient",
-    "OllamaClient",
+    "CompletionResult",
+    "GeminiClient",
+    "LLMProvider",
     "LlamaClient",
-    "MistralClient",
-    # Memory
-    "MemoryService",
     "MemoryEntry",
+    "MemoryService",
+    "MistralClient",
+    "OllamaClient",
+    "OpenAIClient",
+    "PromptContext",
+    "issue_tokens_for_user",
+    "logout_user",
+    "refresh_tokens",
 ]

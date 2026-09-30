@@ -26,7 +26,6 @@ import 'package:ai_assistant_flutter/core/storage/pending_message_queue_provider
 import 'package:ai_assistant_flutter/core/utils/app_logger.dart';
 import 'package:ai_assistant_flutter/features/ai_providers/providers/ai_provider_provider.dart';
 import 'package:ai_assistant_flutter/features/chat/domain/chat_state.dart';
-import 'package:ai_assistant_flutter/features/conversations/data/conversations_api.dart';
 import 'package:ai_assistant_flutter/features/conversations/providers/conversations_provider.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:uuid/uuid.dart';
@@ -38,6 +37,7 @@ class ChatNotifier extends FamilyNotifier<ChatState, String> {
   StreamSubscription<WsMessage>? _sub;
 
   @override
+  // ignore: avoid_renaming_method_parameters
   ChatState build(String conversationId) {
     _ws = WebSocketService();
     ref.onDispose(() {
@@ -62,13 +62,13 @@ class ChatNotifier extends FamilyNotifier<ChatState, String> {
     // Optimistic user bubble.
     final messageId = _uuid.v4();
     final userMsg = UiMessage(
-      localId:   messageId,
-      role:      'user',
-      content:   text.trim(),
+      localId: messageId,
+      role: 'user',
+      content: text.trim(),
       createdAt: DateTime.now(),
     );
     state = state.copyWith(
-      messages:   [...state.messages, userMsg],
+      messages: [...state.messages, userMsg],
       clearError: true,
     );
 
@@ -85,9 +85,9 @@ class ChatNotifier extends FamilyNotifier<ChatState, String> {
       if (!connected) {
         // Offline — persist to queue and inform the user.
         await _enqueueOffline(
-          id:             messageId,
+          id: messageId,
           conversationId: convId,
-          content:        text.trim(),
+          content: text.trim(),
         );
         return;
       }
@@ -98,22 +98,22 @@ class ChatNotifier extends FamilyNotifier<ChatState, String> {
 
     // Add the streaming assistant placeholder.
     final assistantMsg = UiMessage(
-      localId:     _uuid.v4(),
-      role:        'assistant',
-      content:     '',
-      createdAt:   DateTime.now(),
+      localId: _uuid.v4(),
+      role: 'assistant',
+      content: '',
+      createdAt: DateTime.now(),
       isStreaming: true,
     );
     state = state.copyWith(
-      messages:    [...state.messages, assistantMsg],
+      messages: [...state.messages, assistantMsg],
       isStreaming: true,
     );
 
     final provider = ref.read(selectedProviderProvider);
-    _ws.sendMessage(
+    unawaited(_ws.sendMessage(
       text.trim(),
       provider: provider.isOnDevice ? null : provider.id,
-    );
+    ));
   }
 
   Future<void> stopGeneration() async {
@@ -147,13 +147,13 @@ class ChatNotifier extends FamilyNotifier<ChatState, String> {
     required String content,
   }) async {
     final provider = ref.read(selectedProviderProvider);
-    final queue    = ref.read(pendingMessageQueueProvider);
+    final queue = ref.read(pendingMessageQueueProvider);
     await queue.enqueue(PendingMessage(
-      id:             id,
+      id: id,
       conversationId: conversationId,
-      content:        content,
-      enqueuedAt:     DateTime.now(),
-      provider:       provider.isOnDevice ? null : provider.id,
+      content: content,
+      enqueuedAt: DateTime.now(),
+      provider: provider.isOnDevice ? null : provider.id,
     ));
 
     AppLogger.i(
@@ -171,9 +171,8 @@ class ChatNotifier extends FamilyNotifier<ChatState, String> {
   /// Send all messages in the queue that belong to [conversationId].
   Future<void> _flushPendingQueue(String conversationId) async {
     final queue = ref.read(pendingMessageQueueProvider);
-    final pending = queue.all
-        .where((m) => m.conversationId == conversationId)
-        .toList();
+    final pending =
+        queue.all.where((m) => m.conversationId == conversationId).toList();
 
     if (pending.isEmpty) return;
 
@@ -187,22 +186,22 @@ class ChatNotifier extends FamilyNotifier<ChatState, String> {
     for (final msg in pending) {
       // Add a streaming placeholder for the queued message's response.
       final assistantMsg = UiMessage(
-        localId:     _uuid.v4(),
-        role:        'assistant',
-        content:     '',
-        createdAt:   DateTime.now(),
+        localId: _uuid.v4(),
+        role: 'assistant',
+        content: '',
+        createdAt: DateTime.now(),
         isStreaming: true,
       );
       state = state.copyWith(
-        messages:    [...state.messages, assistantMsg],
+        messages: [...state.messages, assistantMsg],
         isStreaming: true,
-        clearError:  true,
+        clearError: true,
       );
 
-      _ws.sendMessage(
+      unawaited(_ws.sendMessage(
         msg.content,
         provider: msg.provider ?? (provider.isOnDevice ? null : provider.id),
-      );
+      ));
 
       // Remove from queue after sending.
       await queue.remove(msg.id);
@@ -215,9 +214,9 @@ class ChatNotifier extends FamilyNotifier<ChatState, String> {
   // ── Private helpers ────────────────────────────────────────────────────────
 
   Future<String?> _createConversation() async {
-    final api      = ref.read(conversationsApiProvider);
+    final api = ref.read(conversationsApiProvider);
     final provider = ref.read(selectedProviderProvider);
-    final result   = await api.createConversation(provider: provider.id);
+    final result = await api.createConversation(provider: provider.id);
     return result.when(
       onSuccess: (conv) {
         state = state.copyWith(conversationId: conv.id);
@@ -227,7 +226,7 @@ class ChatNotifier extends FamilyNotifier<ChatState, String> {
       onFailure: (err) {
         state = state.copyWith(
           connectionError: err.userMessage,
-          isStreaming:     false,
+          isStreaming: false,
         );
         return null;
       },
@@ -239,10 +238,10 @@ class ChatNotifier extends FamilyNotifier<ChatState, String> {
     state = state.copyWith(isConnecting: true);
 
     final storage = ref.read(secureStorageProvider);
-    final token   = await storage.getAccessToken();
+    final token = await storage.getAccessToken();
     if (token == null) {
       state = state.copyWith(
-        isConnecting:    false,
+        isConnecting: false,
         connectionError: 'Session expired. Please sign in again.',
       );
       return false;
@@ -279,50 +278,49 @@ class ChatNotifier extends FamilyNotifier<ChatState, String> {
   }
 
   void _appendToken(String token) {
-    final messages  = List<UiMessage>.from(state.messages);
+    final messages = List<UiMessage>.from(state.messages);
     final lastIndex = messages.lastIndexWhere((m) => !m.isUser);
     if (lastIndex == -1) return;
     final last = messages[lastIndex];
     messages[lastIndex] = last.copyWith(
-      content:     last.content + token,
+      content: last.content + token,
       isStreaming: true,
     );
     state = state.copyWith(messages: messages, isStreaming: true);
   }
 
   void _markLastAssistantDone() {
-    final messages  = List<UiMessage>.from(state.messages);
+    final messages = List<UiMessage>.from(state.messages);
     final lastIndex = messages.lastIndexWhere((m) => !m.isUser);
     if (lastIndex != -1) {
-      messages[lastIndex] =
-          messages[lastIndex].copyWith(isStreaming: false);
+      messages[lastIndex] = messages[lastIndex].copyWith(isStreaming: false);
     }
     state = state.copyWith(messages: messages, isStreaming: false);
   }
 
   void _markLastAssistantError(String errorText) {
-    final messages  = List<UiMessage>.from(state.messages);
+    final messages = List<UiMessage>.from(state.messages);
     final lastIndex = messages.lastIndexWhere((m) => !m.isUser);
     if (lastIndex != -1) {
       messages[lastIndex] = messages[lastIndex].copyWith(
-        content:     errorText,
+        content: errorText,
         isStreaming: false,
-        hasError:    true,
+        hasError: true,
       );
     }
     state = state.copyWith(messages: messages, isStreaming: false);
   }
 
   Future<void> _loadHistory(String conversationId) async {
-    final api    = ref.read(conversationsApiProvider);
+    final api = ref.read(conversationsApiProvider);
     final result = await api.getMessages(conversationId);
     result.when(
       onSuccess: (msgs) {
         final uiMessages = msgs
             .map((m) => UiMessage(
-                  localId:   m.id,
-                  role:      m.role,
-                  content:   m.content,
+                  localId: m.id,
+                  role: m.role,
+                  content: m.content,
                   createdAt: m.createdAt,
                 ))
             .toList();
@@ -334,7 +332,6 @@ class ChatNotifier extends FamilyNotifier<ChatState, String> {
   }
 }
 
-final chatProvider =
-    NotifierProviderFamily<ChatNotifier, ChatState, String>(
+final chatProvider = NotifierProviderFamily<ChatNotifier, ChatState, String>(
   ChatNotifier.new,
 );

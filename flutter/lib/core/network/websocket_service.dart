@@ -58,9 +58,9 @@ class WsMessage {
   }
 
   final WsMessageType type;
-  final String? data;               // token chunk
+  final String? data; // token chunk
   final Map<String, dynamic>? usage; // done payload
-  final String? message;            // error message
+  final String? message; // error message
   final String? toolName;
   final Map<String, dynamic>? toolInput;
 }

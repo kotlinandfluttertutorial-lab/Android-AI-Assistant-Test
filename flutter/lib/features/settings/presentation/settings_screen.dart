@@ -22,18 +22,18 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState       = ref.watch(authStateProvider).valueOrNull;
+    final authState = ref.watch(authStateProvider).valueOrNull;
     final selectedProvider = ref.watch(selectedProviderProvider);
-    final allProviders    = ref.watch(providersListProvider);
-    final prefs           = ref.watch(appPreferencesProvider);
-    final onDeviceAsync   = ref.watch(onDeviceAiProvider);
+    final allProviders = ref.watch(providersListProvider);
+    final prefs = ref.watch(appPreferencesProvider);
+    final onDeviceAsync = ref.watch(onDeviceAiProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
       body: ListView(
         children: [
           // ── Account ────────────────────────────────────────────────────
-          _SectionHeader(label: 'Account'),
+          const _SectionHeader(label: 'Account'),
           ListTile(
             leading: const Icon(Icons.person_outline),
             title: Text(authState?.user?.email ?? '—'),
@@ -53,7 +53,7 @@ class SettingsScreen extends ConsumerWidget {
           const Divider(),
 
           // ── AI Provider ────────────────────────────────────────────────
-          _SectionHeader(label: 'AI Provider'),
+          const _SectionHeader(label: 'AI Provider'),
           ...allProviders.map((provider) {
             final isSelected = provider.id == selectedProvider.id;
             return RadioListTile<AiProvider>(
@@ -70,15 +70,14 @@ class SettingsScreen extends ConsumerWidget {
                           ? Theme.of(context).colorScheme.primary
                           : context.mutedColor)
                   : null,
-              onChanged: (_) => ref
-                  .read(selectedProviderProvider.notifier)
-                  .select(provider),
+              onChanged: (_) =>
+                  ref.read(selectedProviderProvider.notifier).select(provider),
             );
           }),
           const Divider(),
 
           // ── On-Device AI ───────────────────────────────────────────────
-          _SectionHeader(label: 'On-Device AI'),
+          const _SectionHeader(label: 'On-Device AI'),
           onDeviceAsync.when(
             loading: () => const ListTile(
               title: Text('Checking device support…'),
@@ -108,8 +107,8 @@ class SettingsScreen extends ConsumerWidget {
               trailing: status == OnDeviceAiState.supported
                   ? TextButton(
                       onPressed: () => unawaited(
-                          ref.read(onDeviceAiProvider.notifier).loadModel(),
-                        ),
+                        ref.read(onDeviceAiProvider.notifier).loadModel(),
+                      ),
                       child: const Text('Load model'),
                     )
                   : null,
@@ -118,7 +117,7 @@ class SettingsScreen extends ConsumerWidget {
           const Divider(),
 
           // ── Appearance ─────────────────────────────────────────────────
-          _SectionHeader(label: 'Appearance'),
+          const _SectionHeader(label: 'Appearance'),
           ListTile(
             leading: const Icon(Icons.palette_outlined),
             title: const Text('Theme'),
@@ -127,8 +126,8 @@ class SettingsScreen extends ConsumerWidget {
               underline: const SizedBox.shrink(),
               items: const [
                 DropdownMenuItem(value: 'system', child: Text('System')),
-                DropdownMenuItem(value: 'light',  child: Text('Light')),
-                DropdownMenuItem(value: 'dark',   child: Text('Dark')),
+                DropdownMenuItem(value: 'light', child: Text('Light')),
+                DropdownMenuItem(value: 'dark', child: Text('Dark')),
               ],
               onChanged: (v) async {
                 if (v != null) await prefs.setThemeMode(v);
@@ -138,7 +137,7 @@ class SettingsScreen extends ConsumerWidget {
           const Divider(),
 
           // ── About ──────────────────────────────────────────────────────
-          _SectionHeader(label: 'About'),
+          const _SectionHeader(label: 'About'),
           ListTile(
             leading: const Icon(Icons.info_outline),
             title: const Text('Version'),
@@ -168,13 +167,13 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   String _statusLabel(OnDeviceAiState status) => switch (status) {
-        OnDeviceAiState.checking     => 'Checking…',
-        OnDeviceAiState.unsupported  => 'Not supported',
-        OnDeviceAiState.supported    => 'Model not loaded',
+        OnDeviceAiState.checking => 'Checking…',
+        OnDeviceAiState.unsupported => 'Not supported',
+        OnDeviceAiState.supported => 'Model not loaded',
         OnDeviceAiState.loadingModel => 'Loading model…',
-        OnDeviceAiState.ready        => 'Ready',
-        OnDeviceAiState.running      => 'Running',
-        OnDeviceAiState.error        => 'Error',
+        OnDeviceAiState.ready => 'Ready',
+        OnDeviceAiState.running => 'Running',
+        OnDeviceAiState.error => 'Error',
       };
 }
 

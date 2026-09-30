@@ -92,7 +92,12 @@ void main() {
     });
 
     test('handles empty list gracefully', () {
-      final json = {'items': [], 'total': 0, 'page': 1, 'page_size': 20};
+      final json = {
+        'items': <dynamic>[],
+        'total': 0,
+        'page': 1,
+        'page_size': 20
+      };
       final response = ConversationListResponse.fromJson(json);
       expect(response.items, isEmpty);
     });

@@ -13,8 +13,8 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final observabilityServiceProvider = Provider<ObservabilityService>((ref) {
-  final dio     = ref.watch(dioProvider);
-  final api     = ObservabilityApi(dio);
+  final dio = ref.watch(dioProvider);
+  final api = ObservabilityApi(dio);
   final service = ObservabilityService(api: api);
 
   // Flush on dispose (e.g. hot restart, logout provider scope rebuild).

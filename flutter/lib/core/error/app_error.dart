@@ -112,7 +112,8 @@ class AppError extends Equatable implements Exception {
 
   factory AppError.aiProvider(String detail) => AppError(
         type: AppErrorType.aiProviderError,
-        userMessage: 'The AI service is currently unavailable. Please try again.',
+        userMessage:
+            'The AI service is currently unavailable. Please try again.',
         technicalMessage: detail,
       );
 

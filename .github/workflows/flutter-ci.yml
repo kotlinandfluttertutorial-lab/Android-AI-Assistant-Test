@@ -1,0 +1,412 @@
+# ============================================================================
+# Flutter CI Pipeline — Production Grade
+# ============================================================================
+#
+# Runs on every PR targeting main/develop and on pushes to main.
+# The Flutter client lives in flutter/ and is an independent second client
+# that consumes the same FastAPI backend as the Android Kotlin app.
+#
+# Pipeline stages:
+#   1. validate      — fast sanity check (pubspec version parsing)
+#   2. analyze       — flutter analyze (static analysis, same as `dart analyze`)
+#   3. format-check  — dart format --set-exit-if-changed
+#   4. unit-tests    — flutter test (all unit + widget tests)
+#   5. build-android — flutter build apk --debug (verifies compilability)
+#   6. build-ios     — flutter build ios --no-codesign (syntax + dep check)
+#
+# PR Required Status Checks (configure in Settings → Branches):
+#   • flutter-ci / analyze
+#   • flutter-ci / unit-tests
+#   • flutter-ci / build-android
+#
+# Required Secrets: none (CI uses ENV=local, no real backend calls)
+#
+# iOS build runs on macos-latest — more expensive runner, gated to main-branch
+# push and manual dispatch only to save runner minutes on every PR.
+#
+# Coverage reporting: uploads lcov to Codecov when CODECOV_TOKEN is set.
+# The token is optional — the step is marked continue-on-error.
+# ============================================================================
+
+name: flutter-ci
+
+on:
+  pull_request:
+    branches:
+      - main
+      - develop
+      - Develop_Main
+    paths:
+      - "flutter/**"
+      - ".github/workflows/flutter-ci.yml"
+  push:
+    branches:
+      - main
+    paths:
+      - "flutter/**"
+      - ".github/workflows/flutter-ci.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  # Pinned Flutter version — update when upgrading the Flutter SDK.
+  # Must match the minimum version declared in flutter/pubspec.yaml (>=3.22.0).
+  FLUTTER_VERSION: "3.27.4"
+  # All CI builds use ENV=local so no real backend is required.
+  DART_DEFINE: "--dart-define=ENV=local"
+
+defaults:
+  run:
+    working-directory: flutter
+
+jobs:
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 0. Validate — fast sanity check before spending runner time
+  # ──────────────────────────────────────────────────────────────────────────
+  validate:
+    name: validate
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check pubspec.yaml is valid YAML
+        run: python3 -c "import yaml; yaml.safe_load(open('flutter/pubspec.yaml'))"
+        working-directory: .
+
+      - name: Check flutter/ .gitignore exists
+        run: test -f flutter/.gitignore
+        working-directory: .
+
+      - name: Verify analysis_options.yaml exists
+        run: test -f flutter/analysis_options.yaml
+        working-directory: .
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 1. Flutter Analyze — static analysis
+  #    Equivalent to running `dart analyze` on the full project.
+  #    Errors in this step correspond to what Android Studio underlines in red.
+  # ──────────────────────────────────────────────────────────────────────────
+  analyze:
+    name: analyze
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    needs: validate
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter ${{ env.FLUTTER_VERSION }}
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run flutter analyze
+        run: |
+          # --fatal-infos upgrades INFO diagnostics to errors.
+          # Remove if the project has intentional INFOs that are acceptable.
+          flutter analyze --fatal-infos 2>&1 | tee analyze-output.txt
+          EXIT=${PIPESTATUS[0]}
+          echo "### 🔍 flutter analyze" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          tail -20 analyze-output.txt >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          exit $EXIT
+
+      - name: Upload analyze results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-analyze-${{ github.run_number }}
+          path: flutter/analyze-output.txt
+          retention-days: 7
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 2. Dart Format
+  #    Applies dart format in-place, then commits any changes back to the PR
+  #    branch. Developers do not need format-on-save configured locally.
+  # ──────────────────────────────────────────────────────────────────────────
+  format-check:
+    name: format-check
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    needs: validate
+
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Flutter ${{ env.FLUTTER_VERSION }}
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Apply Dart formatting
+        run: dart format lib/ test/ integration_test/
+
+      - name: Commit formatted files (if any changed)
+        shell: bash
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- flutter/; then
+            echo "All files already correctly formatted."
+          else
+            echo "Committing dart format changes..."
+            git add flutter/lib flutter/test flutter/integration_test
+            git commit -m "style: apply dart format [skip ci]"
+            git push origin HEAD:${{ github.head_ref }}
+          fi
+        working-directory: ${{ github.workspace }}
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 3. Unit + Widget Tests
+  #    Runs all tests in test/ (unit and widget tests).
+  #    Does NOT require a running backend or emulator.
+  #    Uses --dart-define=ENV=local so environment-dependent code branches
+  #    to the local configuration path.
+  # ──────────────────────────────────────────────────────────────────────────
+  unit-tests:
+    name: unit-tests
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    needs: validate
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter ${{ env.FLUTTER_VERSION }}
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Run unit + widget tests with coverage
+        run: |
+          flutter test \
+            ${{ env.DART_DEFINE }} \
+            --coverage \
+            --reporter=github \
+            2>&1 | tee test-output.txt
+          EXIT=${PIPESTATUS[0]}
+
+          echo "### 🧪 Flutter Test Results" >> "$GITHUB_STEP_SUMMARY"
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          grep -E "^\+|^-|All tests passed|Some tests failed|^00:" test-output.txt \
+            | tail -30 >> "$GITHUB_STEP_SUMMARY" || true
+          echo '```' >> "$GITHUB_STEP_SUMMARY"
+          exit $EXIT
+
+      - name: Generate LCOV coverage report
+        if: always()
+        run: |
+          if [ -f coverage/lcov.info ]; then
+            echo "Coverage data collected: $(wc -l < coverage/lcov.info) lines"
+          else
+            echo "No coverage data — tests may have failed during collection"
+          fi
+
+      - name: Upload coverage to Codecov
+        if: always()
+        uses: codecov/codecov-action@v4
+        with:
+          files: flutter/coverage/lcov.info
+          flags: flutter-unit
+          name: flutter-coverage
+          fail_ci_if_error: false
+        continue-on-error: true
+        env:
+          CODECOV_TOKEN: ${{ secrets.CODECOV_TOKEN }}
+
+      - name: Upload test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-test-results-${{ github.run_number }}
+          path: |
+            flutter/test-output.txt
+            flutter/coverage/lcov.info
+          retention-days: 14
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 4. Build Android APK (debug)
+  #    Verifies that the Flutter project compiles against the Android SDK.
+  #    Does NOT sign the APK — this is a compilation check only.
+  #    A signed release APK is produced by the release workflow (release.yml).
+  # ──────────────────────────────────────────────────────────────────────────
+  build-android:
+    name: build-android
+    runs-on: ubuntu-latest
+    needs:
+      - analyze
+      - unit-tests
+    # Always run on PRs; also run on main-branch pushes so the artifact is
+    # available for manual testing without triggering a full release.
+    if: >-
+      github.event_name == 'pull_request' ||
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: "17"
+          distribution: temurin
+
+      - name: Set up Flutter ${{ env.FLUTTER_VERSION }}
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build debug APK
+        run: |
+          flutter build apk \
+            --debug \
+            ${{ env.DART_DEFINE }} \
+            --target-platform android-arm64 \
+            2>&1 | tee build-android-output.txt
+          EXIT=${PIPESTATUS[0]}
+
+          echo "### 🤖 Android APK Build" >> "$GITHUB_STEP_SUMMARY"
+          if [ $EXIT -eq 0 ]; then
+            APK_PATH=$(find build/app/outputs/flutter-apk/ -name "*.apk" | head -1)
+            APK_SIZE=$(du -sh "$APK_PATH" 2>/dev/null | cut -f1 || echo "unknown")
+            echo "✅ Build succeeded | APK size: $APK_SIZE" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "❌ Build failed — see artifact for details" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit $EXIT
+
+      - name: Upload debug APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-debug-apk-${{ github.run_number }}
+          path: flutter/build/app/outputs/flutter-apk/app-debug.apk
+          retention-days: 7
+
+      - name: Upload build logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-android-build-logs-${{ github.run_number }}
+          path: flutter/build-android-output.txt
+          retention-days: 7
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 5. Build iOS (no-codesign)
+  #    Verifies that the project compiles on macOS without a signing cert.
+  #    Only runs on main-branch pushes and manual dispatch to save macOS
+  #    runner minutes (macOS runners cost ~10× more than Linux).
+  #
+  #    Note: flutter build ios --no-codesign still downloads the iOS SDK and
+  #    validates Swift/ObjC bridging code, so it catches most iOS-specific
+  #    compilation errors.
+  # ──────────────────────────────────────────────────────────────────────────
+  build-ios:
+    name: build-ios
+    runs-on: macos-latest
+    needs: unit-tests
+    # Only run on main push or manual dispatch — too expensive for every PR
+    if: >-
+      github.event_name == 'push' ||
+      github.event_name == 'workflow_dispatch'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Flutter ${{ env.FLUTTER_VERSION }}
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ env.FLUTTER_VERSION }}
+          channel: stable
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      - name: Build iOS (no codesign)
+        run: |
+          flutter build ios \
+            --no-codesign \
+            --debug \
+            ${{ env.DART_DEFINE }} \
+            2>&1 | tee build-ios-output.txt
+          EXIT=${PIPESTATUS[0]}
+
+          echo "### 🍎 iOS Build" >> "$GITHUB_STEP_SUMMARY"
+          if [ $EXIT -eq 0 ]; then
+            echo "✅ iOS build succeeded (no-codesign)" >> "$GITHUB_STEP_SUMMARY"
+          else
+            echo "❌ iOS build failed — see artifact for details" >> "$GITHUB_STEP_SUMMARY"
+          fi
+          exit $EXIT
+
+      - name: Upload iOS build logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: flutter-ios-build-logs-${{ github.run_number }}
+          path: flutter/build-ios-output.txt
+          retention-days: 7
+
+  # ──────────────────────────────────────────────────────────────────────────
+  # 6. Summary
+  # ──────────────────────────────────────────────────────────────────────────
+  summary:
+    name: Summary
+    runs-on: ubuntu-latest
+    needs:
+      - analyze
+      - format-check
+      - unit-tests
+      - build-android
+    if: always() && github.event_name == 'pull_request'
+
+    steps:
+      - name: Write pipeline summary
+        run: |
+          echo "## Flutter CI — ${{ github.head_ref || github.ref_name }}" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Stage | Status |" >> "$GITHUB_STEP_SUMMARY"
+          echo "|-------|--------|" >> "$GITHUB_STEP_SUMMARY"
+          echo "| flutter analyze | ${{ needs.analyze.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| dart format | ${{ needs.format-check.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| unit + widget tests | ${{ needs.unit-tests.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "| Android build (debug) | ${{ needs.build-android.result }} |" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "_Flutter ${{ env.FLUTTER_VERSION }} · ENV=local · $(date -u '+%Y-%m-%d %H:%M UTC')_" >> "$GITHUB_STEP_SUMMARY"
+        working-directory: .

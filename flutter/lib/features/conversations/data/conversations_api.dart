@@ -26,7 +26,10 @@ class ConversationsApi {
     }
   }
 
-  Future<Result<Conversation>> createConversation({String? title, String? provider}) async {
+  Future<Result<Conversation>> createConversation({
+    String? title,
+    String? provider,
+  }) async {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
         ApiConfig.conversations,
@@ -83,17 +86,16 @@ class ConversationsApi {
       final bytes = response.data ?? [];
 
       // Extract filename from Content-Disposition header if present.
-      final disposition =
-          response.headers.value('content-disposition') ?? '';
+      final disposition = response.headers.value('content-disposition') ?? '';
       final filenameMatch =
           RegExp(r'filename="?([^";]+)"?').firstMatch(disposition);
-      final filename = filenameMatch?.group(1) ??
-          'conversation-$id.${format.extension}';
+      final filename =
+          filenameMatch?.group(1) ?? 'conversation-$id.${format.extension}';
 
       return Success(ConversationExport(
-        bytes:    bytes,
+        bytes: bytes,
         filename: filename,
-        format:   format,
+        format: format,
       ));
     } catch (e, st) {
       return Failure(ErrorMapper.map(e, st));

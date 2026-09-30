@@ -201,7 +201,10 @@ def seed(knowledge_dir: Path = KNOWLEDGE_DIR) -> None:
 
     # ── 2. Get or create the collection ──────────────────────────────────────
     collection = client.get_or_create_collection(COLLECTION_NAME)
-    logger.info("Collection '%s' ready (current item count: %d)", COLLECTION_NAME, collection.count())
+    logger.info(
+        "Collection '%s' ready (current item count: %d)",
+        COLLECTION_NAME, collection.count(),
+    )
 
     # ── 3. Discover documents ─────────────────────────────────────────────────
     docs = _find_documents(knowledge_dir)
@@ -249,7 +252,7 @@ def seed(knowledge_dir: Path = KNOWLEDGE_DIR) -> None:
                 {
                     "source": relative,
                     "chunk_index": idx,
-                    "category": relative.split("/")[0],  # runbooks | incidents | architecture | deployment
+                    "category": relative.split("/")[0],  # runbooks|incidents|architecture
                     "document_name": doc_path.name,
                 }
                 for _, idx in chunks
@@ -317,7 +320,13 @@ async def seed_async(knowledge_dir: Path = KNOWLEDGE_DIR) -> dict:
             client = chromadb.HttpClient(host=CHROMA_HOST, port=CHROMA_PORT)
             collection = client.get_or_create_collection(COLLECTION_NAME)
         except Exception as exc:
-            return {"status": "error", "detail": f"ChromaDB unavailable: {exc}", "files": 0, "chunks": 0, "errors": [str(exc)]}
+            return {
+                "status": "error",
+                "detail": f"ChromaDB unavailable: {exc}",
+                "files": 0,
+                "chunks": 0,
+                "errors": [str(exc)],
+            }
 
         total_chunks = 0
         total_files = 0
@@ -340,10 +349,18 @@ async def seed_async(knowledge_dir: Path = KNOWLEDGE_DIR) -> dict:
                     pass
                 embeddings = _embed_texts(chunk_texts)
                 metadatas = [
-                    {"source": relative, "chunk_index": idx, "category": relative.split("/")[0], "document_name": doc_path.name}
+                    {
+                        "source": relative,
+                        "chunk_index": idx,
+                        "category": relative.split("/")[0],
+                        "document_name": doc_path.name,
+                    }
                     for _, idx in chunks
                 ]
-                collection.add(ids=ids, embeddings=embeddings, documents=chunk_texts, metadatas=metadatas)
+                collection.add(
+                    ids=ids, embeddings=embeddings,
+                    documents=chunk_texts, metadatas=metadatas,
+                )
                 total_chunks += len(chunks)
                 total_files += 1
             except Exception as exc:

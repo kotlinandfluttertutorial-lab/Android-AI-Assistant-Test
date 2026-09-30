@@ -62,7 +62,8 @@ class ApiConfig {
   static const String chatV1 = '/api/v1/chat';
 
   static const String conversations = '/conversations';
-  static String conversationMessages(String id) => '/conversations/$id/messages';
+  static String conversationMessages(String id) =>
+      '/conversations/$id/messages';
   static String conversationExport(String id) => '/conversations/$id/export';
 
   static const String incidents = '/incidents';
@@ -83,24 +84,23 @@ class ApiConfig {
   static const String analysisErrors = '/analysis/errors';
 
   // ── RAG / Documents ─────────────────────────────────────────────────────
-  static const String documents            = '/documents';
-  static const String documentsQuery       = '/documents/query';
-  static String documentById(String id)    => '/documents/$id';
-  static String documentQuery(String id)   => '/documents/$id/query';
+  static const String documents = '/documents';
+  static const String documentsQuery = '/documents/query';
+  static String documentById(String id) => '/documents/$id';
+  static String documentQuery(String id) => '/documents/$id/query';
   static String documentReingest(String id) => '/documents/$id/reingest';
-  static String ragJobById(String id)      => '/jobs/$id';
+  static String ragJobById(String id) => '/jobs/$id';
 
   // ── Notifications ────────────────────────────────────────────────────────
   static const String notificationsDeviceToken = '/notifications/device-token';
 
   // ── Memory ───────────────────────────────────────────────────────────────
-  static const String memory      = '/memory';
-  static const String memoryList  = '/memory/list';
+  static const String memory = '/memory';
+  static const String memoryList = '/memory/list';
   static String memoryById(String id) => '/memory/$id';
 
   /// WebSocket chat path — append ?token=<jwt> before connecting.
-  static String wsChatPath(String conversationId) =>
-      '/ws/chat/$conversationId';
+  static String wsChatPath(String conversationId) => '/ws/chat/$conversationId';
 
   static const String health = '/health';
   static const String ready = '/ready';

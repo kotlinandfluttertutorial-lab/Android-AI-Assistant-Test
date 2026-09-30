@@ -200,10 +200,14 @@ class RAGService:
         This replaces the previous HttpClient approach which was unreliable due to
         Cloud Run's ingress returning HTML 404 pages for the chromadb service.
         """
-        import chromadb as _chromadb
-
-        persist_dir = getattr(self._settings, "CHROMA_PERSIST_DIR", "/tmp/chroma")
         import os as _os
+        import tempfile as _tempfile
+
+        import chromadb as _chromadb
+        persist_dir = getattr(
+            self._settings, "CHROMA_PERSIST_DIR",
+            _os.path.join(_tempfile.gettempdir(), "chroma"),
+        )
         _os.makedirs(persist_dir, exist_ok=True)
 
         client = _chromadb.PersistentClient(path=persist_dir)
@@ -355,7 +359,7 @@ class RAGService:
         Returns:
             Object key (string), e.g. ``"uuid1/uuid2/report.pdf"``.
         """
-        from app.services.storage_service import storage_service  # noqa: PLC0415
+        from app.services.storage_service import storage_service
 
         return await storage_service.upload(
             file_bytes,
@@ -373,7 +377,7 @@ class RAGService:
         Returns:
             Raw file bytes.
         """
-        from app.services.storage_service import storage_service  # noqa: PLC0415
+        from app.services.storage_service import storage_service
 
         return await storage_service.download(minio_key)
 
@@ -385,7 +389,7 @@ class RAGService:
         Args:
             minio_key: Object key to delete.
         """
-        from app.services.storage_service import storage_service  # noqa: PLC0415
+        from app.services.storage_service import storage_service
 
         await storage_service.delete(minio_key)
 
@@ -792,8 +796,8 @@ class RAGService:
             logger.warning("query_documents called without a DB session — returning empty")
             return QueryResult(query=query, retrieved_chunks=[], context="")
 
-        from app.repositories.document_repository import DocumentRepository
         from app.models.document import Document
+        from app.repositories.document_repository import DocumentRepository
 
         repo = DocumentRepository(db)
         doc_uuid_list = (
@@ -1095,14 +1099,12 @@ class RAGService:
                 ``category``      — folder name e.g. "incidents"
                 ``chunk_index``   — position within the source document
         """
-        from scripts.seed_knowledge import COLLECTION_NAME as _KB_COLLECTION
-
         def _encode_query() -> list[float]:
             model = self._get_embedding_model()
             return model.encode([query], show_progress_bar=False)[0].tolist()
 
         try:
-            query_embedding = await asyncio.wait_for(
+            await asyncio.wait_for(
                 asyncio.to_thread(_encode_query),
                 timeout=45.0,
             )

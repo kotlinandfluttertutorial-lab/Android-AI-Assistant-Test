@@ -1,10 +1,10 @@
-"""Unit tests for app.api.chat.router.
+﻿"""Unit tests for app.api.chat.router.
 
 Covers:
-- POST /chat/message: injection detection fires → 400.
-- POST /chat/message: empty message → 400.
-- POST /chat/message: LLMRateLimitError → 429 with retry_after.
-- POST /chat/message: LLMConfigurationError → 503.
+- POST /chat/message: injection detection fires â†’ 400.
+- POST /chat/message: empty message â†’ 400.
+- POST /chat/message: LLMRateLimitError â†’ 429 with retry_after.
+- POST /chat/message: LLMConfigurationError â†’ 503.
 - POST /chat/message: successful response shape.
 - POST /api/v1/chat: successful response shape (versioned endpoint).
 - POST /api/v1/chat: ChatMessageResponse includes answer, provider, model, usage.
@@ -25,7 +25,7 @@ os.environ.setdefault("SECRET_KEY", "test-secret-32-chars-long-minimum!")
 os.environ.setdefault("DATABASE_URL", "postgresql+asyncpg://test:test@localhost/test")
 os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
 os.environ.setdefault("GEMINI_API_KEY", "test-gemini-key")
-# AES_ENCRYPTION_KEY is set by conftest.py � not repeated here to avoid false-positive secret scans.
+# AES_ENCRYPTION_KEY is set by conftest.py -- not repeated here to avoid false-positive secret scans.
 os.environ.setdefault("ENVIRONMENT", "test")
 
 
@@ -84,9 +84,10 @@ class TestChatRouterEndpoints:
     def _make_client(self, llm_service_mock=None, detector_mock=None):
         """Build a TestClient for the chat router in isolation."""
         from fastapi import FastAPI
+
         from app.api.chat.router import router, v1_router
-        from app.security.dependencies import get_current_user
         from app.database import get_db
+        from app.security.dependencies import get_current_user
 
         app = FastAPI()
         app.include_router(router)
@@ -111,7 +112,7 @@ class TestChatRouterEndpoints:
         return TestClient(app, raise_server_exceptions=False)
 
     def test_empty_message_returns_400(self) -> None:
-        """Empty effective message → HTTP 400."""
+        """Empty effective message â†’ HTTP 400."""
         svc = MagicMock()
         client = self._make_client(llm_service_mock=svc)
         resp = client.post("/chat/message", json={"message": "", "content": ""})
@@ -119,7 +120,7 @@ class TestChatRouterEndpoints:
         assert resp.json()["detail"]["error"]["code"] == "EMPTY_MESSAGE"
 
     def test_injection_detected_returns_400(self) -> None:
-        """Injection detection → HTTP 400 PROMPT_INJECTION_DETECTED."""
+        """Injection detection â†’ HTTP 400 PROMPT_INJECTION_DETECTED."""
         from app.services.safety_service import PromptInjectionError
 
         bad_detector = MagicMock()
@@ -133,7 +134,7 @@ class TestChatRouterEndpoints:
         assert resp.json()["detail"]["error"]["code"] == "PROMPT_INJECTION_DETECTED"
 
     def test_rate_limit_returns_429(self) -> None:
-        """LLMRateLimitError → HTTP 429 with retry_after."""
+        """LLMRateLimitError â†’ HTTP 429 with retry_after."""
         from app.llm.exceptions import LLMRateLimitError
 
         svc = MagicMock()
@@ -152,7 +153,7 @@ class TestChatRouterEndpoints:
         assert body["detail"]["error"]["retry_after"] == 30
 
     def test_configuration_error_returns_503(self) -> None:
-        """LLMConfigurationError → HTTP 503."""
+        """LLMConfigurationError â†’ HTTP 503."""
         from app.llm.exceptions import LLMConfigurationError
 
         svc = MagicMock()

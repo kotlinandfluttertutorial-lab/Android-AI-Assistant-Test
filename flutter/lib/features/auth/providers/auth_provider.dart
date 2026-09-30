@@ -18,7 +18,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepository(
-    api:     AuthApi(ref.watch(dioProvider)),
+    api: AuthApi(ref.watch(dioProvider)),
     storage: ref.watch(secureStorageProvider),
   );
 });
@@ -39,7 +39,7 @@ class AuthStateNotifier extends AsyncNotifier<AuthState> {
 
   Future<Result<void>> login(LoginRequest request) async {
     state = const AsyncLoading();
-    final repo   = ref.read(authRepositoryProvider);
+    final repo = ref.read(authRepositoryProvider);
     final result = await repo.login(request);
     return result.when(
       onSuccess: (user) {
@@ -48,7 +48,7 @@ class AuthStateNotifier extends AsyncNotifier<AuthState> {
         return const Success(null);
       },
       onFailure: (error) {
-        state = AsyncData(const AuthState.unauthenticated());
+        state = const AsyncData(AuthState.unauthenticated());
         return Failure(error);
       },
     );
@@ -56,7 +56,7 @@ class AuthStateNotifier extends AsyncNotifier<AuthState> {
 
   Future<Result<void>> register(RegisterRequest request) async {
     state = const AsyncLoading();
-    final repo   = ref.read(authRepositoryProvider);
+    final repo = ref.read(authRepositoryProvider);
     final result = await repo.register(request);
     return result.when(
       onSuccess: (user) {
@@ -65,7 +65,7 @@ class AuthStateNotifier extends AsyncNotifier<AuthState> {
         return const Success(null);
       },
       onFailure: (error) {
-        state = AsyncData(const AuthState.unauthenticated());
+        state = const AsyncData(AuthState.unauthenticated());
         return Failure(error);
       },
     );
@@ -80,7 +80,7 @@ class AuthStateNotifier extends AsyncNotifier<AuthState> {
 
   Future<Result<void>> googleSignIn(String idToken) async {
     state = const AsyncLoading();
-    final repo   = ref.read(authRepositoryProvider);
+    final repo = ref.read(authRepositoryProvider);
     final result = await repo.googleSignIn(idToken);
     return result.when(
       onSuccess: (user) {
@@ -89,7 +89,7 @@ class AuthStateNotifier extends AsyncNotifier<AuthState> {
         return const Success(null);
       },
       onFailure: (error) {
-        state = AsyncData(const AuthState.unauthenticated());
+        state = const AsyncData(AuthState.unauthenticated());
         return Failure(error);
       },
     );
@@ -106,7 +106,6 @@ class AuthStateNotifier extends AsyncNotifier<AuthState> {
   }
 }
 
-final authStateProvider =
-    AsyncNotifierProvider<AuthStateNotifier, AuthState>(
+final authStateProvider = AsyncNotifierProvider<AuthStateNotifier, AuthState>(
   AuthStateNotifier.new,
 );

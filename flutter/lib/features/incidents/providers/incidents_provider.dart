@@ -22,8 +22,7 @@ class IncidentFilter {
   final String? status;
   final String? severity;
 
-  IncidentFilter copyWith({String? status, String? severity}) =>
-      IncidentFilter(
+  IncidentFilter copyWith({String? status, String? severity}) => IncidentFilter(
         status: status ?? this.status,
         severity: severity ?? this.severity,
       );
@@ -39,10 +38,10 @@ class IncidentsNotifier extends AsyncNotifier<IncidentListResponse> {
   Future<IncidentListResponse> build() => _fetch();
 
   Future<IncidentListResponse> _fetch() async {
-    final api    = ref.read(incidentsApiProvider);
+    final api = ref.read(incidentsApiProvider);
     final filter = ref.watch(incidentFilterProvider);
     final result = await api.listIncidents(
-      status:   filter.status,
+      status: filter.status,
       severity: filter.severity,
     );
     return result.when(
@@ -71,7 +70,7 @@ final incidentsProvider =
 
 final incidentDetailProvider =
     FutureProvider.family<Incident, String>((ref, id) async {
-  final api    = ref.watch(incidentsApiProvider);
+  final api = ref.watch(incidentsApiProvider);
   final result = await api.getIncident(id);
   return result.when(
     onSuccess: (data) => data,
@@ -83,9 +82,10 @@ final incidentDetailProvider =
 
 class RcaNotifier extends FamilyAsyncNotifier<RcaAnalysisResponse?, String> {
   @override
+  // ignore: avoid_renaming_method_parameters
   Future<RcaAnalysisResponse?> build(String incidentId) async {
     // Try to fetch any cached RCA result; return null if none yet.
-    final api    = ref.read(incidentsApiProvider);
+    final api = ref.read(incidentsApiProvider);
     final result = await api.getRca(incidentId);
     return result.when(
       onSuccess: (rca) => rca,
@@ -95,7 +95,7 @@ class RcaNotifier extends FamilyAsyncNotifier<RcaAnalysisResponse?, String> {
 
   Future<void> runRca({bool forceRerun = false}) async {
     state = const AsyncLoading();
-    final api    = ref.read(incidentsApiProvider);
+    final api = ref.read(incidentsApiProvider);
     final result = await api.runRca(arg, forceRerun: forceRerun);
     state = result.when(
       onSuccess: AsyncData.new,
@@ -114,11 +114,12 @@ final rcaProvider =
 class RemediationNotifier
     extends FamilyAsyncNotifier<RemediationPlanResponse?, String> {
   @override
+  // ignore: avoid_renaming_method_parameters
   Future<RemediationPlanResponse?> build(String incidentId) async => null;
 
   Future<void> recommend() async {
     state = const AsyncLoading();
-    final api    = ref.read(incidentsApiProvider);
+    final api = ref.read(incidentsApiProvider);
     final result = await api.recommendRemediation(arg);
     state = result.when(
       onSuccess: AsyncData.new,
@@ -144,8 +145,7 @@ class RemediationNotifier
   }
 }
 
-final remediationProvider =
-    AsyncNotifierProviderFamily<RemediationNotifier, RemediationPlanResponse?,
-        String>(
+final remediationProvider = AsyncNotifierProviderFamily<RemediationNotifier,
+    RemediationPlanResponse?, String>(
   RemediationNotifier.new,
 );

@@ -18,7 +18,7 @@ class AuthUser extends Equatable {
   final String email;
   final String role; // user | premium | admin
 
-  bool get isAdmin   => role == 'admin';
+  bool get isAdmin => role == 'admin';
   bool get isPremium => role == 'premium' || role == 'admin';
 
   @override
@@ -35,8 +35,7 @@ class AuthState extends Equatable {
   const AuthState.initial() : this(isAuthenticated: false);
   const AuthState.authenticated(AuthUser user)
       : this(isAuthenticated: true, user: user);
-  const AuthState.unauthenticated()
-      : this(isAuthenticated: false);
+  const AuthState.unauthenticated() : this(isAuthenticated: false);
 
   final bool isAuthenticated;
   final AuthUser? user;
@@ -89,13 +88,13 @@ class LoginResponse {
   });
 
   factory LoginResponse.fromJson(Map<String, dynamic> json) => LoginResponse(
-        userId:                 json['user_id'] as String,
-        email:                  json['email'] as String,
-        role:                   json['role'] as String,
-        accessToken:            json['access_token'] as String,
-        refreshToken:           json['refresh_token'] as String,
-        accessTokenExpiresAt:   json['access_token_expires_at'] as int,
-        refreshTokenExpiresAt:  json['refresh_token_expires_at'] as int,
+        userId: json['user_id'] as String,
+        email: json['email'] as String,
+        role: json['role'] as String,
+        accessToken: json['access_token'] as String,
+        refreshToken: json['refresh_token'] as String,
+        accessTokenExpiresAt: json['access_token_expires_at'] as int,
+        refreshTokenExpiresAt: json['refresh_token_expires_at'] as int,
       );
 
   final String userId;
@@ -119,11 +118,11 @@ class RegisterResponse {
 
   factory RegisterResponse.fromJson(Map<String, dynamic> json) =>
       RegisterResponse(
-        userId:                json['user_id'] as String,
-        email:                 json['email'] as String,
-        accessToken:           json['access_token'] as String,
-        refreshToken:          json['refresh_token'] as String,
-        accessTokenExpiresAt:  json['access_token_expires_at'] as int,
+        userId: json['user_id'] as String,
+        email: json['email'] as String,
+        accessToken: json['access_token'] as String,
+        refreshToken: json['refresh_token'] as String,
+        accessTokenExpiresAt: json['access_token_expires_at'] as int,
         refreshTokenExpiresAt: json['refresh_token_expires_at'] as int,
       );
 
@@ -164,15 +163,15 @@ class GoogleAuthResponse {
 
   factory GoogleAuthResponse.fromJson(Map<String, dynamic> json) =>
       GoogleAuthResponse(
-        userId:               json['user_id'] as String,
-        email:                json['email'] as String,
-        displayName:          (json['display_name'] as String?) ?? '',
-        role:                 (json['role'] as String?) ?? 'user',
-        accessToken:          json['access_token'] as String,
-        refreshToken:         json['refresh_token'] as String,
+        userId: json['user_id'] as String,
+        email: json['email'] as String,
+        displayName: (json['display_name'] as String?) ?? '',
+        role: (json['role'] as String?) ?? 'user',
+        accessToken: json['access_token'] as String,
+        refreshToken: json['refresh_token'] as String,
         accessTokenExpiresAt: json['access_token_expires_at'] as int,
         refreshTokenExpiresAt: json['refresh_token_expires_at'] as int,
-        isNewUser:            (json['is_new_user'] as bool?) ?? false,
+        isNewUser: (json['is_new_user'] as bool?) ?? false,
       );
 
   final String userId;
@@ -181,8 +180,8 @@ class GoogleAuthResponse {
   final String role;
   final String accessToken;
   final String refreshToken;
-  final int    accessTokenExpiresAt;
-  final int    refreshTokenExpiresAt;
+  final int accessTokenExpiresAt;
+  final int refreshTokenExpiresAt;
 
   /// True when a new local account was created on this sign-in.
   final bool isNewUser;

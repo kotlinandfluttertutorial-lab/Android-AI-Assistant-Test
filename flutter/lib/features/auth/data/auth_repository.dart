@@ -23,19 +23,19 @@ class AuthRepository {
     return result.when(
       onSuccess: (response) async {
         await _persistTokens(
-          accessToken:            response.accessToken,
-          refreshToken:           response.refreshToken,
-          accessTokenExpiresAt:   response.accessTokenExpiresAt,
-          refreshTokenExpiresAt:  response.refreshTokenExpiresAt,
-          userId:                 response.userId,
-          email:                  response.email,
-          role:                   response.role,
+          accessToken: response.accessToken,
+          refreshToken: response.refreshToken,
+          accessTokenExpiresAt: response.accessTokenExpiresAt,
+          refreshTokenExpiresAt: response.refreshTokenExpiresAt,
+          userId: response.userId,
+          email: response.email,
+          role: response.role,
         );
         return Success(
           AuthUser(
             userId: response.userId,
-            email:  response.email,
-            role:   response.role,
+            email: response.email,
+            role: response.role,
           ),
         );
       },
@@ -50,19 +50,19 @@ class AuthRepository {
     return result.when(
       onSuccess: (response) async {
         await _persistTokens(
-          accessToken:            response.accessToken,
-          refreshToken:           response.refreshToken,
-          accessTokenExpiresAt:   response.accessTokenExpiresAt,
-          refreshTokenExpiresAt:  response.refreshTokenExpiresAt,
-          userId:                 response.userId,
-          email:                  response.email,
-          role:                   'user',
+          accessToken: response.accessToken,
+          refreshToken: response.refreshToken,
+          accessTokenExpiresAt: response.accessTokenExpiresAt,
+          refreshTokenExpiresAt: response.refreshTokenExpiresAt,
+          userId: response.userId,
+          email: response.email,
+          role: 'user',
         );
         return Success(
           AuthUser(
             userId: response.userId,
-            email:  response.email,
-            role:   'user',
+            email: response.email,
+            role: 'user',
           ),
         );
       },
@@ -78,23 +78,22 @@ class AuthRepository {
   /// The backend verifies the ID token with Google's public keys.
   /// On success, stores tokens identically to a regular login.
   Future<Result<AuthUser>> googleSignIn(String idToken) async {
-    final result =
-        await _api.googleSignIn(GoogleAuthRequest(idToken: idToken));
+    final result = await _api.googleSignIn(GoogleAuthRequest(idToken: idToken));
     return result.when(
       onSuccess: (response) async {
         await _persistTokens(
-          accessToken:           response.accessToken,
-          refreshToken:          response.refreshToken,
-          accessTokenExpiresAt:  response.accessTokenExpiresAt,
+          accessToken: response.accessToken,
+          refreshToken: response.refreshToken,
+          accessTokenExpiresAt: response.accessTokenExpiresAt,
           refreshTokenExpiresAt: response.refreshTokenExpiresAt,
-          userId:                response.userId,
-          email:                 response.email,
-          role:                  response.role,
+          userId: response.userId,
+          email: response.email,
+          role: response.role,
         );
         return Success(AuthUser(
           userId: response.userId,
-          email:  response.email,
-          role:   response.role,
+          email: response.email,
+          role: response.role,
         ));
       },
       onFailure: Failure.new,
@@ -117,8 +116,8 @@ class AuthRepository {
     final isValid = await _storage.isAccessTokenValid();
     if (!isValid) return null;
     final userId = await _storage.getUserId();
-    final email  = await _storage.getUserEmail();
-    final role   = await _storage.getUserRole();
+    final email = await _storage.getUserEmail();
+    final role = await _storage.getUserRole();
     if (userId == null || email == null || role == null) return null;
     return AuthUser(userId: userId, email: email, role: role);
   }

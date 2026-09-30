@@ -21,7 +21,7 @@ class IncidentsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final filter   = ref.watch(incidentFilterProvider);
+    final filter = ref.watch(incidentFilterProvider);
     final listAsync = ref.watch(incidentsProvider);
 
     return Scaffold(
@@ -31,8 +31,7 @@ class IncidentsScreen extends ConsumerWidget {
           IconButton(
             icon: const Icon(Icons.refresh),
             tooltip: 'Refresh',
-            onPressed: () =>
-                ref.read(incidentsProvider.notifier).refresh(),
+            onPressed: () => ref.read(incidentsProvider.notifier).refresh(),
           ),
         ],
       ),
@@ -42,14 +41,17 @@ class IncidentsScreen extends ConsumerWidget {
           // ── Severity filter chips ──────────────────────────────────────
           _FilterRow(
             current: filter,
-            onChanged: (f) =>
-                ref.read(incidentsProvider.notifier).setFilter(f),
+            onChanged: (f) => ref.read(incidentsProvider.notifier).setFilter(f),
           ),
           const Divider(height: 1),
 
           // ── Stats row ──────────────────────────────────────────────────
-          listAsync.whenData((data) =>
-              _StatsBar(total: data.total, openCount: data.openCount)),
+          listAsync.when(
+            loading: () => const SizedBox.shrink(),
+            error: (_, __) => const SizedBox.shrink(),
+            data: (data) =>
+                _StatsBar(total: data.total, openCount: data.openCount),
+          ),
 
           // ── List ───────────────────────────────────────────────────────
           Expanded(
@@ -58,8 +60,7 @@ class IncidentsScreen extends ConsumerWidget {
                   const LoadingIndicator(message: 'Loading incidents…'),
               error: (e, _) => ErrorView(
                 message: e.toString(),
-                onRetry: () =>
-                    ref.read(incidentsProvider.notifier).refresh(),
+                onRetry: () => ref.read(incidentsProvider.notifier).refresh(),
               ),
               data: (data) {
                 if (data.incidents.isEmpty) {
@@ -75,8 +76,7 @@ class IncidentsScreen extends ConsumerWidget {
                   child: ListView.separated(
                     padding: const EdgeInsets.symmetric(vertical: 8),
                     itemCount: data.incidents.length,
-                    separatorBuilder: (_, __) =>
-                        const SizedBox(height: 4),
+                    separatorBuilder: (_, __) => const SizedBox(height: 4),
                     itemBuilder: (ctx, i) =>
                         _IncidentCard(incident: data.incidents[i]),
                   ),
@@ -120,11 +120,8 @@ class _FilterRow extends StatelessWidget {
             child: FilterChip(
               label: Text(label),
               selected: selected,
-              onSelected: (_) =>
-                  onChanged(IncidentFilter(severity: value)),
-              avatar: value != null
-                  ? _SeverityDot(severity: value)
-                  : null,
+              onSelected: (_) => onChanged(IncidentFilter(severity: value)),
+              avatar: value != null ? _SeverityDot(severity: value) : null,
             ),
           );
         }).toList(),
@@ -149,9 +146,9 @@ class _SeverityDot extends StatelessWidget {
 
   Color _color(BuildContext ctx, String s) => switch (s) {
         'CRITICAL' => ctx.critical,
-        'HIGH'     => ctx.critical.withAlpha(180),
-        'MEDIUM'   => ctx.warning,
-        _          => ctx.infoColor,
+        'HIGH' => ctx.critical.withAlpha(180),
+        'MEDIUM' => ctx.warning,
+        _ => ctx.infoColor,
       };
 }
 
@@ -223,16 +220,16 @@ class _IncidentCard extends StatelessWidget {
 
   Color _borderColor(BuildContext ctx) => switch (incident.severity) {
         IncidentSeverity.critical => ctx.critical,
-        IncidentSeverity.high     => ctx.critical.withAlpha(200),
-        IncidentSeverity.medium   => ctx.warning,
-        IncidentSeverity.low      => ctx.infoColor,
+        IncidentSeverity.high => ctx.critical.withAlpha(200),
+        IncidentSeverity.medium => ctx.warning,
+        IncidentSeverity.low => ctx.infoColor,
       };
 
   IconData _severityIcon() => switch (incident.severity) {
         IncidentSeverity.critical => Icons.error,
-        IncidentSeverity.high     => Icons.error_outline,
-        IncidentSeverity.medium   => Icons.warning_amber,
-        IncidentSeverity.low      => Icons.info_outline,
+        IncidentSeverity.high => Icons.error_outline,
+        IncidentSeverity.medium => Icons.warning_amber,
+        IncidentSeverity.low => Icons.info_outline,
       };
 
   @override
@@ -253,8 +250,7 @@ class _IncidentCard extends StatelessWidget {
               // Card content
               Expanded(
                 child: InkWell(
-                  onTap: () =>
-                      context.push(Routes.incidentDetail(incident.id)),
+                  onTap: () => context.push(Routes.incidentDetail(incident.id)),
                   child: Padding(
                     padding: const EdgeInsets.all(12),
                     child: Column(

@@ -19,7 +19,8 @@ void main() {
     expect(find.byType(AnimatedBuilder), findsWidgets);
   });
 
-  testWidgets('TypingIndicator has "AI is typing" semantics label', (tester) async {
+  testWidgets('TypingIndicator has "AI is typing" semantics label',
+      (tester) async {
     await tester.pumpWidget(MaterialApp(
       theme: AppTheme.light,
       home: const Scaffold(body: Center(child: TypingIndicator())),

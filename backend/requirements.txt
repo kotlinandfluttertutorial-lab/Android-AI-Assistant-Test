@@ -208,3 +208,27 @@ pytest-timeout==2.3.1
 # PYSEC-2026-2263/3455/3456/3457 — fix: >=0.6.4
 # Pin explicitly until parent packages declare the updated floor.
 pyasn1==0.6.4
+
+# ──────────────────────────────────────────────────────────────────────────────
+# Linting & static analysis
+#
+# These packages are used by the backend-ci.yml `lint-and-type-check` job.
+# They are in the main requirements.txt (not a separate dev-requirements.txt)
+# so that `pip install -r requirements.txt` in CI always installs them — there
+# is no separate install step to forget.
+#
+# ruff  — fast Python linter + formatter (replaces flake8, isort, pyupgrade).
+#          Configuration lives in backend/ruff.toml.
+# mypy  — static type checker.
+#          Runs in --ignore-missing-imports mode; --strict is intentionally
+#          NOT used because third-party stubs (pydantic, sqlalchemy, etc.) emit
+#          hundreds of false positives in strict mode.
+# ──────────────────────────────────────────────────────────────────────────────
+ruff==0.11.6
+mypy==1.15.0
+
+# Type stubs required by mypy for packages that ship without inline types.
+# passlib stubs cover bcrypt, argon2, and other passlib hash handlers.
+# python-jose stubs are needed for jwt_handler.py.
+types-passlib==1.7.7.20240819
+types-python-jose==3.3.4.20240106

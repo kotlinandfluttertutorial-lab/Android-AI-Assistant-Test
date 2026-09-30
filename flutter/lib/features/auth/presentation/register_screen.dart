@@ -19,12 +19,12 @@ class RegisterScreen extends ConsumerStatefulWidget {
 }
 
 class _RegisterScreenState extends ConsumerState<RegisterScreen> {
-  final _formKey      = GlobalKey<FormState>();
-  final _nameCtrl     = TextEditingController();
-  final _emailCtrl    = TextEditingController();
-  final _passCtrl     = TextEditingController();
-  final _confirmCtrl  = TextEditingController();
-  bool  _obscurePass  = true;
+  final _formKey = GlobalKey<FormState>();
+  final _nameCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
+  final _passCtrl = TextEditingController();
+  final _confirmCtrl = TextEditingController();
+  bool _obscurePass = true;
   String? _errorMessage;
 
   @override
@@ -42,8 +42,8 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
 
     final result = await ref.read(authStateProvider.notifier).register(
           RegisterRequest(
-            email:       _emailCtrl.text.trim(),
-            password:    _passCtrl.text,
+            email: _emailCtrl.text.trim(),
+            password: _passCtrl.text,
             displayName: _nameCtrl.text.trim(),
           ),
         );
@@ -162,8 +162,7 @@ class _RegisterScreenState extends ConsumerState<RegisterScreen> {
                     decoration: BoxDecoration(
                       color: context.critical.withAlpha(20),
                       borderRadius: BorderRadius.circular(12),
-                      border:
-                          Border.all(color: context.critical.withAlpha(60)),
+                      border: Border.all(color: context.critical.withAlpha(60)),
                     ),
                     child: Text(
                       _errorMessage!,

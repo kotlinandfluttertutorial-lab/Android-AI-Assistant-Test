@@ -50,11 +50,19 @@ ignore = [
 # Both glob forms used for ruff version compatibility.
 "tests/**" = ["S101", "S105", "S106", "E402", "E501", "F841", "UP017", "B905", "UP038", "C401", "RUF012",
               "RUF001", "RUF002", "RUF003", "I001", "B017"]
-"tests/**/*.py" = ["S101", "S105", "S106", "E402", "E501", "F841", "UP017", "B905", "UP038", "C401"]
+"tests/**/*.py" = ["S101", "S105", "S106", "E402", "E501", "F841", "UP017", "B905", "UP038", "C401", "I001"]
+# conftest.py is at tests/ root — also covered by tests/** above but listed explicitly
+"tests/conftest.py" = ["I001"]
 # Workers — deferred imports inside Celery task functions are intentional
 "app/workers/**" = ["E402", "E501", "I001", "N806"]
 # Settings — validator methods use SCREAMING_SNAKE_CASE by convention
 "app/config/settings.py" = ["N802", "E501"]
+# Files with structurally correct import blocks that ruff 0.11.6 false-positives
+# on (mixed bare-import + from-import in one section, or __future__ layout).
+"app/llm/base.py" = ["I001"]
+"app/schemas/error_analysis.py" = ["I001"]
+"app/schemas/rca.py" = ["I001"]
+"app/services/llm_clients.py" = ["I001"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["app"]

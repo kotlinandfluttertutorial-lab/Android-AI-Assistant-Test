@@ -26,15 +26,15 @@ class ObservabilityService {
   ObservabilityService({
     required ObservabilityApi api,
     int flushIntervalSeconds = 60,
-    int flushBatchSize       = 50,
-  })  : _api               = api,
-        _flushBatchSize    = flushBatchSize {
+    int flushBatchSize = 50,
+  })  : _api = api,
+        _flushBatchSize = flushBatchSize {
     _sessionId = _uuid.v4();
     _startFlushTimer(flushIntervalSeconds);
   }
 
   final ObservabilityApi _api;
-  final int              _flushBatchSize;
+  final int _flushBatchSize;
   final List<ObservabilityEvent> _buffer = [];
 
   late final String _sessionId;
@@ -58,15 +58,15 @@ class ObservabilityService {
     Map<String, dynamic> metadata = const {},
   }) {
     final event = ObservabilityEvent(
-      timestamp:  DateTime.now().millisecondsSinceEpoch,
-      level:      level,
-      eventType:  eventType,
-      message:    _sanitize(message),
-      sessionId:  _sessionId,
-      requestId:  requestId,
-      traceId:    traceId,
-      screen:     _currentScreen,
-      metadata:   _sanitizeMetadata(metadata),
+      timestamp: DateTime.now().millisecondsSinceEpoch,
+      level: level,
+      eventType: eventType,
+      message: _sanitize(message),
+      sessionId: _sessionId,
+      requestId: requestId,
+      traceId: traceId,
+      screen: _currentScreen,
+      metadata: _sanitizeMetadata(metadata),
     );
 
     _buffer.add(event);
@@ -82,14 +82,41 @@ class ObservabilityService {
 
   // ── Convenience helpers ────────────────────────────────────────────────────
 
-  void info(String eventType, String message, {Map<String, dynamic> metadata = const {}}) =>
-      capture(level: EventLevel.info,  eventType: eventType, message: message, metadata: metadata);
+  void info(
+    String eventType,
+    String message, {
+    Map<String, dynamic> metadata = const {},
+  }) =>
+      capture(
+        level: EventLevel.info,
+        eventType: eventType,
+        message: message,
+        metadata: metadata,
+      );
 
-  void warn(String eventType, String message, {Map<String, dynamic> metadata = const {}}) =>
-      capture(level: EventLevel.warn,  eventType: eventType, message: message, metadata: metadata);
+  void warn(
+    String eventType,
+    String message, {
+    Map<String, dynamic> metadata = const {},
+  }) =>
+      capture(
+        level: EventLevel.warn,
+        eventType: eventType,
+        message: message,
+        metadata: metadata,
+      );
 
-  void error(String eventType, String message, {Map<String, dynamic> metadata = const {}}) =>
-      capture(level: EventLevel.error, eventType: eventType, message: message, metadata: metadata);
+  void error(
+    String eventType,
+    String message, {
+    Map<String, dynamic> metadata = const {},
+  }) =>
+      capture(
+        level: EventLevel.error,
+        eventType: eventType,
+        message: message,
+        metadata: metadata,
+      );
 
   void networkError({
     required String url,
@@ -98,12 +125,12 @@ class ObservabilityService {
     String? requestId,
   }) {
     capture(
-      level:     EventLevel.error,
+      level: EventLevel.error,
       eventType: EventType.networkError,
-      message:   _sanitize(message),
+      message: _sanitize(message),
       requestId: requestId,
-      metadata:  {
-        'url':         _stripQuery(url),
+      metadata: {
+        'url': _stripQuery(url),
         'status_code': statusCode,
       },
     );
@@ -116,12 +143,12 @@ class ObservabilityService {
     String? requestId,
   }) {
     capture(
-      level:     latencyMs > 3000 ? EventLevel.warn : EventLevel.info,
+      level: latencyMs > 3000 ? EventLevel.warn : EventLevel.info,
       eventType: EventType.apiLatency,
-      message:   '$endpoint completed in ${latencyMs}ms',
+      message: '$endpoint completed in ${latencyMs}ms',
       requestId: requestId,
-      metadata:  {
-        'endpoint':   endpoint,
+      metadata: {
+        'endpoint': endpoint,
         'latency_ms': latencyMs,
         'status_code': statusCode,
       },
@@ -130,10 +157,10 @@ class ObservabilityService {
 
   void navigation(String from, String to) {
     capture(
-      level:     EventLevel.info,
+      level: EventLevel.info,
       eventType: EventType.navigation,
-      message:   'Navigate $from → $to',
-      metadata:  {'from': from, 'to': to},
+      message: 'Navigate $from → $to',
+      metadata: {'from': from, 'to': to},
     );
   }
 
@@ -192,7 +219,8 @@ class ObservabilityService {
   static String _sanitize(String text) {
     return text
         // Bearer tokens
-        .replaceAll(RegExp(r'Bearer\s+\S+', caseSensitive: false), 'Bearer [REDACTED]')
+        .replaceAll(
+            RegExp(r'Bearer\s+\S+', caseSensitive: false), 'Bearer [REDACTED]')
         // Email addresses
         .replaceAll(RegExp(r'\b[\w.+-]+@[\w-]+\.[a-z]{2,}\b'), '[EMAIL]')
         // Truncate very long messages to avoid log bloat.
@@ -201,13 +229,19 @@ class ObservabilityService {
 
   /// Strip values that look like credentials from metadata.
   static Map<String, dynamic> _sanitizeMetadata(Map<String, dynamic> raw) {
-    const _sensitiveKeys = {
-      'token', 'password', 'secret', 'key', 'authorization',
-      'api_key', 'access_token', 'refresh_token',
+    const sensitiveKeys = {
+      'token',
+      'password',
+      'secret',
+      'key',
+      'authorization',
+      'api_key',
+      'access_token',
+      'refresh_token',
     };
     return {
       for (final entry in raw.entries)
-        if (!_sensitiveKeys.contains(entry.key.toLowerCase()))
+        if (!sensitiveKeys.contains(entry.key.toLowerCase()))
           entry.key: entry.value,
     };
   }

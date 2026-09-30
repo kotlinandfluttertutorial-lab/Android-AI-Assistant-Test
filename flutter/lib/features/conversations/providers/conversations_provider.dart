@@ -24,23 +24,23 @@ final conversationsApiProvider = Provider<ConversationsApi>((ref) {
 // ── Helper: Conversation → CachedConversation ────────────────────────────────
 
 CachedConversation _toCached(Conversation c) => CachedConversation(
-      id:          c.id,
-      title:       c.title,
-      createdAt:   c.createdAt.toIso8601String(),
-      updatedAt:   c.updatedAt?.toIso8601String(),
-      provider:    c.provider,
+      id: c.id,
+      title: c.title,
+      createdAt: c.createdAt.toIso8601String(),
+      updatedAt: c.updatedAt?.toIso8601String(),
+      provider: c.provider,
       lastMessage: c.lastMessage,
-      isPinned:    c.isPinned,
+      isPinned: c.isPinned,
     );
 
 Conversation _fromCached(CachedConversation c) => Conversation(
-      id:          c.id,
-      title:       c.title,
-      createdAt:   DateTime.parse(c.createdAt),
-      updatedAt:   c.updatedAt != null ? DateTime.tryParse(c.updatedAt!) : null,
-      provider:    c.provider,
+      id: c.id,
+      title: c.title,
+      createdAt: DateTime.parse(c.createdAt),
+      updatedAt: c.updatedAt != null ? DateTime.tryParse(c.updatedAt!) : null,
+      provider: c.provider,
       lastMessage: c.lastMessage,
-      isPinned:    c.isPinned,
+      isPinned: c.isPinned,
     );
 
 // ── Notifier ──────────────────────────────────────────────────────────────────
@@ -49,8 +49,8 @@ class ConversationsNotifier extends AsyncNotifier<List<Conversation>> {
   @override
   Future<List<Conversation>> build() async {
     // 1. Serve cache instantly so the UI shows content on first frame.
-    final cache   = ref.read(conversationCacheProvider);
-    final cached  = cache.all;
+    final cache = ref.read(conversationCacheProvider);
+    final cached = cache.all;
     if (cached.isNotEmpty) {
       // Set cached data synchronously, then refresh from API in background.
       state = AsyncData(cached.map(_fromCached).toList());
@@ -62,8 +62,8 @@ class ConversationsNotifier extends AsyncNotifier<List<Conversation>> {
   }
 
   Future<List<Conversation>> _fetchAndCache() async {
-    final api    = ref.read(conversationsApiProvider);
-    final cache  = ref.read(conversationCacheProvider);
+    final api = ref.read(conversationsApiProvider);
+    final cache = ref.read(conversationCacheProvider);
     final result = await api.listConversations();
     return result.when(
       onSuccess: (data) async {
@@ -86,11 +86,11 @@ class ConversationsNotifier extends AsyncNotifier<List<Conversation>> {
     String? title,
     String? provider,
   }) async {
-    final api   = ref.read(conversationsApiProvider);
+    final api = ref.read(conversationsApiProvider);
     final cache = ref.read(conversationCacheProvider);
 
     final result = await api.createConversation(
-      title:    title,
+      title: title,
       provider: provider,
     );
 
@@ -107,7 +107,7 @@ class ConversationsNotifier extends AsyncNotifier<List<Conversation>> {
   }
 
   Future<void> deleteConversation(String id) async {
-    final api   = ref.read(conversationsApiProvider);
+    final api = ref.read(conversationsApiProvider);
     final cache = ref.read(conversationCacheProvider);
 
     await api.deleteConversation(id);

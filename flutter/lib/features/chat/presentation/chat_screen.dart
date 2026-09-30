@@ -8,7 +8,6 @@ library;
 import 'package:ai_assistant_flutter/app/theme/app_theme.dart';
 import 'package:ai_assistant_flutter/features/ai_providers/domain/ai_provider_model.dart';
 import 'package:ai_assistant_flutter/features/ai_providers/providers/ai_provider_provider.dart';
-import 'package:ai_assistant_flutter/features/chat/domain/chat_state.dart';
 import 'package:ai_assistant_flutter/features/chat/providers/chat_provider.dart';
 import 'package:ai_assistant_flutter/shared/widgets/empty_state.dart';
 import 'package:ai_assistant_flutter/shared/widgets/message_bubble.dart';
@@ -35,9 +34,9 @@ class ChatScreen extends ConsumerStatefulWidget {
 }
 
 class _ChatScreenState extends ConsumerState<ChatScreen> {
-  final _inputCtrl   = TextEditingController();
-  final _scrollCtrl  = ScrollController();
-  final _inputFocus  = FocusNode();
+  final _inputCtrl = TextEditingController();
+  final _scrollCtrl = ScrollController();
+  final _inputFocus = FocusNode();
   bool _canSend = false;
 
   @override
@@ -83,16 +82,18 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
     if (text.isEmpty) return;
     _inputCtrl.clear();
     setState(() => _canSend = false);
-    await ref.read(chatProvider(widget.conversationId).notifier).sendMessage(text);
+    await ref
+        .read(chatProvider(widget.conversationId).notifier)
+        .sendMessage(text);
     _scrollToBottom();
   }
 
   @override
   Widget build(BuildContext context) {
-    final chatState    = ref.watch(chatProvider(widget.conversationId));
-    final providers    = ref.watch(providersListProvider);
-    final selected     = ref.watch(selectedProviderProvider);
-    final isStreaming  = chatState.isStreaming;
+    final chatState = ref.watch(chatProvider(widget.conversationId));
+    final providers = ref.watch(providersListProvider);
+    final selected = ref.watch(selectedProviderProvider);
+    final isStreaming = chatState.isStreaming;
     final isConnecting = chatState.isConnecting;
 
     // Auto-scroll when new messages arrive.
@@ -143,8 +144,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           // ── Suggestion chips (hidden once conversation starts) ──────────
           SuggestionChipRow(
             suggestions: ChatSuggestions.defaults,
-            visible:     chatState.messages.isEmpty && !isStreaming,
-            onTap:       _sendSuggestion,
+            visible: chatState.messages.isEmpty && !isStreaming,
+            onTap: _sendSuggestion,
           ),
 
           // ── Message list ───────────────────────────────────────────────
@@ -162,9 +163,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
                     itemBuilder: (context, i) {
                       final msg = chatState.messages[i];
                       return MessageBubble(
-                        role: msg.isUser
-                            ? BubbleRole.user
-                            : BubbleRole.assistant,
+                        role:
+                            msg.isUser ? BubbleRole.user : BubbleRole.assistant,
                         content: msg.content,
                         isStreaming: msg.isStreaming,
                         timestamp: msg.createdAt,
@@ -250,8 +250,8 @@ class _ErrorBanner extends StatelessWidget {
       color: context.critical.withAlpha(20),
       child: Row(
         children: [
-          Icon(Icons.error_outline, size: 18, color: context.critical,
-              semanticLabel: 'Error'),
+          Icon(Icons.error_outline,
+              size: 18, color: context.critical, semanticLabel: 'Error'),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -325,8 +325,13 @@ class _InputBar extends StatelessWidget {
                   maxLines: 5,
                   minLines: 1,
                   maxLength: 4000,
-                  buildCounter: (_, {required currentLength,
-                      required isFocused, required maxLength}) => null,
+                  buildCounter: (
+                    _, {
+                    required currentLength,
+                    required isFocused,
+                    required maxLength,
+                  }) =>
+                      null,
                   textInputAction: TextInputAction.newline,
                   keyboardType: TextInputType.multiline,
                   decoration: InputDecoration(

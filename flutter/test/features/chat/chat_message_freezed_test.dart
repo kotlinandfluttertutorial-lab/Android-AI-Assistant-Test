@@ -4,9 +4,9 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   group('ChatMessage (Freezed)', () {
     final baseMessage = ChatMessage(
-      localId:   'msg-1',
-      role:      MessageRole.user,
-      content:   'Hello',
+      localId: 'msg-1',
+      role: MessageRole.user,
+      content: 'Hello',
       createdAt: DateTime(2025, 6, 15, 10, 30),
     );
 
@@ -14,14 +14,14 @@ void main() {
 
     test('defaults: content="" isStreaming=false hasError=false', () {
       final msg = ChatMessage(
-        localId:   'x',
-        role:      MessageRole.assistant,
+        localId: 'x',
+        role: MessageRole.assistant,
         createdAt: DateTime(2025),
       );
-      expect(msg.content,     '');
+      expect(msg.content, '');
       expect(msg.isStreaming, isFalse);
-      expect(msg.hasError,    isFalse);
-      expect(msg.serverId,    isNull);
+      expect(msg.hasError, isFalse);
+      expect(msg.serverId, isNull);
     });
 
     // ── isUser getter ─────────────────────────────────────────────────────
@@ -39,10 +39,10 @@ void main() {
 
     test('copyWith updates content while preserving other fields', () {
       final updated = baseMessage.copyWith(content: 'Hello world');
-      expect(updated.content,     'Hello world');
-      expect(updated.localId,     baseMessage.localId);
-      expect(updated.role,        baseMessage.role);
-      expect(updated.createdAt,   baseMessage.createdAt);
+      expect(updated.content, 'Hello world');
+      expect(updated.localId, baseMessage.localId);
+      expect(updated.role, baseMessage.role);
+      expect(updated.createdAt, baseMessage.createdAt);
       expect(updated.isStreaming, isFalse);
     });
 
@@ -53,7 +53,7 @@ void main() {
 
     test('copyWith clears isStreaming back to false', () {
       final streaming = baseMessage.copyWith(isStreaming: true);
-      final done      = streaming.copyWith(isStreaming: false);
+      final done = streaming.copyWith(isStreaming: false);
       expect(done.isStreaming, isFalse);
     });
 
@@ -66,15 +66,15 @@ void main() {
 
     test('two messages with identical fields are equal', () {
       final a = ChatMessage(
-        localId:   'same',
-        role:      MessageRole.user,
-        content:   'Hi',
+        localId: 'same',
+        role: MessageRole.user,
+        content: 'Hi',
         createdAt: DateTime(2025),
       );
       final b = ChatMessage(
-        localId:   'same',
-        role:      MessageRole.user,
-        content:   'Hi',
+        localId: 'same',
+        role: MessageRole.user,
+        content: 'Hi',
         createdAt: DateTime(2025),
       );
       expect(a, equals(b));
@@ -87,9 +87,9 @@ void main() {
       // copyWith preserves localId through the Freezed generated code;
       // use the constructor to get a different id.
       final c = ChatMessage(
-        localId:   'msg-2',
-        role:      MessageRole.user,
-        content:   'Hello',
+        localId: 'msg-2',
+        role: MessageRole.user,
+        content: 'Hello',
         createdAt: DateTime(2025, 6, 15, 10, 30),
       );
       expect(a == c, isFalse);
@@ -99,10 +99,12 @@ void main() {
 
     test('MessageRole has user and assistant variants', () {
       expect(MessageRole.values.length, 2);
-      expect(MessageRole.values, containsAll([
-        MessageRole.user,
-        MessageRole.assistant,
-      ]));
+      expect(
+          MessageRole.values,
+          containsAll([
+            MessageRole.user,
+            MessageRole.assistant,
+          ]));
     });
   });
 }

@@ -242,7 +242,8 @@ class GeminiProvider(LLMProvider):
 
             if self._fallback_model == self._primary_model:
                 logger.warning(
-                    "Gemini quota error on primary model; fallback model is same as primary — not retrying",
+                    "Gemini quota error on primary model; fallback model is same as primary"
+                    " — not retrying",
                     extra={"request_id": request_id, "model": self._primary_model},
                 )
                 raise
@@ -332,7 +333,9 @@ class GeminiProvider(LLMProvider):
             and temperature.
         """
         max_tokens = request.max_output_tokens or self._max_output_tokens
-        temperature = request.temperature if request.temperature is not None else self._default_temperature
+        temperature = (
+            request.temperature if request.temperature is not None else self._default_temperature
+        )
 
         return genai_types.GenerateContentConfig(
             system_instruction=request.system_prompt or None,

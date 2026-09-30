@@ -31,7 +31,8 @@ void main() {
     });
 
     test('rateLimited with retryAfter includes seconds', () {
-      final msg = const AppErrorF.rateLimited(retryAfterSeconds: 30).userMessage;
+      final msg =
+          const AppErrorF.rateLimited(retryAfterSeconds: 30).userMessage;
       expect(msg, contains('30'));
     });
 
@@ -41,14 +42,16 @@ void main() {
     });
 
     test('serverError.userMessage is safe for end users', () {
-      final msg = const AppErrorF.serverError(detail: 'DB connection failed').userMessage;
+      final msg = const AppErrorF.serverError(detail: 'DB connection failed')
+          .userMessage;
       // Must NOT expose internal detail to users
       expect(msg.contains('DB'), isFalse);
       expect(msg, isNotEmpty);
     });
 
     test('aiProvider.userMessage mentions service', () {
-      final msg = const AppErrorF.aiProvider(detail: 'Quota exceeded').userMessage;
+      final msg =
+          const AppErrorF.aiProvider(detail: 'Quota exceeded').userMessage;
       expect(msg.toLowerCase(), contains('service'));
     });
 
@@ -68,16 +71,16 @@ void main() {
       const error = AppErrorF.networkUnavailable();
       final result = error.when(
         networkUnavailable: () => 'network',
-        timeout:            () => 'timeout',
-        unauthorized:       () => 'unauth',
-        forbidden:          () => 'forbidden',
-        notFound:           (_) => 'notfound',
-        validation:         (_, __) => 'validation',
-        rateLimited:        (_) => 'ratelimited',
-        serverError:        (_) => 'server',
-        aiProvider:         (_) => 'ai',
+        timeout: () => 'timeout',
+        unauthorized: () => 'unauth',
+        forbidden: () => 'forbidden',
+        notFound: (_) => 'notfound',
+        validation: (_, __) => 'validation',
+        rateLimited: (_) => 'ratelimited',
+        serverError: (_) => 'server',
+        aiProvider: (_) => 'ai',
         websocketDisconnect: () => 'ws',
-        unknown:            (_) => 'unknown',
+        unknown: (_) => 'unknown',
       );
       expect(result, 'network');
     });
@@ -86,16 +89,16 @@ void main() {
       const error = AppErrorF.rateLimited(retryAfterSeconds: 60);
       final result = error.when(
         networkUnavailable: () => '',
-        timeout:            () => '',
-        unauthorized:       () => '',
-        forbidden:          () => '',
-        notFound:           (_) => '',
-        validation:         (_, __) => '',
-        rateLimited:        (s) => 'limited:$s',
-        serverError:        (_) => '',
-        aiProvider:         (_) => '',
+        timeout: () => '',
+        unauthorized: () => '',
+        forbidden: () => '',
+        notFound: (_) => '',
+        validation: (_, __) => '',
+        rateLimited: (s) => 'limited:$s',
+        serverError: (_) => '',
+        aiProvider: (_) => '',
         websocketDisconnect: () => '',
-        unknown:            (_) => '',
+        unknown: (_) => '',
       );
       expect(result, 'limited:60');
     });
@@ -104,16 +107,16 @@ void main() {
       const error = AppErrorF.notFound(resource: 'Incident');
       final result = error.when(
         networkUnavailable: () => '',
-        timeout:            () => '',
-        unauthorized:       () => '',
-        forbidden:          () => '',
-        notFound:           (r) => 'notfound:$r',
-        validation:         (_, __) => '',
-        rateLimited:        (_) => '',
-        serverError:        (_) => '',
-        aiProvider:         (_) => '',
+        timeout: () => '',
+        unauthorized: () => '',
+        forbidden: () => '',
+        notFound: (r) => 'notfound:$r',
+        validation: (_, __) => '',
+        rateLimited: (_) => '',
+        serverError: (_) => '',
+        aiProvider: (_) => '',
         websocketDisconnect: () => '',
-        unknown:            (_) => '',
+        unknown: (_) => '',
       );
       expect(result, 'notfound:Incident');
     });
@@ -124,7 +127,7 @@ void main() {
       const error = AppErrorF.forbidden();
       final result = error.maybeWhen(
         unauthorized: () => 'unauth',
-        orElse:       () => 'other',
+        orElse: () => 'other',
       );
       expect(result, 'other');
     });
@@ -133,7 +136,7 @@ void main() {
       const error = AppErrorF.unauthorized();
       final result = error.maybeWhen(
         unauthorized: () => 'unauth',
-        orElse:       () => 'other',
+        orElse: () => 'other',
       );
       expect(result, 'unauth');
     });

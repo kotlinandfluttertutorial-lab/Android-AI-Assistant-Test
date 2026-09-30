@@ -63,12 +63,12 @@ from collections.abc import AsyncIterator
 from decimal import Decimal
 from typing import Any, cast
 
+from anthropic import AsyncAnthropic
+from anthropic.types import TextBlock
 from google import genai
 from google.genai import errors as genai_errors
 from google.genai import types as genai_types
 import httpx
-from anthropic import AsyncAnthropic
-from anthropic.types import TextBlock
 from openai import AsyncOpenAI
 from openai.types.chat import ChatCompletionMessageParam
 

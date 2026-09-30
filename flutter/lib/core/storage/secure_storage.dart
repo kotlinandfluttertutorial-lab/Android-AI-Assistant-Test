@@ -9,10 +9,12 @@ import 'package:ai_assistant_flutter/core/utils/app_logger.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class SecureStorage {
-  SecureStorage() : _storage = const FlutterSecureStorage(
-    aOptions: AndroidOptions(encryptedSharedPreferences: true),
-    iOptions: IOSOptions(accessibility: KeychainAccessibility.first_unlock),
-  );
+  SecureStorage()
+      : _storage = const FlutterSecureStorage(
+          aOptions: AndroidOptions(encryptedSharedPreferences: true),
+          iOptions:
+              IOSOptions(accessibility: KeychainAccessibility.first_unlock),
+        );
 
   final FlutterSecureStorage _storage;
 
@@ -71,8 +73,7 @@ class SecureStorage {
     ]);
   }
 
-  Future<String?> getUserId() =>
-      _storage.read(key: AppConstants.secureUserId);
+  Future<String?> getUserId() => _storage.read(key: AppConstants.secureUserId);
 
   Future<String?> getUserEmail() =>
       _storage.read(key: AppConstants.secureUserEmail);
@@ -88,7 +89,7 @@ class SecureStorage {
     if (token == null) return false;
     final expiry = await getAccessTokenExpiry();
     if (expiry == null) return false;
-    final bufferMs = AppConstants.tokenRefreshBufferSeconds * 1000;
+    const bufferMs = AppConstants.tokenRefreshBufferSeconds * 1000;
     return DateTime.now().millisecondsSinceEpoch < (expiry - bufferMs);
   }
 

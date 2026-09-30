@@ -45,7 +45,6 @@ class AuthApi {
       return Failure(ErrorMapper.map(e, st));
     }
   }
-}
 
   /// Exchange a Google ID token for application-level JWT + refresh tokens.
   ///
@@ -65,3 +64,4 @@ class AuthApi {
       return Failure(ErrorMapper.map(e, st));
     }
   }
+}

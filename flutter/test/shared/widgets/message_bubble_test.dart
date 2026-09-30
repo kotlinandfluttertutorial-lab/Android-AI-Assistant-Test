@@ -59,7 +59,8 @@ void main() {
       );
     });
 
-    testWidgets('assistant bubble has accessible semantics label', (tester) async {
+    testWidgets('assistant bubble has accessible semantics label',
+        (tester) async {
       await tester.pumpWidget(_wrap(
         const MessageBubble(
           role: BubbleRole.assistant,

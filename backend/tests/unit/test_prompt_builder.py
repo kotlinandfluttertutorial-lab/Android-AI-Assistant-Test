@@ -1,4 +1,4 @@
-"""Unit tests for app.llm.prompt_builder.PromptBuilder.
+﻿"""Unit tests for app.llm.prompt_builder.PromptBuilder.
 
 Covers:
 - build(): returns LLMRequest with assembled prompt.
@@ -6,12 +6,12 @@ Covers:
 - build(): RAG context is wrapped in delimiters.
 - build(): conversation history is included.
 - build(): user question is last.
-- build(): no RAG context → no RETRIEVED CONTEXT section.
-- build(): no history → no CONVERSATION HISTORY section.
+- build(): no RAG context â†’ no RETRIEVED CONTEXT section.
+- build(): no history â†’ no CONVERSATION HISTORY section.
 - build(): prompt is truncated to LLM_PROMPT_MAX_CHARS.
 - build(): oldest history dropped first during truncation.
-- build(): complexity classification — simple vs complex.
-- build(): empty user message → empty prompt field.
+- build(): complexity classification â€” simple vs complex.
+- build(): empty user message â†’ empty prompt field.
 - _classify_complexity(): known complex patterns return "complex".
 - _classify_complexity(): non-complex returns "simple".
 - _build_rag_section(): individual chunks truncated at _MAX_CHARS_PER_CHUNK.
@@ -28,7 +28,7 @@ os.environ.setdefault("SECRET_KEY", "test-secret-32-chars-long-minimum!")
 os.environ.setdefault("DATABASE_URL", "postgresql+asyncpg://test:test@localhost/test")
 os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
 os.environ.setdefault("GEMINI_API_KEY", "test-gemini-key")
-# AES_ENCRYPTION_KEY is set by conftest.py � not repeated here to avoid false-positive secret scans.
+# AES_ENCRYPTION_KEY is set by conftest.py -- not repeated here to avoid false-positive secret scans.
 
 from app.llm.prompt_builder import (
     PromptBuilder,

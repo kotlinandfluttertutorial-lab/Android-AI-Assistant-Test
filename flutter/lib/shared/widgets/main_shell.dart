@@ -18,43 +18,43 @@ class MainShell extends StatelessWidget {
 
   static const _tabs = [
     _TabItem(
-      route:      Routes.home,
-      icon:       Icons.home_outlined,
+      route: Routes.home,
+      icon: Icons.home_outlined,
       activeIcon: Icons.home,
-      label:      'Home',
+      label: 'Home',
     ),
     _TabItem(
-      route:      Routes.conversations,
-      icon:       Icons.chat_bubble_outline,
+      route: Routes.conversations,
+      icon: Icons.chat_bubble_outline,
       activeIcon: Icons.chat_bubble,
-      label:      'Chats',
+      label: 'Chats',
     ),
     _TabItem(
-      route:      Routes.incidents,
-      icon:       Icons.bug_report_outlined,
+      route: Routes.incidents,
+      icon: Icons.bug_report_outlined,
       activeIcon: Icons.bug_report,
-      label:      'Incidents',
+      label: 'Incidents',
     ),
     _TabItem(
-      route:      Routes.devops,
-      icon:       Icons.travel_explore,
+      route: Routes.devops,
+      icon: Icons.travel_explore,
       activeIcon: Icons.travel_explore,
-      label:      'DevOps AI',
+      label: 'DevOps AI',
     ),
     _TabItem(
-      route:      Routes.settings,
-      icon:       Icons.settings_outlined,
+      route: Routes.settings,
+      icon: Icons.settings_outlined,
       activeIcon: Icons.settings,
-      label:      'Settings',
+      label: 'Settings',
     ),
   ];
 
   int _activeIndex(BuildContext context) {
     final location = GoRouterState.of(context).matchedLocation;
     if (location.startsWith(Routes.conversations)) return 1;
-    if (location.startsWith(Routes.incidents))     return 2;
-    if (location.startsWith(Routes.devops))        return 3;
-    if (location.startsWith(Routes.settings))      return 4;
+    if (location.startsWith(Routes.incidents)) return 2;
+    if (location.startsWith(Routes.devops)) return 3;
+    if (location.startsWith(Routes.settings)) return 4;
     return 0; // home
   }
 
@@ -69,10 +69,10 @@ class MainShell extends StatelessWidget {
         destinations: _tabs
             .map(
               (t) => NavigationDestination(
-                icon:         Icon(t.icon,       semanticLabel: t.label),
+                icon: Icon(t.icon, semanticLabel: t.label),
                 selectedIcon: Icon(t.activeIcon, semanticLabel: t.label),
-                label:        t.label,
-                tooltip:      t.label,
+                label: t.label,
+                tooltip: t.label,
               ),
             )
             .toList(),
@@ -88,8 +88,8 @@ class _TabItem {
     required this.activeIcon,
     required this.label,
   });
-  final String   route;
+  final String route;
   final IconData icon;
   final IconData activeIcon;
-  final String   label;
+  final String label;
 }

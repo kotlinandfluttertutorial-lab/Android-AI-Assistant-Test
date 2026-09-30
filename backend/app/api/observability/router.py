@@ -23,7 +23,7 @@ import logging
 from typing import Any
 
 from fastapi import APIRouter, Depends, status
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.database import get_db
@@ -47,13 +47,19 @@ class ObservabilityEventPayload(BaseModel):
     Kotlin data class serialized with kotlinx.serialization.
     """
 
+    model_config = ConfigDict(populate_by_name=True)
+
     timestamp: int = Field(description="Epoch milliseconds (UTC) when captured on-device")
     level: str = Field(description="DEBUG | INFO | WARN | ERROR | CRITICAL")
-    eventType: str = Field(description="Machine-readable event category")
+    event_type: str = Field(alias="eventType", description="Machine-readable event category")
     message: str = Field(description="PII-filtered human-readable description")
-    sessionId: str = Field(description="App session UUID")
-    requestId: str | None = Field(default=None, description="Per-HTTP-call UUID")
-    traceId: str | None = Field(default=None, description="User-action flow trace ID")
+    session_id: str = Field(alias="sessionId", description="App session UUID")
+    request_id: str | None = Field(
+        default=None, alias="requestId", description="Per-HTTP-call UUID"
+    )
+    trace_id: str | None = Field(
+        default=None, alias="traceId", description="User-action flow trace ID"
+    )
     screen: str | None = Field(default=None, description="Active Compose route")
     metadata: dict[str, Any] = Field(
         default_factory=dict,

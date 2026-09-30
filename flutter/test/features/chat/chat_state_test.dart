@@ -41,8 +41,10 @@ void main() {
 
     test('equality is value-based via Equatable', () {
       final dt = DateTime(2025);
-      final a = UiMessage(localId: '1', role: 'user', content: 'hi', createdAt: dt);
-      final b = UiMessage(localId: '1', role: 'user', content: 'hi', createdAt: dt);
+      final a =
+          UiMessage(localId: '1', role: 'user', content: 'hi', createdAt: dt);
+      final b =
+          UiMessage(localId: '1', role: 'user', content: 'hi', createdAt: dt);
       expect(a, equals(b));
     });
   });

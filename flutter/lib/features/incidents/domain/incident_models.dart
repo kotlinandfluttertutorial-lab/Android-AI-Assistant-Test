@@ -14,26 +14,32 @@ import 'package:equatable/equatable.dart';
 // ── Enums ────────────────────────────────────────────────────────────────────
 
 enum IncidentSeverity {
-  critical, high, medium, low;
+  critical,
+  high,
+  medium,
+  low;
 
   static IncidentSeverity parse(String v) => switch (v.toUpperCase()) {
         'CRITICAL' => IncidentSeverity.critical,
-        'HIGH'     => IncidentSeverity.high,
-        'MEDIUM'   => IncidentSeverity.medium,
-        _          => IncidentSeverity.low,
+        'HIGH' => IncidentSeverity.high,
+        'MEDIUM' => IncidentSeverity.medium,
+        _ => IncidentSeverity.low,
       };
 
   String get label => name.toUpperCase();
 }
 
 enum IncidentStatus {
-  open, investigating, resolved, dismissed;
+  open,
+  investigating,
+  resolved,
+  dismissed;
 
   static IncidentStatus parse(String v) => switch (v.toUpperCase()) {
         'INVESTIGATING' => IncidentStatus.investigating,
-        'RESOLVED'      => IncidentStatus.resolved,
-        'DISMISSED'     => IncidentStatus.dismissed,
-        _               => IncidentStatus.open,
+        'RESOLVED' => IncidentStatus.resolved,
+        'DISMISSED' => IncidentStatus.dismissed,
+        _ => IncidentStatus.open,
       };
 
   String get label => name.toUpperCase();
@@ -62,22 +68,22 @@ class Incident extends Equatable {
   });
 
   factory Incident.fromJson(Map<String, dynamic> json) => Incident(
-        id:               json['id'] as String,
-        title:            json['title'] as String,
-        severity:         IncidentSeverity.parse(json['severity'] as String),
-        status:           IncidentStatus.parse(json['status'] as String),
-        detectedAt:       json['detected_at'] as String,
-        eventCount:       (json['event_count'] as int?) ?? 0,
-        detectionMethod:  (json['detection_method'] as String?) ?? '',
-        triggeredBy:      (json['triggered_by'] as String?) ?? '',
-        metricValue:      (json['metric_value'] as num?)?.toDouble(),
-        thresholdValue:   (json['threshold_value'] as num?)?.toDouble(),
-        analysisId:       json['analysis_id'] as String?,
-        aiSummary:        json['ai_summary'] as String?,
-        aiConfidence:     (json['ai_confidence'] as num?)?.toDouble(),
+        id: json['id'] as String,
+        title: json['title'] as String,
+        severity: IncidentSeverity.parse(json['severity'] as String),
+        status: IncidentStatus.parse(json['status'] as String),
+        detectedAt: json['detected_at'] as String,
+        eventCount: (json['event_count'] as int?) ?? 0,
+        detectionMethod: (json['detection_method'] as String?) ?? '',
+        triggeredBy: (json['triggered_by'] as String?) ?? '',
+        metricValue: (json['metric_value'] as num?)?.toDouble(),
+        thresholdValue: (json['threshold_value'] as num?)?.toDouble(),
+        analysisId: json['analysis_id'] as String?,
+        aiSummary: json['ai_summary'] as String?,
+        aiConfidence: (json['ai_confidence'] as num?)?.toDouble(),
         aiRecommendedFix: json['ai_recommended_fix'] as String?,
-        windowMinutes:    (json['window_minutes'] as int?) ?? 0,
-        resolvedAt:       json['resolved_at'] as String?,
+        windowMinutes: (json['window_minutes'] as int?) ?? 0,
+        resolvedAt: json['resolved_at'] as String?,
       );
 
   final String id;
@@ -117,10 +123,9 @@ class IncidentListResponse {
   factory IncidentListResponse.fromJson(Map<String, dynamic> json) {
     final raw = json['incidents'] as List<dynamic>? ?? [];
     return IncidentListResponse(
-      incidents: raw
-          .map((e) => Incident.fromJson(e as Map<String, dynamic>))
-          .toList(),
-      total:     (json['total'] as int?) ?? 0,
+      incidents:
+          raw.map((e) => Incident.fromJson(e as Map<String, dynamic>)).toList(),
+      total: (json['total'] as int?) ?? 0,
       openCount: (json['open_count'] as int?) ?? 0,
     );
   }
@@ -143,12 +148,12 @@ class RootCauseCandidate extends Equatable {
 
   factory RootCauseCandidate.fromJson(Map<String, dynamic> json) =>
       RootCauseCandidate(
-        rank:               (json['rank'] as int?) ?? 1,
-        cause:              (json['cause'] as String?) ?? '',
-        confidence:         ((json['confidence'] as num?) ?? 0).toDouble(),
+        rank: (json['rank'] as int?) ?? 1,
+        cause: (json['cause'] as String?) ?? '',
+        confidence: ((json['confidence'] as num?) ?? 0).toDouble(),
         supportingEvidence: List<String>.from(
             json['supporting_evidence'] as List<dynamic>? ?? []),
-        reasoning:          (json['reasoning'] as String?) ?? '',
+        reasoning: (json['reasoning'] as String?) ?? '',
       );
 
   final int rank;
@@ -173,11 +178,11 @@ class TimelineEvent extends Equatable {
 
   factory TimelineEvent.fromJson(Map<String, dynamic> json) => TimelineEvent(
         timestamp: (json['timestamp'] as String?) ?? '',
-        source:    (json['source'] as String?) ?? '',
-        level:     (json['level'] as String?) ?? 'INFO',
-        message:   (json['message'] as String?) ?? '',
+        source: (json['source'] as String?) ?? '',
+        level: (json['level'] as String?) ?? 'INFO',
+        message: (json['message'] as String?) ?? '',
         eventType: (json['event_type'] as String?) ?? '',
-        screen:    json['screen'] as String?,
+        screen: json['screen'] as String?,
       );
 
   final String timestamp;
@@ -208,23 +213,25 @@ class RcaAnalysisResponse extends Equatable {
 
   factory RcaAnalysisResponse.fromJson(Map<String, dynamic> json) =>
       RcaAnalysisResponse(
-        rcaId:             (json['rca_id'] as String?) ?? '',
-        incidentId:        (json['incident_id'] as String?) ?? '',
-        summary:           (json['summary'] as String?) ?? '',
-        overallConfidence: ((json['overall_confidence'] as num?) ?? 0).toDouble(),
-        rootCauseCandidates: (json['root_cause_candidates'] as List<dynamic>? ?? [])
+        rcaId: (json['rca_id'] as String?) ?? '',
+        incidentId: (json['incident_id'] as String?) ?? '',
+        summary: (json['summary'] as String?) ?? '',
+        overallConfidence:
+            ((json['overall_confidence'] as num?) ?? 0).toDouble(),
+        rootCauseCandidates: (json['root_cause_candidates'] as List<dynamic>? ??
+                [])
             .map((e) => RootCauseCandidate.fromJson(e as Map<String, dynamic>))
             .toList(),
         timeline: (json['timeline'] as List<dynamic>? ?? [])
             .map((e) => TimelineEvent.fromJson(e as Map<String, dynamic>))
             .toList(),
-        chainOfThought:     (json['chain_of_thought'] as String?) ?? '',
+        chainOfThought: (json['chain_of_thought'] as String?) ?? '',
         investigationSteps: List<String>.from(
             json['investigation_steps'] as List<dynamic>? ?? []),
         relatedDocumentation: List<String>.from(
             json['related_documentation'] as List<dynamic>? ?? []),
         lowConfidenceWarning: json['low_confidence_warning'] as String?,
-        llmProvider:          (json['llm_provider'] as String?) ?? '',
+        llmProvider: (json['llm_provider'] as String?) ?? '',
       );
 
   final String rcaId;
@@ -267,31 +274,31 @@ class RemediationAction extends Equatable {
 
   factory RemediationAction.fromJson(Map<String, dynamic> json) =>
       RemediationAction(
-        id:               (json['id'] as String?) ?? '',
-        incidentId:       (json['incident_id'] as String?) ?? '',
-        title:            (json['title'] as String?) ?? '',
-        actionType:       (json['action_type'] as String?) ?? '',
-        riskTier:         (json['risk_tier'] as String?) ?? 'LOW',
-        reasoning:        (json['reasoning'] as String?) ?? '',
-        rank:             (json['rank'] as int?) ?? 1,
-        status:           (json['status'] as String?) ?? 'RECOMMENDED',
-        confidence:       (json['confidence'] as num?)?.toDouble(),
-        params:           Map<String, dynamic>.from(
+        id: (json['id'] as String?) ?? '',
+        incidentId: (json['incident_id'] as String?) ?? '',
+        title: (json['title'] as String?) ?? '',
+        actionType: (json['action_type'] as String?) ?? '',
+        riskTier: (json['risk_tier'] as String?) ?? 'LOW',
+        reasoning: (json['reasoning'] as String?) ?? '',
+        rank: (json['rank'] as int?) ?? 1,
+        status: (json['status'] as String?) ?? 'RECOMMENDED',
+        confidence: (json['confidence'] as num?)?.toDouble(),
+        params: Map<String, dynamic>.from(
             json['params'] as Map<String, dynamic>? ?? {}),
-        reviewedBy:       json['reviewed_by'] as String?,
-        rejectionReason:  json['rejection_reason'] as String?,
-        createdAt:        (json['created_at'] as String?) ?? '',
-        reviewedAt:       json['reviewed_at'] as String?,
+        reviewedBy: json['reviewed_by'] as String?,
+        rejectionReason: json['rejection_reason'] as String?,
+        createdAt: (json['created_at'] as String?) ?? '',
+        reviewedAt: json['reviewed_at'] as String?,
       );
 
   final String id;
   final String incidentId;
   final String title;
   final String actionType;
-  final String riskTier;   // LOW | MEDIUM | HIGH
+  final String riskTier; // LOW | MEDIUM | HIGH
   final String reasoning;
   final int rank;
-  final String status;     // RECOMMENDED | APPROVED | REJECTED
+  final String status; // RECOMMENDED | APPROVED | REJECTED
   final double? confidence;
   final Map<String, dynamic> params;
   final String? reviewedBy;
@@ -300,9 +307,9 @@ class RemediationAction extends Equatable {
   final String? reviewedAt;
 
   bool get isHighRisk => riskTier.toUpperCase() == 'HIGH';
-  bool get isPending   => status == 'RECOMMENDED';
-  bool get isApproved  => status == 'APPROVED';
-  bool get isRejected  => status == 'REJECTED';
+  bool get isPending => status == 'RECOMMENDED';
+  bool get isApproved => status == 'APPROVED';
+  bool get isRejected => status == 'REJECTED';
 
   @override
   List<Object?> get props => [id, status, riskTier];
@@ -319,9 +326,9 @@ class RemediationPlanResponse {
 
   factory RemediationPlanResponse.fromJson(Map<String, dynamic> json) =>
       RemediationPlanResponse(
-        incidentId:    (json['incident_id'] as String?) ?? '',
+        incidentId: (json['incident_id'] as String?) ?? '',
         incidentTitle: (json['incident_title'] as String?) ?? '',
-        aiSummary:     (json['ai_summary'] as String?) ?? '',
+        aiSummary: (json['ai_summary'] as String?) ?? '',
         actions: (json['actions'] as List<dynamic>? ?? [])
             .map((e) => RemediationAction.fromJson(e as Map<String, dynamic>))
             .toList(),

@@ -35,9 +35,8 @@ class ProviderSelector extends StatelessWidget {
               label: Text(provider.displayName),
               selected: isSelected,
               onSelected: (_) => onSelected(provider),
-              avatar: provider.icon != null
-                  ? Icon(provider.icon, size: 16)
-                  : null,
+              avatar:
+                  provider.icon != null ? Icon(provider.icon, size: 16) : null,
             ),
           );
         },

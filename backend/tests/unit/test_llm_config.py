@@ -1,4 +1,4 @@
-"""Unit tests for new LLM-related settings fields in app.config.settings.
+ï»¿"""Unit tests for new LLM-related settings fields in app.config.settings.
 
 Covers:
 - GEMINI_FALLBACK_MODEL default and override.
@@ -24,7 +24,7 @@ import pytest
 os.environ.setdefault("SECRET_KEY", "test-secret-32-chars-long-minimum!")
 os.environ.setdefault("DATABASE_URL", "postgresql+asyncpg://test:test@localhost/test")
 os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
-# AES_ENCRYPTION_KEY is set by conftest.py — not repeated here to avoid false-positive secret scans.
+# AES_ENCRYPTION_KEY is set by conftest.py -- not repeated here to avoid false-positive secret scans.
 
 
 class TestNewLLMSettings:

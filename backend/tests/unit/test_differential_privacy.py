@@ -41,7 +41,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import numpy as np
 import pytest
-from typing import Any
 
 # Environment must be set before app imports
 os.environ.setdefault("SECRET_KEY", "test-secret-key-at-least-32-chars-long!!")
@@ -279,9 +278,9 @@ class TestAdminEpsilonEndpoint:
         # **kwargs as query parameters, causing HTTP 422. We override them with
         # plain functions to prevent this.
         from app.api.admin import router as admin_router
-        from app.security.rbac import require_admin
-        from app.database.redis import get_redis
         from app.database import get_db
+        from app.database.redis import get_redis
+        from app.security.rbac import require_admin
 
         app = FastAPI()
         mock_redis = _make_redis_mock(epsilon_value=epsilon_value)

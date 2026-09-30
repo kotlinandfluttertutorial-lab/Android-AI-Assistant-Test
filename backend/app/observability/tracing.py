@@ -114,7 +114,7 @@ def _configure_tracing(service_name: str | None) -> None:
     else:
         # No endpoint set — try Cloud Trace via ADC (works on Cloud Run natively)
         try:
-            from opentelemetry.exporter.cloud_trace import CloudTraceSpanExporter  # type: ignore[import]
+            from opentelemetry.exporter.cloud_trace import CloudTraceSpanExporter  # type: ignore[import]  # noqa: I001
             exporter = CloudTraceSpanExporter()  # type: ignore[assignment]
             logger.info("OTEL: exporting spans to Google Cloud Trace via ADC")
         except ImportError:

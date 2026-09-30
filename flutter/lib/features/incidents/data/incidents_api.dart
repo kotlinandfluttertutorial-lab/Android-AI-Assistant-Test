@@ -103,7 +103,8 @@ class IncidentsApi {
 
   // ── Remediation ───────────────────────────────────────────────────────────
 
-  Future<Result<RemediationPlanResponse>> recommendRemediation(String id) async {
+  Future<Result<RemediationPlanResponse>> recommendRemediation(
+      String id) async {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
         ApiConfig.incidentRemediationRecommend(id),

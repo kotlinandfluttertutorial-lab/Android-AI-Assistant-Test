@@ -35,11 +35,9 @@ class SuggestionChipRow extends StatelessWidget {
                 height: 36,
                 child: ListView.separated(
                   scrollDirection: Axis.horizontal,
-                  padding:
-                      const EdgeInsets.symmetric(horizontal: 12),
+                  padding: const EdgeInsets.symmetric(horizontal: 12),
                   itemCount: suggestions.length,
-                  separatorBuilder: (_, __) =>
-                      const SizedBox(width: 8),
+                  separatorBuilder: (_, __) => const SizedBox(width: 8),
                   itemBuilder: (ctx, i) {
                     final text = suggestions[i];
                     return Semantics(

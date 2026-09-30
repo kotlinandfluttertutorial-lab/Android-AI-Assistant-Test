@@ -289,7 +289,8 @@ IMPORTANT RULES:
 1. Only use information present in the provided evidence and context — never invent facts.
 2. Separate facts (directly observable in the evidence) from inferences (your reasoning).
 3. Provide a confidence score between 0.0 and 1.0. Be honest about uncertainty.
-4. If confidence is below 0.6, set likely_root_cause to exactly: "Evidence is insufficient — manual investigation required."
+4. If confidence is below 0.6, set likely_root_cause to exactly:
+   "Evidence is insufficient — manual investigation required."
 5. Recommended fix is a SUGGESTION only — never imply automated action will be taken.
 6. Never expose credentials, tokens, or PII even if present in the evidence.
 
@@ -332,8 +333,8 @@ Respond with ONLY valid JSON matching this exact schema (no markdown, no explana
         """
         import asyncio
 
-        from app.services.ai_orchestrator import AIOrchestrator, LLMProvider
         from app.config.settings import get_settings
+        from app.services.ai_orchestrator import AIOrchestrator, LLMProvider
 
         settings = get_settings()
 

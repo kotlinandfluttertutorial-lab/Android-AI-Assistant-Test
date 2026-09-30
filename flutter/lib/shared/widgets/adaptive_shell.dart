@@ -25,51 +25,51 @@ class _Tab {
     required this.activeIcon,
     required this.label,
   });
-  final String   route;
+  final String route;
   final IconData icon;
   final IconData activeIcon;
-  final String   label;
+  final String label;
 }
 
 const List<_Tab> _tabs = [
   _Tab(
-    route:      Routes.home,
-    icon:       Icons.home_outlined,
+    route: Routes.home,
+    icon: Icons.home_outlined,
     activeIcon: Icons.home,
-    label:      'Home',
+    label: 'Home',
   ),
   _Tab(
-    route:      Routes.conversations,
-    icon:       Icons.chat_bubble_outline,
+    route: Routes.conversations,
+    icon: Icons.chat_bubble_outline,
     activeIcon: Icons.chat_bubble,
-    label:      'Chats',
+    label: 'Chats',
   ),
   _Tab(
-    route:      Routes.incidents,
-    icon:       Icons.bug_report_outlined,
+    route: Routes.incidents,
+    icon: Icons.bug_report_outlined,
     activeIcon: Icons.bug_report,
-    label:      'Incidents',
+    label: 'Incidents',
   ),
   _Tab(
-    route:      Routes.devops,
-    icon:       Icons.travel_explore,
+    route: Routes.devops,
+    icon: Icons.travel_explore,
     activeIcon: Icons.travel_explore,
-    label:      'DevOps AI',
+    label: 'DevOps AI',
   ),
   _Tab(
-    route:      Routes.settings,
-    icon:       Icons.settings_outlined,
+    route: Routes.settings,
+    icon: Icons.settings_outlined,
     activeIcon: Icons.settings,
-    label:      'Settings',
+    label: 'Settings',
   ),
 ];
 
 int _activeIndex(BuildContext context) {
   final location = GoRouterState.of(context).matchedLocation;
   if (location.startsWith(Routes.conversations)) return 1;
-  if (location.startsWith(Routes.incidents))     return 2;
-  if (location.startsWith(Routes.devops))        return 3;
-  if (location.startsWith(Routes.settings))      return 4;
+  if (location.startsWith(Routes.incidents)) return 2;
+  if (location.startsWith(Routes.devops)) return 3;
+  if (location.startsWith(Routes.settings)) return 4;
   return 0;
 }
 
@@ -95,15 +95,15 @@ class AdaptiveShell extends StatelessWidget {
       return Scaffold(
         body: child,
         bottomNavigationBar: NavigationBar(
-          selectedIndex:        index,
+          selectedIndex: index,
           onDestinationSelected: (i) => context.go(_tabs[i].route),
           destinations: _tabs
               .map(
                 (t) => NavigationDestination(
-                  icon:         Icon(t.icon,       semanticLabel: t.label),
+                  icon: Icon(t.icon, semanticLabel: t.label),
                   selectedIcon: Icon(t.activeIcon, semanticLabel: t.label),
-                  label:        t.label,
-                  tooltip:      t.label,
+                  label: t.label,
+                  tooltip: t.label,
                 ),
               )
               .toList(),
@@ -119,13 +119,12 @@ class AdaptiveShell extends StatelessWidget {
         children: [
           // Navigation rail
           NavigationRail(
-            extended:      extended,
+            extended: extended,
             selectedIndex: index,
-            minWidth:      72,
+            minWidth: 72,
             minExtendedWidth: 180,
             backgroundColor: Theme.of(context).colorScheme.surface,
-            indicatorColor:
-                Theme.of(context).colorScheme.primary.withAlpha(25),
+            indicatorColor: Theme.of(context).colorScheme.primary.withAlpha(25),
             selectedIconTheme: IconThemeData(
               color: Theme.of(context).colorScheme.primary,
             ),
@@ -133,12 +132,12 @@ class AdaptiveShell extends StatelessWidget {
               color: context.mutedColor,
             ),
             selectedLabelTextStyle: TextStyle(
-              color:      Theme.of(context).colorScheme.primary,
+              color: Theme.of(context).colorScheme.primary,
               fontWeight: FontWeight.w600,
-              fontSize:   13,
+              fontSize: 13,
             ),
             unselectedLabelTextStyle: TextStyle(
-              color:    context.mutedColor,
+              color: context.mutedColor,
               fontSize: 13,
             ),
             onDestinationSelected: (i) => context.go(_tabs[i].route),
@@ -146,7 +145,7 @@ class AdaptiveShell extends StatelessWidget {
             leading: Padding(
               padding: const EdgeInsets.symmetric(vertical: 8),
               child: Container(
-                width:  40,
+                width: 40,
                 height: 40,
                 decoration: BoxDecoration(
                   gradient: context.heroGradient,
@@ -163,10 +162,10 @@ class AdaptiveShell extends StatelessWidget {
             destinations: _tabs
                 .map(
                   (t) => NavigationRailDestination(
-                    icon:         Icon(t.icon,       semanticLabel: t.label),
+                    icon: Icon(t.icon, semanticLabel: t.label),
                     selectedIcon: Icon(t.activeIcon, semanticLabel: t.label),
-                    label:        Text(t.label),
-                    padding:      const EdgeInsets.symmetric(vertical: 2),
+                    label: Text(t.label),
+                    padding: const EdgeInsets.symmetric(vertical: 2),
                   ),
                 )
                 .toList(),

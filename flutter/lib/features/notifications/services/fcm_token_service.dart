@@ -69,7 +69,7 @@ class FcmTokenService {
     AppLogger.i('FcmTokenService: registering device token');
     final platform = _platform();
     final result = await _api.registerDeviceToken(
-      token:    token,
+      token: token,
       platform: platform,
     );
     result.when(

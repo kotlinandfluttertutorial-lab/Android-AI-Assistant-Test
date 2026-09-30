@@ -8,7 +8,6 @@ from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
-from app.agents.voice_agent import VOICE_AGENT_NAME, VoiceAgent
 from app.agents.models import (
     AgentCapability,
     AgentCompletedEvent,
@@ -19,9 +18,9 @@ from app.agents.models import (
     AgentStartedEvent,
     AgentStatus,
     AgentStatusChangedEvent,
-    AgentThinkingEvent,
     AgentTokenEvent,
 )
+from app.agents.voice_agent import VOICE_AGENT_NAME, VoiceAgent
 
 
 # ---------------------------------------------------------------------------

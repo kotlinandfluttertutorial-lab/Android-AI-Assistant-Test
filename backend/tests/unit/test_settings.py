@@ -25,7 +25,6 @@ Requirements: 26.1, 26.3, 26.5, 20.6
 from __future__ import annotations
 
 import os
-from unittest.mock import patch
 
 import pytest
 from pydantic import ValidationError
@@ -36,7 +35,7 @@ os.environ.setdefault("DATABASE_URL", "postgresql+asyncpg://test:test@localhost/
 os.environ.setdefault("REDIS_URL", "redis://localhost:6379/0")
 os.environ.setdefault("AES_ENCRYPTION_KEY", "dGVzdGtleXRlc3RrZXl0ZXN0a2V5dGVzdA==")
 
-from app.config.settings import Settings, get_settings  # noqa: E402
+from app.config.settings import Settings, get_settings
 
 
 # ---------------------------------------------------------------------------

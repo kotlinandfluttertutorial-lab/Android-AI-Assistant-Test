@@ -275,8 +275,8 @@ class ObservabilityEventRepository:
         for ts in timestamps:
             # Make ts timezone-aware if it isn't (defensive)
             if ts.tzinfo is None:
-                from datetime import timezone
-                ts = ts.replace(tzinfo=timezone.utc)
+                from datetime import UTC as _UTC
+                ts = ts.replace(tzinfo=_UTC)
             age_minutes = (now - ts).total_seconds() / 60
             bucket_idx = int(age_minutes // bucket_minutes)
             if 0 <= bucket_idx < num_buckets:
@@ -331,8 +331,6 @@ class ObservabilityEventRepository:
             Matching events ordered newest-first so the assistant sees
             the most recent context first.
         """
-        from sqlalchemy import func as _func
-
         cutoff = datetime.now(tz=UTC) - timedelta(minutes=minutes)
 
         stmt = (

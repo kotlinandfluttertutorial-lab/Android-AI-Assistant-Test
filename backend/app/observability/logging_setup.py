@@ -33,7 +33,6 @@ import json
 import logging
 import os
 import sys
-import traceback
 from datetime import UTC, datetime
 from typing import Any
 
@@ -85,7 +84,7 @@ class JsonFormatter(logging.Formatter):
         }
     )
 
-    def format(self, record: logging.LogRecord) -> str:  # noqa: A003
+    def format(self, record: logging.LogRecord) -> str:
         # Merge the message (handles %-style formatting of args)
         record.message = record.getMessage()
 

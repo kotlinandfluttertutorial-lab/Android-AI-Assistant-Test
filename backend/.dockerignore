@@ -1,0 +1,105 @@
+# ============================================================================
+# backend/.dockerignore — Controls what the Docker build context includes
+# ============================================================================
+#
+# The build context is everything sent from the client to the Docker daemon
+# before the Dockerfile runs.  Without this file the context includes .env
+# files (with real secrets!), __pycache__, test files, and build artefacts.
+#
+# Rules (gitignore syntax):
+#   pattern     — ignore this file/directory
+#   !pattern    — never ignore (exception to a broad rule above)
+# ============================================================================
+
+# ── Python bytecode and caches ───────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+htmlcov/
+.coverage
+coverage.xml
+*.lcov
+
+# ── Dependency directories ───────────────────────────────────────────────────
+# These are never needed inside the image (dependencies come from requirements.txt)
+venv/
+venv311/
+.venv/
+env/
+ENV/
+.env/
+*.egg-info/
+dist/
+build/
+
+# ── Secrets and environment files ────────────────────────────────────────────
+# CRITICAL: .env files contain real credentials — they must NEVER be included
+# in the build context or baked into the image.
+.env
+.env.*
+*.env
+!.env.example       # Allow the example file (no real secrets, documents config)
+
+# ── Test files ───────────────────────────────────────────────────────────────
+# Tests are not needed at runtime.  Excluding them reduces image size and
+# prevents test harness code (which relaxes security settings) from running
+# in production.
+tests/
+test_*.py
+*_test.py
+conftest.py
+pytest.ini
+pyproject.toml
+ruff.toml
+.hypothesis/
+
+# ── CI / developer tooling ───────────────────────────────────────────────────
+.github/
+.pre-commit-config.yaml
+Makefile
+docker-compose*.yml
+
+# ── Documentation and temporary files ───────────────────────────────────────
+*.md
+!README.md          # Allow README.md — useful for image introspection
+docs/
+notebooks/
+*.ipynb
+*.tmp
+*.log
+*.bak
+
+# ── IDE and OS files ─────────────────────────────────────────────────────────
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# ── Git history ──────────────────────────────────────────────────────────────
+# The .git directory is ~5-50 MB and adds nothing to the image.
+.git/
+.gitignore
+.gitattributes
+
+# ── Build artefacts from previous runs ───────────────────────────────────────
+*.xml        # JUnit/coverage XML reports
+htmlcov/
+*.sarif
+
+# ── Alembic migration history is included
+# (needed by the reingest script and the Alembic Cloud Run Job)
+# alembic/ — NOT excluded; the Dockerfile copies it explicitly
+
+# ── Knowledge base is NOT included in the Docker image
+# It is seeded from the host at startup time (via volume mount in compose,
+# or re-seeded from GCS on Cloud Run).  Including it in the image would add
+# 10-100 MB and make it stale on every document update.
+# Uncomment the line below if you want the knowledge base baked into the image:
+# !knowledge/
+knowledge/

@@ -38,8 +38,7 @@ final appPreferencesProvider = Provider<AppPreferences>((ref) {
 
 /// Notifier that other providers can call to signal authentication loss.
 /// The router watches [authStateProvider] which will react to this.
-final authExpiredNotifierProvider =
-    StateProvider<int>((ref) => 0);
+final authExpiredNotifierProvider = StateProvider<int>((ref) => 0);
 
 final authInterceptorProvider = Provider<AuthInterceptor>((ref) {
   final storage = ref.watch(secureStorageProvider);
