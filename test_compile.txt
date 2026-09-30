@@ -1,0 +1,34 @@
+﻿
+> Configure project :app
+WARNING: The option setting 'android.r8.maxWorkers=1' is experimental.
+
+> Task :domain:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :core-common:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :domain:preBuild UP-TO-DATE
+> Task :core-common:preBuild UP-TO-DATE
+> Task :domain:preReleaseBuild UP-TO-DATE
+> Task :core-common:preReleaseBuild UP-TO-DATE
+> Task :domain:generateReleaseResources UP-TO-DATE
+> Task :core-common:generateReleaseResources UP-TO-DATE
+> Task :core-common:packageReleaseResources UP-TO-DATE
+> Task :domain:packageReleaseResources UP-TO-DATE
+> Task :core-common:parseReleaseLocalResources UP-TO-DATE
+> Task :domain:parseReleaseLocalResources UP-TO-DATE
+> Task :domain:generateReleaseRFile UP-TO-DATE
+> Task :core-common:generateReleaseRFile UP-TO-DATE
+> Task :domain:javaPreCompileRelease UP-TO-DATE
+> Task :domain:preReleaseUnitTestBuild UP-TO-DATE
+> Task :core-common:compileReleaseKotlin UP-TO-DATE
+> Task :core-common:javaPreCompileRelease UP-TO-DATE
+> Task :core-common:compileReleaseJavaWithJavac NO-SOURCE
+> Task :core-common:bundleLibCompileToJarRelease UP-TO-DATE
+> Task :domain:generateReleaseUnitTestStubRFile UP-TO-DATE
+> Task :domain:compileReleaseKotlin UP-TO-DATE
+> Task :domain:compileReleaseJavaWithJavac NO-SOURCE
+> Task :domain:bundleLibCompileToJarRelease UP-TO-DATE
+
+> Task :domain:compileReleaseUnitTestKotlin
+w: file:///J:/Android/AndroidStudioProjects/Kiro/TestBranch/Develop_Main/Android-AI-Assistant-Test/domain/src/test/kotlin/com/aiassistant/domain/agent/AgentModeTest.kt:450:40 Call uses reflection API which is not found in compilation classpath. Make sure you have kotlin-reflect.jar in the classpath.
+
+BUILD SUCCESSFUL in 36s
+16 actionable tasks: 1 executed, 15 up-to-date
