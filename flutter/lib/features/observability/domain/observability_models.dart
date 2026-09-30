@@ -29,15 +29,15 @@ enum EventLevel {
 class EventType {
   EventType._();
 
-  static const String networkError   = 'network_error';
-  static const String apiLatency     = 'api_latency';
-  static const String httpError      = 'http_error';
-  static const String appLifecycle   = 'app_lifecycle';
-  static const String userError      = 'user_error';
+  static const String networkError = 'network_error';
+  static const String apiLatency = 'api_latency';
+  static const String httpError = 'http_error';
+  static const String appLifecycle = 'app_lifecycle';
+  static const String userError = 'user_error';
   static const String handledException = 'handled_exception';
-  static const String crash          = 'crash';
-  static const String navigation     = 'navigation';
-  static const String performance    = 'performance';
+  static const String crash = 'crash';
+  static const String navigation = 'navigation';
+  static const String performance = 'performance';
 }
 
 // ── Event model ───────────────────────────────────────────────────────────────
@@ -77,15 +77,15 @@ class ObservabilityEvent extends Equatable {
 
   /// Serialise to the camelCase JSON format the backend expects.
   Map<String, dynamic> toJson() => {
-        'timestamp':  timestamp,
-        'level':      level.value,
-        'eventType':  eventType,
-        'message':    message,
-        'sessionId':  sessionId,
+        'timestamp': timestamp,
+        'level': level.value,
+        'eventType': eventType,
+        'message': message,
+        'sessionId': sessionId,
         if (requestId != null) 'requestId': requestId,
-        if (traceId != null)   'traceId':   traceId,
-        if (screen != null)    'screen':    screen,
-        'metadata':   metadata,
+        if (traceId != null) 'traceId': traceId,
+        if (screen != null) 'screen': screen,
+        'metadata': metadata,
       };
 
   @override
@@ -113,7 +113,7 @@ class IngestResponse {
   factory IngestResponse.fromJson(Map<String, dynamic> json) =>
       IngestResponse(
         accepted: (json['accepted'] as int?) ?? 0,
-        total:    (json['total'] as int?) ?? 0,
+        total: (json['total'] as int?) ?? 0,
       );
 
   final int accepted;

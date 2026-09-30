@@ -22,11 +22,11 @@ class SettingsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState       = ref.watch(authStateProvider).valueOrNull;
+    final authState = ref.watch(authStateProvider).valueOrNull;
     final selectedProvider = ref.watch(selectedProviderProvider);
-    final allProviders    = ref.watch(providersListProvider);
-    final prefs           = ref.watch(appPreferencesProvider);
-    final onDeviceAsync   = ref.watch(onDeviceAiProvider);
+    final allProviders = ref.watch(providersListProvider);
+    final prefs = ref.watch(appPreferencesProvider);
+    final onDeviceAsync = ref.watch(onDeviceAiProvider);
 
     return Scaffold(
       appBar: AppBar(title: const Text('Settings')),
@@ -108,8 +108,8 @@ class SettingsScreen extends ConsumerWidget {
               trailing: status == OnDeviceAiState.supported
                   ? TextButton(
                       onPressed: () => unawaited(
-                          ref.read(onDeviceAiProvider.notifier).loadModel(),
-                        ),
+                        ref.read(onDeviceAiProvider.notifier).loadModel(),
+                      ),
                       child: const Text('Load model'),
                     )
                   : null,
@@ -127,8 +127,8 @@ class SettingsScreen extends ConsumerWidget {
               underline: const SizedBox.shrink(),
               items: const [
                 DropdownMenuItem(value: 'system', child: Text('System')),
-                DropdownMenuItem(value: 'light',  child: Text('Light')),
-                DropdownMenuItem(value: 'dark',   child: Text('Dark')),
+                DropdownMenuItem(value: 'light', child: Text('Light')),
+                DropdownMenuItem(value: 'dark', child: Text('Dark')),
               ],
               onChanged: (v) async {
                 if (v != null) await prefs.setThemeMode(v);
@@ -168,14 +168,14 @@ class SettingsScreen extends ConsumerWidget {
   }
 
   String _statusLabel(OnDeviceAiState status) => switch (status) {
-        OnDeviceAiState.checking     => 'Checking…',
-        OnDeviceAiState.unsupported  => 'Not supported',
-        OnDeviceAiState.supported    => 'Model not loaded',
-        OnDeviceAiState.loadingModel => 'Loading model…',
-        OnDeviceAiState.ready        => 'Ready',
-        OnDeviceAiState.running      => 'Running',
-        OnDeviceAiState.error        => 'Error',
-      };
+    OnDeviceAiState.checking => 'Checking…',
+    OnDeviceAiState.unsupported => 'Not supported',
+    OnDeviceAiState.supported => 'Model not loaded',
+    OnDeviceAiState.loadingModel => 'Loading model…',
+    OnDeviceAiState.ready => 'Ready',
+    OnDeviceAiState.running => 'Running',
+    OnDeviceAiState.error => 'Error',
+  };
 }
 
 class _SectionHeader extends StatelessWidget {

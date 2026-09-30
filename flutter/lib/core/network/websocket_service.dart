@@ -26,13 +26,13 @@ enum WsMessageType {
   unknown;
 
   static WsMessageType fromString(String? value) => switch (value) {
-        'token' => WsMessageType.token,
-        'done' => WsMessageType.done,
-        'error' => WsMessageType.error,
-        'tool_call' => WsMessageType.toolCall,
-        'ping' => WsMessageType.ping,
-        _ => WsMessageType.unknown,
-      };
+    'token' => WsMessageType.token,
+    'done' => WsMessageType.done,
+    'error' => WsMessageType.error,
+    'tool_call' => WsMessageType.toolCall,
+    'ping' => WsMessageType.ping,
+    _ => WsMessageType.unknown,
+  };
 }
 
 /// Strongly-typed server message.
@@ -58,9 +58,9 @@ class WsMessage {
   }
 
   final WsMessageType type;
-  final String? data;               // token chunk
+  final String? data; // token chunk
   final Map<String, dynamic>? usage; // done payload
-  final String? message;            // error message
+  final String? message; // error message
   final String? toolName;
   final Map<String, dynamic>? toolInput;
 }

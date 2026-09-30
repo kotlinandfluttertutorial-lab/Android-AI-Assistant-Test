@@ -18,7 +18,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 final authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepository(
-    api:     AuthApi(ref.watch(dioProvider)),
+    api: AuthApi(ref.watch(dioProvider)),
     storage: ref.watch(secureStorageProvider),
   );
 });
@@ -39,7 +39,7 @@ class AuthStateNotifier extends AsyncNotifier<AuthState> {
 
   Future<Result<void>> login(LoginRequest request) async {
     state = const AsyncLoading();
-    final repo   = ref.read(authRepositoryProvider);
+    final repo = ref.read(authRepositoryProvider);
     final result = await repo.login(request);
     return result.when(
       onSuccess: (user) {
@@ -56,7 +56,7 @@ class AuthStateNotifier extends AsyncNotifier<AuthState> {
 
   Future<Result<void>> register(RegisterRequest request) async {
     state = const AsyncLoading();
-    final repo   = ref.read(authRepositoryProvider);
+    final repo = ref.read(authRepositoryProvider);
     final result = await repo.register(request);
     return result.when(
       onSuccess: (user) {
@@ -80,7 +80,7 @@ class AuthStateNotifier extends AsyncNotifier<AuthState> {
 
   Future<Result<void>> googleSignIn(String idToken) async {
     state = const AsyncLoading();
-    final repo   = ref.read(authRepositoryProvider);
+    final repo = ref.read(authRepositoryProvider);
     final result = await repo.googleSignIn(idToken);
     return result.when(
       onSuccess: (user) {

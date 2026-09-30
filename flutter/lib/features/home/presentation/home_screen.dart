@@ -24,9 +24,9 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final authState   = ref.watch(authStateProvider).valueOrNull;
-    final provider    = ref.watch(selectedProviderProvider);
-    final convsAsync  = ref.watch(conversationsProvider);
+    final authState = ref.watch(authStateProvider).valueOrNull;
+    final provider = ref.watch(selectedProviderProvider);
+    final convsAsync = ref.watch(conversationsProvider);
     final onDeviceAsync = ref.watch(onDeviceAiProvider);
 
     final displayName = authState?.user?.email.split('@').first ?? 'there';
@@ -191,10 +191,12 @@ class _HeroCard extends StatelessWidget {
         children: [
           const Row(
             children: [
-              const Icon(Icons.auto_awesome, color: Colors.white, size: 28,
+              Icon(Icons.auto_awesome,
+                  color: Colors.white,
+                  size: 28,
                   semanticLabel: 'AI ready'),
-              const SizedBox(width: 12),
-              const Expanded(
+              SizedBox(width: 12),
+              Expanded(
                 child: Text(
                   'AI Assistant Ready',
                   style: TextStyle(
@@ -296,7 +298,7 @@ class _QuickActionsRow extends StatelessWidget {
           children: [
             Expanded(
               child: _QuickActionCard(
-                icon:  Icons.bug_report_outlined,
+                icon: Icons.bug_report_outlined,
                 label: 'Incidents',
                 color: context.critical,
                 onTap: () => context.go(Routes.incidents),
@@ -305,7 +307,7 @@ class _QuickActionsRow extends StatelessWidget {
             const SizedBox(width: 12),
             Expanded(
               child: _QuickActionCard(
-                icon:  Icons.travel_explore,
+                icon: Icons.travel_explore,
                 label: 'DevOps AI',
                 color: context.aiAccent,
                 onTap: () => context.go(Routes.devops),
@@ -318,7 +320,7 @@ class _QuickActionsRow extends StatelessWidget {
           children: [
             Expanded(
               child: _QuickActionCard(
-                icon:  Icons.auto_awesome,
+                icon: Icons.auto_awesome,
                 label: 'Error Analysis',
                 color: context.colors.primary,
                 onTap: () => context.push(Routes.errorAnalysis),
@@ -339,9 +341,9 @@ class _QuickActionCard extends StatelessWidget {
     required this.onTap,
   });
 
-  final IconData   icon;
-  final String     label;
-  final Color      color;
+  final IconData icon;
+  final String label;
+  final Color color;
   final VoidCallback onTap;
 
   @override
@@ -350,14 +352,14 @@ class _QuickActionCard extends StatelessWidget {
       button: true,
       label: label,
       child: InkWell(
-        onTap:        onTap,
+        onTap: onTap,
         borderRadius: BorderRadius.circular(12),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 12),
           decoration: BoxDecoration(
-            color:        color.withAlpha(15),
+            color: color.withAlpha(15),
             borderRadius: BorderRadius.circular(12),
-            border:       Border.all(color: color.withAlpha(40)),
+            border: Border.all(color: color.withAlpha(40)),
           ),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,

@@ -18,18 +18,18 @@ class AiAssistantApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final router = ref.watch(routerProvider);
-    final prefs  = ref.watch(appPreferencesProvider);
+    final prefs = ref.watch(appPreferencesProvider);
 
     final themeMode = switch (prefs.themeMode) {
-      'light'  => ThemeMode.light,
-      'dark'   => ThemeMode.dark,
-      _        => ThemeMode.system,
+      'light' => ThemeMode.light,
+      'dark' => ThemeMode.dark,
+      _ => ThemeMode.system,
     };
 
     return MaterialApp.router(
       title: 'AI Assistant',
       debugShowCheckedModeBanner: false,
-      theme:     AppTheme.light,
+      theme: AppTheme.light,
       darkTheme: AppTheme.dark,
       themeMode: themeMode,
       routerConfig: router,

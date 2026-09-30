@@ -33,7 +33,7 @@ class DevOpsChatScreen extends ConsumerStatefulWidget {
 }
 
 class _DevOpsChatScreenState extends ConsumerState<DevOpsChatScreen> {
-  final _inputCtrl  = TextEditingController();
+  final _inputCtrl = TextEditingController();
   final _scrollCtrl = ScrollController();
   bool _canSend = false;
 
@@ -84,7 +84,8 @@ class _DevOpsChatScreenState extends ConsumerState<DevOpsChatScreen> {
         title: Row(
           children: [
             Icon(Icons.travel_explore,
-                size: 20, color: context.aiAccent,
+                size: 20,
+                color: context.aiAccent,
                 semanticLabel: 'DevOps assistant'),
             const SizedBox(width: 8),
             const Text('DevOps Assistant'),
@@ -128,9 +129,9 @@ class _DevOpsChatScreenState extends ConsumerState<DevOpsChatScreen> {
           // ── Input bar ──────────────────────────────────────────────────
           _DevOpsInputBar(
             controller: _inputCtrl,
-            canSend:    _canSend,
-            isAsking:   chatState.isAsking,
-            onSend:     () => _send(_inputCtrl.text),
+            canSend: _canSend,
+            isAsking: chatState.isAsking,
+            onSend: () => _send(_inputCtrl.text),
           ),
         ],
       ),
@@ -163,9 +164,9 @@ class _TurnWidget extends StatelessWidget {
               decoration: BoxDecoration(
                 color: context.userBubble,
                 borderRadius: const BorderRadius.only(
-                  topLeft:     Radius.circular(18),
-                  topRight:    Radius.circular(4),
-                  bottomLeft:  Radius.circular(18),
+                  topLeft: Radius.circular(18),
+                  topRight: Radius.circular(4),
+                  bottomLeft: Radius.circular(18),
                   bottomRight: Radius.circular(18),
                 ),
               ),
@@ -195,8 +196,7 @@ class _TurnWidget extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: const Icon(Icons.travel_explore,
-                    size: 18, color: Colors.white,
-                    semanticLabel: 'DevOps AI'),
+                    size: 18, color: Colors.white, semanticLabel: 'DevOps AI'),
               ),
               const SizedBox(width: 8),
 
@@ -224,9 +224,9 @@ class _LoadingBubble extends StatelessWidget {
       decoration: BoxDecoration(
         color: context.aiBubble,
         borderRadius: const BorderRadius.only(
-          topLeft:     Radius.circular(4),
-          topRight:    Radius.circular(18),
-          bottomLeft:  Radius.circular(18),
+          topLeft: Radius.circular(4),
+          topRight: Radius.circular(18),
+          bottomLeft: Radius.circular(18),
           bottomRight: Radius.circular(18),
         ),
         border: Border(left: BorderSide(color: context.aiAccent, width: 3)),
@@ -266,14 +266,12 @@ class _ErrorBubble extends StatelessWidget {
       child: Row(
         children: [
           Icon(Icons.error_outline,
-              size: 16, color: context.critical,
-              semanticLabel: 'Error'),
+              size: 16, color: context.critical, semanticLabel: 'Error'),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               message,
-              style:
-                  TextStyle(color: context.critical, fontSize: 13),
+              style: TextStyle(color: context.critical, fontSize: 13),
             ),
           ),
         ],
@@ -294,9 +292,9 @@ class _AnswerBubble extends StatelessWidget {
       decoration: BoxDecoration(
         color: context.aiBubble,
         borderRadius: const BorderRadius.only(
-          topLeft:     Radius.circular(4),
-          topRight:    Radius.circular(18),
-          bottomLeft:  Radius.circular(18),
+          topLeft: Radius.circular(4),
+          topRight: Radius.circular(18),
+          bottomLeft: Radius.circular(18),
           bottomRight: Radius.circular(18),
         ),
         border: Border(left: BorderSide(color: context.aiAccent, width: 3)),
@@ -317,18 +315,21 @@ class _AnswerBubble extends StatelessWidget {
             Semantics(
               label: 'AI: ${resp.answer}',
               child: MarkdownBody(
-                data:       resp.answer,
+                data: resp.answer,
                 selectable: true,
                 styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context))
                     .copyWith(
-                  p: Theme.of(context).textTheme.bodyMedium?.copyWith(height: 1.5),
+                  p: Theme.of(context)
+                      .textTheme
+                      .bodyMedium
+                      ?.copyWith(height: 1.5),
                   code: TextStyle(
-                    fontFamily:      'monospace',
-                    fontSize:        13,
+                    fontFamily: 'monospace',
+                    fontSize: 13,
                     backgroundColor: context.cardTonal,
                   ),
                   codeblockDecoration: BoxDecoration(
-                    color:        context.cardTonal,
+                    color: context.cardTonal,
                     borderRadius: BorderRadius.circular(8),
                   ),
                 ),
@@ -381,7 +382,8 @@ class _ToolCallBadges extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     Icon(Icons.build_outlined,
-                        size: 12, color: context.aiAccent,
+                        size: 12,
+                        color: context.aiAccent,
                         semanticLabel: 'Tool call: ${tc.toolName}'),
                     const SizedBox(width: 4),
                     Text(
@@ -450,22 +452,19 @@ class _Footer extends StatelessWidget {
     return Row(
       children: [
         Icon(Icons.memory_outlined,
-            size: 12, color: context.mutedColor,
-            semanticLabel: 'LLM provider'),
+            size: 12, color: context.mutedColor, semanticLabel: 'LLM provider'),
         const SizedBox(width: 4),
         Text(
           response.llmProvider,
-          style: context.texts.labelSmall
-              ?.copyWith(color: context.mutedColor),
+          style: context.texts.labelSmall?.copyWith(color: context.mutedColor),
         ),
         const SizedBox(width: 12),
-        Icon(Icons.loop, size: 12, color: context.mutedColor,
-            semanticLabel: 'Tool rounds'),
+        Icon(Icons.loop,
+            size: 12, color: context.mutedColor, semanticLabel: 'Tool rounds'),
         const SizedBox(width: 4),
         Text(
           '${response.roundsUsed} round${response.roundsUsed == 1 ? '' : 's'}',
-          style: context.texts.labelSmall
-              ?.copyWith(color: context.mutedColor),
+          style: context.texts.labelSmall?.copyWith(color: context.mutedColor),
         ),
       ],
     );
@@ -486,7 +485,7 @@ class _SuggestionRow extends StatelessWidget {
       child: SizedBox(
         height: 36,
         child: ListView.separated(
-          scrollDirection:  Axis.horizontal,
+          scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 12),
           itemCount: DevOpsSuggestions.defaults.length,
           separatorBuilder: (_, __) => const SizedBox(width: 8),
@@ -538,7 +537,7 @@ class _DevOpsInputBar extends StatelessWidget {
           color: context.cardColor,
           boxShadow: [
             BoxShadow(
-              color:  Colors.black.withAlpha(10),
+              color: Colors.black.withAlpha(10),
               blurRadius: 8,
               offset: const Offset(0, -2),
             ),
@@ -550,18 +549,18 @@ class _DevOpsInputBar extends StatelessWidget {
             Expanded(
               child: Container(
                 decoration: BoxDecoration(
-                  color:        context.cardTonal,
+                  color: context.cardTonal,
                   borderRadius: BorderRadius.circular(24),
                 ),
                 child: TextField(
                   controller: controller,
-                  maxLines:   4,
-                  minLines:   1,
-                  enabled:    !isAsking,
+                  maxLines: 4,
+                  minLines: 1,
+                  enabled: !isAsking,
                   textInputAction: TextInputAction.newline,
                   decoration: const InputDecoration(
-                    hintText:    'Ask about your system…',
-                    border:      InputBorder.none,
+                    hintText: 'Ask about your system…',
+                    border: InputBorder.none,
                     enabledBorder: InputBorder.none,
                     focusedBorder: InputBorder.none,
                     contentPadding: EdgeInsets.symmetric(
@@ -578,7 +577,7 @@ class _DevOpsInputBar extends StatelessWidget {
               child: GestureDetector(
                 onTap: (canSend && !isAsking) ? onSend : null,
                 child: Container(
-                  width:  44,
+                  width: 44,
                   height: 44,
                   decoration: BoxDecoration(
                     color: isAsking

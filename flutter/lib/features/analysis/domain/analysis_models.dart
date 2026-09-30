@@ -19,14 +19,17 @@ import 'package:equatable/equatable.dart';
 // ── Severity ──────────────────────────────────────────────────────────────────
 
 enum AnalysisSeverity {
-  critical, high, medium, low;
+  critical,
+  high,
+  medium,
+  low;
 
   static AnalysisSeverity parse(String v) => switch (v.toUpperCase()) {
-        'CRITICAL' => AnalysisSeverity.critical,
-        'HIGH'     => AnalysisSeverity.high,
-        'MEDIUM'   => AnalysisSeverity.medium,
-        _          => AnalysisSeverity.low,
-      };
+    'CRITICAL' => AnalysisSeverity.critical,
+    'HIGH' => AnalysisSeverity.high,
+    'MEDIUM' => AnalysisSeverity.medium,
+    _ => AnalysisSeverity.low,
+  };
 
   String get label => name.toUpperCase();
 }
@@ -38,13 +41,13 @@ enum AnalysisSeverity {
 /// AI Safety Principle: the AI must never present inferences as facts.
 class FactsVsInference extends Equatable {
   const FactsVsInference({
-    this.facts      = const [],
+    this.facts = const [],
     this.inferences = const [],
   });
 
   factory FactsVsInference.fromJson(Map<String, dynamic> json) =>
       FactsVsInference(
-        facts:      List<String>.from(json['facts']      as List? ?? []),
+        facts: List<String>.from(json['facts'] as List? ?? []),
         inferences: List<String>.from(json['inferences'] as List? ?? []),
       );
 
@@ -68,29 +71,28 @@ class ErrorAnalysisResponse extends Equatable {
     required this.likelyRootCause,
     required this.confidence,
     required this.recommendedFix,
-    this.evidence             = const [],
-    this.possibleCauses       = const [],
+    this.evidence = const [],
+    this.possibleCauses = const [],
     this.relatedDocumentation = const [],
-    this.factsVsInference     = const FactsVsInference(),
+    this.factsVsInference = const FactsVsInference(),
     this.lowConfidenceWarning,
-    this.eventsAnalysed       = 0,
+    this.eventsAnalysed = 0,
     this.knowledgeChunksRetrieved = 0,
-    this.llmProvider          = '',
+    this.llmProvider = '',
   });
 
   factory ErrorAnalysisResponse.fromJson(Map<String, dynamic> json) =>
       ErrorAnalysisResponse(
-        analysisId:      (json['analysis_id'] as String?) ?? '',
-        severity:        AnalysisSeverity.parse(
+        analysisId: (json['analysis_id'] as String?) ?? '',
+        severity: AnalysisSeverity.parse(
             (json['severity'] as String?) ?? 'LOW'),
-        summary:         (json['summary'] as String?) ?? '',
+        summary: (json['summary'] as String?) ?? '',
         likelyRootCause: (json['likely_root_cause'] as String?) ?? '',
-        confidence:      ((json['confidence'] as num?) ?? 0).toDouble(),
-        recommendedFix:  (json['recommended_fix'] as String?) ?? '',
-        evidence: List<String>.from(
-            json['evidence'] as List? ?? []),
-        possibleCauses: List<String>.from(
-            json['possible_causes'] as List? ?? []),
+        confidence: ((json['confidence'] as num?) ?? 0).toDouble(),
+        recommendedFix: (json['recommended_fix'] as String?) ?? '',
+        evidence: List<String>.from(json['evidence'] as List? ?? []),
+        possibleCauses:
+            List<String>.from(json['possible_causes'] as List? ?? []),
         relatedDocumentation: List<String>.from(
             json['related_documentation'] as List? ?? []),
         factsVsInference: json['facts_vs_inference'] != null
@@ -99,8 +101,7 @@ class ErrorAnalysisResponse extends Equatable {
             : const FactsVsInference(),
         lowConfidenceWarning:
             json['low_confidence_warning'] as String?,
-        eventsAnalysed:
-            (json['events_analysed'] as int?) ?? 0,
+        eventsAnalysed: (json['events_analysed'] as int?) ?? 0,
         knowledgeChunksRetrieved:
             (json['knowledge_chunks_retrieved'] as int?) ?? 0,
         llmProvider: (json['llm_provider'] as String?) ?? '',
@@ -133,7 +134,7 @@ class ErrorAnalysisResponse extends Equatable {
   final String llmProvider;
 
   bool get hasLowConfidence => lowConfidenceWarning != null;
-  int  get confidencePct    => (confidence * 100).round();
+  int get confidencePct => (confidence * 100).round();
 
   @override
   List<Object?> get props => [analysisId, severity, confidence];
@@ -151,13 +152,13 @@ class AnalyseErrorRequest {
 
   final String? eventId;
   final String? sessionId;
-  final int     lookbackMinutes;
+  final int lookbackMinutes;
   final String? provider;
 
   Map<String, dynamic> toJson() => {
-        if (eventId != null)   'event_id':         eventId,
-        if (sessionId != null) 'session_id':        sessionId,
-        'lookback_minutes':                         lookbackMinutes,
-        if (provider != null)  'provider':          provider,
+        if (eventId != null) 'event_id': eventId,
+        if (sessionId != null) 'session_id': sessionId,
+        'lookback_minutes': lookbackMinutes,
+        if (provider != null) 'provider': provider,
       };
 }

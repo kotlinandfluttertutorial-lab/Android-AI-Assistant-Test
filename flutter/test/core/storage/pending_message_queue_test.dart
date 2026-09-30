@@ -10,17 +10,17 @@ Future<PendingMessageQueue> makeQueue() async {
 }
 
 PendingMessage makeMessage({
-  String id          = 'msg-1',
+  String id = 'msg-1',
   String conversationId = 'conv-1',
-  String content     = 'Hello',
-  int    retryCount  = 0,
+  String content = 'Hello',
+  int retryCount = 0,
 }) =>
     PendingMessage(
-      id:             id,
+      id: id,
       conversationId: conversationId,
-      content:        content,
-      enqueuedAt:     DateTime(2025, 1, 15, 14, 32),
-      retryCount:     retryCount,
+      content: content,
+      enqueuedAt: DateTime(2025, 1, 15, 14, 32),
+      retryCount: retryCount,
     );
 
 void main() {
@@ -46,9 +46,9 @@ void main() {
 
     test('enqueue preserves FIFO order', () async {
       final q = await makeQueue();
-      await q.enqueue(makeMessage(id: 'first',  content: 'A'));
+      await q.enqueue(makeMessage(id: 'first', content: 'A'));
       await q.enqueue(makeMessage(id: 'second', content: 'B'));
-      await q.enqueue(makeMessage(id: 'third',  content: 'C'));
+      await q.enqueue(makeMessage(id: 'third', content: 'C'));
 
       final ids = q.all.map((m) => m.id).toList();
       expect(ids, ['first', 'second', 'third']);
@@ -67,8 +67,8 @@ void main() {
       await q.enqueue(makeMessage(id: 'overflow', content: 'new'));
 
       expect(q.length, PendingMessageQueue.maxQueueSize);
-      expect(q.all.first.id, 'msg-1');  // 'msg-0' was dropped
-      expect(q.all.last.id,  'overflow');
+      expect(q.all.first.id, 'msg-1'); // 'msg-0' was dropped
+      expect(q.all.last.id, 'overflow');
     });
 
     // ── remove ─────────────────────────────────────────────────────────────
@@ -95,7 +95,7 @@ void main() {
     // ── update ─────────────────────────────────────────────────────────────
 
     test('update replaces a message in-place', () async {
-      final q   = await makeQueue();
+      final q = await makeQueue();
       final msg = makeMessage(id: 'upd-1', retryCount: 0);
       await q.enqueue(msg);
 
@@ -111,7 +111,7 @@ void main() {
 
       // One expired, one valid.
       await q.enqueue(makeMessage(
-        id:         'expired',
+        id: 'expired',
         retryCount: PendingMessageQueue.maxRetries,
       ));
       await q.enqueue(makeMessage(id: 'valid', retryCount: 0));
@@ -137,14 +137,13 @@ void main() {
     // ── PendingMessage.withRetry ───────────────────────────────────────────
 
     test('withRetry increments retryCount', () {
-      final msg     = makeMessage(retryCount: 2);
+      final msg = makeMessage(retryCount: 2);
       final retried = msg.withRetry();
       expect(retried.retryCount, 3);
     });
 
     test('isExpired is false below maxRetries', () {
-      final msg =
-          makeMessage(retryCount: PendingMessageQueue.maxRetries - 1);
+      final msg = makeMessage(retryCount: PendingMessageQueue.maxRetries - 1);
       expect(msg.isExpired, isFalse);
     });
 
@@ -156,24 +155,24 @@ void main() {
     // ── JSON round-trip ────────────────────────────────────────────────────
 
     test('message survives JSON round-trip', () async {
-      final q   = await makeQueue();
+      final q = await makeQueue();
       final msg = PendingMessage(
-        id:             'rt-1',
+        id: 'rt-1',
         conversationId: 'conv-rt',
-        content:        'Roundtrip content',
-        enqueuedAt:     DateTime(2025, 6, 15, 10, 30),
-        provider:       'gemini',
-        retryCount:     1,
+        content: 'Roundtrip content',
+        enqueuedAt: DateTime(2025, 6, 15, 10, 30),
+        provider: 'gemini',
+        retryCount: 1,
       );
       await q.enqueue(msg);
 
       // Re-read from prefs to simulate app restart.
       final restored = q.all.first;
-      expect(restored.id,             msg.id);
+      expect(restored.id, msg.id);
       expect(restored.conversationId, msg.conversationId);
-      expect(restored.content,        msg.content);
-      expect(restored.provider,       msg.provider);
-      expect(restored.retryCount,     msg.retryCount);
+      expect(restored.content, msg.content);
+      expect(restored.provider, msg.provider);
+      expect(restored.retryCount, msg.retryCount);
       expect(
         restored.enqueuedAt.toIso8601String(),
         msg.enqueuedAt.toIso8601String(),
@@ -185,7 +184,7 @@ void main() {
     test('all getter silently excludes expired messages', () async {
       final q = await makeQueue();
       await q.enqueue(makeMessage(
-        id:         'old',
+        id: 'old',
         retryCount: PendingMessageQueue.maxRetries,
       ));
       await q.enqueue(makeMessage(id: 'fresh', retryCount: 0));

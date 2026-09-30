@@ -141,9 +141,9 @@ class _StandaloneLoginForm extends ConsumerStatefulWidget {
 }
 
 class _StandaloneLoginFormState extends ConsumerState<_StandaloneLoginForm> {
-  final _formKey   = GlobalKey<FormState>();
+  final _formKey = GlobalKey<FormState>();
   final _emailCtrl = TextEditingController();
-  final _passCtrl  = TextEditingController();
+  final _passCtrl = TextEditingController();
   String? _error;
 
   @override

@@ -10,8 +10,8 @@ void main() {
         'role': 'user',
         'access_token': 'at.token',
         'refresh_token': 'rt.token',
-        'access_token_expires_at': 1_700_000_000_000,
-        'refresh_token_expires_at': 1_702_000_000_000,
+        'access_token_expires_at': 1700000000000,
+        'refresh_token_expires_at': 1702000000000,
         'token_type': 'bearer',
       };
       final response = LoginResponse.fromJson(json);
@@ -20,7 +20,7 @@ void main() {
       expect(response.role, 'user');
       expect(response.accessToken, 'at.token');
       expect(response.refreshToken, 'rt.token');
-      expect(response.accessTokenExpiresAt, 1_700_000_000_000);
+      expect(response.accessTokenExpiresAt, 1700000000000);
     });
   });
 
@@ -31,8 +31,8 @@ void main() {
         'email': 'new@example.com',
         'access_token': 'at2',
         'refresh_token': 'rt2',
-        'access_token_expires_at': 1_000_000,
-        'refresh_token_expires_at': 2_000_000,
+        'access_token_expires_at': 1000000,
+        'refresh_token_expires_at': 2000000,
         'token_type': 'bearer',
       };
       final r = RegisterResponse.fromJson(json);
@@ -44,14 +44,15 @@ void main() {
   group('AuthUser', () {
     test('isAdmin is true only for admin role', () {
       const admin = AuthUser(userId: '1', email: 'a@b.com', role: 'admin');
-      const user  = AuthUser(userId: '2', email: 'b@b.com', role: 'user');
+      const user = AuthUser(userId: '2', email: 'b@b.com', role: 'user');
       expect(admin.isAdmin, isTrue);
       expect(user.isAdmin, isFalse);
     });
 
     test('isPremium is true for premium and admin', () {
-      const premium = AuthUser(userId: '3', email: 'c@b.com', role: 'premium');
-      const admin   = AuthUser(userId: '4', email: 'd@b.com', role: 'admin');
+      const premium =
+          AuthUser(userId: '3', email: 'c@b.com', role: 'premium');
+      const admin = AuthUser(userId: '4', email: 'd@b.com', role: 'admin');
       const regular = AuthUser(userId: '5', email: 'e@b.com', role: 'user');
       expect(premium.isPremium, isTrue);
       expect(admin.isPremium, isTrue);
@@ -75,7 +76,7 @@ void main() {
     });
 
     test('authenticated state has user', () {
-      const user  = AuthUser(userId: '1', email: 'x@y.com', role: 'user');
+      const user = AuthUser(userId: '1', email: 'x@y.com', role: 'user');
       const state = AuthState.authenticated(user);
       expect(state.isAuthenticated, isTrue);
       expect(state.user, user);

@@ -26,7 +26,10 @@ class ConversationsApi {
     }
   }
 
-  Future<Result<Conversation>> createConversation({String? title, String? provider}) async {
+  Future<Result<Conversation>> createConversation({
+    String? title,
+    String? provider,
+  }) async {
     try {
       final response = await _dio.post<Map<String, dynamic>>(
         ApiConfig.conversations,
@@ -91,9 +94,9 @@ class ConversationsApi {
           'conversation-$id.${format.extension}';
 
       return Success(ConversationExport(
-        bytes:    bytes,
+        bytes: bytes,
         filename: filename,
-        format:   format,
+        format: format,
       ));
     } catch (e, st) {
       return Failure(ErrorMapper.map(e, st));

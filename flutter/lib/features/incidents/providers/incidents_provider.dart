@@ -39,10 +39,10 @@ class IncidentsNotifier extends AsyncNotifier<IncidentListResponse> {
   Future<IncidentListResponse> build() => _fetch();
 
   Future<IncidentListResponse> _fetch() async {
-    final api    = ref.read(incidentsApiProvider);
+    final api = ref.read(incidentsApiProvider);
     final filter = ref.watch(incidentFilterProvider);
     final result = await api.listIncidents(
-      status:   filter.status,
+      status: filter.status,
       severity: filter.severity,
     );
     return result.when(
@@ -71,7 +71,7 @@ final incidentsProvider =
 
 final incidentDetailProvider =
     FutureProvider.family<Incident, String>((ref, id) async {
-  final api    = ref.watch(incidentsApiProvider);
+  final api = ref.watch(incidentsApiProvider);
   final result = await api.getIncident(id);
   return result.when(
     onSuccess: (data) => data,
@@ -86,7 +86,7 @@ class RcaNotifier extends FamilyAsyncNotifier<RcaAnalysisResponse?, String> {
   // ignore: avoid_renaming_method_parameters
   Future<RcaAnalysisResponse?> build(String incidentId) async {
     // Try to fetch any cached RCA result; return null if none yet.
-    final api    = ref.read(incidentsApiProvider);
+    final api = ref.read(incidentsApiProvider);
     final result = await api.getRca(incidentId);
     return result.when(
       onSuccess: (rca) => rca,
@@ -96,7 +96,7 @@ class RcaNotifier extends FamilyAsyncNotifier<RcaAnalysisResponse?, String> {
 
   Future<void> runRca({bool forceRerun = false}) async {
     state = const AsyncLoading();
-    final api    = ref.read(incidentsApiProvider);
+    final api = ref.read(incidentsApiProvider);
     final result = await api.runRca(arg, forceRerun: forceRerun);
     state = result.when(
       onSuccess: AsyncData.new,
@@ -120,7 +120,7 @@ class RemediationNotifier
 
   Future<void> recommend() async {
     state = const AsyncLoading();
-    final api    = ref.read(incidentsApiProvider);
+    final api = ref.read(incidentsApiProvider);
     final result = await api.recommendRemediation(arg);
     state = result.when(
       onSuccess: AsyncData.new,

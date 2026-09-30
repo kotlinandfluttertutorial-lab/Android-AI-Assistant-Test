@@ -19,7 +19,7 @@ class UiMessage extends Equatable {
   });
 
   final String localId;
-  final String role;     // 'user' | 'assistant'
+  final String role; // 'user' | 'assistant'
   final String content;
   final DateTime createdAt;
   final bool isStreaming;
@@ -33,12 +33,12 @@ class UiMessage extends Equatable {
     bool? hasError,
   }) =>
       UiMessage(
-        localId:     localId,
-        role:        role,
-        content:     content ?? this.content,
-        createdAt:   createdAt,
+        localId: localId,
+        role: role,
+        content: content ?? this.content,
+        createdAt: createdAt,
         isStreaming: isStreaming ?? this.isStreaming,
-        hasError:    hasError ?? this.hasError,
+        hasError: hasError ?? this.hasError,
       );
 
   @override
@@ -73,11 +73,12 @@ class ChatState extends Equatable {
     bool clearError = false,
   }) =>
       ChatState(
-        conversationId:  conversationId ?? this.conversationId,
-        messages:        messages ?? this.messages,
-        isConnecting:    isConnecting ?? this.isConnecting,
-        isStreaming:     isStreaming ?? this.isStreaming,
-        connectionError: clearError ? null : (connectionError ?? this.connectionError),
+        conversationId: conversationId ?? this.conversationId,
+        messages: messages ?? this.messages,
+        isConnecting: isConnecting ?? this.isConnecting,
+        isStreaming: isStreaming ?? this.isStreaming,
+        connectionError:
+            clearError ? null : (connectionError ?? this.connectionError),
       );
 
   @override

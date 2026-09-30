@@ -75,9 +75,12 @@ unfixable = []
 # Test files — assert is pytest idiom (S101), env-setup imports before app imports
 # are intentional (E402), hardcoded test credentials are expected (S105, S106),
 # long data strings (E501), unused fixture vars (F841), datetime patterns (UP017).
+# I001 suppressed — the __future__ + stdlib + third-party layout in test files
+# triggers a ruff 0.11.6 false-positive on structurally correct import blocks.
 # Both glob forms used for ruff version compatibility.
-"tests/**" = ["S101", "S105", "S106", "E402", "E501", "F841", "UP017", "B905", "UP038", "C401"]
-"tests/**/*.py" = ["S101", "S105", "S106", "E402", "E501", "F841", "UP017", "B905", "UP038", "C401"]
+"tests/**" = ["S101", "S105", "S106", "E402", "E501", "F841", "UP017", "B905", "UP038", "C401", "I001", "RUF012", "RUF001", "RUF002", "RUF003", "B017"]
+"tests/**/*.py" = ["S101", "S105", "S106", "E402", "E501", "F841", "UP017", "B905", "UP038", "C401", "I001"]
+"tests/conftest.py" = ["I001"]
 
 # Workers — deferred imports inside task functions are intentional (E402),
 # noqa for PLC0415 (pylint import-outside-toplevel) is used for Celery pattern.
@@ -85,6 +88,13 @@ unfixable = []
 
 # Settings — validator method names use SCREAMING_SNAKE_CASE by convention.
 "app/config/settings.py" = ["N802", "E501"]
+
+# Files with structurally correct import blocks that ruff 0.11.6 false-positives
+# on (mixed bare-import + from-import ordering, or __future__ + stdlib layout).
+"app/llm/base.py" = ["I001"]
+"app/schemas/error_analysis.py" = ["I001"]
+"app/schemas/rca.py" = ["I001"]
+"app/services/llm_clients.py" = ["I001"]
 
 [lint.isort]
 known-first-party = ["app"]

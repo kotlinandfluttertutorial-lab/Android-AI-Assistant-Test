@@ -88,6 +88,17 @@ class KnownProviders {
     isOnDevice: true,
   );
 
-  static const List<AiProvider> cloudProviders = [gemini, openai, claude, ollama];
-  static const List<AiProvider> allProviders   = [gemini, openai, claude, ollama, onDevice];
+  static const List<AiProvider> cloudProviders = [
+    gemini,
+    openai,
+    claude,
+    ollama,
+  ];
+  static const List<AiProvider> allProviders = [
+    gemini,
+    openai,
+    claude,
+    ollama,
+    onDevice,
+  ];
 }

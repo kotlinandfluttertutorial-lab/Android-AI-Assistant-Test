@@ -41,7 +41,7 @@ class NotificationsApi {
       await _dio.put<void>(
         ApiConfig.notificationsDeviceToken,
         data: {
-          'token':    token,
+          'token': token,
           'platform': platform,
         },
       );

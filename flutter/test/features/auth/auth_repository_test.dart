@@ -83,12 +83,13 @@ void main() {
       const LoginRequest(email: 'fallback@test.com', password: 'fallbackpass'),
     );
     registerFallbackValue(
-      const RegisterRequest(email: 'fallback@test.com', password: 'fallbackpass'),
+      const RegisterRequest(
+          email: 'fallback@test.com', password: 'fallbackpass'),
     );
   });
 
   setUp(() {
-    mockApi     = MockAuthApi();
+    mockApi = MockAuthApi();
     fakeStorage = FakeSecureStorage();
   });
 
@@ -99,7 +100,7 @@ void main() {
 
   group('AuthRepository.login', () {
     test('returns AuthUser and persists tokens on success', () async {
-      final response = const LoginResponse(
+      const response = LoginResponse(
         userId: 'u1',
         email: 'test@test.com',
         role: 'user',
@@ -111,7 +112,7 @@ void main() {
       when(() => mockApi.login(any()))
           .thenAnswer((_) async => Success(response));
 
-      final repo   = makeRepo();
+      final repo = makeRepo();
       final result = await repo.login(
           const LoginRequest(email: 'test@test.com', password: 'password12'));
 
@@ -125,7 +126,7 @@ void main() {
       when(() => mockApi.login(any()))
           .thenAnswer((_) async => Failure(AppError.unauthorized()));
 
-      final repo   = makeRepo();
+      final repo = makeRepo();
       final result = await repo.login(
           const LoginRequest(email: 'x@x.com', password: 'wrongpassword'));
 
@@ -219,8 +220,8 @@ class _TestAuthRepository {
     final isValid = await storage.isAccessTokenValid();
     if (!isValid) return null;
     final userId = await storage.getUserId();
-    final email  = await storage.getUserEmail();
-    final role   = await storage.getUserRole();
+    final email = await storage.getUserEmail();
+    final role = await storage.getUserRole();
     if (userId == null || email == null || role == null) return null;
     return AuthUser(userId: userId, email: email, role: role);
   }

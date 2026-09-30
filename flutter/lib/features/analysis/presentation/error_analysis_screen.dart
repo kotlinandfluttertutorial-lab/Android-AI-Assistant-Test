@@ -41,7 +41,8 @@ class ErrorAnalysisScreen extends ConsumerWidget {
         title: Row(
           children: [
             Icon(Icons.auto_awesome,
-                size: 20, color: context.aiAccent,
+                size: 20,
+                color: context.aiAccent,
                 semanticLabel: 'AI analysis'),
             const SizedBox(width: 8),
             const Text('Error Analysis'),
@@ -80,11 +81,11 @@ class ErrorAnalysisScreen extends ConsumerWidget {
                 }
                 if (!state.hasResult) {
                   return EmptyState(
-                    icon:       Icons.search_outlined,
-                    title:      'No analysis yet',
-                    subtitle:   'Tap "Run Analysis" to analyse recent errors.',
+                    icon: Icons.search_outlined,
+                    title: 'No analysis yet',
+                    subtitle: 'Tap "Run Analysis" to analyse recent errors.',
                     actionLabel: 'Run Analysis',
-                    onAction:   () =>
+                    onAction: () =>
                         ref.read(analysisProvider.notifier).analyseRecent(),
                   );
                 }
@@ -105,11 +106,11 @@ class _ControlsBar extends ConsumerWidget {
   final AnalysisState state;
 
   static const _lookbacks = [
-    (15,  '15 min'),
-    (30,  '30 min'),
-    (60,  '1 hour'),
+    (15, '15 min'),
+    (30, '30 min'),
+    (60, '1 hour'),
     (360, '6 hours'),
-    (1440,'24 hours'),
+    (1440, '24 hours'),
   ];
 
   @override
@@ -201,18 +202,18 @@ class _SeveritySummaryCard extends StatelessWidget {
   final ErrorAnalysisResponse result;
 
   Color _severityColor(BuildContext ctx) => switch (result.severity) {
-        AnalysisSeverity.critical => ctx.critical,
-        AnalysisSeverity.high     => ctx.critical.withAlpha(200),
-        AnalysisSeverity.medium   => ctx.warning,
-        AnalysisSeverity.low      => ctx.infoColor,
-      };
+    AnalysisSeverity.critical => ctx.critical,
+    AnalysisSeverity.high => ctx.critical.withAlpha(200),
+    AnalysisSeverity.medium => ctx.warning,
+    AnalysisSeverity.low => ctx.infoColor,
+  };
 
   IconData _severityIcon() => switch (result.severity) {
-        AnalysisSeverity.critical => Icons.error,
-        AnalysisSeverity.high     => Icons.error_outline,
-        AnalysisSeverity.medium   => Icons.warning_amber,
-        AnalysisSeverity.low      => Icons.info_outline,
-      };
+    AnalysisSeverity.critical => Icons.error,
+    AnalysisSeverity.high => Icons.error_outline,
+    AnalysisSeverity.medium => Icons.warning_amber,
+    AnalysisSeverity.low => Icons.info_outline,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -233,7 +234,9 @@ class _SeveritySummaryCard extends StatelessWidget {
           children: [
             Row(
               children: [
-                Icon(_severityIcon(), color: color, size: 22,
+                Icon(_severityIcon(),
+                    color: color,
+                    size: 22,
                     semanticLabel: '${result.severity.label} severity'),
                 const SizedBox(width: 8),
                 Container(
@@ -277,7 +280,7 @@ class _ConfidenceSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final pct   = result.confidencePct;
+    final pct = result.confidencePct;
     final color = result.confidence >= 0.8
         ? context.healthy
         : result.confidence >= 0.6
@@ -296,7 +299,8 @@ class _ConfidenceSection extends StatelessWidget {
                 Row(
                   children: [
                     Icon(Icons.verified_outlined,
-                        size: 18, color: context.aiAccent,
+                        size: 18,
+                        color: context.aiAccent,
                         semanticLabel: 'AI confidence'),
                     const SizedBox(width: 8),
                     Text('AI Confidence',
@@ -317,10 +321,10 @@ class _ConfidenceSection extends StatelessWidget {
             ClipRRect(
               borderRadius: BorderRadius.circular(4),
               child: LinearProgressIndicator(
-                value:           result.confidence,
+                value: result.confidence,
                 backgroundColor: context.cardTonal,
-                color:           color,
-                minHeight:       8,
+                color: color,
+                minHeight: 8,
               ),
             ),
             // Low-confidence warning
@@ -337,7 +341,8 @@ class _ConfidenceSection extends StatelessWidget {
                 child: Row(
                   children: [
                     Icon(Icons.warning_amber,
-                        size: 16, color: context.warning,
+                        size: 16,
+                        color: context.warning,
                         semanticLabel: 'Low confidence'),
                     const SizedBox(width: 8),
                     Expanded(
@@ -377,7 +382,8 @@ class _FactsInferencesCard extends StatelessWidget {
             Row(
               children: [
                 Icon(Icons.balance_outlined,
-                    size: 18, color: context.colors.primary,
+                    size: 18,
+                    color: context.colors.primary,
                     semanticLabel: 'Facts vs inferences'),
                 const SizedBox(width: 8),
                 Text('Facts vs Inferences',
@@ -387,25 +393,27 @@ class _FactsInferencesCard extends StatelessWidget {
             const SizedBox(height: 12),
 
             if (fvi.facts.isNotEmpty) ...[
-              Text('Facts', style: context.texts.labelSmall
-                  ?.copyWith(color: context.healthy)),
+              Text('Facts',
+                  style: context.texts.labelSmall
+                      ?.copyWith(color: context.healthy)),
               const SizedBox(height: 4),
               ...fvi.facts.map((f) => _FactRow(
-                    text:  f,
+                    text: f,
                     color: context.healthy,
-                    icon:  Icons.check_circle_outline,
+                    icon: Icons.check_circle_outline,
                   )),
             ],
 
             if (fvi.inferences.isNotEmpty) ...[
               const SizedBox(height: 10),
-              Text('Inferences', style: context.texts.labelSmall
-                  ?.copyWith(color: context.warning)),
+              Text('Inferences',
+                  style: context.texts.labelSmall
+                      ?.copyWith(color: context.warning)),
               const SizedBox(height: 4),
               ...fvi.inferences.map((i) => _FactRow(
-                    text:  i,
+                    text: i,
                     color: context.warning,
-                    icon:  Icons.warning_amber_outlined,
+                    icon: Icons.warning_amber_outlined,
                   )),
             ],
           ],
@@ -421,8 +429,8 @@ class _FactRow extends StatelessWidget {
     required this.color,
     required this.icon,
   });
-  final String   text;
-  final Color    color;
+  final String text;
+  final Color color;
   final IconData icon;
 
   @override
@@ -432,8 +440,7 @@ class _FactRow extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 16, color: color,
-              semanticLabel: text),
+          Icon(icon, size: 16, color: color, semanticLabel: text),
           const SizedBox(width: 8),
           Expanded(
             child: Text(text, style: context.texts.bodySmall),
@@ -461,7 +468,8 @@ class _PossibleCausesCard extends StatelessWidget {
             Row(
               children: [
                 Icon(Icons.list_alt_outlined,
-                    size: 18, color: context.colors.primary,
+                    size: 18,
+                    color: context.colors.primary,
                     semanticLabel: 'Possible causes'),
                 const SizedBox(width: 8),
                 Text('Possible Causes',
@@ -473,15 +481,13 @@ class _PossibleCausesCard extends StatelessWidget {
                   (e) => Padding(
                     padding: const EdgeInsets.only(bottom: 6),
                     child: Row(
-                      crossAxisAlignment:
-                          CrossAxisAlignment.start,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Container(
                           width: 20,
                           height: 20,
                           decoration: BoxDecoration(
-                            color: context.colors.primary
-                                .withAlpha(20),
+                            color: context.colors.primary.withAlpha(20),
                             shape: BoxShape.circle,
                           ),
                           child: Center(
@@ -528,7 +534,8 @@ class _RecommendedFixCard extends StatelessWidget {
             Row(
               children: [
                 Icon(Icons.build_circle_outlined,
-                    size: 18, color: context.aiAccent,
+                    size: 18,
+                    color: context.aiAccent,
                     semanticLabel: 'Recommended fix'),
                 const SizedBox(width: 8),
                 Text('Recommended Fix',
@@ -582,7 +589,8 @@ class _EvidenceCardState extends State<_EvidenceCard> {
             Row(
               children: [
                 Icon(Icons.receipt_long_outlined,
-                    size: 18, color: context.colors.primary,
+                    size: 18,
+                    color: context.colors.primary,
                     semanticLabel: 'Evidence'),
                 const SizedBox(width: 8),
                 Text('Evidence (${widget.evidence.length})',
@@ -593,7 +601,7 @@ class _EvidenceCardState extends State<_EvidenceCard> {
             Container(
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
-                color:        context.cardTonal,
+                color: context.cardTonal,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Column(
@@ -606,8 +614,8 @@ class _EvidenceCardState extends State<_EvidenceCard> {
                           e,
                           style: const TextStyle(
                             fontFamily: 'monospace',
-                            fontSize:   12,
-                            height:     1.4,
+                            fontSize: 12,
+                            height: 1.4,
                           ),
                         ),
                       ),
@@ -646,16 +654,16 @@ class _MetadataRow extends StatelessWidget {
       children: [
         if (result.llmProvider.isNotEmpty)
           _MetaChip(
-            icon:  Icons.memory_outlined,
+            icon: Icons.memory_outlined,
             label: result.llmProvider,
           ),
         _MetaChip(
-          icon:  Icons.event_note_outlined,
+          icon: Icons.event_note_outlined,
           label: '${result.eventsAnalysed} events',
         ),
         if (result.knowledgeChunksRetrieved > 0)
           _MetaChip(
-            icon:  Icons.library_books_outlined,
+            icon: Icons.library_books_outlined,
             label: '${result.knowledgeChunksRetrieved} docs',
           ),
       ],
@@ -666,15 +674,14 @@ class _MetadataRow extends StatelessWidget {
 class _MetaChip extends StatelessWidget {
   const _MetaChip({required this.icon, required this.label});
   final IconData icon;
-  final String   label;
+  final String label;
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(icon, size: 14, color: context.mutedColor,
-            semanticLabel: label),
+        Icon(icon, size: 14, color: context.mutedColor, semanticLabel: label),
         const SizedBox(width: 4),
         Text(
           label,

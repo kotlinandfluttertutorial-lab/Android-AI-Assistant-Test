@@ -35,13 +35,13 @@ class CachedConversation {
 
   factory CachedConversation.fromJson(Map<String, dynamic> json) =>
       CachedConversation(
-        id:          json['id'] as String,
-        title:       (json['title'] as String?) ?? 'Conversation',
-        createdAt:   json['created_at'] as String,
-        updatedAt:   json['updated_at'] as String?,
-        provider:    json['provider'] as String?,
+        id: json['id'] as String,
+        title: (json['title'] as String?) ?? 'Conversation',
+        createdAt: json['created_at'] as String,
+        updatedAt: json['updated_at'] as String?,
+        provider: json['provider'] as String?,
         lastMessage: json['last_message'] as String?,
-        isPinned:    (json['is_pinned'] as bool?) ?? false,
+        isPinned: (json['is_pinned'] as bool?) ?? false,
       );
 
   final String id;
@@ -53,13 +53,13 @@ class CachedConversation {
   final bool isPinned;
 
   Map<String, dynamic> toJson() => {
-        'id':           id,
-        'title':        title,
-        'created_at':   createdAt,
-        if (updatedAt != null)    'updated_at':    updatedAt,
-        if (provider != null)     'provider':      provider,
-        if (lastMessage != null)  'last_message':  lastMessage,
-        'is_pinned':    isPinned,
+        'id': id,
+        'title': title,
+        'created_at': createdAt,
+        if (updatedAt != null) 'updated_at': updatedAt,
+        if (provider != null) 'provider': provider,
+        if (lastMessage != null) 'last_message': lastMessage,
+        'is_pinned': isPinned,
       };
 }
 
@@ -68,8 +68,8 @@ class ConversationCache {
 
   final SharedPreferences _prefs;
 
-  static const String _storageKey          = 'cached_conversations';
-  static const int    maxCachedConversations = 100;
+  static const String _storageKey = 'cached_conversations';
+  static const int maxCachedConversations = 100;
 
   // ── Read ──────────────────────────────────────────────────────────────────
 
@@ -80,8 +80,7 @@ class ConversationCache {
     try {
       final list = jsonDecode(raw) as List<dynamic>;
       return list
-          .map((e) =>
-              CachedConversation.fromJson(e as Map<String, dynamic>))
+          .map((e) => CachedConversation.fromJson(e as Map<String, dynamic>))
           .toList();
     } catch (e) {
       AppLogger.w('ConversationCache: failed to decode cache', e);
@@ -98,7 +97,7 @@ class ConversationCache {
   /// Caps at [maxCachedConversations] keeping the most recent entries.
   Future<void> writeAll(List<CachedConversation> conversations) async {
     final capped = conversations.take(maxCachedConversations).toList();
-    final json   = jsonEncode(capped.map((c) => c.toJson()).toList());
+    final json = jsonEncode(capped.map((c) => c.toJson()).toList());
     await _prefs.setString(_storageKey, json);
     AppLogger.d('ConversationCache: cached ${capped.length} conversations');
   }
@@ -106,7 +105,7 @@ class ConversationCache {
   /// Upsert a single conversation (add if new, update if already cached).
   Future<void> upsert(CachedConversation conversation) async {
     final list = all;
-    final idx  = list.indexWhere((c) => c.id == conversation.id);
+    final idx = list.indexWhere((c) => c.id == conversation.id);
     if (idx != -1) {
       list[idx] = conversation;
     } else {

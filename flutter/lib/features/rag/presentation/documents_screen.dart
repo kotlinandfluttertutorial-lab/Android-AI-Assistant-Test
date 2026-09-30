@@ -32,7 +32,7 @@ class DocumentsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final docsAsync  = ref.watch(documentsProvider);
+    final docsAsync = ref.watch(documentsProvider);
     final uploadState = ref.watch(uploadProvider);
 
     return Scaffold(
@@ -82,12 +82,12 @@ class DocumentsScreen extends ConsumerWidget {
               data: (docs) {
                 if (docs.isEmpty) {
                   return EmptyState(
-                    icon:       Icons.upload_file,
-                    title:      'No documents yet',
+                    icon: Icons.upload_file,
+                    title: 'No documents yet',
                     subtitle:
                         'Upload a PDF, DOCX, TXT, or Markdown file to get started.',
                     actionLabel: 'Upload',
-                    onAction:   () => _showUploadDialog(context, ref),
+                    onAction: () => _showUploadDialog(context, ref),
                   );
                 }
                 return RefreshIndicator(
@@ -177,10 +177,10 @@ class _UploadBanner extends StatelessWidget {
   String get _label {
     if (state.isUploading) return 'Uploading…';
     return switch (state.jobStatus) {
-      IngestJobStatus.queued   => 'Queued for processing…',
-      IngestJobStatus.running  => 'Indexing document…',
+      IngestJobStatus.queued => 'Queued for processing…',
+      IngestJobStatus.running => 'Indexing document…',
       IngestJobStatus.completed => 'Ingestion complete',
-      IngestJobStatus.failed   => 'Ingestion failed',
+      IngestJobStatus.failed => 'Ingestion failed',
       null => 'Processing…',
     };
   }
@@ -188,7 +188,7 @@ class _UploadBanner extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final isDone = state.jobStatus == IngestJobStatus.completed;
-    final color  = isDone ? context.healthy : context.colors.primary;
+    final color = isDone ? context.healthy : context.colors.primary;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
       color: color.withAlpha(15),
@@ -196,9 +196,9 @@ class _UploadBanner extends StatelessWidget {
         children: [
           if (!isDone)
             SizedBox(
-              width:  16,
+              width: 16,
               height: 16,
-              child:  CircularProgressIndicator(
+              child: CircularProgressIndicator(
                 strokeWidth: 2,
                 color: color,
               ),
@@ -250,10 +250,10 @@ class _DocumentTile extends ConsumerWidget {
   IconData _icon() {
     final ext = document.filename.split('.').last.toLowerCase();
     return switch (ext) {
-      'pdf'  => Icons.picture_as_pdf_outlined,
+      'pdf' => Icons.picture_as_pdf_outlined,
       'docx' => Icons.description_outlined,
-      'md'   => Icons.article_outlined,
-      _      => Icons.text_snippet_outlined,
+      'md' => Icons.article_outlined,
+      _ => Icons.text_snippet_outlined,
     };
   }
 

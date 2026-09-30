@@ -43,8 +43,8 @@ class DevOpsChatState {
     String? selectedProvider,
   }) =>
       DevOpsChatState(
-        turns:            turns ?? this.turns,
-        isAsking:         isAsking ?? this.isAsking,
+        turns: turns ?? this.turns,
+        isAsking: isAsking ?? this.isAsking,
         selectedProvider: selectedProvider ?? this.selectedProvider,
       );
 }
@@ -64,13 +64,13 @@ class DevOpsChatNotifier extends Notifier<DevOpsChatState> {
 
     final turnId = _uuid.v4();
     final loadingTurn = DevOpsTurn(
-      id:        turnId,
-      question:  question.trim(),
+      id: turnId,
+      question: question.trim(),
       isLoading: true,
     );
 
     state = state.copyWith(
-      turns:    [...state.turns, loadingTurn],
+      turns: [...state.turns, loadingTurn],
       isAsking: true,
     );
 
@@ -88,11 +88,11 @@ class DevOpsChatNotifier extends Notifier<DevOpsChatState> {
     if (idx != -1) {
       updatedTurns[idx] = result.when(
         onSuccess: (response) => loadingTurn.copyWith(
-          response:  response,
+          response: response,
           isLoading: false,
         ),
         onFailure: (err) => loadingTurn.copyWith(
-          isLoading:    false,
+          isLoading: false,
           errorMessage: err.userMessage,
         ),
       );

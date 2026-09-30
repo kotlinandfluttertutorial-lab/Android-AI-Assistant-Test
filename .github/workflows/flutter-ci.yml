@@ -132,9 +132,9 @@ jobs:
           retention-days: 7
 
   # ──────────────────────────────────────────────────────────────────────────
-  # 2. Dart Format Check
-  #    Verifies that every .dart file matches `dart format` output exactly.
-  #    Developers must run `dart format .` (or enable format-on-save) locally.
+  # 2. Dart Format
+  #    Applies dart format in-place, then commits any changes back to the PR
+  #    branch. Developers do not need format-on-save configured locally.
   # ──────────────────────────────────────────────────────────────────────────
   format-check:
     name: format-check
@@ -142,8 +142,15 @@ jobs:
     if: github.event_name == 'pull_request'
     needs: validate
 
+    permissions:
+      contents: write
+
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Flutter ${{ env.FLUTTER_VERSION }}
         uses: subosito/flutter-action@v2
@@ -155,14 +162,23 @@ jobs:
       - name: Install dependencies
         run: flutter pub get
 
-      - name: Check Dart formatting
+      - name: Apply Dart formatting
+        run: dart format lib/ test/ integration_test/
+
+      - name: Commit formatted files (if any changed)
+        shell: bash
         run: |
-          dart format \
-            --set-exit-if-changed \
-            --output=none \
-            lib/ test/ integration_test/
-        # Fails with exit code 1 if any file would be reformatted.
-        # To fix locally: `dart format lib/ test/ integration_test/`
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git diff --quiet -- flutter/; then
+            echo "All files already correctly formatted."
+          else
+            echo "Committing dart format changes..."
+            git add flutter/lib flutter/test flutter/integration_test
+            git commit -m "style: apply dart format [skip ci]"
+            git push origin HEAD:${{ github.head_ref }}
+          fi
+        working-directory: ${{ github.workspace }}
 
   # ──────────────────────────────────────────────────────────────────────────
   # 3. Unit + Widget Tests

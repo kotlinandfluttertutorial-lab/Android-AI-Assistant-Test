@@ -31,12 +31,12 @@ class PendingMessage {
   });
 
   factory PendingMessage.fromJson(Map<String, dynamic> json) => PendingMessage(
-        id:             json['id'] as String,
+        id: json['id'] as String,
         conversationId: json['conversation_id'] as String,
-        content:        json['content'] as String,
-        enqueuedAt:     DateTime.parse(json['enqueued_at'] as String),
-        provider:       json['provider'] as String?,
-        retryCount:     (json['retry_count'] as int?) ?? 0,
+        content: json['content'] as String,
+        enqueuedAt: DateTime.parse(json['enqueued_at'] as String),
+        provider: json['provider'] as String?,
+        retryCount: (json['retry_count'] as int?) ?? 0,
       );
 
   final String id;
@@ -47,21 +47,21 @@ class PendingMessage {
   final int retryCount;
 
   Map<String, dynamic> toJson() => {
-        'id':              id,
+        'id': id,
         'conversation_id': conversationId,
-        'content':         content,
-        'enqueued_at':     enqueuedAt.toIso8601String(),
+        'content': content,
+        'enqueued_at': enqueuedAt.toIso8601String(),
         if (provider != null) 'provider': provider,
-        'retry_count':     retryCount,
+        'retry_count': retryCount,
       };
 
   PendingMessage withRetry() => PendingMessage(
-        id:             id,
+        id: id,
         conversationId: conversationId,
-        content:        content,
-        enqueuedAt:     enqueuedAt,
-        provider:       provider,
-        retryCount:     retryCount + 1,
+        content: content,
+        enqueuedAt: enqueuedAt,
+        provider: provider,
+        retryCount: retryCount + 1,
       );
 
   /// Discard messages that have been retried too many times.
@@ -74,9 +74,9 @@ class PendingMessageQueue {
 
   final SharedPreferences _prefs;
 
-  static const String _storageKey  = 'pending_messages';
-  static const int    maxQueueSize = 50;
-  static const int    maxRetries   = 5;
+  static const String _storageKey = 'pending_messages';
+  static const int maxQueueSize = 50;
+  static const int maxRetries = 5;
 
   // ── Read ──────────────────────────────────────────────────────────────────
 
@@ -97,7 +97,7 @@ class PendingMessageQueue {
   }
 
   bool get isEmpty => all.isEmpty;
-  int  get length  => all.length;
+  int get length => all.length;
 
   // ── Write ─────────────────────────────────────────────────────────────────
 
@@ -130,15 +130,14 @@ class PendingMessageQueue {
 
   /// Replace a message in-place (used to increment retry count).
   Future<void> update(PendingMessage updated) async {
-    final queue =
-        all.map((m) => m.id == updated.id ? updated : m).toList();
+    final queue = all.map((m) => m.id == updated.id ? updated : m).toList();
     await _persist(queue);
   }
 
   /// Remove all expired messages (retryCount >= [maxRetries]).
   Future<void> pruneExpired() async {
     final before = all.length;
-    final queue  = all.where((m) => !m.isExpired).toList();
+    final queue = all.where((m) => !m.isExpired).toList();
     if (queue.length != before) {
       await _persist(queue);
       AppLogger.i(

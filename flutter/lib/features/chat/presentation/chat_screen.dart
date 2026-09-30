@@ -34,9 +34,9 @@ class ChatScreen extends ConsumerStatefulWidget {
 }
 
 class _ChatScreenState extends ConsumerState<ChatScreen> {
-  final _inputCtrl   = TextEditingController();
-  final _scrollCtrl  = ScrollController();
-  final _inputFocus  = FocusNode();
+  final _inputCtrl = TextEditingController();
+  final _scrollCtrl = ScrollController();
+  final _inputFocus = FocusNode();
   bool _canSend = false;
 
   @override
@@ -88,10 +88,10 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final chatState    = ref.watch(chatProvider(widget.conversationId));
-    final providers    = ref.watch(providersListProvider);
-    final selected     = ref.watch(selectedProviderProvider);
-    final isStreaming  = chatState.isStreaming;
+    final chatState = ref.watch(chatProvider(widget.conversationId));
+    final providers = ref.watch(providersListProvider);
+    final selected = ref.watch(selectedProviderProvider);
+    final isStreaming = chatState.isStreaming;
     final isConnecting = chatState.isConnecting;
 
     // Auto-scroll when new messages arrive.
@@ -142,8 +142,8 @@ class _ChatScreenState extends ConsumerState<ChatScreen> {
           // ── Suggestion chips (hidden once conversation starts) ──────────
           SuggestionChipRow(
             suggestions: ChatSuggestions.defaults,
-            visible:     chatState.messages.isEmpty && !isStreaming,
-            onTap:       _sendSuggestion,
+            visible: chatState.messages.isEmpty && !isStreaming,
+            onTap: _sendSuggestion,
           ),
 
           // ── Message list ───────────────────────────────────────────────
@@ -249,8 +249,8 @@ class _ErrorBanner extends StatelessWidget {
       color: context.critical.withAlpha(20),
       child: Row(
         children: [
-          Icon(Icons.error_outline, size: 18, color: context.critical,
-              semanticLabel: 'Error'),
+          Icon(Icons.error_outline,
+              size: 18, color: context.critical, semanticLabel: 'Error'),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
@@ -324,8 +324,12 @@ class _InputBar extends StatelessWidget {
                   maxLines: 5,
                   minLines: 1,
                   maxLength: 4000,
-                  buildCounter: (_, {required currentLength,
-                      required isFocused, required maxLength}) => null,
+                  buildCounter: (_, {
+                    required currentLength,
+                    required isFocused,
+                    required maxLength,
+                  }) =>
+                      null,
                   textInputAction: TextInputAction.newline,
                   keyboardType: TextInputType.multiline,
                   decoration: InputDecoration(
@@ -338,7 +342,8 @@ class _InputBar extends StatelessWidget {
                       vertical: 12,
                     ),
                   ),
-                  onSubmitted: canSend && !isStreaming ? (_) => onSend() : null,
+                  onSubmitted:
+                      canSend && !isStreaming ? (_) => onSend() : null,
                 ),
               ),
             ),

@@ -38,18 +38,18 @@ class ApiConfig {
 
   /// Base HTTP URL — no trailing slash.
   static String get baseUrl => switch (currentEnvironment) {
-        // Android emulator reaches the host machine via 10.0.2.2
-        AppEnvironment.local => 'http://10.0.2.2:8000',
-        AppEnvironment.stage => 'https://api-stage.ai-assistant.example.com',
-        AppEnvironment.production => 'https://api.ai-assistant.example.com',
-      };
+    // Android emulator reaches the host machine via 10.0.2.2
+    AppEnvironment.local => 'http://10.0.2.2:8000',
+    AppEnvironment.stage => 'https://api-stage.ai-assistant.example.com',
+    AppEnvironment.production => 'https://api.ai-assistant.example.com',
+  };
 
   /// Base WebSocket URL — no trailing slash.
   static String get wsBaseUrl => switch (currentEnvironment) {
-        AppEnvironment.local => 'ws://10.0.2.2:8000',
-        AppEnvironment.stage => 'wss://api-stage.ai-assistant.example.com',
-        AppEnvironment.production => 'wss://api.ai-assistant.example.com',
-      };
+    AppEnvironment.local => 'ws://10.0.2.2:8000',
+    AppEnvironment.stage => 'wss://api-stage.ai-assistant.example.com',
+    AppEnvironment.production => 'wss://api.ai-assistant.example.com',
+  };
 
   // ── Endpoint paths ──────────────────────────────────────────────────────
   static const String authLogin = '/auth/login';
@@ -62,7 +62,8 @@ class ApiConfig {
   static const String chatV1 = '/api/v1/chat';
 
   static const String conversations = '/conversations';
-  static String conversationMessages(String id) => '/conversations/$id/messages';
+  static String conversationMessages(String id) =>
+      '/conversations/$id/messages';
   static String conversationExport(String id) => '/conversations/$id/export';
 
   static const String incidents = '/incidents';
@@ -83,19 +84,19 @@ class ApiConfig {
   static const String analysisErrors = '/analysis/errors';
 
   // ── RAG / Documents ─────────────────────────────────────────────────────
-  static const String documents            = '/documents';
-  static const String documentsQuery       = '/documents/query';
-  static String documentById(String id)    => '/documents/$id';
-  static String documentQuery(String id)   => '/documents/$id/query';
+  static const String documents = '/documents';
+  static const String documentsQuery = '/documents/query';
+  static String documentById(String id) => '/documents/$id';
+  static String documentQuery(String id) => '/documents/$id/query';
   static String documentReingest(String id) => '/documents/$id/reingest';
-  static String ragJobById(String id)      => '/jobs/$id';
+  static String ragJobById(String id) => '/jobs/$id';
 
   // ── Notifications ────────────────────────────────────────────────────────
   static const String notificationsDeviceToken = '/notifications/device-token';
 
   // ── Memory ───────────────────────────────────────────────────────────────
-  static const String memory      = '/memory';
-  static const String memoryList  = '/memory/list';
+  static const String memory = '/memory';
+  static const String memoryList = '/memory/list';
   static String memoryById(String id) => '/memory/$id';
 
   /// WebSocket chat path — append ?token=<jwt> before connecting.

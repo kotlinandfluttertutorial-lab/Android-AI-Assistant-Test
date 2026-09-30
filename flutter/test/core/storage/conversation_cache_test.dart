@@ -9,12 +9,12 @@ Future<ConversationCache> makeCache() async {
 }
 
 CachedConversation makeConversation({
-  String id    = 'conv-1',
+  String id = 'conv-1',
   String title = 'Test conversation',
 }) =>
     CachedConversation(
-      id:        id,
-      title:     title,
+      id: id,
+      title: title,
       createdAt: '2025-01-15T10:00:00',
     );
 
@@ -33,9 +33,9 @@ void main() {
         makeConversation(id: 'b', title: 'Beta'),
       ]);
 
-      expect(cache.all.length,      2);
+      expect(cache.all.length, 2);
       expect(cache.all.first.title, 'Alpha');
-      expect(cache.isEmpty,         isFalse);
+      expect(cache.isEmpty, isFalse);
     });
 
     test('writeAll caps at maxCachedConversations', () async {
@@ -47,8 +47,7 @@ void main() {
 
       await cache.writeAll(convs);
 
-      expect(cache.all.length,
-          ConversationCache.maxCachedConversations);
+      expect(cache.all.length, ConversationCache.maxCachedConversations);
     });
 
     test('upsert adds a new conversation at the front', () async {
@@ -60,7 +59,7 @@ void main() {
       // is only guaranteed if the caller inserts newest first — upsert adds
       // at index 0 for new entries)
       expect(cache.all.first.id, 'second');
-      expect(cache.all.last.id,  'first');
+      expect(cache.all.last.id, 'first');
     });
 
     test('upsert updates an existing entry in-place', () async {
@@ -69,7 +68,7 @@ void main() {
       await cache.upsert(makeConversation(id: 'c1', title: 'New title'));
 
       // Should not grow.
-      expect(cache.all.length,      1);
+      expect(cache.all.length, 1);
       expect(cache.all.first.title, 'New title');
     });
 
@@ -80,8 +79,8 @@ void main() {
 
       await cache.remove('remove-me');
 
-      expect(cache.all.length,      1);
-      expect(cache.all.first.id,    'keep');
+      expect(cache.all.length, 1);
+      expect(cache.all.first.id, 'keep');
     });
 
     test('remove on unknown id is a no-op', () async {
@@ -105,24 +104,24 @@ void main() {
 
     test('CachedConversation survives JSON round-trip', () async {
       final cache = await makeCache();
-      final conv = const CachedConversation(
-        id:          'rt-conv',
-        title:       'Round-trip title',
-        createdAt:   '2025-06-15T08:00:00',
-        updatedAt:   '2025-06-15T09:00:00',
-        provider:    'gemini',
+      const conv = CachedConversation(
+        id: 'rt-conv',
+        title: 'Round-trip title',
+        createdAt: '2025-06-15T08:00:00',
+        updatedAt: '2025-06-15T09:00:00',
+        provider: 'gemini',
         lastMessage: 'Hello there',
-        isPinned:    true,
+        isPinned: true,
       );
       await cache.upsert(conv);
 
       final restored = cache.all.first;
-      expect(restored.id,          conv.id);
-      expect(restored.title,       conv.title);
-      expect(restored.provider,    conv.provider);
+      expect(restored.id, conv.id);
+      expect(restored.title, conv.title);
+      expect(restored.provider, conv.provider);
       expect(restored.lastMessage, conv.lastMessage);
-      expect(restored.isPinned,    isTrue);
-      expect(restored.updatedAt,   conv.updatedAt);
+      expect(restored.isPinned, isTrue);
+      expect(restored.updatedAt, conv.updatedAt);
     });
   });
 }

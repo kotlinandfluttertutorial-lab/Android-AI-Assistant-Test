@@ -27,7 +27,7 @@ void main() {
     });
 
     test('Failure.errorOrNull returns the error', () {
-      final error  = AppError.networkUnavailable();
+      final error = AppError.networkUnavailable();
       final result = Failure<void>(error);
       expect(result.errorOrNull, error);
     });
@@ -39,7 +39,7 @@ void main() {
     });
 
     test('Failure.map passes error through', () {
-      final error  = AppError.serverError();
+      final error = AppError.serverError();
       final result = Failure<int>(error);
       final mapped = result.map((v) => v * 10);
       expect(mapped.errorOrNull, error);

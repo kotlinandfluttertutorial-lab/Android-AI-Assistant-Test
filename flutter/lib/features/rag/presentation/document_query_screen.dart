@@ -75,7 +75,7 @@ class _DocumentQueryScreenState extends ConsumerState<DocumentQueryScreen> {
   @override
   Widget build(BuildContext context) {
     final queryState = ref.watch(queryProvider);
-    final docsAsync  = ref.watch(documentsProvider);
+    final docsAsync = ref.watch(documentsProvider);
 
     return Scaffold(
       appBar: AppBar(
@@ -96,13 +96,13 @@ class _DocumentQueryScreenState extends ConsumerState<DocumentQueryScreen> {
           // ── Document filter chips ──────────────────────────────────────
           docsAsync.when(
             loading: () => const SizedBox.shrink(),
-            error:   (_, __) => const SizedBox.shrink(),
-            data:    (docs) => _DocumentFilterRow(
-              docs:        docs,
+            error: (_, __) => const SizedBox.shrink(),
+            data: (docs) => _DocumentFilterRow(
+              docs: docs,
               selectedIds: queryState.selectedIds,
-              onToggle:    (id) =>
+              onToggle: (id) =>
                   ref.read(queryProvider.notifier).toggleDocument(id),
-              onClearAll:  () =>
+              onClearAll: () =>
                   ref.read(queryProvider.notifier).clearSelection(),
             ),
           ),
@@ -125,8 +125,8 @@ class _DocumentQueryScreenState extends ConsumerState<DocumentQueryScreen> {
               }
               if (!queryState.hasResult) {
                 return EmptyState(
-                  icon:     Icons.question_answer_outlined,
-                  title:    'Ask about your documents',
+                  icon: Icons.question_answer_outlined,
+                  title: 'Ask about your documents',
                   subtitle: queryState.selectedIds.isEmpty
                       ? 'Search across all documents, or select specific ones above.'
                       : '${queryState.selectedIds.length} document(s) selected.',
@@ -139,9 +139,9 @@ class _DocumentQueryScreenState extends ConsumerState<DocumentQueryScreen> {
           // ── Input bar ──────────────────────────────────────────────────
           _QueryInputBar(
             controller: _inputCtrl,
-            canSearch:  _canSearch,
-            isLoading:  queryState.isLoading,
-            onSearch:   _search,
+            canSearch: _canSearch,
+            isLoading: queryState.isLoading,
+            onSearch: _search,
           ),
         ],
       ),
@@ -160,9 +160,9 @@ class _DocumentFilterRow extends StatelessWidget {
   });
 
   final List<RagDocument> docs;
-  final List<String>      selectedIds;
+  final List<String> selectedIds;
   final void Function(String) onToggle;
-  final VoidCallback      onClearAll;
+  final VoidCallback onClearAll;
 
   @override
   Widget build(BuildContext context) {

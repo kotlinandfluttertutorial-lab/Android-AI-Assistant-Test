@@ -12,13 +12,13 @@
 from app.agents.base import Agent
 from app.agents.chat_agent import CHAT_AGENT_NAME, ChatAgent
 from app.agents.code_agent import CODE_AGENT_NAME, CodeAgent
+from app.agents.image_agent import IMAGE_AGENT_NAME, ImageAgent
 from app.agents.llm_client import (
     LLMClient,
     LLMClientError,
     LLMServiceAdapter,
     LocalGemmaAdapter,
 )
-from app.agents.image_agent import IMAGE_AGENT_NAME, ImageAgent
 from app.agents.model_router import InferencePath, ModelRouter, ModelRoutingDecision
 from app.agents.models import (
     AgentAttachment,
@@ -65,14 +65,6 @@ from app.agents.voice_agent import VOICE_AGENT_NAME, VoiceAgent
 from app.agents.web_agent import WEB_AGENT_NAME, WebAgent
 
 __all__ = [
-    "CHAT_AGENT_NAME",
-    "CODE_AGENT_NAME",
-    "IMAGE_AGENT_NAME",
-    "PDF_AGENT_NAME",
-    "RAG_AGENT_NAME",
-    "TOOL_AGENT_NAME",
-    "VOICE_AGENT_NAME",
-    "WEB_AGENT_NAME",
     "Agent",
     "AgentAttachment",
     "AgentCapability",
@@ -100,12 +92,15 @@ __all__ = [
     "AgentStep",
     "AgentToolCall",
     "AgentUsage",
+    "CHAT_AGENT_NAME",
+    "CODE_AGENT_NAME",
     "CallToolDecision",
     "ChatAgent",
     "CodeAgent",
     "ContextMemory",
     "ContextMessage",
     "FinishDecision",
+    "IMAGE_AGENT_NAME",
     "ImageAgent",
     "InferencePath",
     "LLMClient",
@@ -115,13 +110,17 @@ __all__ = [
     "LocalGemmaAdapter",
     "ModelRouter",
     "ModelRoutingDecision",
+    "PDF_AGENT_NAME",
     "PdfAgent",
     "PlanCounters",
+    "RAG_AGENT_NAME",
     "RagAgent",
     "RespondDecision",
     "RetrieveDecision",
     "RoutingOutcome",
+    "TOOL_AGENT_NAME",
     "ToolAgent",
+    "VOICE_AGENT_NAME",
     "VoiceAgent",
     "WEB_AGENT_NAME",
     "WaitDecision",

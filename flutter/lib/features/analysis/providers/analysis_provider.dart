@@ -28,7 +28,7 @@ class AnalysisState {
   final String? selectedProvider;
 
   bool get hasResult => result != null;
-  bool get hasError  => error != null;
+  bool get hasError => error != null;
 
   AnalysisState copyWith({
     ErrorAnalysisResponse? result,
@@ -40,11 +40,11 @@ class AnalysisState {
     bool clearResult = false,
   }) =>
       AnalysisState(
-        result:           clearResult  ? null  : (result ?? this.result),
-        isLoading:        isLoading    ?? this.isLoading,
-        error:            clearError   ? null  : (error  ?? this.error),
-        lookbackMinutes:  lookbackMinutes    ?? this.lookbackMinutes,
-        selectedProvider: selectedProvider   ?? this.selectedProvider,
+        result: clearResult ? null : (result ?? this.result),
+        isLoading: isLoading ?? this.isLoading,
+        error: clearError ? null : (error ?? this.error),
+        lookbackMinutes: lookbackMinutes ?? this.lookbackMinutes,
+        selectedProvider: selectedProvider ?? this.selectedProvider,
       );
 }
 
@@ -56,16 +56,15 @@ class AnalysisNotifier extends Notifier<AnalysisState> {
 
   Future<void> analyseRecent() async {
     state = state.copyWith(isLoading: true, clearError: true);
-    final api    = ref.read(analysisApiProvider);
+    final api = ref.read(analysisApiProvider);
     final result = await api.analyseErrors(
       AnalyseErrorRequest(
         lookbackMinutes: state.lookbackMinutes,
-        provider:        state.selectedProvider,
+        provider: state.selectedProvider,
       ),
     );
     state = result.when(
-      onSuccess: (data) =>
-          state.copyWith(result: data, isLoading: false),
+      onSuccess: (data) => state.copyWith(result: data, isLoading: false),
       onFailure: (err) =>
           state.copyWith(isLoading: false, error: err.userMessage),
     );
@@ -73,24 +72,25 @@ class AnalysisNotifier extends Notifier<AnalysisState> {
 
   Future<void> analyseSession(String sessionId) async {
     state = state.copyWith(isLoading: true, clearError: true);
-    final api    = ref.read(analysisApiProvider);
+    final api = ref.read(analysisApiProvider);
     final result = await api.analyseErrors(
       AnalyseErrorRequest(
         sessionId: sessionId,
-        provider:  state.selectedProvider,
+        provider: state.selectedProvider,
       ),
     );
     state = result.when(
-      onSuccess: (data) =>
-          state.copyWith(result: data, isLoading: false),
+      onSuccess: (data) => state.copyWith(result: data, isLoading: false),
       onFailure: (err) =>
           state.copyWith(isLoading: false, error: err.userMessage),
     );
   }
 
-  void setLookback(int minutes)         => state = state.copyWith(lookbackMinutes: minutes);
-  void setProvider(String? provider)    => state = state.copyWith(selectedProvider: provider);
-  void clear()                          => state = const AnalysisState();
+  void setLookback(int minutes) =>
+      state = state.copyWith(lookbackMinutes: minutes);
+  void setProvider(String? provider) =>
+      state = state.copyWith(selectedProvider: provider);
+  void clear() => state = const AnalysisState();
 }
 
 final analysisProvider =

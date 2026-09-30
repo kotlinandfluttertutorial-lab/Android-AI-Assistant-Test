@@ -21,7 +21,7 @@ Future<void> main() async {
   // Register the app lifecycle observer so the observability service
   // flushes buffered events when the app is backgrounded.
   final observabilityService = container.read(observabilityServiceProvider);
-  final lifecycleObserver    = AppLifecycleObserver(observabilityService);
+  final lifecycleObserver = AppLifecycleObserver(observabilityService);
   WidgetsBinding.instance.addObserver(lifecycleObserver);
 
   runApp(

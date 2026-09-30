@@ -24,7 +24,7 @@ class IncidentDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final incidentAsync = ref.watch(incidentDetailProvider(incidentId));
-    final rcaAsync      = ref.watch(rcaProvider(incidentId));
+    final rcaAsync = ref.watch(rcaProvider(incidentId));
 
     return Scaffold(
       appBar: AppBar(
@@ -45,10 +45,10 @@ class IncidentDetailScreen extends ConsumerWidget {
       ),
       body: incidentAsync.when(
         loading: () => const LoadingIndicator(message: 'Loading incident…'),
-        error:   (e, _) => ErrorView(message: e.toString()),
-        data:    (incident) => _IncidentDetailBody(
-          incident:   incident,
-          rcaAsync:   rcaAsync,
+        error: (e, _) => ErrorView(message: e.toString()),
+        data: (incident) => _IncidentDetailBody(
+          incident: incident,
+          rcaAsync: rcaAsync,
           incidentId: incidentId,
         ),
       ),
@@ -81,7 +81,7 @@ class _IncidentDetailBody extends ConsumerWidget {
         // ── RCA section ────────────────────────────────────────────────
         _RcaSection(
           incidentId: incidentId,
-          rcaAsync:   rcaAsync,
+          rcaAsync: rcaAsync,
         ),
         const SizedBox(height: 16),
 
@@ -100,11 +100,11 @@ class _IncidentHeaderCard extends StatelessWidget {
   final Incident incident;
 
   Color _severityColor(BuildContext ctx) => switch (incident.severity) {
-        IncidentSeverity.critical => ctx.critical,
-        IncidentSeverity.high     => ctx.critical.withAlpha(200),
-        IncidentSeverity.medium   => ctx.warning,
-        IncidentSeverity.low      => ctx.infoColor,
-      };
+    IncidentSeverity.critical => ctx.critical,
+    IncidentSeverity.high => ctx.critical.withAlpha(200),
+    IncidentSeverity.medium => ctx.warning,
+    IncidentSeverity.low => ctx.infoColor,
+  };
 
   @override
   Widget build(BuildContext context) {
@@ -221,7 +221,8 @@ class _RcaSection extends ConsumerWidget {
             Row(
               children: [
                 Icon(Icons.auto_awesome,
-                    size: 18, color: context.aiAccent,
+                    size: 18,
+                    color: context.aiAccent,
                     semanticLabel: 'AI analysis'),
                 const SizedBox(width: 8),
                 Text('Root Cause Analysis',
@@ -307,7 +308,8 @@ class _RcaCard extends StatelessWidget {
                 child: Row(
                   children: [
                     Icon(Icons.warning_amber,
-                        size: 16, color: context.warning,
+                        size: 16,
+                        color: context.warning,
                         semanticLabel: 'Low confidence warning'),
                     const SizedBox(width: 8),
                     Expanded(
@@ -338,8 +340,7 @@ class _RcaCard extends StatelessWidget {
             // Investigation steps
             if (rca.investigationSteps.isNotEmpty) ...[
               const SizedBox(height: 16),
-              Text('Investigation steps',
-                  style: context.texts.labelMedium),
+              Text('Investigation steps', style: context.texts.labelMedium),
               const SizedBox(height: 8),
               ...rca.investigationSteps.asMap().entries.map(
                     (e) => Padding(
@@ -465,8 +466,8 @@ class _CandidateRow extends StatelessWidget {
           ),
           const SizedBox(width: 8),
           Expanded(
-            child: Text(candidate.cause,
-                style: context.texts.bodySmall),
+            child:
+                Text(candidate.cause, style: context.texts.bodySmall),
           ),
           Text(
             '$pct%',
@@ -501,7 +502,8 @@ class _RemediationSection extends ConsumerWidget {
             Row(
               children: [
                 Icon(Icons.build_circle_outlined,
-                    size: 18, color: context.colors.primary,
+                    size: 18,
+                    color: context.colors.primary,
                     semanticLabel: 'Remediation'),
                 const SizedBox(width: 8),
                 Text('Remediation', style: context.texts.titleSmall),
@@ -546,7 +548,7 @@ class _RemediationSection extends ConsumerWidget {
             return Column(
               children: plan.actions
                   .map((a) => _RemediationActionCard(
-                        action:     a,
+                        action: a,
                         incidentId: incidentId,
                       ))
                   .toList(),
@@ -567,10 +569,10 @@ class _RemediationActionCard extends ConsumerWidget {
   final String incidentId;
 
   Color _riskColor(BuildContext ctx) => switch (action.riskTier.toUpperCase()) {
-        'HIGH'   => ctx.critical,
-        'MEDIUM' => ctx.warning,
-        _        => ctx.healthy,
-      };
+    'HIGH' => ctx.critical,
+    'MEDIUM' => ctx.warning,
+    _ => ctx.healthy,
+  };
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -626,8 +628,8 @@ class _RemediationActionCard extends ConsumerWidget {
                         minimumSize: const Size(0, 40),
                         elevation: 0,
                       ),
-                      icon: const Icon(Icons.how_to_reg, size: 16,
-                          semanticLabel: 'Approve fix'),
+                      icon: const Icon(Icons.how_to_reg,
+                          size: 16, semanticLabel: 'Approve fix'),
                       label: const Text('Approve'),
                       onPressed: () => _approve(context, ref),
                     ),
@@ -654,7 +656,8 @@ class _RemediationActionCard extends ConsumerWidget {
                   child: Row(
                     children: [
                       Icon(Icons.warning_amber,
-                          size: 14, color: context.critical,
+                          size: 14,
+                          color: context.critical,
                           semanticLabel: 'High risk warning'),
                       const SizedBox(width: 4),
                       Text(

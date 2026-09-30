@@ -19,10 +19,10 @@ class LoginScreen extends ConsumerStatefulWidget {
 }
 
 class _LoginScreenState extends ConsumerState<LoginScreen> {
-  final _formKey        = GlobalKey<FormState>();
-  final _emailCtrl      = TextEditingController();
-  final _passwordCtrl   = TextEditingController();
-  bool  _obscurePass    = true;
+  final _formKey = GlobalKey<FormState>();
+  final _emailCtrl = TextEditingController();
+  final _passwordCtrl = TextEditingController();
+  bool _obscurePass = true;
   String? _errorMessage;
 
   @override
@@ -38,7 +38,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
 
     final result = await ref.read(authStateProvider.notifier).login(
           LoginRequest(
-            email:    _emailCtrl.text.trim(),
+            email: _emailCtrl.text.trim(),
             password: _passwordCtrl.text,
           ),
         );
@@ -232,7 +232,9 @@ class _ErrorBanner extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Icon(Icons.error_outline, color: context.critical, size: 20,
+          Icon(Icons.error_outline,
+              color: context.critical,
+              size: 20,
               semanticLabel: 'Error'),
           const SizedBox(width: 8),
           Expanded(
@@ -267,8 +269,8 @@ class _ErrorBanner extends StatelessWidget {
 /// 3. Replace the _getGoogleIdToken() stub below with:
 ///    ```dart
 ///    final googleSignIn = GoogleSignIn(scopes: ['email']);
-///    final account      = await googleSignIn.signIn();
-///    final auth         = await account?.authentication;
+///    final account = await googleSignIn.signIn();
+///    final auth = await account?.authentication;
 ///    return auth?.idToken;
 ///    ```
 class _GoogleSignInButton extends ConsumerWidget {

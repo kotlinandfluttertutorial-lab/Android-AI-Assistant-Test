@@ -41,9 +41,9 @@ class ToolCallSummary extends Equatable {
   factory ToolCallSummary.fromJson(Map<String, dynamic> json) =>
       ToolCallSummary(
         toolName: (json['tool_name'] as String?) ?? '',
-        params:   Map<String, dynamic>.from(
+        params: Map<String, dynamic>.from(
             json['params'] as Map<String, dynamic>? ?? {}),
-        result:   Map<String, dynamic>.from(
+        result: Map<String, dynamic>.from(
             json['result'] as Map<String, dynamic>? ?? {}),
       );
 
@@ -70,16 +70,16 @@ class DevOpsChatResponse extends Equatable {
 
   factory DevOpsChatResponse.fromJson(Map<String, dynamic> json) =>
       DevOpsChatResponse(
-        sessionId:   (json['session_id'] as String?) ?? '',
-        question:    (json['question'] as String?) ?? '',
-        answer:      (json['answer'] as String?) ?? '',
-        citations:   List<String>.from(
-            json['citations'] as List<dynamic>? ?? []),
+        sessionId: (json['session_id'] as String?) ?? '',
+        question: (json['question'] as String?) ?? '',
+        answer: (json['answer'] as String?) ?? '',
+        citations:
+            List<String>.from(json['citations'] as List<dynamic>? ?? []),
         toolCalls: (json['tool_calls'] as List<dynamic>? ?? [])
             .map((e) =>
                 ToolCallSummary.fromJson(e as Map<String, dynamic>))
             .toList(),
-        roundsUsed:  (json['rounds_used'] as int?) ?? 0,
+        roundsUsed: (json['rounds_used'] as int?) ?? 0,
         llmProvider: (json['llm_provider'] as String?) ?? '',
       );
 
@@ -113,8 +113,8 @@ class DevOpsTurn extends Equatable {
   final bool isLoading;
   final String? errorMessage;
 
-  bool get hasError   => errorMessage != null;
-  bool get hasAnswer  => response != null;
+  bool get hasError => errorMessage != null;
+  bool get hasAnswer => response != null;
 
   DevOpsTurn copyWith({
     DevOpsChatResponse? response,
@@ -123,10 +123,10 @@ class DevOpsTurn extends Equatable {
     bool clearError = false,
   }) =>
       DevOpsTurn(
-        id:           id,
-        question:     question,
-        response:     response ?? this.response,
-        isLoading:    isLoading ?? this.isLoading,
+        id: id,
+        question: question,
+        response: response ?? this.response,
+        isLoading: isLoading ?? this.isLoading,
         errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
       );
 

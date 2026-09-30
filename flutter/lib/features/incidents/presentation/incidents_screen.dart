@@ -21,7 +21,7 @@ class IncidentsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final filter   = ref.watch(incidentFilterProvider);
+    final filter = ref.watch(incidentFilterProvider);
     final listAsync = ref.watch(incidentsProvider);
 
     return Scaffold(
@@ -50,8 +50,8 @@ class IncidentsScreen extends ConsumerWidget {
           // ── Stats row ──────────────────────────────────────────────────
           listAsync.when(
             loading: () => const SizedBox.shrink(),
-            error:   (_, __) => const SizedBox.shrink(),
-            data:    (data) =>
+            error: (_, __) => const SizedBox.shrink(),
+            data: (data) =>
                 _StatsBar(total: data.total, openCount: data.openCount),
           ),
 
@@ -152,11 +152,11 @@ class _SeverityDot extends StatelessWidget {
   }
 
   Color _color(BuildContext ctx, String s) => switch (s) {
-        'CRITICAL' => ctx.critical,
-        'HIGH'     => ctx.critical.withAlpha(180),
-        'MEDIUM'   => ctx.warning,
-        _          => ctx.infoColor,
-      };
+    'CRITICAL' => ctx.critical,
+    'HIGH' => ctx.critical.withAlpha(180),
+    'MEDIUM' => ctx.warning,
+    _ => ctx.infoColor,
+  };
 }
 
 // ── Stats bar ─────────────────────────────────────────────────────────────────
@@ -226,18 +226,18 @@ class _IncidentCard extends StatelessWidget {
   final Incident incident;
 
   Color _borderColor(BuildContext ctx) => switch (incident.severity) {
-        IncidentSeverity.critical => ctx.critical,
-        IncidentSeverity.high     => ctx.critical.withAlpha(200),
-        IncidentSeverity.medium   => ctx.warning,
-        IncidentSeverity.low      => ctx.infoColor,
-      };
+    IncidentSeverity.critical => ctx.critical,
+    IncidentSeverity.high => ctx.critical.withAlpha(200),
+    IncidentSeverity.medium => ctx.warning,
+    IncidentSeverity.low => ctx.infoColor,
+  };
 
   IconData _severityIcon() => switch (incident.severity) {
-        IncidentSeverity.critical => Icons.error,
-        IncidentSeverity.high     => Icons.error_outline,
-        IncidentSeverity.medium   => Icons.warning_amber,
-        IncidentSeverity.low      => Icons.info_outline,
-      };
+    IncidentSeverity.critical => Icons.error,
+    IncidentSeverity.high => Icons.error_outline,
+    IncidentSeverity.medium => Icons.warning_amber,
+    IncidentSeverity.low => Icons.info_outline,
+  };
 
   @override
   Widget build(BuildContext context) {

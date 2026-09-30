@@ -52,9 +52,9 @@ class _ConversationsScreenState extends ConsumerState<ConversationsScreen> {
 
     final listPane = _ConversationListPane(
       conversationsAsync: conversationsAsync,
-      selectedId:         _selectedConversationId,
-      onOpen:             (id) => _openConversation(context, id),
-      onRefresh:          () => ref.read(conversationsProvider.notifier).refresh(),
+      selectedId: _selectedConversationId,
+      onOpen: (id) => _openConversation(context, id),
+      onRefresh: () => ref.read(conversationsProvider.notifier).refresh(),
     );
 
     if (!isTablet) {
@@ -113,9 +113,9 @@ class _ConversationListPane extends ConsumerWidget {
   });
 
   final AsyncValue<List<Conversation>> conversationsAsync;
-  final String?                        selectedId;
-  final void Function(String id)       onOpen;
-  final Future<void> Function()        onRefresh;
+  final String? selectedId;
+  final void Function(String id) onOpen;
+  final Future<void> Function() onRefresh;
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -124,15 +124,15 @@ class _ConversationListPane extends ConsumerWidget {
         title: const Text('Chats'),
         actions: [
           IconButton(
-            icon:    const Icon(Icons.refresh),
+            icon: const Icon(Icons.refresh),
             tooltip: 'Refresh',
             onPressed: onRefresh,
           ),
         ],
       ),
       body: conversationsAsync.when(
-        loading: () => const LoadingIndicator(
-            message: 'Loading conversations…'),
+        loading: () =>
+            const LoadingIndicator(message: 'Loading conversations…'),
         error: (e, _) => ErrorView(
           message: e.toString(),
           onRetry: onRefresh,
@@ -140,11 +140,11 @@ class _ConversationListPane extends ConsumerWidget {
         data: (conversations) {
           if (conversations.isEmpty) {
             return EmptyState(
-              icon:        Icons.chat_bubble_outline,
-              title:       'No conversations yet',
-              subtitle:    'Start a new chat to get going.',
+              icon: Icons.chat_bubble_outline,
+              title: 'No conversations yet',
+              subtitle: 'Start a new chat to get going.',
               actionLabel: 'New chat',
-              onAction:    () => context.push(Routes.newChat),
+              onAction: () => context.push(Routes.newChat),
             );
           }
           return RefreshIndicator(
@@ -156,8 +156,8 @@ class _ConversationListPane extends ConsumerWidget {
                   const Divider(height: 1, indent: 72),
               itemBuilder: (ctx, i) => _ConversationTile(
                 conversation: conversations[i],
-                isSelected:   conversations[i].id == selectedId,
-                onTap:        () => onOpen(conversations[i].id),
+                isSelected: conversations[i].id == selectedId,
+                onTap: () => onOpen(conversations[i].id),
               ),
             ),
           );
@@ -165,7 +165,7 @@ class _ConversationListPane extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () => context.push(Routes.newChat),
-        icon:  const Icon(Icons.add),
+        icon: const Icon(Icons.add),
         label: const Text('New chat'),
       ),
     );
@@ -179,7 +179,7 @@ class _ConversationTile extends ConsumerWidget {
     this.onTap,
   });
   final Conversation conversation;
-  final bool         isSelected;
+  final bool isSelected;
   final VoidCallback? onTap;
 
   @override
@@ -191,8 +191,8 @@ class _ConversationTile extends ConsumerWidget {
         alignment: Alignment.centerRight,
         padding: const EdgeInsets.only(right: 24),
         color: context.critical,
-        child: const Icon(Icons.delete, color: Colors.white,
-            semanticLabel: 'Delete conversation'),
+        child: const Icon(Icons.delete,
+            color: Colors.white, semanticLabel: 'Delete conversation'),
       ),
       confirmDismiss: (_) => showDialog<bool>(
         context: context,
@@ -236,8 +236,10 @@ class _ConversationTile extends ConsumerWidget {
               )
             : null,
         trailing: Text(
-          DateFormatter.relative(conversation.updatedAt ?? conversation.createdAt),
-          style: context.texts.labelSmall?.copyWith(color: context.mutedColor),
+          DateFormatter.relative(
+              conversation.updatedAt ?? conversation.createdAt),
+          style:
+              context.texts.labelSmall?.copyWith(color: context.mutedColor),
         ),
         onTap: () {
           if (onTap != null) {
@@ -247,7 +249,7 @@ class _ConversationTile extends ConsumerWidget {
           }
         },
         onLongPress: () => _showExportSheet(context, ref),
-        selected:   isSelected,
+        selected: isSelected,
         selectedTileColor:
             Theme.of(context).colorScheme.primary.withAlpha(12),
       ),
@@ -288,7 +290,7 @@ class _ConversationTile extends ConsumerWidget {
     WidgetRef ref,
     ExportFormat format,
   ) async {
-    final api    = ref.read(conversationsApiProvider);
+    final api = ref.read(conversationsApiProvider);
     final result = await api.exportConversation(
       conversation.id,
       format: format,
