@@ -47,9 +47,7 @@ _ENV_FILE = Path(__file__).resolve().parents[1] / ".env"  # backend/.env
 if _ENV_FILE.exists():
     from dotenv import load_dotenv
 
-    load_dotenv(
-        dotenv_path=_ENV_FILE, override=False
-    )  # env vars already set take priority
+    load_dotenv(dotenv_path=_ENV_FILE, override=False)  # env vars already set take priority
 
 from fastapi.middleware.cors import CORSMiddleware  # noqa: E402
 from fastapi.responses import JSONResponse  # noqa: E402
@@ -168,9 +166,7 @@ def get_missing_env_vars() -> list[str]:
     Requirements: 26.3, 26.4
     """
     return [
-        var_name
-        for var_name, _ in REQUIRED_ENV_VARS
-        if not os.environ.get(var_name, "").strip()
+        var_name for var_name, _ in REQUIRED_ENV_VARS if not os.environ.get(var_name, "").strip()
     ]
 
 
@@ -255,8 +251,10 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
         # Check ChromaDB connectivity and log a clear warning if unreachable.
         try:
+
             def _check_chroma() -> None:
                 from app.services.rag_service import rag_service as _rag_service
+
                 client = _rag_service._make_chroma_client()
                 # Embedded client — heartbeat is just a no-op connectivity check
                 hb = client.heartbeat()
@@ -266,7 +264,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
             logger.info("STARTUP: ChromaDB embedded in-process client initialised.")
         except Exception as _exc:
             logger.warning(
-                "STARTUP: ChromaDB embedded client failed (non-fatal): %s", _exc,
+                "STARTUP: ChromaDB embedded client failed (non-fatal): %s",
+                _exc,
             )
 
     _warmup_task = _asyncio.create_task(_background_warmup())
@@ -301,6 +300,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     # from exiting (Uvicorn will force-kill after SIGTERM timeout regardless).
     try:
         from app.database import engine as _engine
+
         await _engine.dispose()
         logger.info("SHUTDOWN: SQLAlchemy connection pool disposed cleanly.")
     except Exception as _exc:

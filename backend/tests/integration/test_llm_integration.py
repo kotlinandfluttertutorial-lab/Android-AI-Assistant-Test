@@ -32,8 +32,7 @@ import pytest
 
 _INTEGRATION_ENABLED = os.environ.get("RUN_LLM_INTEGRATION_TESTS", "").lower() == "true"
 _SKIP_REASON = (
-    "Integration tests skipped. "
-    "Set RUN_LLM_INTEGRATION_TESTS=true and GEMINI_API_KEY to run."
+    "Integration tests skipped. Set RUN_LLM_INTEGRATION_TESTS=true and GEMINI_API_KEY to run."
 )
 
 pytestmark = pytest.mark.skipif(not _INTEGRATION_ENABLED, reason=_SKIP_REASON)
@@ -59,6 +58,7 @@ _TEST_MODEL = os.environ.get("LLM_INTEGRATION_TEST_MODEL", "gemini-3.1-flash-lit
 # Integration tests
 # ---------------------------------------------------------------------------
 
+
 class TestGeminiProviderIntegration:
     """Real API calls against GeminiProvider.
 
@@ -71,6 +71,7 @@ class TestGeminiProviderIntegration:
         original = os.environ.get("GEMINI_MODEL", "")
         os.environ["GEMINI_MODEL"] = _TEST_MODEL
         from app.config.settings import get_settings
+
         get_settings.cache_clear()
         yield
         os.environ["GEMINI_MODEL"] = original

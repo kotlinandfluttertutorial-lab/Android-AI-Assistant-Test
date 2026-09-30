@@ -83,9 +83,7 @@ def _make_refresh_token_record(
     record.used = used
     record.revoked = revoked
     record.family_id = family_id or uuid.uuid4()
-    record.expires_at = datetime.now(tz=timezone.utc) + timedelta(
-        seconds=expires_delta_seconds
-    )
+    record.expires_at = datetime.now(tz=timezone.utc) + timedelta(seconds=expires_delta_seconds)
     return record
 
 
@@ -125,9 +123,7 @@ class TestIssueTokensForUser:
             repo = MockRepo.return_value
             repo.create = AsyncMock(return_value=MagicMock())
 
-            access_token, _, _, _ = await issue_tokens_for_user(
-                mock_db, SAMPLE_USER_ID, "admin"
-            )
+            access_token, _, _, _ = await issue_tokens_for_user(mock_db, SAMPLE_USER_ID, "admin")
 
         payload = verify_access_token(access_token)
         assert payload.sub == str(SAMPLE_USER_ID)
@@ -151,9 +147,7 @@ class TestIssueTokensForUser:
             repo = MockRepo.return_value
             repo.create = AsyncMock(return_value=MagicMock())
 
-            _, _, raw_refresh, _ = await issue_tokens_for_user(
-                mock_db, SAMPLE_USER_ID, SAMPLE_ROLE
-            )
+            _, _, raw_refresh, _ = await issue_tokens_for_user(mock_db, SAMPLE_USER_ID, SAMPLE_ROLE)
 
         call_kwargs = repo.create.call_args.kwargs
         assert call_kwargs["user_id"] == SAMPLE_USER_ID
@@ -319,9 +313,7 @@ class TestRefreshTokensReplayDetection:
         user = _make_user()
         raw = "already-used-token"
         token_hash = hash_token(raw)
-        used_record = _make_refresh_token_record(
-            user=user, token_hash=token_hash, used=True
-        )
+        used_record = _make_refresh_token_record(user=user, token_hash=token_hash, used=True)
 
         with patch("app.services.auth_service.RefreshTokenRepository") as MockRepo:
             repo = MockRepo.return_value
@@ -361,9 +353,7 @@ class TestRefreshTokensErrorCases:
         user = _make_user()
         raw = "revoked-token"
         token_hash = hash_token(raw)
-        revoked_record = _make_refresh_token_record(
-            user=user, token_hash=token_hash, revoked=True
-        )
+        revoked_record = _make_refresh_token_record(user=user, token_hash=token_hash, revoked=True)
 
         with patch("app.services.auth_service.RefreshTokenRepository") as MockRepo:
             repo = MockRepo.return_value

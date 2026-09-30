@@ -571,9 +571,7 @@ class TestUserDeactivationFlow:
             TestClient(_app) as client,
         ):
             # Attempt to call any protected endpoint with the revoked JWT
-            resp = client.get(
-                "/admin/sessions", headers=_make_auth_headers(deactivated_token)
-            )
+            resp = client.get("/admin/sessions", headers=_make_auth_headers(deactivated_token))
 
         # Must return 401 because the JTI has been revoked
         assert resp.status_code == 401
@@ -780,9 +778,7 @@ class TestUserManagement:
             ),
             TestClient(_app) as client,
         ):
-            resp = client.get(
-                "/admin/users?page=1&page_size=2", headers=_make_auth_headers(token)
-            )
+            resp = client.get("/admin/users?page=1&page_size=2", headers=_make_auth_headers(token))
 
         assert resp.status_code == 200
         body = resp.json()
@@ -818,9 +814,7 @@ class TestUserManagement:
             ),
             TestClient(_app) as client,
         ):
-            resp = client.get(
-                "/admin/users?search=alice", headers=_make_auth_headers(token)
-            )
+            resp = client.get("/admin/users?search=alice", headers=_make_auth_headers(token))
 
         assert resp.status_code == 200
         body = resp.json()
@@ -1661,8 +1655,7 @@ class TestDeactivationForceLogout:
                     headers=_make_auth_headers(deactivated_admin_token),
                 )
                 assert resp.status_code == 401, (
-                    f"Expected 401 for revoked JWT on {method} {path}, "
-                    f"got {resp.status_code}"
+                    f"Expected 401 for revoked JWT on {method} {path}, got {resp.status_code}"
                 )
 
     def test_deactivation_response_user_id_matches_target(self) -> None:

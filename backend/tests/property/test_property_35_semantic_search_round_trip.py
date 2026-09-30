@@ -106,9 +106,7 @@ _excerpt_strategy = (
 _source_type_strategy = st.sampled_from(["conversation", "note", "document", "memory"])
 
 # Source ID strategy: simple UUID-like string
-_source_id_strategy = st.from_regex(
-    r"[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}", fullmatch=True
-)
+_source_id_strategy = st.from_regex(r"[a-z0-9]{8}-[a-z0-9]{4}-[a-z0-9]{4}", fullmatch=True)
 
 
 # ---------------------------------------------------------------------------
@@ -254,9 +252,7 @@ def test_property_35_semantic_search_round_trip(
     """
     # Verify minimum 10 words (test setup invariant)
     word_count = len(excerpt.split())
-    assert (
-        word_count >= 10
-    ), f"Setup error: excerpt has fewer than 10 words: {word_count}"
+    assert word_count >= 10, f"Setup error: excerpt has fewer than 10 words: {word_count}"
 
     user_id = uuid.uuid4()
 
@@ -319,9 +315,9 @@ class TestSemanticSearchRoundTripEdgeCases:
         )
 
         assert len(results) > 0, "10-word excerpt should produce at least one result."
-        assert (
-            results[0].relevance_score >= _ROUND_TRIP_MIN_SCORE
-        ), f"Score {results[0].relevance_score} below minimum {_ROUND_TRIP_MIN_SCORE}."
+        assert results[0].relevance_score >= _ROUND_TRIP_MIN_SCORE, (
+            f"Score {results[0].relevance_score} below minimum {_ROUND_TRIP_MIN_SCORE}."
+        )
 
     def test_conversation_source_type_round_trip(self) -> None:
         """Round-trip must work for conversation source type."""
@@ -342,7 +338,9 @@ class TestSemanticSearchRoundTripEdgeCases:
 
     def test_document_source_type_round_trip(self) -> None:
         """Round-trip must work for document source type."""
-        excerpt = "enterprise document management system with advanced search and retrieval capabilities"
+        excerpt = (
+            "enterprise document management system with advanced search and retrieval capabilities"
+        )
         user_id = uuid.uuid4()
 
         results = _run_round_trip(
@@ -389,15 +387,13 @@ class TestSemanticSearchRoundTripEdgeCases:
         )
 
         assert len(results) > 0
-        assert (
-            results[0].relevance_score >= _ROUND_TRIP_MIN_SCORE
-        ), f"Boundary score {results[0].relevance_score} must be ≥ {_ROUND_TRIP_MIN_SCORE}."
+        assert results[0].relevance_score >= _ROUND_TRIP_MIN_SCORE, (
+            f"Boundary score {results[0].relevance_score} must be ≥ {_ROUND_TRIP_MIN_SCORE}."
+        )
 
     def test_excerpt_with_numeric_tokens_round_trip(self) -> None:
         """Excerpts with numeric tokens are retrievable with score ≥ 0.90."""
-        excerpt = (
-            "version 3 release candidate build number 42 launched on january 15 2024"
-        )
+        excerpt = "version 3 release candidate build number 42 launched on january 15 2024"
         user_id = uuid.uuid4()
 
         results = _run_round_trip(

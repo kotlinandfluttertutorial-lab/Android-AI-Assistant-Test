@@ -1,4 +1,5 @@
 """One-shot script: ALTER document_chunks.chroma_id to allow NULLs."""
+
 import os
 
 import psycopg2

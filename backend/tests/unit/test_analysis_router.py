@@ -73,9 +73,10 @@ from app.security.dependencies import get_current_user
 # Shared helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_jwt_user(sub: str = "user-phase10-test") -> MagicMock:
     user = MagicMock()
-    user.sub  = sub
+    user.sub = sub
     user.role = "developer"
     return user
 
@@ -117,14 +118,14 @@ def _make_test_app() -> tuple[FastAPI, MagicMock]:
         (app, jwt_user_mock) — the app is ready for TestClient, jwt_user_mock
         can be inspected to verify user context was propagated.
     """
-    app       = FastAPI()
-    jwt_user  = _make_jwt_user()
-    db_mock   = AsyncMock()
+    app = FastAPI()
+    jwt_user = _make_jwt_user()
+    db_mock = AsyncMock()
 
     app.include_router(router)
     app.dependency_overrides = {
         get_current_user: lambda: jwt_user,
-        get_db:           lambda: db_mock,
+        get_db: lambda: db_mock,
     }
     return app, jwt_user
 
@@ -148,9 +149,7 @@ class TestAnalyseErrorsPost:
         if service_raises:
             mock_service.analyse.side_effect = service_raises
         else:
-            mock_service.analyse.return_value = (
-                service_return or _make_analysis_response()
-            )
+            mock_service.analyse.return_value = service_return or _make_analysis_response()
 
         with patch(
             "app.api.analysis.router.ErrorAnalysisService",
@@ -160,38 +159,38 @@ class TestAnalyseErrorsPost:
 
     def test_returns_200_with_well_formed_response(self) -> None:
         expected = _make_analysis_response(summary="DB pool exhausted")
-        client   = self._client(service_return=expected)
+        client = self._client(service_return=expected)
 
         resp = client.post("/analysis/errors", json={})
 
         assert resp.status_code == 200
         body = resp.json()
-        assert body["summary"]             == "DB pool exhausted"
-        assert body["severity"]            == "HIGH"
-        assert float(body["confidence"])   == pytest.approx(0.87, abs=0.01)
+        assert body["summary"] == "DB pool exhausted"
+        assert body["severity"] == "HIGH"
+        assert float(body["confidence"]) == pytest.approx(0.87, abs=0.01)
         assert "analysis_id" in body
 
     def test_response_contains_facts_vs_inference_block(self) -> None:
         client = self._client()
-        resp   = client.post("/analysis/errors", json={})
-        body   = resp.json()
+        resp = client.post("/analysis/errors", json={})
+        body = resp.json()
 
-        assert "facts_vs_inference"        in body
-        assert "facts"                     in body["facts_vs_inference"]
-        assert "inferences"                in body["facts_vs_inference"]
+        assert "facts_vs_inference" in body
+        assert "facts" in body["facts_vs_inference"]
+        assert "inferences" in body["facts_vs_inference"]
 
     def test_response_contains_ai_metadata_fields(self) -> None:
         client = self._client()
-        resp   = client.post("/analysis/errors", json={})
-        body   = resp.json()
+        resp = client.post("/analysis/errors", json={})
+        body = resp.json()
 
-        assert "events_analysed"            in body
+        assert "events_analysed" in body
         assert "knowledge_chunks_retrieved" in body
-        assert "llm_provider"               in body
+        assert "llm_provider" in body
 
     def test_request_body_forwarded_to_service(self) -> None:
         """The router must pass the exact request body to ErrorAnalysisService.analyse."""
-        app, _       = _make_test_app()
+        app, _ = _make_test_app()
         mock_service = AsyncMock()
         mock_service.analyse.return_value = _make_analysis_response()
 
@@ -208,11 +207,11 @@ class TestAnalyseErrorsPost:
         mock_service.analyse.assert_awaited_once()
         call_arg: AnalyseErrorRequest = mock_service.analyse.call_args[0][0]
         assert call_arg.lookback_minutes == 45
-        assert call_arg.provider         == "openai"
+        assert call_arg.provider == "openai"
 
     def test_service_exception_returns_500(self) -> None:
         client = self._client(service_raises=RuntimeError("DB connection lost"))
-        resp   = client.post("/analysis/errors", json={})
+        resp = client.post("/analysis/errors", json={})
         assert resp.status_code == 500
         assert "AI error analysis failed" in resp.json()["detail"]
 
@@ -220,19 +219,19 @@ class TestAnalyseErrorsPost:
         """Pydantic validation: lookback_minutes must be >= 1."""
         app, _ = _make_test_app()
         client = TestClient(app, raise_server_exceptions=False)
-        resp   = client.post("/analysis/errors", json={"lookback_minutes": 0})
+        resp = client.post("/analysis/errors", json={"lookback_minutes": 0})
         assert resp.status_code == 422
 
     def test_lookback_minutes_above_1440_returns_422(self) -> None:
         """Pydantic validation: lookback_minutes must be <= 1440 (24 hours)."""
         app, _ = _make_test_app()
         client = TestClient(app, raise_server_exceptions=False)
-        resp   = client.post("/analysis/errors", json={"lookback_minutes": 1441})
+        resp = client.post("/analysis/errors", json={"lookback_minutes": 1441})
         assert resp.status_code == 422
 
     def test_default_lookback_minutes_is_30(self) -> None:
         """When no lookback_minutes is supplied the default is 30."""
-        app, _       = _make_test_app()
+        app, _ = _make_test_app()
         mock_service = AsyncMock()
         mock_service.analyse.return_value = _make_analysis_response()
 
@@ -252,7 +251,7 @@ class TestAnalyseErrorsPost:
         app.include_router(router)
         # No dependency_overrides → real get_current_user runs → no JWT → 401/403
         client = TestClient(app, raise_server_exceptions=False)
-        resp   = client.post("/analysis/errors", json={})
+        resp = client.post("/analysis/errors", json={})
         assert resp.status_code in (401, 403)
 
 
@@ -265,7 +264,7 @@ class TestAnalyseSessionPost:
     """POST /analysis/errors/session — session-scoped shortcut endpoint."""
 
     def _client_with_mock(self) -> tuple[TestClient, AsyncMock]:
-        app, _       = _make_test_app()
+        app, _ = _make_test_app()
         mock_service = AsyncMock()
         mock_service.analyse.return_value = _make_analysis_response()
 
@@ -317,7 +316,7 @@ class TestAnalyseSessionPost:
         assert call_arg.lookback_minutes == 120
 
     def test_service_exception_returns_500(self) -> None:
-        app, _       = _make_test_app()
+        app, _ = _make_test_app()
         mock_service = AsyncMock()
         mock_service.analyse.side_effect = RuntimeError("LLM timeout")
 
@@ -326,7 +325,7 @@ class TestAnalyseSessionPost:
             return_value=mock_service,
         ):
             client = TestClient(app, raise_server_exceptions=False)
-            resp   = client.post(
+            resp = client.post(
                 "/analysis/errors/session",
                 params={"session_id": "sess-abc-123"},
             )
@@ -337,14 +336,14 @@ class TestAnalyseSessionPost:
         """session_id is a required query parameter — omitting it → 422."""
         app, _ = _make_test_app()
         client = TestClient(app, raise_server_exceptions=False)
-        resp   = client.post("/analysis/errors/session")
+        resp = client.post("/analysis/errors/session")
         assert resp.status_code == 422
 
     def test_requires_authentication(self) -> None:
-        app    = FastAPI()
+        app = FastAPI()
         app.include_router(router)
         client = TestClient(app, raise_server_exceptions=False)
-        resp   = client.post(
+        resp = client.post(
             "/analysis/errors/session",
             params={"session_id": "sess-abc-123"},
         )
@@ -376,7 +375,7 @@ class TestAnalyseEventGet:
 
         # Mock the repo so the router can verify the event exists
         mock_event = MagicMock() if event_exists else None
-        mock_repo  = AsyncMock()
+        mock_repo = AsyncMock()
         mock_repo.get_by_id.return_value = mock_event
 
         # Mock the service
@@ -384,9 +383,7 @@ class TestAnalyseEventGet:
         if service_raises:
             mock_service.analyse.side_effect = service_raises
         else:
-            mock_service.analyse.return_value = (
-                service_return or _make_analysis_response()
-            )
+            mock_service.analyse.return_value = service_return or _make_analysis_response()
 
         with (
             # Now imported at module level in the router, so patch there
@@ -403,43 +400,43 @@ class TestAnalyseEventGet:
 
     def test_returns_200_when_event_exists(self) -> None:
         client = self._client(event_exists=True)
-        resp   = client.get(f"/analysis/errors/{self._VALID_UUID}")
+        resp = client.get(f"/analysis/errors/{self._VALID_UUID}")
         assert resp.status_code == 200
 
     def test_response_body_is_error_analysis_response(self) -> None:
         expected = _make_analysis_response(summary="OOM error on worker pod")
-        client   = self._client(service_return=expected)
-        resp     = client.get(f"/analysis/errors/{self._VALID_UUID}")
-        body     = resp.json()
+        client = self._client(service_return=expected)
+        resp = client.get(f"/analysis/errors/{self._VALID_UUID}")
+        body = resp.json()
 
-        assert body["summary"]   == "OOM error on worker pod"
-        assert "analysis_id"     in body
-        assert "confidence"      in body
+        assert body["summary"] == "OOM error on worker pod"
+        assert "analysis_id" in body
+        assert "confidence" in body
         assert "facts_vs_inference" in body
 
     def test_returns_404_when_event_does_not_exist(self) -> None:
         """Router must return 404 (not 500) when the event UUID is valid but unknown."""
         client = self._client(event_exists=False)
-        resp   = client.get(f"/analysis/errors/{self._VALID_UUID}")
+        resp = client.get(f"/analysis/errors/{self._VALID_UUID}")
         assert resp.status_code == 404
         assert "not found" in resp.json()["detail"].lower()
 
     def test_404_detail_includes_the_event_id(self) -> None:
         client = self._client(event_exists=False)
-        resp   = client.get(f"/analysis/errors/{self._VALID_UUID}")
+        resp = client.get(f"/analysis/errors/{self._VALID_UUID}")
         assert self._VALID_UUID in resp.json()["detail"]
 
     def test_non_uuid_path_segment_returns_422(self) -> None:
         """FastAPI UUID path parameter validation: non-UUID → 422."""
         app, _ = _make_test_app()
         client = TestClient(app, raise_server_exceptions=False)
-        resp   = client.get("/analysis/errors/not-a-uuid")
+        resp = client.get("/analysis/errors/not-a-uuid")
         assert resp.status_code == 422
 
     def test_event_id_passed_to_service_as_string(self) -> None:
         """The router must forward event_id as a string UUID to the service request."""
-        app, _       = _make_test_app()
-        mock_repo    = AsyncMock()
+        app, _ = _make_test_app()
+        mock_repo = AsyncMock()
         mock_repo.get_by_id.return_value = MagicMock()  # event exists
         mock_service = AsyncMock()
         mock_service.analyse.return_value = _make_analysis_response()
@@ -469,10 +466,10 @@ class TestAnalyseEventGet:
         assert resp.status_code == 500
 
     def test_requires_authentication(self) -> None:
-        app    = FastAPI()
+        app = FastAPI()
         app.include_router(router)
         client = TestClient(app, raise_server_exceptions=False)
-        resp   = client.get(f"/analysis/errors/{self._VALID_UUID}")
+        resp = client.get(f"/analysis/errors/{self._VALID_UUID}")
         assert resp.status_code in (401, 403)
 
 
@@ -501,7 +498,7 @@ class TestResponseSchema:
     }
 
     def test_all_required_fields_present_in_post_response(self) -> None:
-        app, _       = _make_test_app()
+        app, _ = _make_test_app()
         mock_service = AsyncMock()
         mock_service.analyse.return_value = _make_analysis_response()
 
@@ -510,14 +507,14 @@ class TestResponseSchema:
             return_value=mock_service,
         ):
             client = TestClient(app, raise_server_exceptions=False)
-            resp   = client.post("/analysis/errors", json={})
+            resp = client.post("/analysis/errors", json={})
 
         body = resp.json()
         for field in self._REQUIRED_FIELDS:
             assert field in body, f"Missing required field: {field}"
 
     def test_confidence_is_float_between_0_and_1(self) -> None:
-        app, _       = _make_test_app()
+        app, _ = _make_test_app()
         mock_service = AsyncMock()
         mock_service.analyse.return_value = _make_analysis_response(confidence=0.73)
 
@@ -526,30 +523,28 @@ class TestResponseSchema:
             return_value=mock_service,
         ):
             client = TestClient(app, raise_server_exceptions=False)
-            resp   = client.post("/analysis/errors", json={})
+            resp = client.post("/analysis/errors", json={})
 
         confidence = resp.json()["confidence"]
         assert 0.0 <= confidence <= 1.0
 
     def test_severity_is_one_of_valid_enum_values(self) -> None:
         valid_severities = {"CRITICAL", "HIGH", "MEDIUM", "LOW"}
-        app, _           = _make_test_app()
-        mock_service     = AsyncMock()
-        mock_service.analyse.return_value = _make_analysis_response(
-            severity=ErrorSeverity.CRITICAL
-        )
+        app, _ = _make_test_app()
+        mock_service = AsyncMock()
+        mock_service.analyse.return_value = _make_analysis_response(severity=ErrorSeverity.CRITICAL)
 
         with patch(
             "app.api.analysis.router.ErrorAnalysisService",
             return_value=mock_service,
         ):
             client = TestClient(app, raise_server_exceptions=False)
-            resp   = client.post("/analysis/errors", json={})
+            resp = client.post("/analysis/errors", json={})
 
         assert resp.json()["severity"] in valid_severities
 
     def test_facts_vs_inference_contains_lists(self) -> None:
-        app, _       = _make_test_app()
+        app, _ = _make_test_app()
         mock_service = AsyncMock()
         mock_service.analyse.return_value = _make_analysis_response()
 
@@ -558,15 +553,15 @@ class TestResponseSchema:
             return_value=mock_service,
         ):
             client = TestClient(app, raise_server_exceptions=False)
-            resp   = client.post("/analysis/errors", json={})
+            resp = client.post("/analysis/errors", json={})
 
         fvi = resp.json()["facts_vs_inference"]
-        assert isinstance(fvi["facts"],      list)
+        assert isinstance(fvi["facts"], list)
         assert isinstance(fvi["inferences"], list)
 
     def test_low_confidence_warning_can_be_null(self) -> None:
         """low_confidence_warning is Optional — must be null when confidence >= 0.6."""
-        app, _       = _make_test_app()
+        app, _ = _make_test_app()
         mock_service = AsyncMock()
         mock_service.analyse.return_value = _make_analysis_response(confidence=0.90)
 
@@ -575,6 +570,6 @@ class TestResponseSchema:
             return_value=mock_service,
         ):
             client = TestClient(app, raise_server_exceptions=False)
-            resp   = client.post("/analysis/errors", json={})
+            resp = client.post("/analysis/errors", json={})
 
         assert resp.json()["low_confidence_warning"] is None

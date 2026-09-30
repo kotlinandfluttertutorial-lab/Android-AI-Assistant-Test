@@ -672,9 +672,7 @@ async def reingest_document(
     try:
         await rag_service.delete_embeddings(str(document_id), str(user_id))
     except Exception:
-        logger.warning(
-            "Could not clear stale ChromaDB embeddings for %s (continuing)", document_id
-        )
+        logger.warning("Could not clear stale ChromaDB embeddings for %s (continuing)", document_id)
 
     # Create a new Job row for this re-ingestion attempt
     job_id = await rag_service.create_ingestion_job(document_id, user_id, db)
@@ -761,9 +759,7 @@ async def delete_document(
     try:
         await rag_service.delete_file_minio(minio_key)
     except Exception:
-        logger.warning(
-            "MinIO file deletion failed for document %s (best-effort)", document_id
-        )
+        logger.warning("MinIO file deletion failed for document %s (best-effort)", document_id)
 
 
 # ---------------------------------------------------------------------------

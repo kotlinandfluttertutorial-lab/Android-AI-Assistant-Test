@@ -57,34 +57,36 @@ _LOW_CONFIDENCE_THRESHOLD = 0.6
 # Catalogue of known action types and their risk tiers.
 # Used both to generate recommendations and to validate approval requests.
 ACTION_CATALOGUE: dict[str, str] = {
-    "notify_slack":    "LOW",
-    "create_ticket":   "LOW",
+    "notify_slack": "LOW",
+    "create_ticket": "LOW",
     "restart_service": "MEDIUM",
-    "scale_up":        "MEDIUM",
-    "scale_down":      "MEDIUM",
-    "rollback":        "HIGH",
-    "modify_config":   "HIGH",
+    "scale_up": "MEDIUM",
+    "scale_down": "MEDIUM",
+    "rollback": "HIGH",
+    "modify_config": "HIGH",
 }
 
 
 @dataclass
 class RemediationRecommendation:
     """A single ranked remediation recommendation."""
-    rank:         int
-    action_type:  str
-    risk_tier:    str
-    title:        str
-    reasoning:    str
-    confidence:   float
-    params:       dict = field(default_factory=dict)
+
+    rank: int
+    action_type: str
+    risk_tier: str
+    title: str
+    reasoning: str
+    confidence: float
+    params: dict = field(default_factory=dict)
 
 
 @dataclass
 class RemediationPlan:
     """Full remediation plan for one incident."""
-    incident_id:     str
-    incident_title:  str
-    ai_summary:      str
+
+    incident_id: str
+    incident_title: str
+    ai_summary: str
     recommendations: list[RemediationRecommendation] = field(default_factory=list)
     low_confidence_warning: str | None = None
 
@@ -107,7 +109,7 @@ class RemediationService:
     """
 
     def __init__(self, db: AsyncSession) -> None:
-        self._db       = db
+        self._db = db
         self._inc_repo = IncidentRepository(db)
 
     # ── Recommendation ────────────────────────────────────────────────────────
@@ -125,9 +127,9 @@ class RemediationService:
         incident = await self._inc_repo.get_by_id(incident_id)
         if incident is None:
             return RemediationPlan(
-                incident_id   = str(incident_id),
-                incident_title= "Incident not found",
-                ai_summary    = "",
+                incident_id=str(incident_id),
+                incident_title="Incident not found",
+                ai_summary="",
                 recommendations=[],
                 low_confidence_warning="Incident not found — cannot recommend remediation.",
             )
@@ -138,16 +140,16 @@ class RemediationService:
         # Persist recommendations to the DB
         for rec in recommendations:
             action = RemediationAction(
-                id            = uuid.uuid4(),
-                incident_id   = str(incident_id),
-                title         = rec.title,
-                action_type   = rec.action_type,
-                risk_tier     = rec.risk_tier,
-                reasoning     = rec.reasoning,
-                confidence    = rec.confidence,
-                rank          = rec.rank,
-                params_json   = json.dumps(rec.params),
-                status        = "RECOMMENDED",
+                id=uuid.uuid4(),
+                incident_id=str(incident_id),
+                title=rec.title,
+                action_type=rec.action_type,
+                risk_tier=rec.risk_tier,
+                reasoning=rec.reasoning,
+                confidence=rec.confidence,
+                rank=rec.rank,
+                params_json=json.dumps(rec.params),
+                status="RECOMMENDED",
             )
             self._db.add(action)
 
@@ -161,16 +163,14 @@ class RemediationService:
             )
 
         return RemediationPlan(
-            incident_id      = str(incident_id),
-            incident_title   = incident.title,
-            ai_summary       = incident.ai_summary or "",
-            recommendations  = recommendations,
-            low_confidence_warning = low_conf_warning,
+            incident_id=str(incident_id),
+            incident_title=incident.title,
+            ai_summary=incident.ai_summary or "",
+            recommendations=recommendations,
+            low_confidence_warning=low_conf_warning,
         )
 
-    def _build_recommendations(
-        self, incident: Incident
-    ) -> list[RemediationRecommendation]:
+    def _build_recommendations(self, incident: Incident) -> list[RemediationRecommendation]:
         """Map incident characteristics to ranked remediation actions.
 
         Logic:
@@ -181,125 +181,141 @@ class RemediationService:
         - Incidents with RCA candidates mentioning "config" → HIGH: modify_config
         """
         recs: list[RemediationRecommendation] = []
-        severity  = incident.severity
+        severity = incident.severity
         triggered = (incident.triggered_by or "").lower()
-        rca_text  = (incident.rca_summary or "").lower()
-        ai_text   = (incident.ai_summary  or "").lower()
-        ai_conf   = incident.ai_confidence or 0.5
+        rca_text = (incident.rca_summary or "").lower()
+        ai_text = (incident.ai_summary or "").lower()
+        ai_conf = incident.ai_confidence or 0.5
 
         # ── Always recommend: notify + ticket ─────────────────────────────────
-        recs.append(RemediationRecommendation(
-            rank        = 1,
-            action_type = "notify_slack",
-            risk_tier   = "LOW",
-            title       = "Notify team via Slack",
-            reasoning   = (
-                f"Incident '{incident.title}' (severity={severity}) was auto-detected. "
-                "Team notification ensures awareness before any action is taken."
-            ),
-            confidence  = 0.95,
-            params      = {
-                "channel": "#incidents",
-                "message": f"[{severity}] {incident.title}",
-            },
-        ))
-        recs.append(RemediationRecommendation(
-            rank        = 2,
-            action_type = "create_ticket",
-            risk_tier   = "LOW",
-            title       = "Create incident ticket",
-            reasoning   = (
-                "A tracked ticket provides an audit trail and ensures the incident "
-                "is not forgotten if Slack notifications are missed."
-            ),
-            confidence  = 0.9,
-            params      = {
-                "title":    incident.title,
-                "severity": severity,
-            },
-        ))
+        recs.append(
+            RemediationRecommendation(
+                rank=1,
+                action_type="notify_slack",
+                risk_tier="LOW",
+                title="Notify team via Slack",
+                reasoning=(
+                    f"Incident '{incident.title}' (severity={severity}) was auto-detected. "
+                    "Team notification ensures awareness before any action is taken."
+                ),
+                confidence=0.95,
+                params={
+                    "channel": "#incidents",
+                    "message": f"[{severity}] {incident.title}",
+                },
+            )
+        )
+        recs.append(
+            RemediationRecommendation(
+                rank=2,
+                action_type="create_ticket",
+                risk_tier="LOW",
+                title="Create incident ticket",
+                reasoning=(
+                    "A tracked ticket provides an audit trail and ensures the incident "
+                    "is not forgotten if Slack notifications are missed."
+                ),
+                confidence=0.9,
+                params={
+                    "title": incident.title,
+                    "severity": severity,
+                },
+            )
+        )
 
         # ── MEDIUM: restart for HIGH/CRITICAL ─────────────────────────────────
         if severity in ("HIGH", "CRITICAL"):
-            recs.append(RemediationRecommendation(
-                rank        = 3,
-                action_type = "restart_service",
-                risk_tier   = "MEDIUM",
-                title       = "Restart ai-assistant-backend (new revision)",
-                reasoning   = (
-                    f"{severity} severity incident detected. A service restart clears "
-                    "in-memory state, resets connection pools, and forces a new "
-                    "Cloud Run revision. Zero-downtime — traffic routes to new instance "
-                    "before old one is terminated."
-                ),
-                confidence  = ai_conf * 0.8,  # scaled by AI analysis confidence
-                params      = {
-                    "service": "ai-assistant-backend",
-                    "region":  "asia-south1",
-                },
-            ))
+            recs.append(
+                RemediationRecommendation(
+                    rank=3,
+                    action_type="restart_service",
+                    risk_tier="MEDIUM",
+                    title="Restart ai-assistant-backend (new revision)",
+                    reasoning=(
+                        f"{severity} severity incident detected. A service restart clears "
+                        "in-memory state, resets connection pools, and forces a new "
+                        "Cloud Run revision. Zero-downtime — traffic routes to new instance "
+                        "before old one is terminated."
+                    ),
+                    confidence=ai_conf * 0.8,  # scaled by AI analysis confidence
+                    params={
+                        "service": "ai-assistant-backend",
+                        "region": "asia-south1",
+                    },
+                )
+            )
 
         # ── MEDIUM: scale_up for error_rate / error_count ─────────────────────
         if "error_rate" in triggered or "error_count" in triggered:
-            recs.append(RemediationRecommendation(
-                rank        = 4,
-                action_type = "scale_up",
-                risk_tier   = "MEDIUM",
-                title       = "Scale up max-instances to 5",
-                reasoning   = (
-                    "High error rate may indicate the service is overwhelmed. "
-                    "Increasing max-instances allows Cloud Run to handle more "
-                    "parallel requests while the root cause is investigated."
-                ),
-                confidence  = 0.6,
-                params      = {
-                    "service":       "ai-assistant-backend",
-                    "max_instances": "5",
-                },
-            ))
+            recs.append(
+                RemediationRecommendation(
+                    rank=4,
+                    action_type="scale_up",
+                    risk_tier="MEDIUM",
+                    title="Scale up max-instances to 5",
+                    reasoning=(
+                        "High error rate may indicate the service is overwhelmed. "
+                        "Increasing max-instances allows Cloud Run to handle more "
+                        "parallel requests while the root cause is investigated."
+                    ),
+                    confidence=0.6,
+                    params={
+                        "service": "ai-assistant-backend",
+                        "max_instances": "5",
+                    },
+                )
+            )
 
         # ── HIGH: rollback if deployment-related ──────────────────────────────
-        if any(kw in rca_text or kw in ai_text for kw in
-               ("deploy", "deployment", "release", "new version")):
-            recs.append(RemediationRecommendation(
-                rank        = 5,
-                action_type = "rollback",
-                risk_tier   = "HIGH",
-                title       = "Roll back to previous Cloud Run revision",
-                reasoning   = (
-                    "RCA suggests the incident may be linked to a recent deployment. "
-                    "Rolling back routes traffic to the previous revision immediately. "
-                    "⚠️ HIGH RISK — verify the previous revision is stable before approving."
-                ),
-                confidence  = ai_conf * 0.7,
-                params      = {
-                    "service": "ai-assistant-backend",
-                    "region":  "asia-south1",
-                    "note":    "Run: gcloud run services update-traffic ai-assistant-backend "
-                               "--to-revisions=PREVIOUS_REVISION=100 --region=asia-south1",
-                },
-            ))
+        if any(
+            kw in rca_text or kw in ai_text
+            for kw in ("deploy", "deployment", "release", "new version")
+        ):
+            recs.append(
+                RemediationRecommendation(
+                    rank=5,
+                    action_type="rollback",
+                    risk_tier="HIGH",
+                    title="Roll back to previous Cloud Run revision",
+                    reasoning=(
+                        "RCA suggests the incident may be linked to a recent deployment. "
+                        "Rolling back routes traffic to the previous revision immediately. "
+                        "⚠️ HIGH RISK — verify the previous revision is stable before approving."
+                    ),
+                    confidence=ai_conf * 0.7,
+                    params={
+                        "service": "ai-assistant-backend",
+                        "region": "asia-south1",
+                        "note": "Run: gcloud run services update-traffic ai-assistant-backend "
+                        "--to-revisions=PREVIOUS_REVISION=100 --region=asia-south1",
+                    },
+                )
+            )
 
         # ── HIGH: modify_config if config/secret related ──────────────────────
-        if any(kw in rca_text or kw in ai_text for kw in
-               ("config", "secret", "env var", "timeout", "pool_size")):
-            recs.append(RemediationRecommendation(
-                rank        = 6,
-                action_type = "modify_config",
-                risk_tier   = "HIGH",
-                title       = "Update Cloud Run configuration",
-                reasoning   = (
-                    "RCA suggests a configuration value (timeout, pool size, env var) "
-                    "may need adjustment. "
-                    "⚠️ HIGH RISK — modifying production config may affect all users."
-                ),
-                confidence  = ai_conf * 0.6,
-                params      = {
-                    "service": "ai-assistant-backend",
-                    "region":  "asia-south1",
-                    "note":    "Update the specific env var/secret identified in the RCA.",
-                },
-            ))
+        if any(
+            kw in rca_text or kw in ai_text
+            for kw in ("config", "secret", "env var", "timeout", "pool_size")
+        ):
+            recs.append(
+                RemediationRecommendation(
+                    rank=6,
+                    action_type="modify_config",
+                    risk_tier="HIGH",
+                    title="Update Cloud Run configuration",
+                    reasoning=(
+                        "RCA suggests a configuration value (timeout, pool size, env var) "
+                        "may need adjustment. "
+                        "⚠️ HIGH RISK — modifying production config may affect all users."
+                    ),
+                    confidence=ai_conf * 0.6,
+                    params={
+                        "service": "ai-assistant-backend",
+                        "region": "asia-south1",
+                        "note": "Update the specific env var/secret identified in the RCA.",
+                    },
+                )
+            )
 
         # Sort by confidence descending, re-assign ranks
         recs.sort(key=lambda r: r.confidence, reverse=True)
@@ -312,7 +328,7 @@ class RemediationService:
 
     async def approve(
         self,
-        action_id:        uuid.UUID,
+        action_id: uuid.UUID,
         reviewer_user_id: str,
     ) -> RemediationAction | None:
         """Record human approval of a remediation recommendation.
@@ -332,18 +348,21 @@ class RemediationService:
         if action.status != "RECOMMENDED":
             logger.warning(
                 "remediation: approve called on action %s with status=%s — skipping",
-                action_id, action.status,
+                action_id,
+                action.status,
             )
             return action
 
-        action.status      = "APPROVED"
+        action.status = "APPROVED"
         action.reviewed_by = reviewer_user_id
         action.reviewed_at = datetime.now(tz=UTC)
         await self._db.commit()
 
         logger.info(
             "remediation: action %s APPROVED by user=%s (risk_tier=%s)",
-            action_id, reviewer_user_id, action.risk_tier,
+            action_id,
+            reviewer_user_id,
+            action.risk_tier,
         )
         return action
 
@@ -351,9 +370,9 @@ class RemediationService:
 
     async def reject(
         self,
-        action_id:        uuid.UUID,
+        action_id: uuid.UUID,
         reviewer_user_id: str,
-        reason:           str = "",
+        reason: str = "",
     ) -> RemediationAction | None:
         """Record human rejection of a remediation recommendation.
 
@@ -368,15 +387,17 @@ class RemediationService:
         if action.status not in ("RECOMMENDED", "APPROVED"):
             return action
 
-        action.status           = "REJECTED"
-        action.reviewed_by      = reviewer_user_id
-        action.reviewed_at      = datetime.now(tz=UTC)
+        action.status = "REJECTED"
+        action.reviewed_by = reviewer_user_id
+        action.reviewed_at = datetime.now(tz=UTC)
         action.rejection_reason = reason or "No reason provided"
         await self._db.commit()
 
         logger.info(
             "remediation: action %s REJECTED by user=%s reason=%r",
-            action_id, reviewer_user_id, reason,
+            action_id,
+            reviewer_user_id,
+            reason,
         )
         return action
 

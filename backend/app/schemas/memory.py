@@ -71,9 +71,7 @@ class MemoryResponse(BaseModel):
     id: uuid.UUID = Field(description="UUID of the memory row in PostgreSQL.")
     content: str = Field(description="The stored memory text.")
     memory_type: str = Field(description="Classification of the memory.")
-    created_at: datetime = Field(
-        description="UTC timestamp when the memory was created."
-    )
+    created_at: datetime = Field(description="UTC timestamp when the memory was created.")
 
 
 # ---------------------------------------------------------------------------
@@ -119,9 +117,7 @@ class MemorySearchResult(BaseModel):
             "Semantic similarity distance from ChromaDB. Lower values indicate higher relevance."
         )
     )
-    created_at: datetime = Field(
-        description="UTC timestamp when the memory was created."
-    )
+    created_at: datetime = Field(description="UTC timestamp when the memory was created.")
 
 
 class MemorySearchResponse(BaseModel):

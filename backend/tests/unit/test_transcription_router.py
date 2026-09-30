@@ -123,9 +123,7 @@ class TestTranscriptionFormatValidation:
         """AVI extension should be rejected."""
         response = client.post(
             "/transcription",
-            files={
-                "audio_file": ("clip.avi", _small_audio(), "application/octet-stream")
-            },
+            files={"audio_file": ("clip.avi", _small_audio(), "application/octet-stream")},
         )
         assert response.status_code == 422
         detail = response.json()["detail"]
@@ -199,9 +197,7 @@ class TestTranscriptionResponseStructure:
         assert isinstance(body["duration_seconds"], float | int)
         assert body["duration_seconds"] > 0
 
-    def test_transcript_segments_have_timestamp_speaker_text(
-        self, client: TestClient
-    ) -> None:
+    def test_transcript_segments_have_timestamp_speaker_text(self, client: TestClient) -> None:
         """Each transcript segment must have timestamp, speaker, and text fields."""
         # Use a larger file to guarantee at least one segment
         audio = b"\x00" * (128_000 * 10)  # ~10 s of audio at 128kbps

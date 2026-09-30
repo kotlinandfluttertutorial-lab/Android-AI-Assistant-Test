@@ -185,9 +185,7 @@ class TestDataAccountDeleteEndpoint:
         ):
             mock_task.delay = MagicMock()
             body = AccountDeletionRequest(email=email)
-            result = await delete_user_account(
-                body=body, current_user=payload, db=mock_db
-            )
+            result = await delete_user_account(body=body, current_user=payload, db=mock_db)
 
         mock_task.delay.assert_called_once_with(str(user_id))
         assert result.scheduled_at is not None
@@ -258,9 +256,7 @@ class TestDataAccountDeleteEndpoint:
         ):
             mock_task.delay = MagicMock()
             body = AccountDeletionRequest(email="USER@EXAMPLE.COM")
-            result = await delete_user_account(
-                body=body, current_user=payload, db=mock_db
-            )
+            result = await delete_user_account(body=body, current_user=payload, db=mock_db)
 
         mock_task.delay.assert_called_once_with(str(user_id))
         assert result.scheduled_at is not None
@@ -292,9 +288,7 @@ class TestDataAccountDeleteEndpoint:
         ):
             mock_task.delay = MagicMock()
             body = AccountDeletionRequest(email="user@example.com")
-            result = await delete_user_account(
-                body=body, current_user=payload, db=mock_db
-            )
+            result = await delete_user_account(body=body, current_user=payload, db=mock_db)
 
         est = datetime.fromisoformat(result.estimated_completion)
         delta = est - datetime.now(tz=timezone.utc)

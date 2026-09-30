@@ -42,6 +42,7 @@ from app.config.settings import Settings, get_settings
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_settings(**overrides: str) -> Settings:
     """Construct a Settings object from minimal required env vars + overrides.
 
@@ -49,9 +50,9 @@ def _make_settings(**overrides: str) -> Settings:
     isolated from whatever .env is present on disk.
     """
     base = {
-        "SECRET_KEY":       "test-secret-key-at-least-32-chars-long!!",
-        "DATABASE_URL":     "postgresql+asyncpg://user:pass@localhost:5432/db",
-        "REDIS_URL":        "redis://localhost:6379/0",
+        "SECRET_KEY": "test-secret-key-at-least-32-chars-long!!",
+        "DATABASE_URL": "postgresql+asyncpg://user:pass@localhost:5432/db",
+        "REDIS_URL": "redis://localhost:6379/0",
         "AES_ENCRYPTION_KEY": "dGVzdGtleXRlc3RrZXl0ZXN0a2V5dGVzdA==",
     }
     base.update(overrides)
@@ -66,11 +67,14 @@ def _make_settings(**overrides: str) -> Settings:
 class TestSettingsRequiredFields:
     """Settings must raise ValidationError when required fields are absent."""
 
-    @pytest.mark.parametrize("missing", [
-        "SECRET_KEY",
-        "DATABASE_URL",
-        "REDIS_URL",
-    ])
+    @pytest.mark.parametrize(
+        "missing",
+        [
+            "SECRET_KEY",
+            "DATABASE_URL",
+            "REDIS_URL",
+        ],
+    )
     def test_raises_on_missing_required_field(self, missing: str) -> None:
         """Removing any required field raises pydantic ValidationError.
 
@@ -79,9 +83,9 @@ class TestSettingsRequiredFields:
         This test covers the three pydantic-required fields.
         """
         base = {
-            "SECRET_KEY":       "test-secret-key-at-least-32-chars-long!!",
-            "DATABASE_URL":     "postgresql+asyncpg://user:pass@localhost:5432/db",
-            "REDIS_URL":        "redis://localhost:6379/0",
+            "SECRET_KEY": "test-secret-key-at-least-32-chars-long!!",
+            "DATABASE_URL": "postgresql+asyncpg://user:pass@localhost:5432/db",
+            "REDIS_URL": "redis://localhost:6379/0",
             "AES_ENCRYPTION_KEY": "dGVzdGtleXRlc3RrZXl0ZXN0a2V5dGVzdA==",
         }
         del base[missing]
@@ -337,6 +341,6 @@ class TestGetSettingsSingleton:
 
     def test_settings_has_required_fields_populated(self) -> None:
         s = get_settings()
-        assert s.SECRET_KEY   # non-empty (set in conftest)
+        assert s.SECRET_KEY  # non-empty (set in conftest)
         assert s.DATABASE_URL
         assert s.REDIS_URL

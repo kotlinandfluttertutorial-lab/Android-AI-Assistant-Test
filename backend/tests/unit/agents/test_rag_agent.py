@@ -2,6 +2,7 @@
 # tests/unit/agents/test_rag_agent.py — Unit tests for RagAgent
 # ============================================================
 """Unit tests for RagAgent (Phase 4)."""
+
 from __future__ import annotations
 
 from collections.abc import AsyncIterator
@@ -221,6 +222,7 @@ async def test_services_unavailable_emits_failed() -> None:
     req = make_request()
 
     import app.agents.rag_agent as _mod
+
     orig_session = _mod.AsyncSessionLocal
     orig_rag = _mod.rag_service
     _mod.AsyncSessionLocal = None

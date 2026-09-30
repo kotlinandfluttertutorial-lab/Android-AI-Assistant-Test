@@ -171,9 +171,7 @@ def test_property_9a_context_string_has_citation_for_every_chunk(
     context = _build_context_string(query, retrieved_chunks)
 
     for i, chunk_data in enumerate(chunks):
-        expected_citation = _citation_marker(
-            chunk_data["document_name"], chunk_data["page_number"]
-        )
+        expected_citation = _citation_marker(chunk_data["document_name"], chunk_data["page_number"])
 
         assert expected_citation in context, (
             f"Property 9A violated for chunk {i}: expected citation "
@@ -274,30 +272,30 @@ def test_property_9c_format_citations_completeness(chunks: list[dict]) -> None:
 
     for i, (citation, chunk_data) in enumerate(zip(citations, chunks)):
         # document_name must be present and non-empty
-        assert (
-            "document_name" in citation
-        ), f"Property 9C violated at index {i}: 'document_name' key missing from citation dict."
+        assert "document_name" in citation, (
+            f"Property 9C violated at index {i}: 'document_name' key missing from citation dict."
+        )
         assert citation["document_name"] != "", (
             f"Property 9C violated at index {i}: citation has empty document_name. "
             f"chunk_data={chunk_data!r}"
         )
 
         # page_number must be present and ≥ 1
-        assert (
-            "page_number" in citation
-        ), f"Property 9C violated at index {i}: 'page_number' key missing from citation dict."
+        assert "page_number" in citation, (
+            f"Property 9C violated at index {i}: 'page_number' key missing from citation dict."
+        )
         assert isinstance(citation["page_number"], int), (
             f"Property 9C violated at index {i}: page_number is not an int. "
             f"Got {type(citation['page_number']).__name__!r}: {citation['page_number']!r}"
         )
-        assert (
-            citation["page_number"] >= 1
-        ), f"Property 9C violated at index {i}: page_number={citation['page_number']} < 1."
+        assert citation["page_number"] >= 1, (
+            f"Property 9C violated at index {i}: page_number={citation['page_number']} < 1."
+        )
 
         # chunk_index must match the position in the list
-        assert (
-            "chunk_index" in citation
-        ), f"Property 9C violated at index {i}: 'chunk_index' key missing from citation dict."
+        assert "chunk_index" in citation, (
+            f"Property 9C violated at index {i}: 'chunk_index' key missing from citation dict."
+        )
         assert citation["chunk_index"] == i, (
             f"Property 9C violated at index {i}: chunk_index={citation['chunk_index']!r}, "
             f"expected {i}."
@@ -396,8 +394,7 @@ def test_property_9d_query_documents_result_chunks_have_citations(
     for i, (rc, chunk_data) in enumerate(zip(result.retrieved_chunks, chunks)):
         # document_name must be non-empty
         assert rc.document_name != "", (
-            f"Property 9D violated at chunk {i}: document_name is empty. "
-            f"chunk_data={chunk_data!r}"
+            f"Property 9D violated at chunk {i}: document_name is empty. chunk_data={chunk_data!r}"
         )
 
         # page_number must be ≥ 1
@@ -510,9 +507,9 @@ class TestRAGCitationCompletenessEdgeCases:
         ]
         context = _build_context_string("What is the capital of France?", chunks)
 
-        assert (
-            "[Source: geography.pdf, Page 42]" in context
-        ), f"Edge case failed: single-chunk context missing citation. context={context!r}"
+        assert "[Source: geography.pdf, Page 42]" in context, (
+            f"Edge case failed: single-chunk context missing citation. context={context!r}"
+        )
 
     def test_multiple_chunks_all_have_distinct_citations(self) -> None:
         """Each of multiple chunks must have its own citation in the context."""
@@ -564,15 +561,9 @@ class TestRAGCitationCompletenessEdgeCases:
         from app.services.rag_service import RAGService, RetrievedChunk
 
         chunks = [
-            RetrievedChunk(
-                content="First fact.", document_name="doc_a.pdf", page_number=1
-            ),
-            RetrievedChunk(
-                content="Second fact.", document_name="doc_b.pdf", page_number=7
-            ),
-            RetrievedChunk(
-                content="Third fact.", document_name="doc_c.pdf", page_number=3
-            ),
+            RetrievedChunk(content="First fact.", document_name="doc_a.pdf", page_number=1),
+            RetrievedChunk(content="Second fact.", document_name="doc_b.pdf", page_number=7),
+            RetrievedChunk(content="Third fact.", document_name="doc_c.pdf", page_number=3),
         ]
         service = RAGService()
         citations = service._format_citations(chunks)
@@ -597,15 +588,13 @@ class TestRAGCitationCompletenessEdgeCases:
         )
 
         chunks = [
-            RetrievedChunk(
-                content="Introduction text.", document_name="report.docx", page_number=1
-            )
+            RetrievedChunk(content="Introduction text.", document_name="report.docx", page_number=1)
         ]
         context = _build_context_string("What is in the introduction?", chunks)
 
-        assert (
-            "[Source: report.docx, Page 1]" in context
-        ), f"Edge case failed: page 1 citation not correctly formatted. context={context!r}"
+        assert "[Source: report.docx, Page 1]" in context, (
+            f"Edge case failed: page 1 citation not correctly formatted. context={context!r}"
+        )
 
     def test_high_page_number_is_cited_correctly(self) -> None:
         """Very high page numbers (e.g. 9999) must be cited accurately."""
@@ -623,9 +612,9 @@ class TestRAGCitationCompletenessEdgeCases:
         ]
         context = _build_context_string("Find appendix Z.", chunks)
 
-        assert (
-            "[Source: encyclopedia.pdf, Page 9999]" in context
-        ), f"Edge case failed: high page number citation wrong. context={context!r}"
+        assert "[Source: encyclopedia.pdf, Page 9999]" in context, (
+            f"Edge case failed: high page number citation wrong. context={context!r}"
+        )
 
     def test_query_documents_no_chunks_returns_empty_context(self) -> None:
         """When ChromaDB returns zero results, context must be empty."""
@@ -654,15 +643,13 @@ class TestRAGCitationCompletenessEdgeCases:
                 patch("chromadb.HttpClient", return_value=mock_chroma_client),
                 patch.object(service, "_get_embedding_model", return_value=mock_model),
             ):
-                return await service.query_documents(
-                    user_id=user_id, query="anything", db=None
-                )
+                return await service.query_documents(user_id=user_id, query="anything", db=None)
 
         result = asyncio.run(_run())
 
-        assert (
-            result.retrieved_chunks == []
-        ), "Expected empty retrieved_chunks for no ChromaDB results."
+        assert result.retrieved_chunks == [], (
+            "Expected empty retrieved_chunks for no ChromaDB results."
+        )
         assert result.context == "", f"Expected empty context, got {result.context!r}"
 
     def test_assemble_context_method_includes_all_citations(self) -> None:
@@ -670,19 +657,15 @@ class TestRAGCitationCompletenessEdgeCases:
         from app.services.rag_service import RAGService, RetrievedChunk
 
         chunks = [
-            RetrievedChunk(
-                content="Fact one.", document_name="source_a.pdf", page_number=2
-            ),
-            RetrievedChunk(
-                content="Fact two.", document_name="source_b.txt", page_number=14
-            ),
+            RetrievedChunk(content="Fact one.", document_name="source_a.pdf", page_number=2),
+            RetrievedChunk(content="Fact two.", document_name="source_b.txt", page_number=14),
         ]
         service = RAGService()
         context = service._assemble_context(chunks)
 
-        assert (
-            "[Source: source_a.pdf, Page 2]" in context
-        ), f"_assemble_context missing citation for chunk 0. context={context!r}"
-        assert (
-            "[Source: source_b.txt, Page 14]" in context
-        ), f"_assemble_context missing citation for chunk 1. context={context!r}"
+        assert "[Source: source_a.pdf, Page 2]" in context, (
+            f"_assemble_context missing citation for chunk 0. context={context!r}"
+        )
+        assert "[Source: source_b.txt, Page 14]" in context, (
+            f"_assemble_context missing citation for chunk 1. context={context!r}"
+        )

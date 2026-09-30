@@ -146,9 +146,7 @@ class TestProviderRateLimiter:
         """Limit=0 means unlimited; no Redis call should be made."""
         limiter = _ProviderRateLimiter("test_provider", 0)
         # Should not raise and should not contact Redis
-        with patch(
-            "app.services.llm_clients._ProviderRateLimiter._get_redis"
-        ) as mock_redis:
+        with patch("app.services.llm_clients._ProviderRateLimiter._get_redis") as mock_redis:
             await limiter.check("user-abc")
         mock_redis.assert_not_called()
 
@@ -156,9 +154,7 @@ class TestProviderRateLimiter:
     async def test_unlimited_when_user_id_is_none(self) -> None:
         """user_id=None means internal/background call; rate limit is skipped."""
         limiter = _ProviderRateLimiter("test_provider", 10)
-        with patch(
-            "app.services.llm_clients._ProviderRateLimiter._get_redis"
-        ) as mock_redis:
+        with patch("app.services.llm_clients._ProviderRateLimiter._get_redis") as mock_redis:
             await limiter.check(None)
         mock_redis.assert_not_called()
 
@@ -519,25 +515,25 @@ class TestAllProviderInterface:
 
     def test_all_have_positive_or_zero_max_context_tokens(self) -> None:
         for client in self.clients:
-            assert (
-                client.get_max_context_tokens() > 0
-            ), f"{client.get_provider_name()} max_context_tokens must be > 0"
+            assert client.get_max_context_tokens() > 0, (
+                f"{client.get_provider_name()} max_context_tokens must be > 0"
+            )
 
     def test_all_have_non_negative_costs(self) -> None:
         for client in self.clients:
             costs = client.get_cost_per_token()
-            assert costs["input"] >= Decimal(
-                0
-            ), f"{client.get_provider_name()} input cost must be >= 0"
-            assert costs["output"] >= Decimal(
-                0
-            ), f"{client.get_provider_name()} output cost must be >= 0"
+            assert costs["input"] >= Decimal(0), (
+                f"{client.get_provider_name()} input cost must be >= 0"
+            )
+            assert costs["output"] >= Decimal(0), (
+                f"{client.get_provider_name()} output cost must be >= 0"
+            )
 
     def test_all_have_rate_limiter(self) -> None:
         for client in self.clients:
-            assert hasattr(
-                client, "_rate_limiter"
-            ), f"{client.get_provider_name()} must have _rate_limiter"
+            assert hasattr(client, "_rate_limiter"), (
+                f"{client.get_provider_name()} must have _rate_limiter"
+            )
             assert isinstance(client._rate_limiter, _ProviderRateLimiter)
 
     def test_cloud_providers_have_positive_costs(self) -> None:
@@ -546,12 +542,12 @@ class TestAllProviderInterface:
         for client in self.clients:
             if client.get_provider_name() in cloud_providers:
                 costs = client.get_cost_per_token()
-                assert costs["input"] > Decimal(
-                    0
-                ), f"{client.get_provider_name()} should have positive input cost"
-                assert costs["output"] > Decimal(
-                    0
-                ), f"{client.get_provider_name()} should have positive output cost"
+                assert costs["input"] > Decimal(0), (
+                    f"{client.get_provider_name()} should have positive input cost"
+                )
+                assert costs["output"] > Decimal(0), (
+                    f"{client.get_provider_name()} should have positive output cost"
+                )
 
     def test_self_hosted_providers_have_zero_costs(self) -> None:
         """Ollama, Llama, Mistral are self-hosted and must have zero costs."""
@@ -559,12 +555,12 @@ class TestAllProviderInterface:
         for client in self.clients:
             if client.get_provider_name() in local_providers:
                 costs = client.get_cost_per_token()
-                assert costs["input"] == Decimal(
-                    0
-                ), f"{client.get_provider_name()} should have zero input cost"
-                assert costs["output"] == Decimal(
-                    0
-                ), f"{client.get_provider_name()} should have zero output cost"
+                assert costs["input"] == Decimal(0), (
+                    f"{client.get_provider_name()} should have zero input cost"
+                )
+                assert costs["output"] == Decimal(0), (
+                    f"{client.get_provider_name()} should have zero output cost"
+                )
 
 
 # ---------------------------------------------------------------------------
@@ -609,9 +605,9 @@ class TestMaxOutputTokens:
     def test_all_providers_have_positive_max_output_tokens(self) -> None:
         """Every provider's max_output_tokens must be a positive integer."""
         for client in self.all_clients:
-            assert isinstance(
-                client.max_output_tokens, int
-            ), f"{client.get_provider_name()}.max_output_tokens must be int"
+            assert isinstance(client.max_output_tokens, int), (
+                f"{client.get_provider_name()}.max_output_tokens must be int"
+            )
             assert client.max_output_tokens > 0, (
                 f"{client.get_provider_name()}.max_output_tokens must be > 0 "
                 f"(got {client.max_output_tokens})"
@@ -623,29 +619,12 @@ class TestMaxOutputTokens:
 
         settings = get_settings()
 
-        assert (
-            self.openai_client.max_output_tokens
-            == settings.LLM_MAX_OUTPUT_TOKENS_OPENAI
-        )
-        assert (
-            self.gemini_client.max_output_tokens
-            == settings.LLM_MAX_OUTPUT_TOKENS_GEMINI
-        )
-        assert (
-            self.claude_client.max_output_tokens
-            == settings.LLM_MAX_OUTPUT_TOKENS_CLAUDE
-        )
-        assert (
-            self.ollama_client.max_output_tokens
-            == settings.LLM_MAX_OUTPUT_TOKENS_OLLAMA
-        )
-        assert (
-            self.llama_client.max_output_tokens == settings.LLM_MAX_OUTPUT_TOKENS_LLAMA
-        )
-        assert (
-            self.mistral_client.max_output_tokens
-            == settings.LLM_MAX_OUTPUT_TOKENS_MISTRAL
-        )
+        assert self.openai_client.max_output_tokens == settings.LLM_MAX_OUTPUT_TOKENS_OPENAI
+        assert self.gemini_client.max_output_tokens == settings.LLM_MAX_OUTPUT_TOKENS_GEMINI
+        assert self.claude_client.max_output_tokens == settings.LLM_MAX_OUTPUT_TOKENS_CLAUDE
+        assert self.ollama_client.max_output_tokens == settings.LLM_MAX_OUTPUT_TOKENS_OLLAMA
+        assert self.llama_client.max_output_tokens == settings.LLM_MAX_OUTPUT_TOKENS_LLAMA
+        assert self.mistral_client.max_output_tokens == settings.LLM_MAX_OUTPUT_TOKENS_MISTRAL
 
     def test_providers_have_distinct_default_values(self) -> None:
         """Not all providers should share the same default limit — at least two
@@ -653,8 +632,7 @@ class TestMaxOutputTokens:
         limits = {c.max_output_tokens for c in self.all_clients}
         # Default config has at least two distinct values (cloud vs local)
         assert len(limits) >= 2, (
-            "Expected at least 2 distinct max_output_tokens defaults; "
-            f"got {sorted(limits)}"
+            f"Expected at least 2 distinct max_output_tokens defaults; got {sorted(limits)}"
         )
 
     def test_max_output_tokens_respects_env_override(self) -> None:
@@ -755,9 +733,9 @@ class TestOrchestratorMaxTokensClamping:
         mock_client.max_output_tokens = 512  # below 2048
 
         llm_ctx = orch._to_llm_prompt_context(context, "user-1", client=mock_client)
-        assert (
-            llm_ctx.max_tokens == 512
-        ), f"Expected max_tokens=512 (clamped to client limit), got {llm_ctx.max_tokens}"
+        assert llm_ctx.max_tokens == 512, (
+            f"Expected max_tokens=512 (clamped to client limit), got {llm_ctx.max_tokens}"
+        )
 
     def test_max_tokens_unchanged_when_client_limit_is_higher(self) -> None:
         """When client.max_output_tokens >= 2048, the default is kept as-is."""
@@ -769,9 +747,9 @@ class TestOrchestratorMaxTokensClamping:
         mock_client.max_output_tokens = 8192  # well above 2048
 
         llm_ctx = orch._to_llm_prompt_context(context, "user-1", client=mock_client)
-        assert (
-            llm_ctx.max_tokens == 2048
-        ), f"Expected max_tokens=2048 (default), got {llm_ctx.max_tokens}"
+        assert llm_ctx.max_tokens == 2048, (
+            f"Expected max_tokens=2048 (default), got {llm_ctx.max_tokens}"
+        )
 
     def test_max_tokens_unchanged_when_no_client_supplied(self) -> None:
         """When client is None, max_tokens uses the default 2048."""

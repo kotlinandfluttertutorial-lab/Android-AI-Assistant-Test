@@ -1,4 +1,4 @@
-﻿"""Unit tests for app.api.chat.router.
+"""Unit tests for app.api.chat.router.
 
 Covers:
 - POST /chat/message: injection detection fires â†’ 400.
@@ -33,6 +33,7 @@ os.environ.setdefault("ENVIRONMENT", "test")
 # Helpers / Fixtures
 # ---------------------------------------------------------------------------
 
+
 def _make_jwt_user(sub: str = "user-test-123") -> MagicMock:
     user = MagicMock()
     user.sub = sub
@@ -65,6 +66,7 @@ def _make_llm_response(
 # ---------------------------------------------------------------------------
 # Router-level tests using isolated router (no full app startup)
 # ---------------------------------------------------------------------------
+
 
 class TestChatRouterEndpoints:
     """Tests that exercise the chat router directly via FastAPI TestClient."""
@@ -102,10 +104,12 @@ class TestChatRouterEndpoints:
 
         if llm_service_mock is not None:
             from app.llm.service import get_llm_service
+
             overrides[get_llm_service] = lambda: llm_service_mock
 
         if detector_mock is not None:
             from app.api.chat.router import get_injection_detector
+
             overrides[get_injection_detector] = lambda: detector_mock
 
         app.dependency_overrides = overrides
@@ -168,7 +172,9 @@ class TestChatRouterEndpoints:
 
     def test_successful_response_shape(self) -> None:
         """Successful call returns answer, provider, model, usage."""
-        llm_resp = _make_llm_response("Clean Architecture answer.", "gemini", "gemini-3.6-flash", 15, 30)
+        llm_resp = _make_llm_response(
+            "Clean Architecture answer.", "gemini", "gemini-3.6-flash", 15, 30
+        )
         svc = MagicMock()
         svc.generate = AsyncMock(return_value=llm_resp)
 
@@ -240,18 +246,22 @@ class TestChatRouterEndpoints:
 # ChatMessageRequest model tests
 # ---------------------------------------------------------------------------
 
+
 class TestChatMessageRequest:
     def test_effective_message_prefers_message(self) -> None:
         from app.api.chat.router import ChatMessageRequest
+
         req = ChatMessageRequest(message="hello", content="fallback")
         assert req.effective_message == "hello"
 
     def test_effective_message_falls_back_to_content(self) -> None:
         from app.api.chat.router import ChatMessageRequest
+
         req = ChatMessageRequest(message="", content="from content")
         assert req.effective_message == "from content"
 
     def test_effective_message_strips_whitespace(self) -> None:
         from app.api.chat.router import ChatMessageRequest
+
         req = ChatMessageRequest(message="  hello  ")
         assert req.effective_message == "hello"

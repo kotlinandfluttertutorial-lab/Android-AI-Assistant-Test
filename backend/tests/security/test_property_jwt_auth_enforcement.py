@@ -224,8 +224,7 @@ def assert_no_user_data_in_response(response) -> None:
     if isinstance(body, dict):
         leaked = USER_DATA_FIELDS & set(body.keys())
         assert not leaked, (
-            f"User data fields {leaked} found in {response.status_code} "
-            f"response: {body}"
+            f"User data fields {leaked} found in {response.status_code} response: {body}"
         )
 
 
@@ -349,9 +348,7 @@ def test_expired_jwt_always_returns_401(endpoint: tuple[str, str]) -> None:
     ),
 )
 @settings(max_examples=30, suppress_health_check=[HealthCheck.too_slow])
-def test_wrong_scheme_returns_401_or_403(
-    endpoint: tuple[str, str], credentials: str
-) -> None:
+def test_wrong_scheme_returns_401_or_403(endpoint: tuple[str, str], credentials: str) -> None:
     """**Validates: Requirements 9.1**
 
     For every protected endpoint, an ``Authorization: Basic <credentials>``

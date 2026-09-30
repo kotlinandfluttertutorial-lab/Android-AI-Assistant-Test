@@ -180,9 +180,7 @@ def test_property_12a_every_invocation_creates_exactly_one_audit_entry(
             entry = _make_fake_audit_log(
                 user_id=kwargs.get("user_id", user_id),
                 tool_name=kwargs.get("metadata", {}).get("tool", tool_name),
-                result_status=kwargs.get("metadata", {})
-                .get("params", {})
-                .get("result_status", ""),
+                result_status=kwargs.get("metadata", {}).get("params", {}).get("result_status", ""),
             )
             write_calls.append(kwargs)
             return entry
@@ -252,9 +250,7 @@ def test_property_12b_audit_entry_contains_all_required_fields(
             entry = _make_fake_audit_log(
                 user_id=kwargs.get("user_id", user_id),
                 tool_name=kwargs.get("metadata", {}).get("tool", tool_name),
-                result_status=kwargs.get("metadata", {})
-                .get("params", {})
-                .get("result_status", ""),
+                result_status=kwargs.get("metadata", {}).get("params", {}).get("result_status", ""),
             )
             return entry
 
@@ -282,9 +278,9 @@ def test_property_12b_audit_entry_contains_all_required_fields(
     )
 
     # --- tool_name: present inside metadata ---
-    assert (
-        "metadata" in captured
-    ), "Property 12B violated: 'metadata' field missing from audit log write kwargs."
+    assert "metadata" in captured, (
+        "Property 12B violated: 'metadata' field missing from audit log write kwargs."
+    )
     assert "tool" in captured["metadata"], (
         f"Property 12B violated: 'tool' key missing from audit log metadata. "
         f"metadata={captured['metadata']}"
@@ -301,14 +297,13 @@ def test_property_12b_audit_entry_contains_all_required_fields(
     # The _write method calls self._db.flush() so we check it was called at least once.
     # Since we patched _write entirely, we verify event_type is mcp_invoke instead.
     assert captured.get("event_type") == "mcp_invoke", (
-        f"Property 12B violated: event_type={captured.get('event_type')!r} "
-        f"is not 'mcp_invoke'"
+        f"Property 12B violated: event_type={captured.get('event_type')!r} is not 'mcp_invoke'"
     )
 
     # --- result_status: present inside metadata params ---
-    assert (
-        "params" in captured["metadata"]
-    ), "Property 12B violated: 'params' key missing from audit log metadata."
+    assert "params" in captured["metadata"], (
+        "Property 12B violated: 'params' key missing from audit log metadata."
+    )
     assert "result_status" in captured["metadata"]["params"], (
         f"Property 12B violated: 'result_status' missing from metadata.params. "
         f"params={captured['metadata']['params']}"
@@ -316,8 +311,7 @@ def test_property_12b_audit_entry_contains_all_required_fields(
     result_status = captured["metadata"]["params"]["result_status"]
     valid_statuses = {"success", "error", "confirmation_required"}
     assert result_status in valid_statuses, (
-        f"Property 12B violated: result_status={result_status!r} is not one of "
-        f"{valid_statuses}"
+        f"Property 12B violated: result_status={result_status!r} is not one of {valid_statuses}"
     )
 
 
@@ -362,9 +356,7 @@ def test_property_12c_failure_invocation_still_produces_one_audit_entry(
             entry = _make_fake_audit_log(
                 user_id=kwargs.get("user_id", user_id),
                 tool_name=kwargs.get("metadata", {}).get("tool", tool_name),
-                result_status=kwargs.get("metadata", {})
-                .get("params", {})
-                .get("result_status", ""),
+                result_status=kwargs.get("metadata", {}).get("params", {}).get("result_status", ""),
             )
             return entry
 
@@ -389,9 +381,7 @@ def test_property_12c_failure_invocation_still_produces_one_audit_entry(
 
     # The result_status must reflect failure
     captured = write_calls[0]
-    result_status = (
-        captured.get("metadata", {}).get("params", {}).get("result_status", "")
-    )
+    result_status = captured.get("metadata", {}).get("params", {}).get("result_status", "")
     assert result_status == "error", (
         f"Property 12C violated: failure audit log has result_status={result_status!r}, "
         f"expected 'error'. user_id={user_id}, tool_name={tool_name!r}"
@@ -456,9 +446,7 @@ def test_property_12d_n_invocations_produce_n_audit_entries(
             entry = _make_fake_audit_log(
                 user_id=kwargs.get("user_id", uuid.uuid4()),
                 tool_name=kwargs.get("metadata", {}).get("tool", ""),
-                result_status=kwargs.get("metadata", {})
-                .get("params", {})
-                .get("result_status", ""),
+                result_status=kwargs.get("metadata", {}).get("params", {}).get("result_status", ""),
             )
             return entry
 
@@ -532,15 +520,13 @@ class TestMCPAuditLogCompletenessEdgeCases:
 
         write_calls, result = _run_async(_run())
 
-        assert (
-            len(write_calls) == 1
-        ), f"Edge case failed: unknown tool produced {len(write_calls)} audit entries, expected 1."
-        result_status = (
-            write_calls[0].get("metadata", {}).get("params", {}).get("result_status")
+        assert len(write_calls) == 1, (
+            f"Edge case failed: unknown tool produced {len(write_calls)} audit entries, expected 1."
         )
-        assert (
-            result_status == "error"
-        ), f"Edge case failed: unknown tool audit entry has result_status={result_status!r}, expected 'error'."
+        result_status = write_calls[0].get("metadata", {}).get("params", {}).get("result_status")
+        assert result_status == "error", (
+            f"Edge case failed: unknown tool audit entry has result_status={result_status!r}, expected 'error'."
+        )
         assert result.success is False
         assert result.result_status == "error"
 
@@ -574,12 +560,10 @@ class TestMCPAuditLogCompletenessEdgeCases:
 
         write_calls, result = _run_async(_run())
 
-        assert (
-            len(write_calls) == 1
-        ), f"Edge case failed: confirmation-required tool produced {len(write_calls)} audit entries, expected 1."
-        result_status = (
-            write_calls[0].get("metadata", {}).get("params", {}).get("result_status")
+        assert len(write_calls) == 1, (
+            f"Edge case failed: confirmation-required tool produced {len(write_calls)} audit entries, expected 1."
         )
+        result_status = write_calls[0].get("metadata", {}).get("params", {}).get("result_status")
         assert result_status == "confirmation_required", (
             f"Edge case failed: confirmation audit entry has result_status={result_status!r}, "
             f"expected 'confirmation_required'."
@@ -618,12 +602,10 @@ class TestMCPAuditLogCompletenessEdgeCases:
         write_calls, result = _run_async(_run())
 
         assert len(write_calls) == 1
-        result_status = (
-            write_calls[0].get("metadata", {}).get("params", {}).get("result_status")
+        result_status = write_calls[0].get("metadata", {}).get("params", {}).get("result_status")
+        assert result_status == "success", (
+            f"Edge case failed: success audit entry has result_status={result_status!r}, expected 'success'."
         )
-        assert (
-            result_status == "success"
-        ), f"Edge case failed: success audit entry has result_status={result_status!r}, expected 'success'."
         assert result.success is True
         assert result.result_status == "success"
 
@@ -692,9 +674,9 @@ class TestMCPAuditLogCompletenessEdgeCases:
 
         write_calls = _run_async(_run())
 
-        assert (
-            len(write_calls) == 1
-        ), f"Edge case failed: invalid user_id produced {len(write_calls)} audit entries, expected 1."
+        assert len(write_calls) == 1, (
+            f"Edge case failed: invalid user_id produced {len(write_calls)} audit entries, expected 1."
+        )
         # The broker falls back to nil UUID rather than skipping the audit log
         assert write_calls[0].get("user_id") == nil_uuid, (
             f"Edge case failed: invalid user_id should fall back to nil UUID in audit log, "
@@ -735,11 +717,11 @@ class TestMCPAuditLogCompletenessEdgeCases:
 
         write_calls = _run_async(_run())
 
-        assert (
-            len(write_calls) == n
-        ), f"Edge case failed: {n} sequential invocations produced {len(write_calls)} audit entries."
+        assert len(write_calls) == n, (
+            f"Edge case failed: {n} sequential invocations produced {len(write_calls)} audit entries."
+        )
         # Each entry's tool must match one of the tools invoked
         invoked_tools = {c.get("metadata", {}).get("tool") for c in write_calls}
-        assert invoked_tools == set(
-            tool_names[:n]
-        ), f"Edge case failed: audit log tools {invoked_tools} != expected {set(tool_names[:n])}"
+        assert invoked_tools == set(tool_names[:n]), (
+            f"Edge case failed: audit log tools {invoked_tools} != expected {set(tool_names[:n])}"
+        )

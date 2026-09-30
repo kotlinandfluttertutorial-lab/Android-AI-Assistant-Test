@@ -2,6 +2,7 @@
 # tests/unit/agents/test_code_agent.py — Unit tests for CodeAgent
 # ============================================================
 """Unit tests for CodeAgent (Phase 4)."""
+
 from __future__ import annotations
 
 import asyncio
@@ -34,7 +35,7 @@ from app.agents.models import (
 def make_request(**kwargs: object) -> AgentRequest:
     defaults: dict[str, object] = {
         "user_id": "u1",
-        "input": "fun hello() = println(\"hi\")",
+        "input": 'fun hello() = println("hi")',
         "metadata": {"code_action": "explain", "language_id": "kotlin"},
     }
     defaults.update(kwargs)
@@ -114,8 +115,9 @@ def test_cannot_handle_speech_to_text() -> None:
 # ---------------------------------------------------------------------------
 
 
-@pytest.mark.parametrize("action", ["explain", "fix_bug", "generate_tests",
-                                     "generate", "refactor", "review"])
+@pytest.mark.parametrize(
+    "action", ["explain", "fix_bug", "generate_tests", "generate", "refactor", "review"]
+)
 @pytest.mark.asyncio
 async def test_action_completes(action: str) -> None:
     agent = CodeAgent()
@@ -162,6 +164,7 @@ async def test_db_unavailable() -> None:
     req = make_request()
 
     import app.agents.code_agent as _mod
+
     original = _mod.AsyncSessionLocal
     _mod.AsyncSessionLocal = None
     try:

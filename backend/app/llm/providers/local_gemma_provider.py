@@ -204,9 +204,7 @@ class LocalGemmaProvider(LLMProvider):
             ``PromptContext`` for the OllamaClient.
         """
         temperature = (
-            request.temperature
-            if request.temperature is not None
-            else self._default_temperature
+            request.temperature if request.temperature is not None else self._default_temperature
         )
         max_tokens = request.max_output_tokens or self._max_output_tokens
 

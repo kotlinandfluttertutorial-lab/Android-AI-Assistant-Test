@@ -270,9 +270,7 @@ class ProductivityService:
         await self._db.commit()
         return event
 
-    async def delete_calendar_event(
-        self, event_id: uuid.UUID, user_id: uuid.UUID
-    ) -> None:
+    async def delete_calendar_event(self, event_id: uuid.UUID, user_id: uuid.UUID) -> None:
         """Delete a calendar event, or raise 404 if not found."""
         deleted = await self._repo.delete_calendar_event(event_id, user_id)
         if not deleted:
@@ -329,9 +327,7 @@ class ProductivityService:
         """Return all reminders for a user, sorted by trigger_time ASC."""
         return await self._repo.list_reminders(user_id)
 
-    async def create_reminder(
-        self, user_id: uuid.UUID, data: ReminderCreate
-    ) -> Reminder:
+    async def create_reminder(self, user_id: uuid.UUID, data: ReminderCreate) -> Reminder:
         """Create a new reminder."""
         reminder = await self._repo.create_reminder(
             user_id=user_id,
@@ -422,9 +418,7 @@ class ProductivityService:
         """Return all habit definitions for a user."""
         return await self._repo.list_habits(user_id)
 
-    async def create_habit(
-        self, user_id: uuid.UUID, data: HabitCreate
-    ) -> HabitDefinition:
+    async def create_habit(self, user_id: uuid.UUID, data: HabitCreate) -> HabitDefinition:
         """Create a new habit definition."""
         habit = await self._repo.create_habit(
             user_id=user_id,
@@ -521,9 +515,7 @@ class ProductivityService:
 
         # Build stats summary
         total_entries = len(entries)
-        recent_entries = [
-            e for e in entries if (datetime.now(tz=UTC) - e.completed_at).days <= 30
-        ]
+        recent_entries = [e for e in entries if (datetime.now(tz=UTC) - e.completed_at).days <= 30]
         recent_count = len(recent_entries)
 
         orchestrator = AIOrchestrator(self._db)

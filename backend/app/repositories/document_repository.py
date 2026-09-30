@@ -109,9 +109,7 @@ class DocumentRepository:
             List of :class:`~app.models.document.Document` rows.
         """
         result = await self._db.execute(
-            select(Document)
-            .where(Document.user_id == user_id)
-            .order_by(Document.created_at.desc())
+            select(Document).where(Document.user_id == user_id).order_by(Document.created_at.desc())
         )
         return list(result.scalars().all())
 
@@ -251,9 +249,7 @@ class DocumentRepository:
             stmt = stmt.where(DocumentChunk.document_id.in_(document_ids))
 
         # Order by cosine distance ascending (most similar first)
-        stmt = stmt.order_by(
-            DocumentChunk.embedding.cosine_distance(query_embedding)
-        ).limit(top_k)
+        stmt = stmt.order_by(DocumentChunk.embedding.cosine_distance(query_embedding)).limit(top_k)
 
         result = await self._db.execute(stmt)
         return list(result.scalars().all())

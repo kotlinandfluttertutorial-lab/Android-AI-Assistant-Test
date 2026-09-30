@@ -127,7 +127,7 @@ class PlanCounters:
 class LimitViolation:
     """Describes a runtime limit violation."""
 
-    kind: str          # "max_steps" | "max_handoffs" | "max_tool_calls" | "timeout"
+    kind: str  # "max_steps" | "max_handoffs" | "max_tool_calls" | "timeout"
     current: int | float
     limit: int | float
     message: str
@@ -218,8 +218,7 @@ class AgentPlanner:
                 current=counters.handoffs_done,
                 limit=plan.max_handoffs,
                 message=(
-                    f"Max handoffs ({plan.max_handoffs}) exceeded "
-                    f"(done={counters.handoffs_done})."
+                    f"Max handoffs ({plan.max_handoffs}) exceeded (done={counters.handoffs_done})."
                 ),
             )
         if counters.tool_calls_made >= plan.max_tool_calls:

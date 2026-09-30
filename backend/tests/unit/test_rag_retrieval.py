@@ -202,19 +202,13 @@ class TestBuildContextString:
     def test_single_chunk_contains_query(self) -> None:
         """Context string must include the original query."""
         query = "What is the refund policy?"
-        chunks = [
-            _make_retrieved_chunk(
-                "You may return items within 30 days.", "policy.pdf", 2
-            )
-        ]
+        chunks = [_make_retrieved_chunk("You may return items within 30 days.", "policy.pdf", 2)]
         context = _build_context_string(query, chunks)
         assert query in context
 
     def test_single_chunk_contains_citation(self) -> None:
         """Every chunk must have a citation with document name and page number (Property 9)."""
-        chunks = [
-            _make_retrieved_chunk("Return items within 30 days.", "policy.pdf", 3)
-        ]
+        chunks = [_make_retrieved_chunk("Return items within 30 days.", "policy.pdf", 3)]
         context = _build_context_string("refund policy", chunks)
         assert "policy.pdf" in context
         assert "3" in context
@@ -332,9 +326,7 @@ class TestQueryDocumentsUserScoping:
 
         mock_chroma_client = MagicMock()
         # Simulate collection not existing — get_collection raises an exception
-        mock_chroma_client.get_collection.side_effect = Exception(
-            "Collection does not exist"
-        )
+        mock_chroma_client.get_collection.side_effect = Exception("Collection does not exist")
 
         with patch.object(service, "_get_embedding_model") as mock_model_getter:
             mock_model = MagicMock()
@@ -615,10 +607,7 @@ class TestCitationFormat:
 
         Validates: Requirements 4.7
         """
-        chunks = [
-            _make_retrieved_chunk(f"Content {i}.", f"doc{i}.pdf", i)
-            for i in range(1, 6)
-        ]
+        chunks = [_make_retrieved_chunk(f"Content {i}.", f"doc{i}.pdf", i) for i in range(1, 6)]
         context = _build_context_string("query", chunks)
 
         for i in range(1, 6):
@@ -694,10 +683,7 @@ class TestAssembleContext:
     def test_all_chunks_have_citation_markers(self) -> None:
         """Every chunk must have a citation marker in the context (Property 9)."""
         service = _make_service()
-        chunks = [
-            _make_retrieved_chunk(f"Content {i}.", f"doc{i}.pdf", i)
-            for i in range(1, 6)
-        ]
+        chunks = [_make_retrieved_chunk(f"Content {i}.", f"doc{i}.pdf", i) for i in range(1, 6)]
         context = service._assemble_context(chunks)
         for i in range(1, 6):
             assert f"[Source: doc{i}.pdf, Page {i}]" in context
@@ -716,8 +702,7 @@ class TestAssembleContext:
         """
         service = _make_service()
         chunks = [
-            _make_retrieved_chunk(f"Chunk content {i}.", f"report{i}.pdf", i)
-            for i in range(1, 6)
+            _make_retrieved_chunk(f"Chunk content {i}.", f"report{i}.pdf", i) for i in range(1, 6)
         ]
         context = service._assemble_context(chunks)
         assert context.count("[Source:") == 5
@@ -778,8 +763,7 @@ class TestFormatCitations:
         """
         service = _make_service()
         chunks = [
-            _make_retrieved_chunk(f"Content {i}.", f"file{i}.pdf", i * 2)
-            for i in range(1, 6)
+            _make_retrieved_chunk(f"Content {i}.", f"file{i}.pdf", i * 2) for i in range(1, 6)
         ]
         citations = service._format_citations(chunks)
         assert len(citations) == 5
@@ -803,9 +787,7 @@ class TestFormatCitations:
         Validates: Requirements 4.6, 4.7
         """
         service = _make_service()
-        chunks = [
-            _make_retrieved_chunk(f"Chunk {i}.", f"doc{i}.pdf", i) for i in range(1, 6)
-        ]
+        chunks = [_make_retrieved_chunk(f"Chunk {i}.", f"doc{i}.pdf", i) for i in range(1, 6)]
         citations = service._format_citations(chunks)
         assert len(citations) == 5
 

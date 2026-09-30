@@ -103,9 +103,7 @@ def export_user_data_task(self: Any, user_id: str, job_id: str) -> dict[str, str
 
     Requirements: 28.1
     """
-    return asyncio.get_event_loop().run_until_complete(
-        _run_export(self, user_id, job_id)
-    )
+    return asyncio.get_event_loop().run_until_complete(_run_export(self, user_id, job_id))
 
 
 async def _run_export(task: object, user_id: str, job_id: str) -> dict[str, str]:
@@ -141,9 +139,7 @@ async def _run_export(task: object, user_id: str, job_id: str) -> dict[str, str]
             # Collect all data for the user
             # ---------------------------------------------------------------
 
-            async def _fetch(
-                model: Any, filter_col: str = "user_id"
-            ) -> list[dict[str, object]]:
+            async def _fetch(model: Any, filter_col: str = "user_id") -> list[dict[str, object]]:
                 result = await db.execute(
                     select(model).where(getattr(model, filter_col) == user_uuid)
                 )
@@ -165,9 +161,7 @@ async def _run_export(task: object, user_id: str, job_id: str) -> dict[str, str]
             if conv_ids:
                 msg_result = await db.execute(
                     select(Message).where(
-                        Message.conversation_id.in_(
-                            [uuid.UUID(cid) for cid in conv_ids]
-                        )
+                        Message.conversation_id.in_([uuid.UUID(cid) for cid in conv_ids])
                     )
                 )
                 messages = [
@@ -196,9 +190,7 @@ async def _run_export(task: object, user_id: str, job_id: str) -> dict[str, str]
             )
             await db.commit()
 
-        logger.info(
-            "export_user_data_task: completed for user=%s job=%s", user_id, job_id
-        )
+        logger.info("export_user_data_task: completed for user=%s job=%s", user_id, job_id)
         return {"status": "completed", "job_id": job_id}
 
     except Exception as exc:
@@ -223,9 +215,7 @@ async def _run_export(task: object, user_id: str, job_id: str) -> dict[str, str]
                 )
                 await db.commit()
         except Exception as inner_exc:
-            logger.error(
-                "export_user_data_task: could not mark job failed: %s", inner_exc
-            )
+            logger.error("export_user_data_task: could not mark job failed: %s", inner_exc)
         return {"status": "failed", "job_id": job_id}
 
 
@@ -325,9 +315,7 @@ async def _run_delete(task: object, user_id: str) -> dict[str, str]:
             if user is not None:
                 await db.delete(user)
                 await db.commit()
-                logger.info(
-                    "delete_user_data_task: deleted user=%s from PostgreSQL", user_id
-                )
+                logger.info("delete_user_data_task: deleted user=%s from PostgreSQL", user_id)
             else:
                 logger.warning(
                     "delete_user_data_task: user=%s not found in PostgreSQL (already deleted?)",

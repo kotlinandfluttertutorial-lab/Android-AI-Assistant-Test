@@ -161,9 +161,7 @@ async def get_metrics(
 async def list_users(
     page: int = Query(default=1, ge=1, description="Page number (1-based)"),
     page_size: int = Query(default=20, ge=1, le=100, description="Items per page"),
-    search: str | None = Query(
-        default=None, description="Filter by email or display_name"
-    ),
+    search: str | None = Query(default=None, description="Filter by email or display_name"),
     db: AsyncSession = Depends(get_db),
 ) -> PaginatedUsersResponse:
     """Return a paginated list of all users.
@@ -173,9 +171,7 @@ async def list_users(
 
     Requirements: 15.2
     """
-    return await admin_service.list_users(
-        db, page=page, page_size=page_size, search=search
-    )
+    return await admin_service.list_users(db, page=page, page_size=page_size, search=search)
 
 
 # ---------------------------------------------------------------------------
@@ -232,12 +228,8 @@ async def get_audit_logs(
         default=None,
         description="Filter by event type: login, logout, token_refresh, failed_login, mcp_invoke",
     ),
-    date_from: datetime | None = Query(
-        default=None, description="ISO-8601 start datetime (UTC)"
-    ),
-    date_to: datetime | None = Query(
-        default=None, description="ISO-8601 end datetime (UTC)"
-    ),
+    date_from: datetime | None = Query(default=None, description="ISO-8601 start datetime (UTC)"),
+    date_to: datetime | None = Query(default=None, description="ISO-8601 end datetime (UTC)"),
     db: AsyncSession = Depends(get_db),
 ) -> PaginatedAuditLogsResponse:
     """Return a paginated audit log.
@@ -300,9 +292,7 @@ async def list_feedback(
 
     Requirements: 15.7
     """
-    return await admin_service.list_feedback(
-        db, page=page, page_size=page_size, category=category
-    )
+    return await admin_service.list_feedback(db, page=page, page_size=page_size, category=category)
 
 
 # ---------------------------------------------------------------------------
@@ -408,9 +398,7 @@ async def update_remote_config(
 
     Requirements: 15.8
     """
-    return await admin_service.update_remote_config_key(
-        redis, key, body.value, body.description
-    )
+    return await admin_service.update_remote_config_key(redis, key, body.value, body.description)
 
 
 # ---------------------------------------------------------------------------
@@ -564,9 +552,7 @@ async def get_privacy_budgets(
                 consumed = float(raw)
             except ValueError:
                 consumed = 0.0
-            budget_entries.append(
-                UserBudgetEntry(user_id=user_id_str, consumed_budget=consumed)
-            )
+            budget_entries.append(UserBudgetEntry(user_id=user_id_str, consumed_budget=consumed))
 
     return PrivacyBudgetResponse(
         budgets=budget_entries,

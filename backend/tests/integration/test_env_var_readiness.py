@@ -16,13 +16,17 @@ from httpx import ASGITransport, AsyncClient
 
 _THIS_MODULE = "tests.integration.test_env_var_readiness"
 
+
 async def _check_db_impl() -> None:
     pass
+
 
 async def _check_redis_impl() -> None:
     pass
 
+
 _ready_app = FastAPI()
+
 
 @_ready_app.get("/ready")
 async def _ready_endpoint() -> JSONResponse:
@@ -47,13 +51,16 @@ async def _ready_endpoint() -> JSONResponse:
     all_ok = db_status == "ok" and redis_status == "ok" and not missing_vars
 
     if all_ok:
-        return JSONResponse(status_code=200, content={"status": "ready", "dependencies": dependencies})
+        return JSONResponse(
+            status_code=200, content={"status": "ready", "dependencies": dependencies}
+        )
 
     content: dict = {"status": "unavailable", "dependencies": dependencies}
     if missing_vars:
         content["missing_env_vars"] = missing_vars
 
     return JSONResponse(status_code=503, content=content)
+
 
 # ---------------------------------------------------------------------------
 # Full required-var set
@@ -66,14 +73,17 @@ _BASE_ENV = {
     "AES_ENCRYPTION_KEY": "dGVzdC1hZXMtMjU2LWtleS0zMi1ieXRlcy1iYXNlNjQh",
 }
 
+
 def _env_without(var_name: str) -> dict[str, str]:
     env = {**_BASE_ENV}
     env.pop(var_name, None)
     return env
 
+
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
+
 
 class TestReadyEnvVarValidation:
     @pytest.mark.asyncio
@@ -87,7 +97,9 @@ class TestReadyEnvVarValidation:
         ):
             m_db.return_value = None
             m_redis.return_value = None
-            async with AsyncClient(transport=ASGITransport(app=_ready_app), base_url="http://test") as client:
+            async with AsyncClient(
+                transport=ASGITransport(app=_ready_app), base_url="http://test"
+            ) as client:
                 response = await client.get("/ready")
 
         assert response.status_code == 503
@@ -101,7 +113,9 @@ class TestReadyEnvVarValidation:
         ):
             m_db.return_value = None
             m_redis.return_value = None
-            async with AsyncClient(transport=ASGITransport(app=_ready_app), base_url="http://test") as client:
+            async with AsyncClient(
+                transport=ASGITransport(app=_ready_app), base_url="http://test"
+            ) as client:
                 response = await client.get("/ready")
 
         assert response.status_code == 200

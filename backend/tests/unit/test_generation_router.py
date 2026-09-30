@@ -114,8 +114,7 @@ _EMAIL_JSON = (
 
 # Realistic grammar response (no changes needed)
 _GRAMMAR_NO_CHANGE = (
-    '{"corrected_text": "Hello, this is correct.", '
-    '"no_changes_needed": true, "diff": []}'
+    '{"corrected_text": "Hello, this is correct.", "no_changes_needed": true, "diff": []}'
 )
 
 # Grammar response with changes
@@ -445,9 +444,7 @@ class TestEmailGrammar:
         assert response.status_code == 200
         assert response.json()["diff"] == []
 
-    def test_no_changes_needed_false_when_corrections_made(
-        self, client: TestClient
-    ) -> None:
+    def test_no_changes_needed_false_when_corrections_made(self, client: TestClient) -> None:
         """When LLM makes corrections, no_changes_needed should be False."""
         with _mock_orchestrate(_GRAMMAR_WITH_CHANGE):
             response = client.post(
@@ -457,9 +454,7 @@ class TestEmailGrammar:
         assert response.status_code == 200
         assert response.json()["no_changes_needed"] is False
 
-    def test_diff_contains_changes_when_corrections_made(
-        self, client: TestClient
-    ) -> None:
+    def test_diff_contains_changes_when_corrections_made(self, client: TestClient) -> None:
         """When corrections are made, diff should be non-empty."""
         with _mock_orchestrate(_GRAMMAR_WITH_CHANGE):
             response = client.post(

@@ -218,9 +218,7 @@ async def _run_stream_chat(
     mock_ws.send_json = AsyncMock()
 
     with (
-        patch(
-            "app.services.ai_orchestrator.build_base_system_prompt", return_value="sys"
-        ),
+        patch("app.services.ai_orchestrator.build_base_system_prompt", return_value="sys"),
         patch(
             "app.services.ai_orchestrator.build_summarization_prompt",
             return_value="sum",
@@ -276,9 +274,7 @@ async def test_15a_output_tokens_within_configured_cap(
 
     await _run_stream_chat(orch, provider)
 
-    assert (
-        len(captured) == 1
-    ), f"Expected exactly one TokenUsage.create call, got {len(captured)}"
+    assert len(captured) == 1, f"Expected exactly one TokenUsage.create call, got {len(captured)}"
 
     actual_output = captured[0]["output_tokens"]
     assert actual_output <= max_output_tokens, (
@@ -413,9 +409,9 @@ async def test_15_all_six_providers_deterministic() -> None:
 
         await _run_stream_chat(orch, provider)
 
-        assert (
-            len(captured) == 1
-        ), f"Expected 1 TokenUsage.create call for {provider.value}, got {len(captured)}"
+        assert len(captured) == 1, (
+            f"Expected 1 TokenUsage.create call for {provider.value}, got {len(captured)}"
+        )
         actual_output = captured[0]["output_tokens"]
         assert actual_output <= fixed_max, (
             f"output_tokens={actual_output} must be ≤ max_output_tokens={fixed_max} "
@@ -508,8 +504,7 @@ async def test_15_clamping_when_provider_cap_below_2048() -> None:
     llm_ctx = orch._to_llm_prompt_context(context, "test-user", client=mock_client)
 
     assert llm_ctx.max_tokens == provider_cap, (
-        f"max_tokens must be clamped to provider cap {provider_cap}, "
-        f"got {llm_ctx.max_tokens}"
+        f"max_tokens must be clamped to provider cap {provider_cap}, got {llm_ctx.max_tokens}"
     )
 
 

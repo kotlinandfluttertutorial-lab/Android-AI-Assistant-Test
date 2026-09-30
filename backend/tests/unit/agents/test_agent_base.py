@@ -65,11 +65,15 @@ def test_can_handle_true_when_no_capability_constraint() -> None:
 
 
 def test_can_handle_true_when_all_required_capabilities_satisfied() -> None:
-    agent = StubAgent(frozenset({
-        AgentCapability.TEXT_GENERATION,
-        AgentCapability.STREAMING,
-        AgentCapability.MEMORY_ACCESS,
-    }))
+    agent = StubAgent(
+        frozenset(
+            {
+                AgentCapability.TEXT_GENERATION,
+                AgentCapability.STREAMING,
+                AgentCapability.MEMORY_ACCESS,
+            }
+        )
+    )
     request = make_request(AgentCapability.TEXT_GENERATION, AgentCapability.STREAMING)
     assert agent.can_handle(request) is True
 

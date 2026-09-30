@@ -126,9 +126,7 @@ class TestLoginInactiveAccount:
             patch("app.api.auth.router.verify_password", return_value=True),
             patch(
                 "app.api.auth.router.issue_tokens_for_user",
-                new=AsyncMock(
-                    return_value=("access", ACCESS_EXP, "refresh", REFRESH_EXP)
-                ),
+                new=AsyncMock(return_value=("access", ACCESS_EXP, "refresh", REFRESH_EXP)),
             ),
             patch("app.api.auth.router.AuditService") as MockAudit,
         ):
@@ -193,9 +191,7 @@ class TestGoogleAuth:
             patch("app.api.auth.router.AuditService") as MockAudit,
             patch(
                 "app.api.auth.router.issue_tokens_for_user",
-                new=AsyncMock(
-                    return_value=("access", ACCESS_EXP, "refresh", REFRESH_EXP)
-                ),
+                new=AsyncMock(return_value=("access", ACCESS_EXP, "refresh", REFRESH_EXP)),
             ),
             patch("app.api.auth.router.asyncio") as mock_asyncio,
         ):
@@ -205,9 +201,7 @@ class TestGoogleAuth:
             MockRepo.return_value.get_by_google_id = AsyncMock(return_value=user)
             MockAudit.return_value.log_login = AsyncMock()
 
-            response = client.post(
-                "/auth/google", json={"id_token": "fake-google-token"}
-            )
+            response = client.post("/auth/google", json={"id_token": "fake-google-token"})
 
         assert response.status_code == 200
         data = response.json()
@@ -225,9 +219,7 @@ class TestGoogleAuth:
             patch("app.api.auth.router.AuditService") as MockAudit,
             patch(
                 "app.api.auth.router.issue_tokens_for_user",
-                new=AsyncMock(
-                    return_value=("access", ACCESS_EXP, "refresh", REFRESH_EXP)
-                ),
+                new=AsyncMock(return_value=("access", ACCESS_EXP, "refresh", REFRESH_EXP)),
             ),
             patch("app.api.auth.router.asyncio") as mock_asyncio,
         ):
@@ -239,9 +231,7 @@ class TestGoogleAuth:
             MockRepo.return_value.create_google_user = AsyncMock(return_value=new_user)
             MockAudit.return_value.log_login = AsyncMock()
 
-            response = client.post(
-                "/auth/google", json={"id_token": "fake-google-token"}
-            )
+            response = client.post("/auth/google", json={"id_token": "fake-google-token"})
 
         assert response.status_code == 200
         data = response.json()
@@ -259,9 +249,7 @@ class TestGoogleAuth:
             patch("app.api.auth.router.AuditService") as MockAudit,
             patch(
                 "app.api.auth.router.issue_tokens_for_user",
-                new=AsyncMock(
-                    return_value=("access", ACCESS_EXP, "refresh", REFRESH_EXP)
-                ),
+                new=AsyncMock(return_value=("access", ACCESS_EXP, "refresh", REFRESH_EXP)),
             ),
             patch("app.api.auth.router.asyncio") as mock_asyncio,
         ):
@@ -270,14 +258,10 @@ class TestGoogleAuth:
             mock_loop.run_in_executor = AsyncMock(return_value=id_info)
             MockRepo.return_value.get_by_google_id = AsyncMock(return_value=None)
             MockRepo.return_value.get_by_email = AsyncMock(return_value=existing_user)
-            MockRepo.return_value.update_google_id = AsyncMock(
-                return_value=updated_user
-            )
+            MockRepo.return_value.update_google_id = AsyncMock(return_value=updated_user)
             MockAudit.return_value.log_login = AsyncMock()
 
-            response = client.post(
-                "/auth/google", json={"id_token": "fake-google-token"}
-            )
+            response = client.post("/auth/google", json={"id_token": "fake-google-token"})
 
         assert response.status_code == 200
         MockRepo.return_value.update_google_id.assert_called_once()
@@ -305,9 +289,7 @@ class TestGoogleAuth:
             mock_asyncio.get_event_loop.return_value = mock_loop
             mock_loop.run_in_executor = AsyncMock(return_value=id_info)
 
-            response = client.post(
-                "/auth/google", json={"id_token": "incomplete-token"}
-            )
+            response = client.post("/auth/google", json={"id_token": "incomplete-token"})
 
         assert response.status_code == 401
 
@@ -325,13 +307,9 @@ class TestGoogleAuth:
             mock_loop = MagicMock()
             mock_asyncio.get_event_loop.return_value = mock_loop
             mock_loop.run_in_executor = AsyncMock(return_value=id_info)
-            MockRepo.return_value.get_by_google_id = AsyncMock(
-                return_value=disabled_user
-            )
+            MockRepo.return_value.get_by_google_id = AsyncMock(return_value=disabled_user)
 
-            response = client.post(
-                "/auth/google", json={"id_token": "fake-google-token"}
-            )
+            response = client.post("/auth/google", json={"id_token": "fake-google-token"})
 
         assert response.status_code == 401
 
@@ -668,9 +646,7 @@ class TestRefreshTokenRepository:
         family_id = uuid.uuid4()
         expires = NOW + timedelta(days=30)
 
-        with patch(
-            "app.repositories.refresh_token_repository.RefreshToken"
-        ) as MockToken:
+        with patch("app.repositories.refresh_token_repository.RefreshToken") as MockToken:
             mock_token = MagicMock()
             MockToken.return_value = mock_token
             result = await repo.create(
@@ -858,9 +834,7 @@ class TestMessageRepository:
         db.execute = AsyncMock(return_value=result_mock)
 
         repo = MessageRepository(db)
-        msgs = await repo.get_paginated_by_conversation_id(
-            uuid.uuid4(), offset=0, limit=10
-        )
+        msgs = await repo.get_paginated_by_conversation_id(uuid.uuid4(), offset=0, limit=10)
 
         assert len(msgs) == 2
 

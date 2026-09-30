@@ -258,9 +258,7 @@ def test_property_26_valid_format_and_size_accepted(ext: str, size_bytes: int) -
     suppress_health_check=[HealthCheck.too_slow, HealthCheck.function_scoped_fixture],
     deadline=None,
 )
-def test_property_26_invalid_format_rejected_nothing_stored(
-    ext: str, size_bytes: int
-) -> None:
+def test_property_26_invalid_format_rejected_nothing_stored(ext: str, size_bytes: int) -> None:
     """**Validates: Requirements 4.1**
 
     Property 26B: Any file with an unsupported format MUST be rejected with
@@ -354,9 +352,7 @@ def test_property_26_invalid_format_rejected_nothing_stored(
     suppress_health_check=[HealthCheck.too_slow, HealthCheck.function_scoped_fixture],
     deadline=None,
 )
-def test_property_26_oversized_file_rejected_nothing_stored(
-    ext: str, declared_size: int
-) -> None:
+def test_property_26_oversized_file_rejected_nothing_stored(ext: str, declared_size: int) -> None:
     """**Validates: Requirements 4.1**
 
     Property 26C: Any file in a supported format whose size exceeds 50 MB
@@ -449,9 +445,7 @@ def test_property_26_oversized_file_rejected_nothing_stored(
     suppress_health_check=[HealthCheck.too_slow],
     deadline=None,
 )
-def test_property_26_service_accepts_valid_format_and_size(
-    ext: str, size_bytes: int
-) -> None:
+def test_property_26_service_accepts_valid_format_and_size(ext: str, size_bytes: int) -> None:
     """**Validates: Requirements 4.1**
 
     Property 26D (service layer): ``RAGService.validate_mime_and_upload`` MUST NOT

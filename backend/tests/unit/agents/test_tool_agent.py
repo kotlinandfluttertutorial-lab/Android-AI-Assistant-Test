@@ -1,5 +1,6 @@
 # tests/unit/agents/test_tool_agent.py
 """Unit tests for ToolAgent (Phase 5)."""
+
 from __future__ import annotations
 
 import asyncio
@@ -209,8 +210,7 @@ async def test_invalid_params_json_emits_failed() -> None:
         events = await collect(agent.execute(req, make_exec(req)))
 
     assert any(
-        isinstance(e, AgentFailedEvent) and "INVALID_PARAMS" in e.result.error.code
-        for e in events
+        isinstance(e, AgentFailedEvent) and "INVALID_PARAMS" in e.result.error.code for e in events
     )
 
 
@@ -235,9 +235,7 @@ async def test_unconfirmed_write_tool_emits_confirmation_required() -> None:
 @pytest.mark.asyncio
 async def test_confirmed_write_tool_executes() -> None:
     agent = ToolAgent()
-    req = make_request(
-        metadata={"tool_name": "github", "tool_params": "{}", "confirmed": "true"}
-    )
+    req = make_request(metadata={"tool_name": "github", "tool_params": "{}", "confirmed": "true"})
     with mock_stack(requires_confirmation=True, success=True):
         events = await collect(agent.execute(req, make_exec(req)))
 
@@ -289,10 +287,7 @@ async def test_tool_timeout_emits_failed() -> None:
     ):
         events = await collect(agent.execute(req, make_exec(req)))
 
-    assert any(
-        isinstance(e, AgentFailedEvent) and "TIMEOUT" in e.result.error.code
-        for e in events
-    )
+    assert any(isinstance(e, AgentFailedEvent) and "TIMEOUT" in e.result.error.code for e in events)
 
 
 # ---------------------------------------------------------------------------

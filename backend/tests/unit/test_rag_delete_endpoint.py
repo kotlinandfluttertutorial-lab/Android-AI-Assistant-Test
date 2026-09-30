@@ -267,9 +267,7 @@ class TestDeleteDocumentEndpoint:
                 "app.api.rag.router.rag_service.delete_embeddings",
                 mock_delete_embeddings,
             ),
-            patch(
-                "app.api.rag.router.rag_service.delete_file_minio", mock_delete_minio
-            ),
+            patch("app.api.rag.router.rag_service.delete_file_minio", mock_delete_minio),
         ):
             app.dependency_overrides[get_current_user] = lambda: token_payload
             app.dependency_overrides[get_db] = lambda: mock_db
@@ -283,9 +281,7 @@ class TestDeleteDocumentEndpoint:
                 app.dependency_overrides.pop(get_current_user, None)
                 app.dependency_overrides.pop(get_db, None)
 
-        mock_delete_embeddings.assert_called_once_with(
-            str(_FIXED_DOC_ID), str(_FIXED_USER_ID)
-        )
+        mock_delete_embeddings.assert_called_once_with(str(_FIXED_DOC_ID), str(_FIXED_USER_ID))
 
     @pytest.mark.asyncio
     async def test_delete_calls_delete_file_minio_with_minio_key(self) -> None:
@@ -307,9 +303,7 @@ class TestDeleteDocumentEndpoint:
                 "app.api.rag.router.rag_service.delete_embeddings",
                 mock_delete_embeddings,
             ),
-            patch(
-                "app.api.rag.router.rag_service.delete_file_minio", mock_delete_minio
-            ),
+            patch("app.api.rag.router.rag_service.delete_file_minio", mock_delete_minio),
         ):
             app.dependency_overrides[get_current_user] = lambda: token_payload
             app.dependency_overrides[get_db] = lambda: mock_db
@@ -548,9 +542,7 @@ class TestDocumentRepositoryDelete:
 
         with (
             patch.object(repo, "get_by_id", AsyncMock(return_value=document)),
-            patch.object(
-                repo, "delete_chunks_by_document", AsyncMock()
-            ) as mock_chunk_delete,
+            patch.object(repo, "delete_chunks_by_document", AsyncMock()) as mock_chunk_delete,
         ):
             await repo.delete(_FIXED_DOC_ID, _FIXED_USER_ID)
 

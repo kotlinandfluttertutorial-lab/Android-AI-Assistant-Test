@@ -1,4 +1,4 @@
-﻿"""Unit tests for app.llm.prompt_builder.PromptBuilder.
+"""Unit tests for app.llm.prompt_builder.PromptBuilder.
 
 Covers:
 - build(): returns LLMRequest with assembled prompt.
@@ -44,6 +44,7 @@ from app.llm.prompt_builder import (
 # Fixtures
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def builder():
     return PromptBuilder()
@@ -53,9 +54,11 @@ def builder():
 # Basic assembly
 # ---------------------------------------------------------------------------
 
+
 class TestPromptBuilderBasic:
     def test_returns_llm_request(self, builder) -> None:
         from app.llm.base import LLMRequest
+
         result = builder.build(user_message="Hello")
         assert isinstance(result, LLMRequest)
 
@@ -110,6 +113,7 @@ class TestPromptBuilderBasic:
 # RAG context
 # ---------------------------------------------------------------------------
 
+
 class TestPromptBuilderRag:
     def test_rag_context_wrapped_in_delimiters(self, builder) -> None:
         result = builder.build(
@@ -147,6 +151,7 @@ class TestPromptBuilderRag:
 # ---------------------------------------------------------------------------
 # Conversation history
 # ---------------------------------------------------------------------------
+
 
 class TestPromptBuilderHistory:
     def test_history_included(self, builder) -> None:
@@ -188,9 +193,11 @@ class TestPromptBuilderHistory:
 # Size truncation
 # ---------------------------------------------------------------------------
 
+
 class TestPromptBuilderTruncation:
     def test_prompt_within_limit(self, builder) -> None:
         from app.config.settings import get_settings
+
         limit = get_settings().LLM_PROMPT_MAX_CHARS
         result = builder.build(user_message="Short question")
         assert len(result.prompt) <= limit
@@ -204,6 +211,7 @@ class TestPromptBuilderTruncation:
             os.environ, {"LLM_PROMPT_MAX_CHARS": "3000"}
         ):
             from app.config.settings import get_settings
+
             get_settings.cache_clear()
             result = builder.build(
                 user_message="Final question",
@@ -221,6 +229,7 @@ class TestPromptBuilderTruncation:
             os.environ, {"LLM_PROMPT_MAX_CHARS": "3000"}
         ):
             from app.config.settings import get_settings
+
             get_settings.cache_clear()
             result = builder.build(
                 user_message="MUST_BE_PRESENT",
@@ -234,6 +243,7 @@ class TestPromptBuilderTruncation:
 # ---------------------------------------------------------------------------
 # Complexity classification
 # ---------------------------------------------------------------------------
+
 
 class TestPromptBuilderComplexity:
     def test_simple_request(self, builder) -> None:
@@ -265,6 +275,7 @@ class TestPromptBuilderComplexity:
 # ---------------------------------------------------------------------------
 # LLMRequest field population
 # ---------------------------------------------------------------------------
+
 
 class TestPromptBuilderFields:
     def test_user_id_set(self, builder) -> None:

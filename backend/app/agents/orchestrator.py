@@ -121,8 +121,11 @@ class AgentOrchestrator:
         routing = self._router.route(request, self._registry)
         if routing.failed or routing.agent is None:
             yield self._failed_event(
-                execution_id, request, "orchestrator",
-                "ROUTING_FAILED", routing.reason,
+                execution_id,
+                request,
+                "orchestrator",
+                "ROUTING_FAILED",
+                routing.reason,
             )
             return
 
@@ -133,8 +136,11 @@ class AgentOrchestrator:
             plan = self._planner.build_plan(request, first_agent, self._registry)
         except Exception as exc:
             yield self._failed_event(
-                execution_id, request, first_agent.name,
-                "PLAN_BUILD_FAILED", str(exc),
+                execution_id,
+                request,
+                first_agent.name,
+                "PLAN_BUILD_FAILED",
+                str(exc),
             )
             return
 
@@ -151,8 +157,11 @@ class AgentOrchestrator:
                     violation = self._planner.check_limits(plan, counters)
                     if violation is not None:
                         yield self._failed_event(
-                            execution_id, request, plan_step.agent_name,
-                            "LIMIT_EXCEEDED", violation.message,
+                            execution_id,
+                            request,
+                            plan_step.agent_name,
+                            "LIMIT_EXCEEDED",
+                            violation.message,
                         )
                         return
 
@@ -161,8 +170,11 @@ class AgentOrchestrator:
                         agent = self._registry.get(plan_step.agent_name)
                     except Exception as exc:
                         yield self._failed_event(
-                            execution_id, request, plan_step.agent_name,
-                            "AGENT_NOT_FOUND", str(exc),
+                            execution_id,
+                            request,
+                            plan_step.agent_name,
+                            "AGENT_NOT_FOUND",
+                            str(exc),
                         )
                         return
 
@@ -171,17 +183,21 @@ class AgentOrchestrator:
                         100,
                         plan.timeout_ms - int((time.monotonic() * 1000) - start_ms),
                     )
-                    step_request = request if step_index == 0 else AgentRequest(
-                        user_id=request.user_id,
-                        input=current_input,
-                        conversation_id=request.conversation_id,
-                        provider=request.provider,
-                        capabilities=request.capabilities,
-                        context=request.context,
-                        max_steps=request.max_steps,
-                        timeout_ms=remaining_ms,
-                        streaming_enabled=request.streaming_enabled,
-                        metadata=request.metadata,
+                    step_request = (
+                        request
+                        if step_index == 0
+                        else AgentRequest(
+                            user_id=request.user_id,
+                            input=current_input,
+                            conversation_id=request.conversation_id,
+                            provider=request.provider,
+                            capabilities=request.capabilities,
+                            context=request.context,
+                            max_steps=request.max_steps,
+                            timeout_ms=remaining_ms,
+                            streaming_enabled=request.streaming_enabled,
+                            metadata=request.metadata,
+                        )
                     )
 
                     if step_index > 0:
@@ -203,7 +219,8 @@ class AgentOrchestrator:
                     async for event in agent.execute(step_request, execution):
                         # Count tool calls
                         if hasattr(event, "type") and event.type in (
-                            "tool_completed", "tool_failed"
+                            "tool_completed",
+                            "tool_failed",
                         ):
                             counters.tool_calls_made += 1
                         yield event
@@ -220,12 +237,15 @@ class AgentOrchestrator:
 
         except asyncio.TimeoutError:
             yield self._failed_event(
-                execution_id, request, first_agent.name,
+                execution_id,
+                request,
+                first_agent.name,
                 "TIMEOUT",
                 f"Plan execution exceeded timeout of {plan.timeout_ms} ms.",
             )
         except asyncio.CancelledError:
             from app.agents.models import AgentCancelledEvent
+
             yield AgentCancelledEvent(reason="Execution cancelled by caller.")
             raise  # re-raise so the task is properly cancelled
 

@@ -66,9 +66,7 @@ def _build_test_jwt(sub: str) -> str:
         .rstrip("=")
     )
 
-    payload = (
-        base64.urlsafe_b64encode(json.dumps({"sub": sub}).encode()).decode().rstrip("=")
-    )
+    payload = base64.urlsafe_b64encode(json.dumps({"sub": sub}).encode()).decode().rstrip("=")
 
     signature = "fake-signature"
 
@@ -144,18 +142,14 @@ def test_unauthenticated_request_user_id_null(client: TestClient, caplog: Any) -
     assert log_record.__dict__["user_id"] is None
 
 
-def test_unhandled_exception_increments_counter(
-    client: TestClient, caplog: Any
-) -> None:
+def test_unhandled_exception_increments_counter(client: TestClient, caplog: Any) -> None:
     """Test that unhandled exceptions log ERROR and increment the counter."""
     from app.middleware.logging_middleware import (
         http_unhandled_exceptions_total,
     )
 
     # Get initial counter value
-    initial_count = http_unhandled_exceptions_total.labels(
-        path="/test-exception"
-    )._value.get()
+    initial_count = http_unhandled_exceptions_total.labels(path="/test-exception")._value.get()
 
     with caplog.at_level(logging.ERROR):
         with pytest.raises(ValueError, match="Test unhandled exception"):
@@ -170,9 +164,7 @@ def test_unhandled_exception_increments_counter(
     assert "Unhandled exception during request" in error_log.message
 
     # Check that the counter was incremented
-    final_count = http_unhandled_exceptions_total.labels(
-        path="/test-exception"
-    )._value.get()
+    final_count = http_unhandled_exceptions_total.labels(path="/test-exception")._value.get()
     assert final_count == initial_count + 1
 
 

@@ -120,10 +120,7 @@ class TestDetectSqlInjection:
         assert detect_sql_injection("") is False
 
     def test_union_select_detected(self) -> None:
-        assert (
-            detect_sql_injection("' UNION SELECT username, password FROM users--")
-            is True
-        )
+        assert detect_sql_injection("' UNION SELECT username, password FROM users--") is True
 
     def test_or_tautology_numeric_detected(self) -> None:
         assert detect_sql_injection("' OR 1=1 --") is True
@@ -148,10 +145,7 @@ class TestDetectSqlInjection:
 
     def test_extractvalue_detected(self) -> None:
         assert (
-            detect_sql_injection(
-                "1 AND EXTRACTVALUE(1, concat(0x7e, (SELECT version())))"
-            )
-            is True
+            detect_sql_injection("1 AND EXTRACTVALUE(1, concat(0x7e, (SELECT version())))") is True
         )
 
     def test_null_byte_detected(self) -> None:
@@ -294,9 +288,7 @@ class TestRegisterRequestValidation:
                 password="Str0ng!Password123",
                 display_name='<script>alert("xss")</script>',
             )
-        assert (
-            "XSS" in str(exc_info.value) or "cross-site" in str(exc_info.value).lower()
-        )
+        assert "XSS" in str(exc_info.value) or "cross-site" in str(exc_info.value).lower()
 
     def test_sql_injection_in_display_name_rejected(self) -> None:
         from app.schemas.auth import RegisterRequest
@@ -348,9 +340,7 @@ class TestTodoCreateValidation:
     def test_valid_todo_accepted(self) -> None:
         from app.schemas.productivity import TodoCreate
 
-        todo = TodoCreate(
-            title="Buy groceries", description="Milk and eggs", tags=["personal"]
-        )
+        todo = TodoCreate(title="Buy groceries", description="Milk and eggs", tags=["personal"])
         assert todo.title == "Buy groceries"
 
     def test_xss_in_title_rejected(self) -> None:

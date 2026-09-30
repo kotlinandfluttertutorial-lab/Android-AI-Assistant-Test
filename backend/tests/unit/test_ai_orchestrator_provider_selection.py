@@ -186,9 +186,9 @@ class TestResolveProviderCaching:
             first = await orch._resolve_provider(LLMProvider.openai)
             second = await orch._resolve_provider(LLMProvider.openai)
 
-        assert (
-            first is second
-        ), "_resolve_provider must return the cached instance on repeated calls"
+        assert first is second, (
+            "_resolve_provider must return the cached instance on repeated calls"
+        )
 
     @pytest.mark.asyncio
     async def test_different_providers_return_different_instances(self) -> None:
@@ -216,9 +216,9 @@ class TestResolveProviderCaching:
             clients = [await orch._resolve_provider(p) for p in ALL_PROVIDERS]
 
         # All six must be distinct objects
-        assert (
-            len(set(id(c) for c in clients)) == 6
-        ), "Expected 6 distinct cached client instances, one per provider"
+        assert len(set(id(c) for c in clients)) == 6, (
+            "Expected 6 distinct cached client instances, one per provider"
+        )
 
 
 class TestResolveProviderUnsupported:
@@ -276,9 +276,9 @@ class TestNoNoticeOnPrimarySuccess:
             )
 
             types = _sent_types(ws)
-            assert (
-                "notice" not in types
-            ), "No 'notice' event should be sent when primary provider succeeds"
+            assert "notice" not in types, (
+                "No 'notice' event should be sent when primary provider succeeds"
+            )
             # But token and done events must still be present
             assert "token" in types
             assert "done" in types
@@ -291,9 +291,7 @@ class TestNoNoticeOnPrimarySuccess:
         ALL_PROVIDERS,
         ids=[p.value for p in ALL_PROVIDERS],
     )
-    async def test_no_notice_for_each_provider_on_success(
-        self, provider: LLMProvider
-    ) -> None:
+    async def test_no_notice_for_each_provider_on_success(self, provider: LLMProvider) -> None:
         """No notice for any of the 6 providers when they succeed."""
         with patch.dict(os.environ, {"FALLBACK_LLM_PROVIDER": ""}):
             from app.config.settings import get_settings
@@ -324,9 +322,9 @@ class TestNoNoticeOnPrimarySuccess:
                 ws=ws,
             )
 
-            assert "notice" not in _sent_types(
-                ws
-            ), f"No notice expected on success for provider '{provider.value}'"
+            assert "notice" not in _sent_types(ws), (
+                f"No notice expected on success for provider '{provider.value}'"
+            )
             get_settings.cache_clear()
 
 
@@ -345,14 +343,10 @@ class TestFallbackTriggersForAllProviders:
         ALL_PROVIDERS,
         ids=[p.value for p in ALL_PROVIDERS],
     )
-    async def test_fallback_used_for_each_provider(
-        self, fallback_provider: LLMProvider
-    ) -> None:
+    async def test_fallback_used_for_each_provider(self, fallback_provider: LLMProvider) -> None:
         # Use openai as the always-failing primary; each provider as fallback
         primary_provider = (
-            LLMProvider.gemini
-            if fallback_provider == LLMProvider.openai
-            else LLMProvider.openai
+            LLMProvider.gemini if fallback_provider == LLMProvider.openai else LLMProvider.openai
         )
 
         with patch.dict(os.environ, {"FALLBACK_LLM_PROVIDER": fallback_provider.value}):
@@ -389,9 +383,9 @@ class TestFallbackTriggersForAllProviders:
             )
 
             types = _sent_types(ws)
-            assert (
-                "notice" in types
-            ), f"Expected 'notice' when falling back to '{fallback_provider.value}'"
+            assert "notice" in types, (
+                f"Expected 'notice' when falling back to '{fallback_provider.value}'"
+            )
             assert "token" in types
             assert "done" in types
 
@@ -526,9 +520,9 @@ class TestAllSixClientsMocked:
             )
 
             types = _sent_types(ws)
-            assert (
-                "notice" in types
-            ), f"Expected notice for {failing_provider.value}→{fallback_provider.value}"
+            assert "notice" in types, (
+                f"Expected notice for {failing_provider.value}→{fallback_provider.value}"
+            )
             assert "token" in types
             assert "done" in types
 
@@ -577,9 +571,9 @@ class TestNoFallbackWhenFallbackEqualsPrimary:
                     ws=ws,
                 )
 
-            assert "notice" not in _sent_types(
-                ws
-            ), "No notice expected when fallback == primary (self-loop prevention)"
+            assert "notice" not in _sent_types(ws), (
+                "No notice expected when fallback == primary (self-loop prevention)"
+            )
             get_settings.cache_clear()
 
 
@@ -663,9 +657,9 @@ class TestDoneEventAlwaysEmitted:
 
             sent = [call.args[0] for call in ws.send_json.call_args_list]
             done_events = [m for m in sent if m.get("type") == "done"]
-            assert (
-                len(done_events) == 1
-            ), "Exactly one 'done' event must be emitted on fallback success"
+            assert len(done_events) == 1, (
+                "Exactly one 'done' event must be emitted on fallback success"
+            )
             # The done event must reference the fallback provider
             assert done_events[0]["usage"]["provider"] == LLMProvider.claude.value
 
@@ -732,11 +726,11 @@ class TestNoticeMessageContent:
             assert notice is not None, "Expected a 'notice' event in WebSocket messages"
 
             msg = notice["message"].lower()
-            assert (
-                primary.value in msg
-            ), f"Notice must mention failing provider '{primary.value}'; got: {notice['message']}"
-            assert (
-                fallback.value in msg
-            ), f"Notice must mention fallback provider '{fallback.value}'; got: {notice['message']}"
+            assert primary.value in msg, (
+                f"Notice must mention failing provider '{primary.value}'; got: {notice['message']}"
+            )
+            assert fallback.value in msg, (
+                f"Notice must mention fallback provider '{fallback.value}'; got: {notice['message']}"
+            )
 
             get_settings.cache_clear()

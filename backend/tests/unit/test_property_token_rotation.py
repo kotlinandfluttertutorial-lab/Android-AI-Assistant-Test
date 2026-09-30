@@ -75,9 +75,7 @@ def _make_refresh_token_record(
     record.used = used
     record.revoked = revoked
     record.family_id = family_id or uuid.uuid4()
-    record.expires_at = datetime.now(tz=timezone.utc) + timedelta(
-        seconds=expires_delta_seconds
-    )
+    record.expires_at = datetime.now(tz=timezone.utc) + timedelta(seconds=expires_delta_seconds)
     return record
 
 

@@ -119,11 +119,7 @@ async def get_metrics(db: AsyncSession, redis: Redis) -> MetricsResponse:
 
     # Total tokens consumed (all time)
     total_tokens_result = await db.execute(
-        select(
-            func.coalesce(
-                func.sum(TokenUsage.input_tokens + TokenUsage.output_tokens), 0
-            )
-        )
+        select(func.coalesce(func.sum(TokenUsage.input_tokens + TokenUsage.output_tokens), 0))
     )
     total_tokens: int = int(total_tokens_result.scalar_one() or 0)
 
@@ -131,9 +127,7 @@ async def get_metrics(db: AsyncSession, redis: Redis) -> MetricsResponse:
     provider_rows = await db.execute(
         select(
             TokenUsage.provider,
-            func.sum(TokenUsage.input_tokens + TokenUsage.output_tokens).label(
-                "total_tokens"
-            ),
+            func.sum(TokenUsage.input_tokens + TokenUsage.output_tokens).label("total_tokens"),
             func.sum(TokenUsage.cost_usd).label("total_cost"),
         ).group_by(TokenUsage.provider)
     )
@@ -308,9 +302,7 @@ async def _invalidate_all_tokens_for_user(
         await redis.setex(force_logout_key, ttl, "1")
         logger.info("Set force_logout marker for user %s (TTL=%ds)", user_id, ttl)
     except Exception as exc:
-        logger.warning(
-            "Could not set Redis force_logout marker for user %s: %s", user_id, exc
-        )
+        logger.warning("Could not set Redis force_logout marker for user %s: %s", user_id, exc)
 
     return tokens_revoked
 
@@ -680,10 +672,7 @@ async def publish_remote_config(redis: Redis) -> RemoteConfigPublishResponse:
         from app.config.settings import get_settings
 
         settings = get_settings()
-        if (
-            settings.FIREBASE_REMOTE_CONFIG_ENABLED
-            and settings.FIREBASE_CREDENTIALS_PATH
-        ):
+        if settings.FIREBASE_REMOTE_CONFIG_ENABLED and settings.FIREBASE_CREDENTIALS_PATH:
             import firebase_admin
             from firebase_admin import remote_config
 
@@ -828,9 +817,9 @@ async def get_usage_analytics(db: AsyncSession) -> UsageAnalyticsResponse:
         select(
             TokenUsage.provider,
             func.count(TokenUsage.id).label("total_requests"),
-            func.coalesce(
-                func.sum(TokenUsage.input_tokens + TokenUsage.output_tokens), 0
-            ).label("total_tokens"),
+            func.coalesce(func.sum(TokenUsage.input_tokens + TokenUsage.output_tokens), 0).label(
+                "total_tokens"
+            ),
             func.coalesce(func.sum(TokenUsage.cost_usd), 0.0).label("cost_usd"),
         )
         .group_by(TokenUsage.provider)

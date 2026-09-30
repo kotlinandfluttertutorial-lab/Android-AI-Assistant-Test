@@ -83,12 +83,8 @@ def _build_notes_prompt(payload: ScreenContextPayload) -> str:
 def _build_calendar_prompt(payload: ScreenContextPayload) -> str:
     """Build the prompt for a calendar-screen context request."""
     event_title = payload.event_title or "Untitled Event"
-    event_datetime = (
-        str(payload.event_datetime) if payload.event_datetime else "Unknown time"
-    )
-    attendees_str = (
-        ", ".join(payload.attendees) if payload.attendees else "No attendees listed"
-    )
+    event_datetime = str(payload.event_datetime) if payload.event_datetime else "Unknown time"
+    attendees_str = ", ".join(payload.attendees) if payload.attendees else "No attendees listed"
     return (
         "You are helping a user prepare for a calendar event. "
         "Suggest 1-3 helpful AI actions from: draft_agenda, prep_questions, lookup_attendees. "

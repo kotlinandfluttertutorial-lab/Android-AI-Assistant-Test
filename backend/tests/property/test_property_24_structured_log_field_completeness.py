@@ -74,9 +74,7 @@ _safe_user_id_strategy = st.one_of(
 )
 
 # HTTP status codes that are normal application responses (NOT unhandled exceptions)
-_normal_status_codes = st.sampled_from(
-    [200, 201, 204, 400, 401, 403, 404, 422, 429, 500]
-)
+_normal_status_codes = st.sampled_from([200, 201, 204, 400, 401, 403, 404, 422, 429, 500])
 
 # HTTP paths used in our test app (must map to routes we define below)
 _test_paths = st.sampled_from(["/ok", "/not-found", "/bad-request", "/server-error"])
@@ -108,11 +106,7 @@ def _build_bearer_jwt(sub: str) -> str:
         .decode()
     )
 
-    payload_b64 = (
-        base64.urlsafe_b64encode(json.dumps({"sub": sub}).encode())
-        .rstrip(b"=")
-        .decode()
-    )
+    payload_b64 = base64.urlsafe_b64encode(json.dumps({"sub": sub}).encode()).rstrip(b"=").decode()
 
     return f"{header_b64}.{payload_b64}.fake-signature"
 
@@ -290,9 +284,9 @@ def test_property_24a_every_log_entry_contains_all_required_fields(
 
         # --- 4. path must be a non-empty string matching the request path ---
         logged_path = record_dict["path"]
-        assert (
-            isinstance(logged_path, str) and len(logged_path) > 0
-        ), f"Property 24A violated: path={logged_path!r} is not a non-empty string."
+        assert isinstance(logged_path, str) and len(logged_path) > 0, (
+            f"Property 24A violated: path={logged_path!r} is not a non-empty string."
+        )
         assert logged_path == path, (
             f"Property 24A violated: logged path={logged_path!r} does not match "
             f"request path={path!r}"
@@ -426,9 +420,7 @@ def test_property_24c_error_counter_increments_exactly_once_per_unhandled_except
         headers["Authorization"] = f"Bearer {token}"
 
     # Capture the counter value BEFORE the requests
-    initial_count = http_unhandled_exceptions_total.labels(
-        path=exception_path
-    )._value.get()
+    initial_count = http_unhandled_exceptions_total.labels(path=exception_path)._value.get()
 
     # Trigger N unhandled exceptions
     # Use raise_server_exceptions=False so exceptions are caught and handled gracefully
@@ -438,9 +430,7 @@ def test_property_24c_error_counter_increments_exactly_once_per_unhandled_except
         client_no_raise.get(exception_path, headers=headers)
 
     # Capture the counter value AFTER the requests
-    final_count = http_unhandled_exceptions_total.labels(
-        path=exception_path
-    )._value.get()
+    final_count = http_unhandled_exceptions_total.labels(path=exception_path)._value.get()
 
     delta = final_count - initial_count
 
@@ -600,13 +590,9 @@ class TestStructuredLogFieldCompletenessEdgeCases:
 
     def test_500_application_response_does_not_increment_error_counter(self) -> None:
         """A 500 status returned as a Response object must NOT increment the error counter."""
-        initial = http_unhandled_exceptions_total.labels(
-            path="/server-error"
-        )._value.get()
+        initial = http_unhandled_exceptions_total.labels(path="/server-error")._value.get()
         self.client.get("/server-error")
-        final = http_unhandled_exceptions_total.labels(
-            path="/server-error"
-        )._value.get()
+        final = http_unhandled_exceptions_total.labels(path="/server-error")._value.get()
         assert final == initial, (
             f"Error counter was incremented for a 500 Response (not an exception). "
             f"Before={initial}, after={final}."
@@ -618,9 +604,9 @@ class TestStructuredLogFieldCompletenessEdgeCases:
         client_no_raise = TestClient(_test_app, raise_server_exceptions=False)
         client_no_raise.get("/exception")
         final = http_unhandled_exceptions_total.labels(path="/exception")._value.get()
-        assert (
-            final - initial == 1
-        ), f"Counter delta={final - initial} after 1 unhandled exception; expected 1."
+        assert final - initial == 1, (
+            f"Counter delta={final - initial} after 1 unhandled exception; expected 1."
+        )
 
     def test_unhandled_exception_does_not_emit_info_request_log(self) -> None:
         """An unhandled exception must NOT emit a normal 'request' INFO log.
@@ -648,9 +634,7 @@ class TestStructuredLogFieldCompletenessEdgeCases:
             logger.setLevel(original_level)
 
         info_request_logs = [
-            r
-            for r in captured
-            if r.getMessage() == _LOG_MESSAGE and r.levelno == logging.INFO
+            r for r in captured if r.getMessage() == _LOG_MESSAGE and r.levelno == logging.INFO
         ]
         assert len(info_request_logs) == 0, (
             f"Unhandled exception path emitted an INFO 'request' log entry — "
@@ -704,9 +688,7 @@ class TestStructuredLogFieldCompletenessEdgeCases:
         logged_correlation_id = request_logs[0].__dict__["correlation_id"]
         header_correlation_id = response.headers.get("X-Correlation-ID")
 
-        assert (
-            header_correlation_id is not None
-        ), "X-Correlation-ID header missing from response."
+        assert header_correlation_id is not None, "X-Correlation-ID header missing from response."
         assert header_correlation_id == logged_correlation_id, (
             f"X-Correlation-ID header={header_correlation_id!r} does not match "
             f"logged correlation_id={logged_correlation_id!r}"

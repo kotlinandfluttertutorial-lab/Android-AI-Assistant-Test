@@ -119,9 +119,7 @@ class SpendingAlertCreateRequest(BaseModel):
         min_val = Decimal("0.01")
         max_val = Decimal("999.99")
         if v < min_val or v > max_val:
-            raise ValueError(
-                f"threshold_usd must be between {min_val} and {max_val}; got {v}"
-            )
+            raise ValueError(f"threshold_usd must be between {min_val} and {max_val}; got {v}")
         return v
 
 
@@ -135,9 +133,7 @@ class SpendingAlertResponse(BaseModel):
 
     id: uuid.UUID = Field(description="Unique identifier for this spending alert")
     user_id: uuid.UUID = Field(description="UUID of the user who owns this alert")
-    threshold_usd: float = Field(
-        description="Spending threshold in USD ($0.01 – $999.99)"
-    )
+    threshold_usd: float = Field(description="Spending threshold in USD ($0.01 – $999.99)")
     is_triggered: bool = Field(
         description="True when the alert monitor has detected the threshold was crossed"
     )
@@ -149,9 +145,7 @@ class SpendingAlertResponse(BaseModel):
         default=None,
         description="UTC timestamp when the user explicitly dismissed the banner, or null",
     )
-    created_at: datetime = Field(
-        description="UTC timestamp when this alert was created"
-    )
+    created_at: datetime = Field(description="UTC timestamp when this alert was created")
 
 
 class SpendingAlertListResponse(BaseModel):

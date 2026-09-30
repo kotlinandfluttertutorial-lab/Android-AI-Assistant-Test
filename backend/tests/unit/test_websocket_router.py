@@ -113,8 +113,7 @@ class TestWebSocketAuth:
                 msg = ws.receive_json()
                 assert msg["type"] == "error"
                 assert (
-                    "authentication" in msg["message"].lower()
-                    or "token" in msg["message"].lower()
+                    "authentication" in msg["message"].lower() or "token" in msg["message"].lower()
                 )
                 # After the error the server closes with 4001.
                 with pytest.raises(Exception):
@@ -128,9 +127,7 @@ class TestWebSocketAuth:
         """
         with (
             TestClient(_app) as client,
-            client.websocket_connect(
-                f"/ws/chat/{_conversation_id()}?token=not.a.valid.jwt"
-            ) as ws,
+            client.websocket_connect(f"/ws/chat/{_conversation_id()}?token=not.a.valid.jwt") as ws,
         ):
             msg = ws.receive_json()
             assert msg["type"] == "error"
@@ -143,9 +140,7 @@ class TestWebSocketAuth:
         expired_token = _valid_token(expires_delta=timedelta(seconds=-1))
         with (
             TestClient(_app) as client,
-            client.websocket_connect(
-                f"/ws/chat/{_conversation_id()}?token={expired_token}"
-            ) as ws,
+            client.websocket_connect(f"/ws/chat/{_conversation_id()}?token={expired_token}") as ws,
         ):
             msg = ws.receive_json()
             assert msg["type"] == "error"
@@ -476,9 +471,7 @@ class TestStructuredEvents:
         proxy = _BufferingWebSocketProxy(ws, "user-1", "conv-1")
 
         await proxy.send_json({"type": "error", "message": "something went wrong"})
-        ws.send_json.assert_called_once_with(
-            {"type": "error", "message": "something went wrong"}
-        )
+        ws.send_json.assert_called_once_with({"type": "error", "message": "something went wrong"})
 
     @pytest.mark.asyncio
     async def test_tool_call_event_schema(self):

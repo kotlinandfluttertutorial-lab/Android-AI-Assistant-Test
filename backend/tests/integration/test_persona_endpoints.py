@@ -218,9 +218,7 @@ class TestPersonaEndpointsCreate:
             mock_svc.create_persona = AsyncMock(
                 side_effect=HTTPException(
                     status_code=422,
-                    detail={
-                        "error": {"code": "PERSONA_LIMIT_REACHED", "message": "limit"}
-                    },
+                    detail={"error": {"code": "PERSONA_LIMIT_REACHED", "message": "limit"}},
                 )
             )
             with TestClient(_app) as client:

@@ -99,8 +99,10 @@ def _find_documents(knowledge_dir: Path) -> list[Path]:
         sys.exit(1)
 
     docs = sorted(
-        p for p in knowledge_dir.rglob("*")
-        if p.is_file() and p.suffix.lower() in {".md", ".txt"}
+        p
+        for p in knowledge_dir.rglob("*")
+        if p.is_file()
+        and p.suffix.lower() in {".md", ".txt"}
         and p.name != "README.md"  # skip the meta README
     )
     return docs
@@ -114,6 +116,7 @@ def _chunk_text(text: str) -> list[tuple[str, int]]:
     """
     try:
         import tiktoken
+
         enc = tiktoken.encoding_for_model("gpt-3.5-turbo")
     except ImportError:
         logger.warning("tiktoken not installed — falling back to word-based chunking")
@@ -161,6 +164,7 @@ def _chunk_text_words(text: str) -> list[tuple[str, int]]:
 def _embed_texts(texts: list[str]) -> list[list[float]]:
     """Embed a list of texts using SentenceTransformer all-MiniLM-L6-v2."""
     from sentence_transformers import SentenceTransformer
+
     model = SentenceTransformer("all-MiniLM-L6-v2")
     embeddings = model.encode(texts, show_progress_bar=False)
     return [emb.tolist() for emb in embeddings]
@@ -191,6 +195,7 @@ def seed(knowledge_dir: Path = KNOWLEDGE_DIR) -> None:
     # ── 1. Connect to ChromaDB ────────────────────────────────────────────────
     try:
         import chromadb
+
         client = chromadb.HttpClient(host=CHROMA_HOST, port=CHROMA_PORT)
         client.heartbeat()
         logger.info("✅ Connected to ChromaDB at %s:%s", CHROMA_HOST, CHROMA_PORT)
@@ -203,7 +208,8 @@ def seed(knowledge_dir: Path = KNOWLEDGE_DIR) -> None:
     collection = client.get_or_create_collection(COLLECTION_NAME)
     logger.info(
         "Collection '%s' ready (current item count: %d)",
-        COLLECTION_NAME, collection.count(),
+        COLLECTION_NAME,
+        collection.count(),
     )
 
     # ── 3. Discover documents ─────────────────────────────────────────────────
@@ -317,6 +323,7 @@ async def seed_async(knowledge_dir: Path = KNOWLEDGE_DIR) -> dict:
 
         try:
             import chromadb
+
             client = chromadb.HttpClient(host=CHROMA_HOST, port=CHROMA_PORT)
             collection = client.get_or_create_collection(COLLECTION_NAME)
         except Exception as exc:
@@ -358,8 +365,10 @@ async def seed_async(knowledge_dir: Path = KNOWLEDGE_DIR) -> dict:
                     for _, idx in chunks
                 ]
                 collection.add(
-                    ids=ids, embeddings=embeddings,
-                    documents=chunk_texts, metadatas=metadatas,
+                    ids=ids,
+                    embeddings=embeddings,
+                    documents=chunk_texts,
+                    metadatas=metadatas,
                 )
                 total_chunks += len(chunks)
                 total_files += 1

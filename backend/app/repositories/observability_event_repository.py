@@ -249,12 +249,14 @@ class ObservabilityEventRepository:
 
         # Fetch all matching events in the full window
         result = await self._db.execute(
-            select(ObservabilityEvent.received_at).where(
+            select(ObservabilityEvent.received_at)
+            .where(
                 and_(
                     ObservabilityEvent.level == level.upper(),
                     ObservabilityEvent.received_at >= cutoff,
                 )
-            ).order_by(ObservabilityEvent.received_at.asc())
+            )
+            .order_by(ObservabilityEvent.received_at.asc())
         )
         timestamps = [row[0] for row in result.all()]
 
@@ -276,6 +278,7 @@ class ObservabilityEventRepository:
             # Make ts timezone-aware if it isn't (defensive)
             if ts.tzinfo is None:
                 from datetime import UTC as _UTC
+
                 ts = ts.replace(tzinfo=_UTC)
             age_minutes = (now - ts).total_seconds() / 60
             bucket_idx = int(age_minutes // bucket_minutes)
@@ -286,9 +289,7 @@ class ObservabilityEventRepository:
 
         # Statistical computations
         mean = sum(buckets) / len(buckets) if buckets else 0.0
-        variance = (
-            sum((b - mean) ** 2 for b in buckets) / len(buckets) if buckets else 0.0
-        )
+        variance = sum((b - mean) ** 2 for b in buckets) / len(buckets) if buckets else 0.0
         std_dev = math.sqrt(variance)
 
         # "current" is the most recent bucket (last element after reverse)
@@ -341,20 +342,14 @@ class ObservabilityEventRepository:
         )
 
         if level:
-            stmt = stmt.where(
-                ObservabilityEvent.level == level.upper()
-            )
+            stmt = stmt.where(ObservabilityEvent.level == level.upper())
 
         if event_type:
-            stmt = stmt.where(
-                ObservabilityEvent.event_type == event_type.lower()
-            )
+            stmt = stmt.where(ObservabilityEvent.event_type == event_type.lower())
 
         if query:
             # Postgres ILIKE for case-insensitive substring match
-            stmt = stmt.where(
-                ObservabilityEvent.message.ilike(f"%{query}%")
-            )
+            stmt = stmt.where(ObservabilityEvent.message.ilike(f"%{query}%"))
 
         result = await self._db.execute(stmt)
         return list(result.scalars().all())

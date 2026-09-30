@@ -54,8 +54,7 @@ class TestValidateUpload:
             service.validate_upload("malware.exe", size_bytes=1024)
         assert exc_info.value.status_code == 422
         assert (
-            "exe" in exc_info.value.detail.lower()
-            or "unsupported" in exc_info.value.detail.lower()
+            "exe" in exc_info.value.detail.lower() or "unsupported" in exc_info.value.detail.lower()
         )
 
     def test_rejects_zip_format(self) -> None:
@@ -156,9 +155,9 @@ class TestChunkTextCoverage:
 
         source_token_set = set(source_tokens)
         # Every unique token in the source must appear in at least one chunk
-        assert source_token_set.issubset(
-            covered_tokens
-        ), "Some source tokens are not covered by any chunk — Property 7 violated."
+        assert source_token_set.issubset(covered_tokens), (
+            "Some source tokens are not covered by any chunk — Property 7 violated."
+        )
 
     def test_single_chunk_for_short_text(self) -> None:
         """A text shorter than chunk_size should produce exactly one chunk."""
@@ -166,9 +165,7 @@ class TestChunkTextCoverage:
         short_text = "Hello world."
         chunks = service.chunk_text(short_text, chunk_size=512, overlap=64)
         assert len(chunks) == 1
-        assert (
-            chunks[0].text.strip() == short_text.strip() or short_text in chunks[0].text
-        )
+        assert chunks[0].text.strip() == short_text.strip() or short_text in chunks[0].text
 
     def test_chunk_text_overlap(self) -> None:
         """Consecutive chunks should share overlapping tokens (Property 7).
@@ -193,9 +190,9 @@ class TestChunkTextCoverage:
 
         shared = first_tokens & second_tokens
         # There must be at least 1 shared token to confirm overlapping chunks
-        assert (
-            len(shared) >= 1
-        ), "Consecutive chunks have no overlapping tokens — sliding window may be broken."
+        assert len(shared) >= 1, (
+            "Consecutive chunks have no overlapping tokens — sliding window may be broken."
+        )
 
     def test_chunk_coverage_for_long_document(self) -> None:
         """Full coverage must hold even for very long input texts.
@@ -217,9 +214,9 @@ class TestChunkTextCoverage:
         for chunk in chunks:
             covered.update(enc.encode(chunk.text))
 
-        assert set(source_token_ids).issubset(
-            covered
-        ), "Some source tokens missing from chunks — coverage broken for long text."
+        assert set(source_token_ids).issubset(covered), (
+            "Some source tokens missing from chunks — coverage broken for long text."
+        )
 
     def test_no_gap_between_chunks(self) -> None:
         """The stride must never leave a gap — start positions must be contiguous."""
@@ -252,9 +249,7 @@ class TestExtractTextPlainAndMarkdown:
         content = "Hello, world! This is a plain text file.\nLine two."
         file_bytes = content.encode("utf-8")
 
-        extracted, page_count = await service.extract_text(
-            file_bytes, "text/plain", "test.txt"
-        )
+        extracted, page_count = await service.extract_text(file_bytes, "text/plain", "test.txt")
 
         assert extracted == content
         assert page_count == 1
@@ -280,9 +275,7 @@ class TestExtractTextPlainAndMarkdown:
         content = "# Title\n\nSome **bold** text and `code`."
         file_bytes = content.encode("utf-8")
 
-        extracted, page_count = await service.extract_text(
-            file_bytes, "text/markdown", "readme.md"
-        )
+        extracted, page_count = await service.extract_text(file_bytes, "text/markdown", "readme.md")
 
         assert extracted == content
         assert page_count == 1
@@ -294,9 +287,7 @@ class TestExtractTextPlainAndMarkdown:
         content = "## Section\nContent here."
         file_bytes = content.encode("utf-8")
 
-        extracted, _ = await service.extract_text(
-            file_bytes, "application/octet-stream", "doc.md"
-        )
+        extracted, _ = await service.extract_text(file_bytes, "application/octet-stream", "doc.md")
 
         assert content in extracted
 
@@ -307,9 +298,7 @@ class TestExtractTextPlainAndMarkdown:
         content = "Héllo wörld! Ñoño. 日本語テスト."
         file_bytes = content.encode("utf-8")
 
-        extracted, _ = await service.extract_text(
-            file_bytes, "text/plain", "unicode.txt"
-        )
+        extracted, _ = await service.extract_text(file_bytes, "text/plain", "unicode.txt")
 
         assert extracted == content
 
@@ -331,9 +320,7 @@ class TestExtractTextFailure:
         service = _make_service()
         # Pure binary garbage that is not valid UTF-8 or Latin-1 in isolation
         # We force a failure by patching the underlying decode path
-        bad_bytes = bytes(
-            range(256)
-        )  # covers all byte values — will fail as strict UTF-8
+        bad_bytes = bytes(range(256))  # covers all byte values — will fail as strict UTF-8
 
         with (
             patch.object(

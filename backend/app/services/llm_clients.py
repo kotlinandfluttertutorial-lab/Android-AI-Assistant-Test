@@ -93,8 +93,7 @@ class RateLimitError(Exception):
         self.provider = provider
         self.retry_after = retry_after
         super().__init__(
-            f"Rate limit exceeded for provider '{provider}'. "
-            f"Retry after {retry_after} second(s)."
+            f"Rate limit exceeded for provider '{provider}'. Retry after {retry_after} second(s)."
         )
 
 
@@ -195,8 +194,7 @@ class _ProviderRateLimiter:
             raise
         except Exception as exc:  # Redis unavailable; fail-open
             logger.warning(
-                "LLM provider rate-limit Redis check failed (fail-open) "
-                "for provider '%s': %s",
+                "LLM provider rate-limit Redis check failed (fail-open) for provider '%s': %s",
                 self._provider,
                 exc,
             )
@@ -204,6 +202,7 @@ class _ProviderRateLimiter:
     @staticmethod
     async def _get_redis() -> Any:
         from app.database.redis import get_redis_client
+
         return get_redis_client()
 
 
@@ -394,9 +393,7 @@ class OpenAIClient(BaseLLMClient):
             raise ValueError("OPENAI_API_KEY not configured")
         self.client = AsyncOpenAI(api_key=settings.OPENAI_API_KEY)
         self.model = "gpt-4o"
-        self._rate_limiter = _ProviderRateLimiter(
-            "openai", settings.LLM_RATE_LIMIT_OPENAI
-        )
+        self._rate_limiter = _ProviderRateLimiter("openai", settings.LLM_RATE_LIMIT_OPENAI)
 
     def get_provider_name(self) -> str:
         return "openai"
@@ -519,9 +516,7 @@ class GeminiClient(BaseLLMClient):
         # API key is stored inside the client — never held in a plain attribute.
         self._genai_client = genai.Client(api_key=api_key)
         self._model_name = settings.GEMINI_MODEL
-        self._rate_limiter = _ProviderRateLimiter(
-            "gemini", settings.LLM_RATE_LIMIT_GEMINI
-        )
+        self._rate_limiter = _ProviderRateLimiter("gemini", settings.LLM_RATE_LIMIT_GEMINI)
 
     def get_provider_name(self) -> str:
         return "gemini"
@@ -576,8 +571,7 @@ class GeminiClient(BaseLLMClient):
         except genai_errors.APIError as exc:
             status_code: int = getattr(exc, "code", 0) or 0
             raise RuntimeError(
-                f"Gemini stream error (HTTP {status_code}) "
-                f"[model={self._model_name}]: {exc}"
+                f"Gemini stream error (HTTP {status_code}) [model={self._model_name}]: {exc}"
             ) from exc
 
     async def complete(self, context: PromptContext) -> str:
@@ -607,14 +601,15 @@ class GeminiClient(BaseLLMClient):
                 # 503 UNAVAILABLE — transient overload; back off and retry
                 status_code = getattr(exc, "code", 503) or 503
                 last_exc = RuntimeError(
-                    f"Gemini complete error (HTTP {status_code}) "
-                    f"[model={self._model_name}]: {exc}"
+                    f"Gemini complete error (HTTP {status_code}) [model={self._model_name}]: {exc}"
                 )
                 if _attempt < 3:
-                    backoff = 2 ** _attempt  # 1s, 2s, 4s
+                    backoff = 2**_attempt  # 1s, 2s, 4s
                     logger.warning(
                         "Gemini 503 on attempt %d/%d; retrying in %ds",
-                        _attempt + 1, 4, backoff,
+                        _attempt + 1,
+                        4,
+                        backoff,
                     )
                     await asyncio.sleep(backoff)
                 else:
@@ -622,8 +617,7 @@ class GeminiClient(BaseLLMClient):
             except genai_errors.APIError as exc:
                 status_code = getattr(exc, "code", 0) or 0
                 raise RuntimeError(
-                    f"Gemini complete error (HTTP {status_code}) "
-                    f"[model={self._model_name}]: {exc}"
+                    f"Gemini complete error (HTTP {status_code}) [model={self._model_name}]: {exc}"
                 ) from exc
         else:
             # Loop exhausted without break — raise last captured error
@@ -634,9 +628,7 @@ class GeminiClient(BaseLLMClient):
         if text is None:
             # Blocked or empty response — surface a descriptive error.
             candidates = getattr(response, "candidates", None) or []
-            finish_reason = (
-                candidates[0].finish_reason if candidates else "UNKNOWN"
-            )
+            finish_reason = candidates[0].finish_reason if candidates else "UNKNOWN"
             raise RuntimeError(
                 f"Gemini [{self._model_name}] returned no text. "
                 f"finishReason={finish_reason}, "
@@ -692,9 +684,7 @@ class ClaudeClient(BaseLLMClient):
             raise ValueError("ANTHROPIC_API_KEY not configured")
         self.client = AsyncAnthropic(api_key=settings.ANTHROPIC_API_KEY)
         self.model = "claude-3-5-sonnet-20241022"
-        self._rate_limiter = _ProviderRateLimiter(
-            "claude", settings.LLM_RATE_LIMIT_CLAUDE
-        )
+        self._rate_limiter = _ProviderRateLimiter("claude", settings.LLM_RATE_LIMIT_CLAUDE)
 
     def get_provider_name(self) -> str:
         return "claude"
@@ -803,9 +793,7 @@ class OllamaClient(BaseLLMClient):
             base_url=self.base_url,
             timeout=120.0,
         )
-        self._rate_limiter = _ProviderRateLimiter(
-            "ollama", settings.LLM_RATE_LIMIT_OLLAMA
-        )
+        self._rate_limiter = _ProviderRateLimiter("ollama", settings.LLM_RATE_LIMIT_OLLAMA)
 
     def get_provider_name(self) -> str:
         return "ollama"
@@ -837,9 +825,7 @@ class OllamaClient(BaseLLMClient):
             },
         }
 
-        async with self.client.stream(
-            "POST", "/api/generate", json=payload
-        ) as response:
+        async with self.client.stream("POST", "/api/generate", json=payload) as response:
             response.raise_for_status()
             async for line in response.aiter_lines():
                 if line.strip():
@@ -914,9 +900,7 @@ class LlamaClient(OllamaClient):
         super().__init__(model="llama3.2:latest")
         settings = get_settings()
         # Override the rate limiter with the Llama-specific limit.
-        self._rate_limiter = _ProviderRateLimiter(
-            "llama", settings.LLM_RATE_LIMIT_LLAMA
-        )
+        self._rate_limiter = _ProviderRateLimiter("llama", settings.LLM_RATE_LIMIT_LLAMA)
 
     def get_provider_name(self) -> str:
         return "llama"
@@ -948,9 +932,7 @@ class MistralClient(OllamaClient):
         super().__init__(model="mistral:latest")
         settings = get_settings()
         # Override the rate limiter with the Mistral-specific limit.
-        self._rate_limiter = _ProviderRateLimiter(
-            "mistral", settings.LLM_RATE_LIMIT_MISTRAL
-        )
+        self._rate_limiter = _ProviderRateLimiter("mistral", settings.LLM_RATE_LIMIT_MISTRAL)
 
     def get_provider_name(self) -> str:
         return "mistral"

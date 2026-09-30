@@ -290,18 +290,14 @@ async def test_5_token_usage_invariants_all_providers(
     input_tokens = tokens["input_tokens"]
     output_tokens = tokens["output_tokens"]
 
-    orch, captured = _make_orchestrator_with_capture(
-        provider, input_tokens, output_tokens
-    )
+    orch, captured = _make_orchestrator_with_capture(provider, input_tokens, output_tokens)
 
     # Build a mock WebSocket that accepts every send_json call silently
     mock_ws = AsyncMock()
     mock_ws.send_json = AsyncMock()
 
     with (
-        patch(
-            "app.services.ai_orchestrator.build_base_system_prompt", return_value="sys"
-        ),
+        patch("app.services.ai_orchestrator.build_base_system_prompt", return_value="sys"),
         patch(
             "app.services.ai_orchestrator.build_summarization_prompt",
             return_value="sum",
@@ -381,17 +377,13 @@ async def test_5d_cost_usd_never_negative(
     input_tokens = tokens["input_tokens"]
     output_tokens = tokens["output_tokens"]
 
-    orch, captured = _make_orchestrator_with_capture(
-        provider, input_tokens, output_tokens
-    )
+    orch, captured = _make_orchestrator_with_capture(provider, input_tokens, output_tokens)
 
     mock_ws = AsyncMock()
     mock_ws.send_json = AsyncMock()
 
     with (
-        patch(
-            "app.services.ai_orchestrator.build_base_system_prompt", return_value="sys"
-        ),
+        patch("app.services.ai_orchestrator.build_base_system_prompt", return_value="sys"),
         patch(
             "app.services.ai_orchestrator.build_summarization_prompt",
             return_value="sum",
@@ -413,8 +405,7 @@ async def test_5d_cost_usd_never_negative(
     assert len(captured) == 1
     cost = captured[0]["cost_usd"]
     assert cost >= 0, (
-        f"[Property 5d] cost_usd must be ≥ 0 for provider '{provider.value}', "
-        f"got cost_usd={cost}"
+        f"[Property 5d] cost_usd must be ≥ 0 for provider '{provider.value}', got cost_usd={cost}"
     )
 
 
@@ -447,17 +438,13 @@ async def test_5e_provider_field_matches_requested_provider(
     input_tokens = tokens["input_tokens"]
     output_tokens = tokens["output_tokens"]
 
-    orch, captured = _make_orchestrator_with_capture(
-        provider, input_tokens, output_tokens
-    )
+    orch, captured = _make_orchestrator_with_capture(provider, input_tokens, output_tokens)
 
     mock_ws = AsyncMock()
     mock_ws.send_json = AsyncMock()
 
     with (
-        patch(
-            "app.services.ai_orchestrator.build_base_system_prompt", return_value="sys"
-        ),
+        patch("app.services.ai_orchestrator.build_base_system_prompt", return_value="sys"),
         patch(
             "app.services.ai_orchestrator.build_summarization_prompt",
             return_value="sum",
@@ -512,17 +499,13 @@ async def test_5f_token_usage_create_called_exactly_once(
     input_tokens = tokens["input_tokens"]
     output_tokens = tokens["output_tokens"]
 
-    orch, captured = _make_orchestrator_with_capture(
-        provider, input_tokens, output_tokens
-    )
+    orch, captured = _make_orchestrator_with_capture(provider, input_tokens, output_tokens)
 
     mock_ws = AsyncMock()
     mock_ws.send_json = AsyncMock()
 
     with (
-        patch(
-            "app.services.ai_orchestrator.build_base_system_prompt", return_value="sys"
-        ),
+        patch("app.services.ai_orchestrator.build_base_system_prompt", return_value="sys"),
         patch(
             "app.services.ai_orchestrator.build_summarization_prompt",
             return_value="sum",
@@ -565,12 +548,8 @@ async def test_5_minimum_token_counts_openai() -> None:
 
     mock_ws = AsyncMock()
     with (
-        patch(
-            "app.services.ai_orchestrator.build_base_system_prompt", return_value="s"
-        ),
-        patch(
-            "app.services.ai_orchestrator.build_summarization_prompt", return_value="s"
-        ),
+        patch("app.services.ai_orchestrator.build_base_system_prompt", return_value="s"),
+        patch("app.services.ai_orchestrator.build_summarization_prompt", return_value="s"),
         patch(
             "app.services.ai_orchestrator._detect_prompt_injection_static",
             return_value=False,
@@ -589,10 +568,7 @@ async def test_5_minimum_token_counts_openai() -> None:
     rec = captured[0]
     assert rec["input_tokens"] > 0
     assert rec["output_tokens"] > 0
-    assert (
-        rec["input_tokens"] + rec["output_tokens"]
-        <= PROVIDER_MAX_CONTEXT_TOKENS[provider]
-    )
+    assert rec["input_tokens"] + rec["output_tokens"] <= PROVIDER_MAX_CONTEXT_TOKENS[provider]
 
 
 @pytest.mark.asyncio
@@ -608,18 +584,12 @@ async def test_5_boundary_token_sum_at_context_window_ollama() -> None:
     input_tokens = max_ctx - 1
     output_tokens = 1
 
-    orch, captured = _make_orchestrator_with_capture(
-        provider, input_tokens, output_tokens
-    )
+    orch, captured = _make_orchestrator_with_capture(provider, input_tokens, output_tokens)
 
     mock_ws = AsyncMock()
     with (
-        patch(
-            "app.services.ai_orchestrator.build_base_system_prompt", return_value="s"
-        ),
-        patch(
-            "app.services.ai_orchestrator.build_summarization_prompt", return_value="s"
-        ),
+        patch("app.services.ai_orchestrator.build_base_system_prompt", return_value="s"),
+        patch("app.services.ai_orchestrator.build_summarization_prompt", return_value="s"),
         patch(
             "app.services.ai_orchestrator._detect_prompt_injection_static",
             return_value=False,
@@ -637,9 +607,7 @@ async def test_5_boundary_token_sum_at_context_window_ollama() -> None:
     assert len(captured) == 1
     rec = captured[0]
     total = rec["input_tokens"] + rec["output_tokens"]
-    assert (
-        total <= max_ctx
-    ), f"Boundary: total {total} must be ≤ max_context_tokens {max_ctx}"
+    assert total <= max_ctx, f"Boundary: total {total} must be ≤ max_context_tokens {max_ctx}"
 
 
 @pytest.mark.asyncio
@@ -654,9 +622,7 @@ async def test_5_all_six_providers_deterministic() -> None:
     output_tokens = 50
 
     for provider in ALL_PROVIDERS:
-        orch, captured = _make_orchestrator_with_capture(
-            provider, input_tokens, output_tokens
-        )
+        orch, captured = _make_orchestrator_with_capture(provider, input_tokens, output_tokens)
 
         mock_ws = AsyncMock()
         with (
@@ -686,18 +652,14 @@ async def test_5_all_six_providers_deterministic() -> None:
         rec = captured[0]
         max_ctx = PROVIDER_MAX_CONTEXT_TOKENS[provider]
 
-        assert (
-            rec["input_tokens"] > 0
-        ), f"[5a] input_tokens must be > 0 for {provider.value}"
-        assert (
-            rec["output_tokens"] > 0
-        ), f"[5b] output_tokens must be > 0 for {provider.value}"
+        assert rec["input_tokens"] > 0, f"[5a] input_tokens must be > 0 for {provider.value}"
+        assert rec["output_tokens"] > 0, f"[5b] output_tokens must be > 0 for {provider.value}"
         assert rec["input_tokens"] + rec["output_tokens"] <= max_ctx, (
             f"[5c] total tokens must be ≤ {max_ctx} for {provider.value}, "
             f"got {rec['input_tokens']} + {rec['output_tokens']} = "
             f"{rec['input_tokens'] + rec['output_tokens']}"
         )
         assert rec["cost_usd"] >= 0, f"[5d] cost_usd must be ≥ 0 for {provider.value}"
-        assert (
-            rec["provider"] == provider.value
-        ), f"[5e] provider field must match for {provider.value}"
+        assert rec["provider"] == provider.value, (
+            f"[5e] provider field must match for {provider.value}"
+        )

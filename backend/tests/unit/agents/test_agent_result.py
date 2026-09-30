@@ -135,7 +135,7 @@ def test_has_tool_errors_false_all_succeeded() -> None:
 def test_has_tool_errors_true_any_failed() -> None:
     r = make_result(
         status=AgentStatus.PARTIAL,
-        tool_calls=[AgentToolCall(tool_name="slack", input="{}", failed=True, error_message="err")]
+        tool_calls=[AgentToolCall(tool_name="slack", input="{}", failed=True, error_message="err")],
     )
     assert r.has_tool_errors is True
 
@@ -166,9 +166,7 @@ def test_agent_usage_negative_tokens_raise() -> None:
 
 
 def test_result_json_roundtrip() -> None:
-    r = make_result(
-        citations=[AgentCitation(document_id="d1", document_name="Doc", excerpt="e")]
-    )
+    r = make_result(citations=[AgentCitation(document_id="d1", document_name="Doc", excerpt="e")])
     data = r.model_dump(mode="json")
     reconstructed = AgentResult(**data)
     assert reconstructed == r

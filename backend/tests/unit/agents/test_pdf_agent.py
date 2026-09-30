@@ -1,5 +1,6 @@
 # tests/unit/agents/test_pdf_agent.py
 """Unit tests for PdfAgent (Phase 5)."""
+
 from __future__ import annotations
 
 from collections.abc import AsyncIterator

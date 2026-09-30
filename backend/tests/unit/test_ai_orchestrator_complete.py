@@ -209,9 +209,7 @@ class TestStreamChatParametrizedAllProviders:
         ],
         ids=["openai", "gemini", "claude", "ollama", "llama", "mistral"],
     )
-    async def test_stream_chat_parametrized_all_providers(
-        self, provider: LLMProvider
-    ) -> None:
+    async def test_stream_chat_parametrized_all_providers(self, provider: LLMProvider) -> None:
         """Stream completes with tokens and done event for every provider.
 
         Requirements: 2.2, 3.1
@@ -294,9 +292,7 @@ class TestSummarizeHistoryProducesSummaryPrefix:
         """
         orch = _make_orchestrator()
         orch.complete = AsyncMock(
-            return_value=CompletionResult(
-                text="Brief summary.", input_tokens=5, output_tokens=2
-            )
+            return_value=CompletionResult(text="Brief summary.", input_tokens=5, output_tokens=2)
         )
 
         from app.models.message import MessageRole
@@ -334,9 +330,7 @@ class TestBuildPromptIncludesMemoryInjection:
         memory_content = ["User prefers Python", "User works in AI"]
 
         mock_memories = [MagicMock(content=c) for c in memory_content]
-        orch._memory_service.get_relevant_memories = AsyncMock(
-            return_value=mock_memories
-        )
+        orch._memory_service.get_relevant_memories = AsyncMock(return_value=mock_memories)
 
         with patch(
             "app.services.ai_orchestrator.build_base_system_prompt",
@@ -464,9 +458,7 @@ class TestTokenUsageCostZeroForSelfHosted:
         [LLMProvider.ollama, LLMProvider.llama, LLMProvider.mistral],
         ids=["ollama", "llama", "mistral"],
     )
-    async def test_token_usage_cost_zero_for_self_hosted(
-        self, provider: LLMProvider
-    ) -> None:
+    async def test_token_usage_cost_zero_for_self_hosted(self, provider: LLMProvider) -> None:
         """For ollama/llama/mistral, cost_usd in TokenUsageRepository.create == 0.
 
         Requirements: 3.6
@@ -619,9 +611,7 @@ class TestTokenUsageProviderMatchesActiveProvider:
                 )
 
             # Should record fallback provider (NOT primary)
-            assert (
-                captured_provider == LLMProvider.openai.value
-            )  # original provider persisted
+            assert captured_provider == LLMProvider.openai.value  # original provider persisted
 
             get_settings.cache_clear()
 

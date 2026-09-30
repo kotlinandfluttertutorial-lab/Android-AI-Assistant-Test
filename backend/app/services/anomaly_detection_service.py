@@ -54,15 +54,15 @@ logger = logging.getLogger(__name__)
 # These are intentionally consistent with the infra-level Prometheus rules
 # so both systems fire at the same conditions.
 
-ERROR_RATE_THRESHOLD   = 0.05   # 5% of events in window are ERROR/CRITICAL
-ERROR_COUNT_THRESHOLD  = 50     # absolute count — fires even at low traffic
-DETECTION_WINDOW_MIN   = 5      # minutes for Stage 1 checks
-DEDUP_WINDOW_MIN       = 5      # minutes before creating a duplicate incident
+ERROR_RATE_THRESHOLD = 0.05  # 5% of events in window are ERROR/CRITICAL
+ERROR_COUNT_THRESHOLD = 50  # absolute count — fires even at low traffic
+DETECTION_WINDOW_MIN = 5  # minutes for Stage 1 checks
+DEDUP_WINDOW_MIN = 5  # minutes before creating a duplicate incident
 
 # Stage 2 constants
-STAT_WINDOW_MIN        = 60     # historical window for computing baseline
-STAT_BUCKET_MIN        = 5      # bucket size for rolling stats
-STAT_STD_MULTIPLIER    = 2.0    # alert at mean + N * std_dev
+STAT_WINDOW_MIN = 60  # historical window for computing baseline
+STAT_BUCKET_MIN = 5  # bucket size for rolling stats
+STAT_STD_MULTIPLIER = 2.0  # alert at mean + N * std_dev
 
 
 @dataclass
@@ -128,9 +128,7 @@ class AnomalyDetectionService:
                 triggered_by=result.rule_name,
                 within_minutes=DEDUP_WINDOW_MIN,
             ):
-                logger.debug(
-                    "anomaly_detection: skipping duplicate for rule=%s", result.rule_name
-                )
+                logger.debug("anomaly_detection: skipping duplicate for rule=%s", result.rule_name)
                 summary.skipped_dedup.append(result.rule_name)
                 continue
 
@@ -165,12 +163,8 @@ class AnomalyDetectionService:
         # ── Rule 1: Error rate ────────────────────────────────────────────────
         # Mirrors: HighHTTP5xxErrorRate in alerting.rules.yml (5% threshold)
         try:
-            error_count = await self._obs_repo.count_errors_in_window(
-                minutes=DETECTION_WINDOW_MIN
-            )
-            total_count = await self._obs_repo.count_all_in_window(
-                minutes=DETECTION_WINDOW_MIN
-            )
+            error_count = await self._obs_repo.count_errors_in_window(minutes=DETECTION_WINDOW_MIN)
+            total_count = await self._obs_repo.count_all_in_window(minutes=DETECTION_WINDOW_MIN)
             if total_count > 0:
                 error_rate = error_count / total_count
                 triggered = error_rate > ERROR_RATE_THRESHOLD
@@ -195,9 +189,7 @@ class AnomalyDetectionService:
         # ── Rule 2: Absolute error count ──────────────────────────────────────
         # Fires even at low traffic where the rate might look normal but count is high
         try:
-            error_count = await self._obs_repo.count_errors_in_window(
-                minutes=DETECTION_WINDOW_MIN
-            )
+            error_count = await self._obs_repo.count_errors_in_window(minutes=DETECTION_WINDOW_MIN)
             triggered = error_count > ERROR_COUNT_THRESHOLD
             results.append(
                 DetectionResult(
@@ -212,8 +204,7 @@ class AnomalyDetectionService:
                     ),
                     event_count=error_count,
                     detail=(
-                        f"{error_count} ERROR/CRITICAL events"
-                        f" (threshold: {ERROR_COUNT_THRESHOLD})"
+                        f"{error_count} ERROR/CRITICAL events (threshold: {ERROR_COUNT_THRESHOLD})"
                     ),
                 )
             )
@@ -265,17 +256,13 @@ class AnomalyDetectionService:
 
     # ── Incident creation + Phase 10 analysis ────────────────────────────────
 
-    async def _create_incident_with_analysis(
-        self, result: DetectionResult
-    ) -> UUID:
+    async def _create_incident_with_analysis(self, result: DetectionResult) -> UUID:
         """Create the Incident row, trigger Phase 10 analysis, attach results."""
 
         incident = await self._inc_repo.create(
             title=result.title,
             severity=result.severity,
-            detection_method=(
-                "statistical" if "statistical" in result.rule_name else "rule_based"
-            ),
+            detection_method=("statistical" if "statistical" in result.rule_name else "rule_based"),
             triggered_by=result.rule_name,
             event_count=result.event_count,
             window_minutes=DETECTION_WINDOW_MIN,
@@ -374,9 +361,9 @@ class AnomalyDetectionService:
 
             severity_emoji = {
                 "CRITICAL": "🔴",
-                "HIGH":     "🟠",
-                "MEDIUM":   "🟡",
-                "LOW":      "🔵",
+                "HIGH": "🟠",
+                "MEDIUM": "🟡",
+                "LOW": "🔵",
             }.get(severity.upper(), "⚪")
 
             for user_id, _fcm_token in admin_users:
@@ -385,10 +372,10 @@ class AnomalyDetectionService:
                     title=f"{severity_emoji} {severity} Incident Detected",
                     body=title,
                     data={
-                        "type":        "incident_created",
+                        "type": "incident_created",
                         "incident_id": str(incident_id),
-                        "severity":    severity,
-                        "screen":      f"devops/incident/{incident_id}",
+                        "severity": severity,
+                        "screen": f"devops/incident/{incident_id}",
                     },
                 )
 

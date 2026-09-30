@@ -89,9 +89,7 @@ class ExtractionError(Exception):
         self.stage = stage
         self.file_name = file_name
         self.detail = detail
-        super().__init__(
-            f"Extraction failed at stage '{stage}' for file '{file_name}': {detail}"
-        )
+        super().__init__(f"Extraction failed at stage '{stage}' for file '{file_name}': {detail}")
 
 
 # ---------------------------------------------------------------------------
@@ -204,8 +202,10 @@ class RAGService:
         import tempfile as _tempfile
 
         import chromadb as _chromadb
+
         persist_dir = getattr(
-            self._settings, "CHROMA_PERSIST_DIR",
+            self._settings,
+            "CHROMA_PERSIST_DIR",
             _os.path.join(_tempfile.gettempdir(), "chroma"),
         )
         _os.makedirs(persist_dir, exist_ok=True)
@@ -233,7 +233,11 @@ class RAGService:
                 # Log full exception details for diagnosis
                 logger.warning(
                     "ChromaDB %s attempt %d/%d failed. exc_type=%s repr=%r",
-                    op_name, attempt, max_attempts, type(exc).__name__, exc_str[:500],
+                    op_name,
+                    attempt,
+                    max_attempts,
+                    type(exc).__name__,
+                    exc_str[:500],
                 )
                 if attempt < max_attempts:
                     time.sleep(delay)
@@ -290,9 +294,7 @@ class RAGService:
                 ),
             )
 
-    def validate_mime_and_upload(
-        self, filename: str, size_bytes: int, content_type: str
-    ) -> None:
+    def validate_mime_and_upload(self, filename: str, size_bytes: int, content_type: str) -> None:
         """Validate both MIME type (from Content-Type header) and size before storage.
 
         Args:
@@ -515,9 +517,7 @@ class RAGService:
 
         return await asyncio.to_thread(_do_extract)
 
-    async def _extract_text_file(
-        self, file_bytes: bytes, filename: str
-    ) -> tuple[str, int]:
+    async def _extract_text_file(self, file_bytes: bytes, filename: str) -> tuple[str, int]:
         """Decode a plain-text or Markdown file to string."""
         try:
             text = file_bytes.decode("utf-8")
@@ -625,14 +625,8 @@ class RAGService:
             chunk_text_str = enc.decode(chunk_tokens)
 
             if is_plain_text and token_char_offsets:
-                char_start = (
-                    token_char_offsets[start] if start < len(token_char_offsets) else 0
-                )
-                char_end = (
-                    token_char_offsets[end]
-                    if end < len(token_char_offsets)
-                    else len(text)
-                )
+                char_start = token_char_offsets[start] if start < len(token_char_offsets) else 0
+                char_end = token_char_offsets[end] if end < len(token_char_offsets) else len(text)
                 chunks.append(
                     ChunkResult(
                         text=chunk_text_str,
@@ -714,7 +708,8 @@ class RAGService:
             )
         logger.info(
             "Stored %d chunks with pgvector embeddings for document %s",
-            len(chunks), document_id,
+            len(chunks),
+            document_id,
         )
 
     async def delete_embeddings(self, document_id: str, user_id: str) -> None:
@@ -772,6 +767,7 @@ class RAGService:
                       and page number.
         Requirements: 4.6, 4.7
         """
+
         # ----------------------------------------------------------------
         # Step 1 — generate query embedding
         # ----------------------------------------------------------------
@@ -800,9 +796,7 @@ class RAGService:
         from app.repositories.document_repository import DocumentRepository
 
         repo = DocumentRepository(db)
-        doc_uuid_list = (
-            [uuid.UUID(d) for d in document_ids] if document_ids else None
-        )
+        doc_uuid_list = [uuid.UUID(d) for d in document_ids] if document_ids else None
 
         try:
             chunks_rows = await repo.search_chunks_by_embedding(
@@ -825,12 +819,8 @@ class RAGService:
         from sqlalchemy import select as sa_select
 
         doc_ids = list({row.document_id for row in chunks_rows})
-        doc_result = await db.execute(
-            sa_select(Document).where(Document.id.in_(doc_ids))
-        )
-        doc_map: dict[uuid.UUID, Document] = {
-            d.id: d for d in doc_result.scalars().all()
-        }
+        doc_result = await db.execute(sa_select(Document).where(Document.id.in_(doc_ids)))
+        doc_map: dict[uuid.UUID, Document] = {d.id: d for d in doc_result.scalars().all()}
 
         retrieved_chunks: list[RetrievedChunk] = []
         for chunk in chunks_rows:
@@ -851,9 +841,7 @@ class RAGService:
         # ----------------------------------------------------------------
         context = _build_context_string(query, retrieved_chunks)
 
-        return QueryResult(
-            query=query, retrieved_chunks=retrieved_chunks, context=context
-        )
+        return QueryResult(query=query, retrieved_chunks=retrieved_chunks, context=context)
 
     # ------------------------------------------------------------------
     # Context assembly and citation formatting helpers (Property 9)
@@ -929,9 +917,7 @@ class RAGService:
                 "citation_type": getattr(chunk, "citation_type", "page"),
             }
             if getattr(chunk, "citation_type", "page") == "char_offset":
-                citation["char_offset_start"] = getattr(
-                    chunk, "char_offset_start", None
-                )
+                citation["char_offset_start"] = getattr(chunk, "char_offset_start", None)
                 citation["char_offset_end"] = getattr(chunk, "char_offset_end", None)
             citations.append(citation)
         return citations
@@ -966,9 +952,7 @@ class RAGService:
     # Push notification
     # ------------------------------------------------------------------
 
-    async def send_ingestion_failure_notification(
-        self, user_id: str, document_id: str
-    ) -> None:
+    async def send_ingestion_failure_notification(self, user_id: str, document_id: str) -> None:
         """Send an FCM push notification to the user when ingestion permanently fails.
 
         Best-effort: silently ignores missing Firebase credentials and send errors.
@@ -979,9 +963,7 @@ class RAGService:
         """
         credentials_path = self._settings.FIREBASE_CREDENTIALS_PATH
         if not credentials_path:
-            logger.debug(
-                "FIREBASE_CREDENTIALS_PATH not set; skipping failure push notification."
-            )
+            logger.debug("FIREBASE_CREDENTIALS_PATH not set; skipping failure push notification.")
             return
 
         def _send() -> None:
@@ -1025,9 +1007,7 @@ class RAGService:
         """
         credentials_path = self._settings.FIREBASE_CREDENTIALS_PATH
         if not credentials_path:
-            logger.debug(
-                "FIREBASE_CREDENTIALS_PATH not set; skipping push notification."
-            )
+            logger.debug("FIREBASE_CREDENTIALS_PATH not set; skipping push notification.")
             return
 
         def _send() -> None:
@@ -1062,7 +1042,6 @@ class RAGService:
                 logger.warning("FCM push notification failed: %s", exc)
 
         await asyncio.to_thread(_send)
-
 
     # ------------------------------------------------------------------
     # DevOps knowledge base retrieval (Phase 10)
@@ -1099,6 +1078,7 @@ class RAGService:
                 ``category``      — folder name e.g. "incidents"
                 ``chunk_index``   — position within the source document
         """
+
         def _encode_query() -> list[float]:
             model = self._get_embedding_model()
             return model.encode([query], show_progress_bar=False)[0].tolist()
@@ -1131,6 +1111,7 @@ class RAGService:
         except asyncio.TimeoutError:
             logger.warning("query_knowledge_base: timed out")
             return []
+
 
 # ---------------------------------------------------------------------------
 # Module-level singleton

@@ -172,9 +172,7 @@ valid_size_strategy = st.integers(min_value=1, max_value=MAX_SIZE_BYTES)
 
 # Strategy: file size over the 50 MB limit, up to 100 MB
 # Used for service-layer tests that call validate_mime_and_upload() directly.
-oversized_strategy = st.integers(
-    min_value=MAX_SIZE_BYTES + 1, max_value=100 * 1024 * 1024
-)
+oversized_strategy = st.integers(min_value=MAX_SIZE_BYTES + 1, max_value=100 * 1024 * 1024)
 
 # Strategy: oversized but still small enough for HTTP tests (51 MB..55 MB expressed as
 # an integer size that the router reads from the body). We pass a small payload but
@@ -344,10 +342,7 @@ def test_property_26b_invalid_format_rejected_nothing_stored(
         # MinIO store must NOT have been called on rejection
         (
             mock_store.assert_not_called(),
-            (
-                f"Property 26B violated: store_file_minio was called for "
-                f"rejected file '{filename}'."
-            ),
+            (f"Property 26B violated: store_file_minio was called for rejected file '{filename}'."),
         )
 
         # DocumentRepository.create must NOT have been called on rejection
@@ -417,9 +412,7 @@ def test_property_26c_oversized_valid_format_rejected_nothing_stored(
         MockDocRepo.return_value = mock_repo_instance
 
         # Patch UploadFile.read to return our fake oversized bytes
-        with patch(
-            "starlette.datastructures.UploadFile.read", new_callable=AsyncMock
-        ) as mock_read:
+        with patch("starlette.datastructures.UploadFile.read", new_callable=AsyncMock) as mock_read:
             mock_read.return_value = fake_bytes
 
             client = _get_client()
@@ -569,9 +562,7 @@ def test_property_26f_service_rejects_oversized_file(
 
     # Verify the error message mentions size or limit
     detail = exc_info.value.detail.lower()
-    assert (
-        "size" in detail or "mb" in detail or "bytes" in detail or "limit" in detail
-    ), (
+    assert "size" in detail or "mb" in detail or "bytes" in detail or "limit" in detail, (
         f"Property 26F: HTTP 422 response for oversized file should mention size. "
         f"Detail: {exc_info.value.detail!r}"
     )

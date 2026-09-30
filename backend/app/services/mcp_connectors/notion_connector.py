@@ -107,9 +107,7 @@ class NotionReadConnector(MCPToolConnector):
         async with httpx.AsyncClient(headers=_auth_headers(), timeout=15.0) as client:
             if action == "search_pages":
                 query = params.get("query", "")
-                resp = await client.post(
-                    f"{_NOTION_BASE}/search", json={"query": query}
-                )
+                resp = await client.post(f"{_NOTION_BASE}/search", json={"query": query})
                 resp.raise_for_status()
                 return MCPToolResult(
                     tool_name=self.tool_name,
@@ -280,9 +278,7 @@ class NotionWriteConnector(MCPToolConnector):
                             "object": "block",
                             "type": "paragraph",
                             "paragraph": {
-                                "rich_text": [
-                                    {"type": "text", "text": {"content": text}}
-                                ]
+                                "rich_text": [{"type": "text", "text": {"content": text}}]
                             },
                         }
                     ]

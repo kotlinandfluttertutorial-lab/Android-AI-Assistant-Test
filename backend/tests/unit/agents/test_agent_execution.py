@@ -108,11 +108,7 @@ def test_requested_to_running_raises() -> None:
 
 
 def test_from_terminal_raises() -> None:
-    terminal = (
-        make_execution()
-        .with_status(AgentStatus.STARTED)
-        .with_status(AgentStatus.FAILED)
-    )
+    terminal = make_execution().with_status(AgentStatus.STARTED).with_status(AgentStatus.FAILED)
     with pytest.raises(ValueError):
         terminal.with_status(AgentStatus.RUNNING)
 
@@ -184,10 +180,7 @@ def test_with_result_sets_result_and_status() -> None:
 
 def test_cancel_from_running_moves_to_cancelled() -> None:
     exec_ = (
-        make_execution()
-        .with_status(AgentStatus.STARTED)
-        .with_status(AgentStatus.RUNNING)
-        .cancel()
+        make_execution().with_status(AgentStatus.STARTED).with_status(AgentStatus.RUNNING).cancel()
     )
     assert exec_.status == AgentStatus.CANCELLED
     assert exec_.is_terminal is True

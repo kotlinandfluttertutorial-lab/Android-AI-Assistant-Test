@@ -52,19 +52,31 @@ def upgrade() -> None:
     # ── agent_sessions ────────────────────────────────────────────────────────
     op.create_table(
         "agent_sessions",
-        sa.Column("id", sa.UUID(as_uuid=True), primary_key=True,
-                  server_default=sa.text("gen_random_uuid()")),
+        sa.Column(
+            "id",
+            sa.UUID(as_uuid=True),
+            primary_key=True,
+            server_default=sa.text("gen_random_uuid()"),
+        ),
         sa.Column("user_id", sa.UUID(as_uuid=True), nullable=False),
         sa.Column("conversation_id", sa.UUID(as_uuid=True), nullable=True),
         # agent_mode: "AUTO" | "CHAT" | "CODE" | "RESEARCH" | "DOCUMENT" | "IMAGE" | "VOICE" | "LOCAL"
         sa.Column("agent_mode", sa.String(32), nullable=False, server_default="AUTO"),
         # status: "ACTIVE" | "COMPLETED" | "FAILED" | "CANCELLED"
         sa.Column("status", sa.String(32), nullable=False, server_default="ACTIVE"),
-        sa.Column("started_at", sa.TIMESTAMP(timezone=True), nullable=False,
-                  server_default=sa.text("NOW()")),
+        sa.Column(
+            "started_at",
+            sa.TIMESTAMP(timezone=True),
+            nullable=False,
+            server_default=sa.text("NOW()"),
+        ),
         sa.Column("ended_at", sa.TIMESTAMP(timezone=True), nullable=True),
-        sa.Column("created_at", sa.TIMESTAMP(timezone=True), nullable=False,
-                  server_default=sa.text("NOW()")),
+        sa.Column(
+            "created_at",
+            sa.TIMESTAMP(timezone=True),
+            nullable=False,
+            server_default=sa.text("NOW()"),
+        ),
         sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["conversation_id"], ["conversations.id"], ondelete="SET NULL"),
         comment="One row per agent interaction session. Does not store message content.",
@@ -76,8 +88,12 @@ def upgrade() -> None:
     # ── agent_executions ──────────────────────────────────────────────────────
     op.create_table(
         "agent_executions",
-        sa.Column("id", sa.UUID(as_uuid=True), primary_key=True,
-                  server_default=sa.text("gen_random_uuid()")),
+        sa.Column(
+            "id",
+            sa.UUID(as_uuid=True),
+            primary_key=True,
+            server_default=sa.text("gen_random_uuid()"),
+        ),
         sa.Column("session_id", sa.UUID(as_uuid=True), nullable=True),
         sa.Column("user_id", sa.UUID(as_uuid=True), nullable=False),
         sa.Column("conversation_id", sa.UUID(as_uuid=True), nullable=True),
@@ -98,11 +114,19 @@ def upgrade() -> None:
         sa.Column("step_count", sa.Integer, nullable=False, server_default="0"),
         sa.Column("handoff_count", sa.Integer, nullable=False, server_default="0"),
         sa.Column("tool_call_count", sa.Integer, nullable=False, server_default="0"),
-        sa.Column("started_at", sa.TIMESTAMP(timezone=True), nullable=False,
-                  server_default=sa.text("NOW()")),
+        sa.Column(
+            "started_at",
+            sa.TIMESTAMP(timezone=True),
+            nullable=False,
+            server_default=sa.text("NOW()"),
+        ),
         sa.Column("completed_at", sa.TIMESTAMP(timezone=True), nullable=True),
-        sa.Column("created_at", sa.TIMESTAMP(timezone=True), nullable=False,
-                  server_default=sa.text("NOW()")),
+        sa.Column(
+            "created_at",
+            sa.TIMESTAMP(timezone=True),
+            nullable=False,
+            server_default=sa.text("NOW()"),
+        ),
         sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["session_id"], ["agent_sessions.id"], ondelete="SET NULL"),
         sa.ForeignKeyConstraint(["conversation_id"], ["conversations.id"], ondelete="SET NULL"),
@@ -121,8 +145,12 @@ def upgrade() -> None:
     # ── agent_steps ───────────────────────────────────────────────────────────
     op.create_table(
         "agent_steps",
-        sa.Column("id", sa.UUID(as_uuid=True), primary_key=True,
-                  server_default=sa.text("gen_random_uuid()")),
+        sa.Column(
+            "id",
+            sa.UUID(as_uuid=True),
+            primary_key=True,
+            server_default=sa.text("gen_random_uuid()"),
+        ),
         sa.Column("execution_id", sa.UUID(as_uuid=True), nullable=False),
         sa.Column("user_id", sa.UUID(as_uuid=True), nullable=False),
         sa.Column("step_index", sa.Integer, nullable=False),
@@ -134,8 +162,12 @@ def upgrade() -> None:
         sa.Column("duration_ms", sa.Integer, nullable=True),
         sa.Column("tokens_used", sa.Integer, nullable=False, server_default="0"),
         # NOTE: outcome (tool output, retrieved chunks) is NOT stored
-        sa.Column("created_at", sa.TIMESTAMP(timezone=True), nullable=False,
-                  server_default=sa.text("NOW()")),
+        sa.Column(
+            "created_at",
+            sa.TIMESTAMP(timezone=True),
+            nullable=False,
+            server_default=sa.text("NOW()"),
+        ),
         sa.ForeignKeyConstraint(["execution_id"], ["agent_executions.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
         comment=(
@@ -149,8 +181,12 @@ def upgrade() -> None:
     # ── tool_executions ───────────────────────────────────────────────────────
     op.create_table(
         "tool_executions",
-        sa.Column("id", sa.UUID(as_uuid=True), primary_key=True,
-                  server_default=sa.text("gen_random_uuid()")),
+        sa.Column(
+            "id",
+            sa.UUID(as_uuid=True),
+            primary_key=True,
+            server_default=sa.text("gen_random_uuid()"),
+        ),
         sa.Column("execution_id", sa.UUID(as_uuid=True), nullable=True),
         sa.Column("user_id", sa.UUID(as_uuid=True), nullable=False),
         sa.Column("tool_name", sa.String(64), nullable=False),
@@ -163,13 +199,16 @@ def upgrade() -> None:
         # NOTE: tool parameters and output are NOT stored (may contain secrets/PII)
         sa.Column("requires_confirmation", sa.Boolean, nullable=False, server_default="false"),
         sa.Column("confirmed", sa.Boolean, nullable=False, server_default="false"),
-        sa.Column("created_at", sa.TIMESTAMP(timezone=True), nullable=False,
-                  server_default=sa.text("NOW()")),
+        sa.Column(
+            "created_at",
+            sa.TIMESTAMP(timezone=True),
+            nullable=False,
+            server_default=sa.text("NOW()"),
+        ),
         sa.ForeignKeyConstraint(["execution_id"], ["agent_executions.id"], ondelete="CASCADE"),
         sa.ForeignKeyConstraint(["user_id"], ["users.id"], ondelete="CASCADE"),
         comment=(
-            "One row per MCP tool invocation. "
-            "Tool parameters and output are NOT stored (security)."
+            "One row per MCP tool invocation. Tool parameters and output are NOT stored (security)."
         ),
     )
     op.create_index("ix_tool_executions_execution_id", "tool_executions", ["execution_id"])

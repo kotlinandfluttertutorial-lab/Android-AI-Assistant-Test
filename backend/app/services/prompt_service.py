@@ -90,9 +90,7 @@ class PromptService:
         )
         template = result.scalar_one_or_none()
         if template is None:
-            raise TemplateNotFoundError(
-                f"No active prompt template found with name={name!r}"
-            )
+            raise TemplateNotFoundError(f"No active prompt template found with name={name!r}")
         return template
 
     @staticmethod

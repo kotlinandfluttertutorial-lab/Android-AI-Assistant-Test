@@ -158,9 +158,7 @@ class RefreshTokenRepository:
             The number of rows updated (useful for audit logging).
         """
         result = await self._db.execute(
-            update(RefreshToken)
-            .where(RefreshToken.family_id == family_id)
-            .values(revoked=True)
+            update(RefreshToken).where(RefreshToken.family_id == family_id).values(revoked=True)
         )
         return result.rowcount  # type: ignore[no-any-return]
 

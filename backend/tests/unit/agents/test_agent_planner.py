@@ -3,6 +3,7 @@
 # Unit tests for AgentPlanner — plan construction and limit checks.
 # ============================================================
 """Unit tests for AgentPlanner."""
+
 from __future__ import annotations
 
 import time
@@ -38,7 +39,9 @@ class StubAgent(Agent):
     def capabilities(self) -> frozenset[AgentCapability]:
         return frozenset()
 
-    async def execute(self, request: AgentRequest, execution: AgentExecution) -> AsyncIterator[AgentEvent]:
+    async def execute(
+        self, request: AgentRequest, execution: AgentExecution
+    ) -> AsyncIterator[AgentEvent]:
         return
         yield
 
@@ -104,9 +107,7 @@ def test_multi_step_fails_when_agent_missing() -> None:
 def test_three_step_plan_pdf_rag_code() -> None:
     reg = registry("pdf", "rag", "code")
     agent = StubAgent("pdf")
-    plan = planner.build_plan(
-        req(metadata={METADATA_KEY_PLAN_STEPS: "pdf,rag,code"}), agent, reg
-    )
+    plan = planner.build_plan(req(metadata={METADATA_KEY_PLAN_STEPS: "pdf,rag,code"}), agent, reg)
     assert [s.agent_name for s in plan.steps] == ["pdf", "rag", "code"]
     assert plan.handoff_count == 2
 

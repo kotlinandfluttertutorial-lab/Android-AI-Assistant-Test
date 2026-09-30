@@ -31,9 +31,7 @@ def _make_bearer_jwt(payload: dict) -> str:
         .rstrip(b"=")
         .decode()
     )
-    payload_b64 = (
-        base64.urlsafe_b64encode(json.dumps(payload).encode()).rstrip(b"=").decode()
-    )
+    payload_b64 = base64.urlsafe_b64encode(json.dumps(payload).encode()).rstrip(b"=").decode()
     return f"Bearer {header_b64}.{payload_b64}.fakesignature"
 
 
@@ -91,9 +89,7 @@ class TestExtractUserIdFromHeader:
         # Only header.payload — missing signature segment
         header_b64 = base64.urlsafe_b64encode(b'{"alg":"HS256"}').rstrip(b"=").decode()
         payload_b64 = base64.urlsafe_b64encode(b'{"sub":"x"}').rstrip(b"=").decode()
-        assert (
-            _extract_user_id_from_header(f"Bearer {header_b64}.{payload_b64}") is None
-        )
+        assert _extract_user_id_from_header(f"Bearer {header_b64}.{payload_b64}") is None
 
     def test_jwt_with_no_sub_claim_returns_none(self) -> None:
         header = _make_bearer_jwt({"email": "no-sub@example.com"})
@@ -251,9 +247,7 @@ class TestRateLimitMiddleware:
         with patch("app.middleware.rate_limit.time") as mock_time:
             mock_time.time.return_value = 1700000000.0
             expected_window = int(1700000000.0 // 60)
-            await mw.dispatch(
-                request, AsyncMock(return_value=MagicMock(status_code=200))
-            )
+            await mw.dispatch(request, AsyncMock(return_value=MagicMock(status_code=200)))
 
         called_key = redis_mock.incr.call_args[0][0]
         assert called_key == f"rate:user-42:{expected_window}"
@@ -357,9 +351,7 @@ class TestGetLockoutTtl:
 class TestRecordFailedAttempt:
     """Tests for the module-level record_failed_attempt function."""
 
-    def _make_redis(
-        self, attempt_count: int, already_locked: bool = False
-    ) -> AsyncMock:
+    def _make_redis(self, attempt_count: int, already_locked: bool = False) -> AsyncMock:
         redis_mock = AsyncMock()
         redis_mock.eval = AsyncMock(return_value=attempt_count)
         redis_mock.exists = AsyncMock(return_value=1 if already_locked else 0)
@@ -371,9 +363,7 @@ class TestRecordFailedAttempt:
     async def test_lockout_triggers_at_fifth_failure(self) -> None:
         """Exactly at attempt 5, setex must be called to apply the lock."""
         redis_mock = self._make_redis(attempt_count=5, already_locked=False)
-        with patch(
-            "app.security.lockout.send_failed_login_email", new_callable=AsyncMock
-        ):
+        with patch("app.security.lockout.send_failed_login_email", new_callable=AsyncMock):
             count, locked = await record_failed_attempt(
                 redis_mock,
                 "user@test.com",
@@ -390,9 +380,7 @@ class TestRecordFailedAttempt:
     async def test_lock_duration_is_15_minutes(self) -> None:
         """The lock TTL must be 15 * 60 = 900 seconds."""
         redis_mock = self._make_redis(attempt_count=5, already_locked=False)
-        with patch(
-            "app.security.lockout.send_failed_login_email", new_callable=AsyncMock
-        ):
+        with patch("app.security.lockout.send_failed_login_email", new_callable=AsyncMock):
             await record_failed_attempt(
                 redis_mock,
                 "user@test.com",
@@ -409,9 +397,7 @@ class TestRecordFailedAttempt:
         """Attempts 1–4 must NOT call setex (no lock applied yet)."""
         for attempt in range(1, 5):
             redis_mock = self._make_redis(attempt_count=attempt, already_locked=False)
-            with patch(
-                "app.security.lockout.send_failed_login_email", new_callable=AsyncMock
-            ):
+            with patch("app.security.lockout.send_failed_login_email", new_callable=AsyncMock):
                 count, locked = await record_failed_attempt(
                     redis_mock,
                     "user@test.com",
@@ -446,9 +432,7 @@ class TestRecordFailedAttempt:
     async def test_email_sent_on_each_failure_while_already_locked(self) -> None:
         """Every attempt after the lock is set must also trigger an email (Req 1.5)."""
         for extra_attempt in range(1, 4):
-            redis_mock = self._make_redis(
-                attempt_count=5 + extra_attempt, already_locked=True
-            )
+            redis_mock = self._make_redis(attempt_count=5 + extra_attempt, already_locked=True)
             with patch(
                 "app.security.lockout.send_failed_login_email", new_callable=AsyncMock
             ) as mock_email:
@@ -491,9 +475,7 @@ class TestRecordFailedAttempt:
     async def test_returns_correct_tuple_not_locked(self) -> None:
         """Before threshold: returns (attempt_count, False)."""
         redis_mock = self._make_redis(attempt_count=3, already_locked=False)
-        with patch(
-            "app.security.lockout.send_failed_login_email", new_callable=AsyncMock
-        ):
+        with patch("app.security.lockout.send_failed_login_email", new_callable=AsyncMock):
             count, locked = await record_failed_attempt(
                 redis_mock,
                 "user@test.com",
@@ -509,9 +491,7 @@ class TestRecordFailedAttempt:
         """At threshold: returns (attempt_count, True)."""
         redis_mock = self._make_redis(attempt_count=5, already_locked=False)
         redis_mock.ttl = AsyncMock(return_value=900)
-        with patch(
-            "app.security.lockout.send_failed_login_email", new_callable=AsyncMock
-        ):
+        with patch("app.security.lockout.send_failed_login_email", new_callable=AsyncMock):
             count, locked = await record_failed_attempt(
                 redis_mock,
                 "user@test.com",
@@ -526,9 +506,7 @@ class TestRecordFailedAttempt:
     async def test_returns_correct_tuple_already_locked(self) -> None:
         """While already locked: returns (attempt_count, True)."""
         redis_mock = self._make_redis(attempt_count=7, already_locked=True)
-        with patch(
-            "app.security.lockout.send_failed_login_email", new_callable=AsyncMock
-        ):
+        with patch("app.security.lockout.send_failed_login_email", new_callable=AsyncMock):
             count, locked = await record_failed_attempt(
                 redis_mock,
                 "user@test.com",
@@ -605,9 +583,7 @@ class TestAccountLockoutService:
             new_callable=AsyncMock,
             return_value=(3, False),
         ) as mock_fn:
-            count, locked = await service.record_failed_attempt(
-                "user@example.com", "Test User"
-            )
+            count, locked = await service.record_failed_attempt("user@example.com", "Test User")
 
         mock_fn.assert_called_once()
         call_kwargs = mock_fn.call_args[1]

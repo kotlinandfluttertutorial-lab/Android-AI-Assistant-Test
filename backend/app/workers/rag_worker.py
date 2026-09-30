@@ -137,9 +137,7 @@ async def _run_ingestion(task: Any, document_id: str, user_id: str) -> dict[str,
             try:
                 file_bytes = await rag_service.download_file_minio(document.minio_key)
             except Exception as exc:
-                logger.warning(
-                    "MinIO download failed (attempt %d): %s", task.request.retries, exc
-                )
+                logger.warning("MinIO download failed (attempt %d): %s", task.request.retries, exc)
                 countdown = 2**task.request.retries
                 try:
                     raise task.retry(exc=exc, countdown=countdown, max_retries=3)
@@ -154,9 +152,7 @@ async def _run_ingestion(task: Any, document_id: str, user_id: str) -> dict[str,
                             ),
                         )
                     await db.commit()
-                    await rag_service.send_ingestion_failure_notification(
-                        user_id, document_id
-                    )
+                    await rag_service.send_ingestion_failure_notification(user_id, document_id)
                     return {"status": "failed", "document_id": document_id}
 
             # Step 3 — extract text
@@ -222,9 +218,7 @@ async def _run_ingestion(task: Any, document_id: str, user_id: str) -> dict[str,
             try:
                 await rag_service.embed_and_store(chunks, document_id, user_id, db)
             except Exception as exc:
-                logger.warning(
-                    "embed_and_store failed (attempt %d): %s", task.request.retries, exc
-                )
+                logger.warning("embed_and_store failed (attempt %d): %s", task.request.retries, exc)
                 countdown = 2**task.request.retries
                 try:
                     raise task.retry(exc=exc, countdown=countdown, max_retries=3)
@@ -239,15 +233,11 @@ async def _run_ingestion(task: Any, document_id: str, user_id: str) -> dict[str,
                             ),
                         )
                     await db.commit()
-                    await rag_service.send_ingestion_failure_notification(
-                        user_id, document_id
-                    )
+                    await rag_service.send_ingestion_failure_notification(user_id, document_id)
                     return {"status": "failed", "document_id": document_id}
 
             # Step 6 — mark ready
-            await doc_repo.update_status(
-                doc_uuid, IngestionStatus.ready, page_count=page_count
-            )
+            await doc_repo.update_status(doc_uuid, IngestionStatus.ready, page_count=page_count)
             if job is not None:
                 await job_repo.update_status(
                     job.id,

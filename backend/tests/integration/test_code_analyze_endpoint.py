@@ -85,16 +85,11 @@ _ORCH_PATCH = "app.api.code.router._orchestrate"
 # ---------------------------------------------------------------------------
 
 _PYTHON_CODE = (
-    "def factorial(n):\n"
-    "    if n <= 1:\n"
-    "        return 1\n"
-    "    return n * factorial(n - 1)\n"
+    "def factorial(n):\n    if n <= 1:\n        return 1\n    return n * factorial(n - 1)\n"
 )
 
 _KOTLIN_CODE = (
-    "fun factorial(n: Int): Int {\n"
-    "    return if (n <= 1) 1 else n * factorial(n - 1)\n"
-    "}\n"
+    "fun factorial(n: Int): Int {\n    return if (n <= 1) 1 else n * factorial(n - 1)\n}\n"
 )
 
 _EXPLAIN_RESULT = (
@@ -155,6 +150,7 @@ def _build_app(*, bypass_auth: bool = False) -> FastAPI:
     app.dependency_overrides[get_db] = _make_mock_db()
 
     if bypass_auth:
+
         def _fake_user() -> TokenPayload:
             return TokenPayload(
                 sub=str(uuid.uuid4()),
@@ -163,6 +159,7 @@ def _build_app(*, bypass_auth: bool = False) -> FastAPI:
                 iat=datetime.now(tz=timezone.utc),
                 exp=datetime(2099, 1, 1, tzinfo=timezone.utc),
             )
+
         app.dependency_overrides[get_current_user] = lambda: _fake_user()
 
     app.include_router(code_router)
@@ -202,9 +199,7 @@ class TestAuthIntegration:
     async def test_no_token_returns_401_or_403(self) -> None:
         """Request without Authorization header must be rejected."""
         app = _build_app(bypass_auth=False)
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as c:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
             resp = await c.post(
                 "/code/analyze",
                 json={"code": _PYTHON_CODE, "language_id": "python", "action": "explain"},
@@ -219,9 +214,7 @@ class TestAuthIntegration:
             patch(_REDIS_PATCH, new=AsyncMock(return_value=False)),
             patch(_ORCH_PATCH, new=AsyncMock(return_value=_EXPLAIN_RESULT)),
         ):
-            async with AsyncClient(
-                transport=ASGITransport(app=app), base_url="http://test"
-            ) as c:
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
                 resp = await c.post(
                     "/code/analyze",
                     headers=_bearer(),
@@ -233,9 +226,7 @@ class TestAuthIntegration:
     async def test_malformed_token_returns_401(self) -> None:
         """Garbage token string must fail JWT validation → 401."""
         app = _build_app(bypass_auth=False)
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as c:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
             resp = await c.post(
                 "/code/analyze",
                 headers={"Authorization": "Bearer not.a.real.token"},
@@ -248,9 +239,7 @@ class TestAuthIntegration:
         """Token whose JTI is revoked in Redis must be rejected → 401."""
         app = _build_app(bypass_auth=False)
         with patch(_REDIS_PATCH, new=AsyncMock(return_value=True)):
-            async with AsyncClient(
-                transport=ASGITransport(app=app), base_url="http://test"
-            ) as c:
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
                 resp = await c.post(
                     "/code/analyze",
                     headers=_bearer(),
@@ -285,9 +274,7 @@ class TestResponseContractIntegration:
     ) -> None:
         """action field in response must match submitted action (Req 12.6)."""
         with patch(_ORCH_PATCH, new=AsyncMock(return_value=llm_result)):
-            async with AsyncClient(
-                transport=ASGITransport(app=app), base_url="http://test"
-            ) as c:
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
                 resp = await c.post(
                     "/code/analyze",
                     json={"code": _PYTHON_CODE, "language_id": "python", "action": action},
@@ -299,9 +286,7 @@ class TestResponseContractIntegration:
     async def test_language_id_echoed(self, app: FastAPI) -> None:
         """language_id must be echoed back exactly (Req 12.6)."""
         with patch(_ORCH_PATCH, new=AsyncMock(return_value=_EXPLAIN_RESULT)):
-            async with AsyncClient(
-                transport=ASGITransport(app=app), base_url="http://test"
-            ) as c:
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
                 resp = await c.post(
                     "/code/analyze",
                     json={"code": _KOTLIN_CODE, "language_id": "kotlin", "action": "explain"},
@@ -313,9 +298,7 @@ class TestResponseContractIntegration:
     async def test_original_code_echoed_exactly(self, app: FastAPI) -> None:
         """original_code must be the verbatim submitted code (Req 12.6)."""
         with patch(_ORCH_PATCH, new=AsyncMock(return_value=_EXPLAIN_RESULT)):
-            async with AsyncClient(
-                transport=ASGITransport(app=app), base_url="http://test"
-            ) as c:
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
                 resp = await c.post(
                     "/code/analyze",
                     json={"code": _PYTHON_CODE, "language_id": "python", "action": "explain"},
@@ -327,9 +310,7 @@ class TestResponseContractIntegration:
     async def test_content_is_llm_result(self, app: FastAPI) -> None:
         """content must be exactly what _orchestrate returned."""
         with patch(_ORCH_PATCH, new=AsyncMock(return_value=_EXPLAIN_RESULT)):
-            async with AsyncClient(
-                transport=ASGITransport(app=app), base_url="http://test"
-            ) as c:
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
                 resp = await c.post(
                     "/code/analyze",
                     json={"code": _PYTHON_CODE, "language_id": "python", "action": "explain"},
@@ -341,9 +322,7 @@ class TestResponseContractIntegration:
     async def test_all_four_fields_present(self, app: FastAPI) -> None:
         """All four fields must be present in every response."""
         with patch(_ORCH_PATCH, new=AsyncMock(return_value="ok")):
-            async with AsyncClient(
-                transport=ASGITransport(app=app), base_url="http://test"
-            ) as c:
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
                 resp = await c.post(
                     "/code/analyze",
                     json={"code": _PYTHON_CODE, "language_id": "python", "action": "fix_bug"},
@@ -370,14 +349,10 @@ class TestSupportedLanguagesIntegration:
         "language_id",
         ["kotlin", "java", "python", "javascript", "cpp", "sql"],
     )
-    async def test_language_accepted_and_echoed(
-        self, app: FastAPI, language_id: str
-    ) -> None:
+    async def test_language_accepted_and_echoed(self, app: FastAPI, language_id: str) -> None:
         """Each supported language is accepted and echoed back (Req 12.1)."""
         with patch(_ORCH_PATCH, new=AsyncMock(return_value="result")):
-            async with AsyncClient(
-                transport=ASGITransport(app=app), base_url="http://test"
-            ) as c:
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
                 resp = await c.post(
                     "/code/analyze",
                     json={"code": "SELECT 1;", "language_id": language_id, "action": "explain"},
@@ -410,9 +385,7 @@ class TestInjectionBlockingIntegration:
             ),
             patch(_ORCH_PATCH, new=mock_orch),
         ):
-            async with AsyncClient(
-                transport=ASGITransport(app=app), base_url="http://test"
-            ) as c:
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
                 resp = await c.post(
                     "/code/analyze",
                     json={
@@ -435,9 +408,7 @@ class TestInjectionBlockingIntegration:
             "check_input",
             new=AsyncMock(side_effect=PromptInjectionError("injection")),
         ):
-            async with AsyncClient(
-                transport=ASGITransport(app=app), base_url="http://test"
-            ) as c:
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
                 resp = await c.post(
                     "/code/analyze",
                     json={
@@ -464,9 +435,7 @@ class TestInjectionBlockingIntegration:
             ),
             patch(_ORCH_PATCH, new=mock_orch),
         ):
-            async with AsyncClient(
-                transport=ASGITransport(app=app), base_url="http://test"
-            ) as c:
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
                 await c.post(
                     "/code/analyze",
                     json={
@@ -482,9 +451,7 @@ class TestInjectionBlockingIntegration:
         """Legitimate code must NOT be blocked by the injection detector."""
         app = _build_app(bypass_auth=True)
         with patch(_ORCH_PATCH, new=AsyncMock(return_value=_EXPLAIN_RESULT)):
-            async with AsyncClient(
-                transport=ASGITransport(app=app), base_url="http://test"
-            ) as c:
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
                 resp = await c.post(
                     "/code/analyze",
                     json={"code": _PYTHON_CODE, "language_id": "python", "action": "explain"},
@@ -511,9 +478,7 @@ class TestErrorHandlingIntegration:
             _ORCH_PATCH,
             new=AsyncMock(side_effect=Exception("provider unreachable")),
         ):
-            async with AsyncClient(
-                transport=ASGITransport(app=app), base_url="http://test"
-            ) as c:
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
                 resp = await c.post(
                     "/code/analyze",
                     json={"code": _PYTHON_CODE, "language_id": "python", "action": "explain"},
@@ -527,9 +492,7 @@ class TestErrorHandlingIntegration:
             _ORCH_PATCH,
             new=AsyncMock(side_effect=asyncio.TimeoutError()),
         ):
-            async with AsyncClient(
-                transport=ASGITransport(app=app), base_url="http://test"
-            ) as c:
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
                 resp = await c.post(
                     "/code/analyze",
                     json={"code": _PYTHON_CODE, "language_id": "python", "action": "explain"},
@@ -540,12 +503,14 @@ class TestErrorHandlingIntegration:
     async def test_504_detail_mentions_timeout(self, app: FastAPI) -> None:
         """504 body must mention the timeout so the Android client can display it."""
         with patch(_ORCH_PATCH, new=AsyncMock(side_effect=asyncio.TimeoutError())):
-            async with AsyncClient(
-                transport=ASGITransport(app=app), base_url="http://test"
-            ) as c:
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
                 resp = await c.post(
                     "/code/analyze",
-                    json={"code": _PYTHON_CODE, "language_id": "python", "action": "generate_tests"},
+                    json={
+                        "code": _PYTHON_CODE,
+                        "language_id": "python",
+                        "action": "generate_tests",
+                    },
                 )
         assert "timed out" in resp.json()["detail"].lower()
 
@@ -553,9 +518,7 @@ class TestErrorHandlingIntegration:
     async def test_503_body_has_detail(self, app: FastAPI) -> None:
         """503 body must include a detail field."""
         with patch(_ORCH_PATCH, new=AsyncMock(side_effect=RuntimeError("crash"))):
-            async with AsyncClient(
-                transport=ASGITransport(app=app), base_url="http://test"
-            ) as c:
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
                 resp = await c.post(
                     "/code/analyze",
                     json={"code": _PYTHON_CODE, "language_id": "python", "action": "fix_bug"},
@@ -577,9 +540,7 @@ class TestInputValidationIntegration:
 
     @pytest.mark.asyncio
     async def test_empty_code_rejected(self, app: FastAPI) -> None:
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as c:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
             resp = await c.post(
                 "/code/analyze",
                 json={"code": "", "language_id": "python", "action": "explain"},
@@ -588,9 +549,7 @@ class TestInputValidationIntegration:
 
     @pytest.mark.asyncio
     async def test_code_over_100k_rejected(self, app: FastAPI) -> None:
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as c:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
             resp = await c.post(
                 "/code/analyze",
                 json={"code": "x" * 100_001, "language_id": "python", "action": "explain"},
@@ -601,9 +560,7 @@ class TestInputValidationIntegration:
     async def test_code_exactly_100k_accepted(self, app: FastAPI) -> None:
         """Boundary value: exactly 100 000 characters must be accepted."""
         with patch(_ORCH_PATCH, new=AsyncMock(return_value="ok")):
-            async with AsyncClient(
-                transport=ASGITransport(app=app), base_url="http://test"
-            ) as c:
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
                 resp = await c.post(
                     "/code/analyze",
                     json={"code": "x" * 100_000, "language_id": "python", "action": "explain"},
@@ -612,9 +569,7 @@ class TestInputValidationIntegration:
 
     @pytest.mark.asyncio
     async def test_unsupported_language_rejected(self, app: FastAPI) -> None:
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as c:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
             resp = await c.post(
                 "/code/analyze",
                 json={"code": _PYTHON_CODE, "language_id": "ruby", "action": "explain"},
@@ -623,9 +578,7 @@ class TestInputValidationIntegration:
 
     @pytest.mark.asyncio
     async def test_unsupported_action_rejected(self, app: FastAPI) -> None:
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as c:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
             resp = await c.post(
                 "/code/analyze",
                 json={"code": _PYTHON_CODE, "language_id": "python", "action": "refactor"},
@@ -634,9 +587,7 @@ class TestInputValidationIntegration:
 
     @pytest.mark.asyncio
     async def test_missing_all_fields_rejected(self, app: FastAPI) -> None:
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as c:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
             resp = await c.post("/code/analyze", json={})
         assert resp.status_code == 422
 
@@ -673,9 +624,7 @@ class TestMaxTokensPerAction:
             return "ok"
 
         with patch(_ORCH_PATCH, new=_fake_orch):
-            async with AsyncClient(
-                transport=ASGITransport(app=app), base_url="http://test"
-            ) as c:
+            async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as c:
                 await c.post(
                     "/code/analyze",
                     json={"code": _PYTHON_CODE, "language_id": "python", "action": action},
@@ -683,6 +632,5 @@ class TestMaxTokensPerAction:
 
         assert captured, "_orchestrate was not called"
         assert captured[0] == expected_max_tokens, (
-            f"Expected max_tokens={expected_max_tokens} for action={action!r}, "
-            f"got {captured[0]}"
+            f"Expected max_tokens={expected_max_tokens} for action={action!r}, got {captured[0]}"
         )

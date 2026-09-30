@@ -90,12 +90,8 @@ async def _ready() -> JSONResponse:
         redis_status = "unreachable"
     deps = {"database": db_status, "redis": redis_status}
     if db_status == "ok" and redis_status == "ok":
-        return JSONResponse(
-            status_code=200, content={"status": "ready", "dependencies": deps}
-        )
-    return JSONResponse(
-        status_code=503, content={"status": "unavailable", "dependencies": deps}
-    )
+        return JSONResponse(status_code=200, content={"status": "ready", "dependencies": deps})
+    return JSONResponse(status_code=503, content={"status": "unavailable", "dependencies": deps})
 
 
 # ============================================================
@@ -231,9 +227,7 @@ class TestReadyEndpointIntegration:
     async def test_ready_200_when_both_healthy(self) -> None:
         with (
             patch(f"{_THIS_MODULE}._check_db_impl", new_callable=AsyncMock) as m_db,
-            patch(
-                f"{_THIS_MODULE}._check_redis_impl", new_callable=AsyncMock
-            ) as m_redis,
+            patch(f"{_THIS_MODULE}._check_redis_impl", new_callable=AsyncMock) as m_redis,
         ):
             m_db.return_value = None
             m_redis.return_value = None
@@ -251,9 +245,7 @@ class TestReadyEndpointIntegration:
     async def test_ready_503_when_db_unreachable(self) -> None:
         with (
             patch(f"{_THIS_MODULE}._check_db_impl", new_callable=AsyncMock) as m_db,
-            patch(
-                f"{_THIS_MODULE}._check_redis_impl", new_callable=AsyncMock
-            ) as m_redis,
+            patch(f"{_THIS_MODULE}._check_redis_impl", new_callable=AsyncMock) as m_redis,
         ):
             m_db.side_effect = Exception("DB down")
             m_redis.return_value = None
@@ -270,9 +262,7 @@ class TestReadyEndpointIntegration:
     async def test_ready_503_when_redis_unreachable(self) -> None:
         with (
             patch(f"{_THIS_MODULE}._check_db_impl", new_callable=AsyncMock) as m_db,
-            patch(
-                f"{_THIS_MODULE}._check_redis_impl", new_callable=AsyncMock
-            ) as m_redis,
+            patch(f"{_THIS_MODULE}._check_redis_impl", new_callable=AsyncMock) as m_redis,
         ):
             m_db.return_value = None
             m_redis.side_effect = Exception("Redis down")
@@ -290,9 +280,7 @@ class TestReadyEndpointIntegration:
         """503 returned and both dependencies marked unreachable when both are down."""
         with (
             patch(f"{_THIS_MODULE}._check_db_impl", new_callable=AsyncMock) as m_db,
-            patch(
-                f"{_THIS_MODULE}._check_redis_impl", new_callable=AsyncMock
-            ) as m_redis,
+            patch(f"{_THIS_MODULE}._check_redis_impl", new_callable=AsyncMock) as m_redis,
         ):
             m_db.side_effect = Exception("DB down")
             m_redis.side_effect = Exception("Redis down")
@@ -406,14 +394,10 @@ class TestImageAnalyzeEndpoint:
     async def test_invalid_format_pdf_returns_422(self) -> None:
         """PDF upload returns HTTP 422."""
         pdf_bytes = b"%PDF-1.4 fake pdf content"
-        async with AsyncClient(
-            transport=ASGITransport(app=_gen_app), base_url="http://test"
-        ) as c:
+        async with AsyncClient(transport=ASGITransport(app=_gen_app), base_url="http://test") as c:
             resp = await c.post(
                 "/images/analyze",
-                files={
-                    "file": ("document.pdf", io.BytesIO(pdf_bytes), "application/pdf")
-                },
+                files={"file": ("document.pdf", io.BytesIO(pdf_bytes), "application/pdf")},
             )
         assert resp.status_code == 422
 
@@ -422,9 +406,7 @@ class TestImageAnalyzeEndpoint:
         """File over 10 MB returns HTTP 422."""
         # Create content larger than 10 MB, with JPEG magic bytes at the start
         big_bytes = b"\xff\xd8\xff" + b"X" * (10 * 1024 * 1024 + 1)
-        async with AsyncClient(
-            transport=ASGITransport(app=_gen_app), base_url="http://test"
-        ) as c:
+        async with AsyncClient(transport=ASGITransport(app=_gen_app), base_url="http://test") as c:
             resp = await c.post(
                 "/images/analyze",
                 files={"file": ("big.jpg", io.BytesIO(big_bytes), "image/jpeg")},
@@ -524,14 +506,10 @@ class TestTranscriptionEndpoint:
     async def test_valid_audio_returns_transcript(self) -> None:
         """Valid mp3 upload returns transcript with timestamps and speaker attribution."""
         audio_bytes = _make_fake_mp3()
-        async with AsyncClient(
-            transport=ASGITransport(app=_gen_app), base_url="http://test"
-        ) as c:
+        async with AsyncClient(transport=ASGITransport(app=_gen_app), base_url="http://test") as c:
             resp = await c.post(
                 "/transcription",
-                files={
-                    "audio_file": ("meeting.mp3", io.BytesIO(audio_bytes), "audio/mpeg")
-                },
+                files={"audio_file": ("meeting.mp3", io.BytesIO(audio_bytes), "audio/mpeg")},
                 data={"language": "en"},
             )
         assert resp.status_code == 200
@@ -551,9 +529,7 @@ class TestTranscriptionEndpoint:
     async def test_invalid_audio_format_returns_422(self) -> None:
         """Non-audio format (PDF) returns HTTP 422."""
         pdf_bytes = b"%PDF-1.4 fake pdf"
-        async with AsyncClient(
-            transport=ASGITransport(app=_gen_app), base_url="http://test"
-        ) as c:
+        async with AsyncClient(transport=ASGITransport(app=_gen_app), base_url="http://test") as c:
             resp = await c.post(
                 "/transcription",
                 files={
@@ -584,9 +560,7 @@ _VALID_RESUME_BODY = {
     ],
     "contact_info": {"name": "Jane Doe", "email": "jane@example.com"},
     "job_description": "Senior Software Engineer role at a fast-growing startup.",
-    "education": [
-        {"degree": "BSc Computer Science", "institution": "MIT", "year": "2020"}
-    ],
+    "education": [{"degree": "BSc Computer Science", "institution": "MIT", "year": "2020"}],
     "skills": ["Python", "FastAPI", "Docker"],
 }
 
@@ -637,9 +611,7 @@ class TestResumeGenerateEndpoint:
     async def test_missing_work_experience_returns_422(self) -> None:
         """Empty work_experience list returns HTTP 422."""
         bad_body = {**_VALID_RESUME_BODY, "work_experience": []}
-        async with AsyncClient(
-            transport=ASGITransport(app=_gen_app), base_url="http://test"
-        ) as c:
+        async with AsyncClient(transport=ASGITransport(app=_gen_app), base_url="http://test") as c:
             resp = await c.post("/resumes/generate", json=bad_body)
         assert resp.status_code == 422
 
@@ -647,21 +619,15 @@ class TestResumeGenerateEndpoint:
     async def test_missing_contact_info_returns_422(self) -> None:
         """Missing contact_info returns HTTP 422."""
         bad_body = {k: v for k, v in _VALID_RESUME_BODY.items() if k != "contact_info"}
-        async with AsyncClient(
-            transport=ASGITransport(app=_gen_app), base_url="http://test"
-        ) as c:
+        async with AsyncClient(transport=ASGITransport(app=_gen_app), base_url="http://test") as c:
             resp = await c.post("/resumes/generate", json=bad_body)
         assert resp.status_code == 422
 
     @pytest.mark.asyncio
     async def test_missing_job_description_returns_422(self) -> None:
         """Missing job_description returns HTTP 422."""
-        bad_body = {
-            k: v for k, v in _VALID_RESUME_BODY.items() if k != "job_description"
-        }
-        async with AsyncClient(
-            transport=ASGITransport(app=_gen_app), base_url="http://test"
-        ) as c:
+        bad_body = {k: v for k, v in _VALID_RESUME_BODY.items() if k != "job_description"}
+        async with AsyncClient(transport=ASGITransport(app=_gen_app), base_url="http://test") as c:
             resp = await c.post("/resumes/generate", json=bad_body)
         assert resp.status_code == 422
 
@@ -701,9 +667,7 @@ class TestCoverLetterGenerateEndpoint:
     async def test_missing_job_description_returns_422(self) -> None:
         """Missing job_description returns HTTP 422."""
         bad_body = {"resume_data": {"name": "Jane"}}
-        async with AsyncClient(
-            transport=ASGITransport(app=_gen_app), base_url="http://test"
-        ) as c:
+        async with AsyncClient(transport=ASGITransport(app=_gen_app), base_url="http://test") as c:
             resp = await c.post("/covers/generate", json=bad_body)
         assert resp.status_code == 422
 
@@ -711,9 +675,7 @@ class TestCoverLetterGenerateEndpoint:
     async def test_missing_resume_data_returns_422(self) -> None:
         """Missing resume_data returns HTTP 422."""
         bad_body = {"job_description": "A great job."}
-        async with AsyncClient(
-            transport=ASGITransport(app=_gen_app), base_url="http://test"
-        ) as c:
+        async with AsyncClient(transport=ASGITransport(app=_gen_app), base_url="http://test") as c:
             resp = await c.post("/covers/generate", json=bad_body)
         assert resp.status_code == 422
 
@@ -774,9 +736,7 @@ class TestEmailGrammarEndpoint:
             async with AsyncClient(
                 transport=ASGITransport(app=_gen_app), base_url="http://test"
             ) as c:
-                resp = await c.post(
-                    "/emails/grammar", json={"text": "Im going to the store."}
-                )
+                resp = await c.post("/emails/grammar", json={"text": "Im going to the store."})
 
         assert resp.status_code == 200
         body = resp.json()
@@ -789,7 +749,9 @@ class TestEmailGrammarEndpoint:
     async def test_grammar_no_changes_returns_no_changes_needed_true(self) -> None:
         """Well-formed text returns no_changes_needed=true."""
         original_text = "The quick brown fox jumps over the lazy dog."
-        mock_json = f'{{"corrected_text": "{original_text}", "no_changes_needed": true, "diff": []}}'
+        mock_json = (
+            f'{{"corrected_text": "{original_text}", "no_changes_needed": true, "diff": []}}'
+        )
         with patch(_ORCH_MODULE, new_callable=AsyncMock) as mock_orch:
             mock_orch.return_value = mock_json
 
@@ -851,9 +813,7 @@ class TestTranslateEndpoint:
     @pytest.mark.asyncio
     async def test_offline_translation_returns_stub_response(self) -> None:
         """offline=true returns offline stub translation without calling orchestrator."""
-        async with AsyncClient(
-            transport=ASGITransport(app=_gen_app), base_url="http://test"
-        ) as c:
+        async with AsyncClient(transport=ASGITransport(app=_gen_app), base_url="http://test") as c:
             resp = await c.post(
                 "/translate",
                 json={
@@ -874,9 +834,7 @@ class TestTranslateEndpoint:
     async def test_text_exceeding_limit_returns_422(self) -> None:
         """Text exceeding 10,000 characters returns HTTP 422."""
         long_text = "a" * 10_001
-        async with AsyncClient(
-            transport=ASGITransport(app=_gen_app), base_url="http://test"
-        ) as c:
+        async with AsyncClient(transport=ASGITransport(app=_gen_app), base_url="http://test") as c:
             resp = await c.post(
                 "/translate",
                 json={

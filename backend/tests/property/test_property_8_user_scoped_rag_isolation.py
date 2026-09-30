@@ -166,9 +166,7 @@ def test_property_8a_cross_user_isolation_no_chunk_leakage(
     mock_collection_a = MagicMock()
     mock_collection_a.query.return_value = {
         "ids": [["doc_a_0", "doc_a_1"]],
-        "documents": [
-            [doc_text[:50], doc_text[50:100] if len(doc_text) > 50 else doc_text]
-        ],
+        "documents": [[doc_text[:50], doc_text[50:100] if len(doc_text) > 50 else doc_text]],
         "metadatas": [
             [
                 {"document_id": "doc-a", "page_number": 1},
@@ -259,9 +257,9 @@ def test_property_8b_collection_name_formula_invariant(user_id: str) -> None:
     expected_collection = f"documents_{user_id}"
 
     # The formula itself must be deterministic and unique per user
-    assert (
-        expected_collection == f"documents_{user_id}"
-    ), f"Property 8B: collection name formula is not deterministic for user_id={user_id!r}"
+    assert expected_collection == f"documents_{user_id}", (
+        f"Property 8B: collection name formula is not deterministic for user_id={user_id!r}"
+    )
 
     # Verify that the formula produces distinct names for distinct users
     other_user_id = str(uuid.uuid4())
@@ -425,9 +423,7 @@ class TestUserScopedRAGIsolationEdgeCases:
         mock_collection_a.query.return_value = {
             "ids": [["a_0", "a_1", "a_2", "a_3", "a_4"]],
             "documents": [["chunk text " * 5] * 5],
-            "metadatas": [
-                [{"document_id": "doc-a", "page_number": i + 1} for i in range(5)]
-            ],
+            "metadatas": [[{"document_id": "doc-a", "page_number": i + 1} for i in range(5)]],
             "distances": [[0.1 * i for i in range(5)]],
         }
 
@@ -466,21 +462,21 @@ class TestUserScopedRAGIsolationEdgeCases:
         user_ids = [str(uuid.uuid4()) for _ in range(20)]
         collection_names = [f"documents_{uid}" for uid in user_ids]
 
-        assert len(collection_names) == len(
-            set(collection_names)
-        ), "Edge case failed: duplicate collection names detected for distinct user UUIDs."
+        assert len(collection_names) == len(set(collection_names)), (
+            "Edge case failed: duplicate collection names detected for distinct user UUIDs."
+        )
 
     def test_collection_name_contains_full_user_id(self) -> None:
         """The collection name must embed the full user_id (no truncation)."""
         user_id = str(uuid.uuid4())
         collection_name = f"documents_{user_id}"
 
-        assert (
-            user_id in collection_name
-        ), f"Edge case failed: user_id '{user_id}' not found in collection name '{collection_name}'."
-        assert collection_name.startswith(
-            "documents_"
-        ), f"Edge case failed: collection name '{collection_name}' does not start with 'documents_'."
+        assert user_id in collection_name, (
+            f"Edge case failed: user_id '{user_id}' not found in collection name '{collection_name}'."
+        )
+        assert collection_name.startswith("documents_"), (
+            f"Edge case failed: collection name '{collection_name}' does not start with 'documents_'."
+        )
 
     def test_new_user_query_returns_empty_not_error(self) -> None:
         """A brand-new user (no documents) querying must receive empty result, no exception."""
@@ -489,9 +485,7 @@ class TestUserScopedRAGIsolationEdgeCases:
         new_user_id = uuid.uuid4()
 
         mock_chroma_client = MagicMock()
-        mock_chroma_client.get_collection.side_effect = Exception(
-            "Collection not found"
-        )
+        mock_chroma_client.get_collection.side_effect = Exception("Collection not found")
 
         mock_model = MagicMock()
         mock_model.encode.return_value = [_make_mock_embedding()]

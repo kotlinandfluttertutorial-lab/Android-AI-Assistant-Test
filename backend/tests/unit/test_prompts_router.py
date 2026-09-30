@@ -222,9 +222,7 @@ class TestGetCurrentPrompt:
 
         with patch(
             "app.api.prompts.router.PromptService.get_current_template",
-            new=AsyncMock(
-                side_effect=TemplateNotFoundError("No active template found")
-            ),
+            new=AsyncMock(side_effect=TemplateNotFoundError("No active template found")),
         ):
             response = _admin_client().get("/prompts/nonexistent")
 

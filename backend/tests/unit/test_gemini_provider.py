@@ -1,4 +1,4 @@
-﻿"""Unit tests for app.llm.providers.gemini_provider.GeminiProvider.
+"""Unit tests for app.llm.providers.gemini_provider.GeminiProvider.
 
 Covers:
 - Initialisation: validates API key, stores model names from settings.
@@ -46,6 +46,7 @@ from app.llm.exceptions import (
 # Helpers
 # ---------------------------------------------------------------------------
 
+
 def _make_request(
     prompt: str = "What is Clean Architecture?",
     user_id: str = "user-test-123",
@@ -63,7 +64,9 @@ def _make_request(
     )
 
 
-def _make_sdk_response(text: str = "Test response.", input_tokens: int = 10, output_tokens: int = 20) -> MagicMock:
+def _make_sdk_response(
+    text: str = "Test response.", input_tokens: int = 10, output_tokens: int = 20
+) -> MagicMock:
     """Build a mock SDK GenerateContentResponse with usage_metadata."""
     usage = MagicMock()
     usage.prompt_token_count = input_tokens
@@ -109,6 +112,7 @@ async def _async_gen_tokens(tokens: list[str]) -> AsyncIterator[MagicMock]:
 # Fixtures
 # ---------------------------------------------------------------------------
 
+
 @pytest.fixture
 def provider():
     """Return a GeminiProvider instance with all SDK calls patched out."""
@@ -121,6 +125,7 @@ def provider():
             mock_rl.return_value.check = AsyncMock(return_value=None)
 
             from app.llm.providers.gemini_provider import GeminiProvider
+
             p = GeminiProvider()
             p._client = mock_client
             p._max_retry_attempts = 2
@@ -132,14 +137,17 @@ def provider():
 # Initialisation tests
 # ---------------------------------------------------------------------------
 
+
 class TestGeminiProviderInit:
     def test_raises_on_missing_api_key(self) -> None:
         """Empty GEMINI_API_KEY must raise LLMConfigurationError at init."""
         with patch.dict(os.environ, {"GEMINI_API_KEY": ""}):
             from app.config.settings import get_settings
+
             get_settings.cache_clear()
             with patch("app.llm.providers.gemini_provider.genai"):
                 from app.llm.providers.gemini_provider import GeminiProvider
+
                 with pytest.raises(LLMConfigurationError, match="GEMINI_API_KEY"):
                     GeminiProvider()
             get_settings.cache_clear()
@@ -149,6 +157,7 @@ class TestGeminiProviderInit:
         with patch("app.llm.providers.gemini_provider.genai"):
             with patch("app.llm.providers.gemini_provider._ProviderRateLimiter"):
                 from app.llm.providers.gemini_provider import GeminiProvider
+
                 p = GeminiProvider(model_override="gemini-3.8-flash")
                 assert p._primary_model == "gemini-3.8-flash"
 
@@ -157,12 +166,14 @@ class TestGeminiProviderInit:
 
     def test_model_name_from_settings(self, provider) -> None:
         from app.config.settings import get_settings
+
         assert provider.model_name == get_settings().GEMINI_MODEL
 
 
 # ---------------------------------------------------------------------------
 # generate() â€” success path
 # ---------------------------------------------------------------------------
+
 
 class TestGeminiProviderGenerate:
     @pytest.mark.asyncio
@@ -212,6 +223,7 @@ class TestGeminiProviderGenerate:
 # ---------------------------------------------------------------------------
 # generate() â€” fallback behaviour
 # ---------------------------------------------------------------------------
+
 
 class TestGeminiProviderFallback:
     @pytest.mark.asyncio
@@ -279,6 +291,7 @@ class TestGeminiProviderFallback:
 # ---------------------------------------------------------------------------
 # generate() â€” retry and error handling
 # ---------------------------------------------------------------------------
+
 
 class TestGeminiProviderRetry:
     @pytest.mark.asyncio
@@ -375,6 +388,7 @@ class TestGeminiProviderRetry:
 # stream() tests
 # ---------------------------------------------------------------------------
 
+
 class TestGeminiProviderStream:
     @pytest.mark.asyncio
     async def test_stream_yields_tokens(self, provider) -> None:
@@ -424,6 +438,7 @@ class TestGeminiProviderStream:
 # ---------------------------------------------------------------------------
 # _build_config() tests
 # ---------------------------------------------------------------------------
+
 
 class TestGeminiProviderBuildConfig:
     def test_request_overrides_respected(self, provider) -> None:

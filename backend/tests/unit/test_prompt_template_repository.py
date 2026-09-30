@@ -331,9 +331,7 @@ class TestCreateVersion:
     @pytest.mark.asyncio
     async def test_content_is_stored_correctly(self) -> None:
         """The content argument is passed through to the new ORM row."""
-        new_template = _make_template(
-            version=1, content="Special content", is_active=True
-        )
+        new_template = _make_template(version=1, content="Special content", is_active=True)
         db = _make_db_for_create(existing_rows=[], new_template=new_template)
         repo = PromptTemplateRepository(db)
 
@@ -456,9 +454,7 @@ class TestRollback:
 
         repo = PromptTemplateRepository(db)
         with patch.object(repo, "list_versions", new=AsyncMock(return_value=existing)):
-            await repo.rollback(
-                "my_template", version_number=1, author_id=OTHER_AUTHOR_ID
-            )
+            await repo.rollback("my_template", version_number=1, author_id=OTHER_AUTHOR_ID)
 
         added = db.add.call_args[0][0]
         assert added.author_id == OTHER_AUTHOR_ID

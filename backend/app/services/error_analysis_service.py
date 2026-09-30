@@ -49,9 +49,9 @@ logger = logging.getLogger(__name__)
 _LOW_CONFIDENCE_THRESHOLD = 0.6
 
 # Maximum tokens for the LLM prompt components
-_MAX_EVENTS_IN_PROMPT = 50   # beyond this the prompt gets too long
-_MAX_KB_CHUNKS = 5           # top-K from knowledge base (runbooks + incidents)
-_LLM_MAX_TOKENS = 1024       # output token limit for the analysis
+_MAX_EVENTS_IN_PROMPT = 50  # beyond this the prompt gets too long
+_MAX_KB_CHUNKS = 5  # top-K from knowledge base (runbooks + incidents)
+_LLM_MAX_TOKENS = 1024  # output token limit for the analysis
 
 # Default LLM timeout (seconds)
 _LLM_TIMEOUT = 45.0
@@ -136,9 +136,7 @@ class ErrorAnalysisService:
 
     # ── Private helpers ───────────────────────────────────────────────────────
 
-    async def _collect_events(
-        self, request: AnalyseErrorRequest
-    ) -> list[ObservabilityEvent]:
+    async def _collect_events(self, request: AnalyseErrorRequest) -> list[ObservabilityEvent]:
         """Collect the relevant ObservabilityEvents based on the request parameters."""
 
         if request.event_id:
@@ -234,17 +232,13 @@ class ErrorAnalysisService:
                 except Exception:
                     pass
                 screen = f" [{evt.screen}]" if evt.screen else ""
-                lines.append(
-                    f"[{ts}] {evt.level} {evt.event_type}{screen}: {evt.message}{meta}"
-                )
+                lines.append(f"[{ts}] {evt.level} {evt.event_type}{screen}: {evt.message}{meta}")
 
         if context_events:
             lines.append("")
             lines.append("=== Context Events (WARN / INFO) ===")
             for evt in context_events[:10]:
-                ts = datetime.fromtimestamp(evt.timestamp_ms / 1000, tz=UTC).strftime(
-                    "%H:%M:%S"
-                )
+                ts = datetime.fromtimestamp(evt.timestamp_ms / 1000, tz=UTC).strftime("%H:%M:%S")
                 screen = f" [{evt.screen}]" if evt.screen else ""
                 lines.append(f"[{ts}] {evt.level} {evt.event_type}{screen}: {evt.message}")
 
@@ -278,8 +272,8 @@ class ErrorAnalysisService:
         - Output format: strict JSON schema with all required fields
         - Explicit constraint: low confidence → say "Evidence insufficient"
         """
-        events_block    = self._format_events_for_prompt(events)
-        runbooks_block  = self._format_kb_chunks(runbook_chunks, "Relevant Runbooks")
+        events_block = self._format_events_for_prompt(events)
+        runbooks_block = self._format_kb_chunks(runbook_chunks, "Relevant Runbooks")
         incidents_block = self._format_kb_chunks(incident_chunks, "Historical Incidents")
 
         return f"""You are an expert Site Reliability Engineer and AI-powered DevOps assistant.
@@ -376,14 +370,11 @@ Respond with ONLY valid JSON matching this exact schema (no markdown, no explana
         # Strip markdown code fences if present
         if text.startswith("```"):
             lines = text.split("\n")
-            text = "\n".join(
-                line for line in lines
-                if not line.strip().startswith("```")
-            )
+            text = "\n".join(line for line in lines if not line.strip().startswith("```"))
 
         # Find the first { and last } to extract the JSON object
         start = text.find("{")
-        end   = text.rfind("}") + 1
+        end = text.rfind("}") + 1
 
         if start == -1 or end == 0:
             logger.warning("ErrorAnalysisService: no JSON object found in LLM response")
@@ -449,9 +440,7 @@ Respond with ONLY valid JSON matching this exact schema (no markdown, no explana
         low_confidence_warning = None
 
         if confidence < _LOW_CONFIDENCE_THRESHOLD:
-            likely_root_cause = (
-                "Evidence is insufficient — manual investigation required."
-            )
+            likely_root_cause = "Evidence is insufficient — manual investigation required."
             low_confidence_warning = (
                 f"Confidence score {confidence:.2f} is below the 0.6 threshold. "
                 "The AI does not have enough evidence to reliably identify the root cause. "
@@ -459,15 +448,15 @@ Respond with ONLY valid JSON matching this exact schema (no markdown, no explana
             )
 
         # Build related documentation from both RAG sources
-        related_docs_from_llm = [
-            str(d) for d in parsed.get("related_documentation", []) if d
-        ]
+        related_docs_from_llm = [str(d) for d in parsed.get("related_documentation", []) if d]
         # Also include source file names from retrieved chunks
-        kb_sources = list({
-            chunk["document_name"]
-            for chunk in (runbook_chunks + incident_chunks)
-            if chunk.get("document_name")
-        })
+        kb_sources = list(
+            {
+                chunk["document_name"]
+                for chunk in (runbook_chunks + incident_chunks)
+                if chunk.get("document_name")
+            }
+        )
         # Merge without duplicates
         related_docs = list(dict.fromkeys(related_docs_from_llm + kb_sources))
 

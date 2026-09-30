@@ -161,9 +161,7 @@ class GeminiProvider(LLMProvider):
 
         # Application-level rate limiter (NOT the Google API quota).
         # See class docstring for the distinction.
-        self._rate_limiter = _ProviderRateLimiter(
-            "gemini", settings.LLM_RATE_LIMIT_GEMINI
-        )
+        self._rate_limiter = _ProviderRateLimiter("gemini", settings.LLM_RATE_LIMIT_GEMINI)
 
         logger.info(
             "GeminiProvider initialised",
@@ -319,9 +317,7 @@ class GeminiProvider(LLMProvider):
     # Private helpers
     # ------------------------------------------------------------------
 
-    def _build_config(
-        self, request: LLMRequest, model: str
-    ) -> genai_types.GenerateContentConfig:
+    def _build_config(self, request: LLMRequest, model: str) -> genai_types.GenerateContentConfig:
         """Build a ``GenerateContentConfig`` from an ``LLMRequest``.
 
         Args:
@@ -619,9 +615,7 @@ class GeminiProvider(LLMProvider):
                 is_transient=True,
             ) from exc
 
-    def _log_retry(
-        self, request_id: str, model: str, attempt: int, reason: str
-    ) -> None:
+    def _log_retry(self, request_id: str, model: str, attempt: int, reason: str) -> None:
         """Emit a structured log for a retry attempt."""
         logger.warning(
             "Gemini request failed — retrying",

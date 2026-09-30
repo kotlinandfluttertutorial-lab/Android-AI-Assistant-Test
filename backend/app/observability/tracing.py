@@ -96,9 +96,8 @@ def _configure_tracing(service_name: str | None) -> None:
     from opentelemetry.sdk.trace import TracerProvider
     from opentelemetry.sdk.trace.export import BatchSpanProcessor
 
-    resolved_service_name = (
-        service_name
-        or os.environ.get("OTEL_SERVICE_NAME", "ai-assistant-backend")
+    resolved_service_name = service_name or os.environ.get(
+        "OTEL_SERVICE_NAME", "ai-assistant-backend"
     )
 
     resource = Resource.create({SERVICE_NAME: resolved_service_name})
@@ -115,11 +114,13 @@ def _configure_tracing(service_name: str | None) -> None:
         # No endpoint set — try Cloud Trace via ADC (works on Cloud Run natively)
         try:
             from opentelemetry.exporter.cloud_trace import CloudTraceSpanExporter  # type: ignore[import]  # noqa: I001
+
             exporter = CloudTraceSpanExporter()  # type: ignore[assignment]
             logger.info("OTEL: exporting spans to Google Cloud Trace via ADC")
         except ImportError:
             # opentelemetry-exporter-cloud-trace not installed — use OTLP console
             from opentelemetry.sdk.trace.export import ConsoleSpanExporter
+
             exporter = ConsoleSpanExporter()  # type: ignore[assignment]
             logger.info(
                 "OTEL: opentelemetry-exporter-cloud-trace not installed — "

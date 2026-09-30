@@ -106,11 +106,13 @@ class PdfAgent(Agent):
 
     @property
     def capabilities(self) -> frozenset[AgentCapability]:
-        return frozenset({
-            AgentCapability.DOCUMENT_RETRIEVAL,
-            AgentCapability.TEXT_GENERATION,
-            AgentCapability.STREAMING,
-        })
+        return frozenset(
+            {
+                AgentCapability.DOCUMENT_RETRIEVAL,
+                AgentCapability.TEXT_GENERATION,
+                AgentCapability.STREAMING,
+            }
+        )
 
     async def execute(
         self,
@@ -123,8 +125,9 @@ class PdfAgent(Agent):
         )
 
         if AsyncSessionLocal is None or rag_service is None:
-            yield self._failed(execution, request, "SERVICE_UNAVAILABLE",
-                               "PDF processing service not available.")
+            yield self._failed(
+                execution, request, "SERVICE_UNAVAILABLE", "PDF processing service not available."
+            )
             return
 
         metadata = request.metadata or {}
@@ -138,9 +141,10 @@ class PdfAgent(Agent):
                 yield event
         else:
             yield self._failed(
-                execution, request, "UNKNOWN_ACTION",
-                f"Unknown pdf_action '{action}'. "
-                "Supported: upload, query, summarize, search.",
+                execution,
+                request,
+                "UNKNOWN_ACTION",
+                f"Unknown pdf_action '{action}'. Supported: upload, query, summarize, search.",
             )
 
     # ── Upload ────────────────────────────────────────────────────────────────
@@ -157,17 +161,21 @@ class PdfAgent(Agent):
 
         if not file_bytes_b64:
             yield self._failed(
-                execution, request, "MISSING_FILE_BYTES",
+                execution,
+                request,
+                "MISSING_FILE_BYTES",
                 "metadata['file_bytes_b64'] (base64-encoded file) is required for upload.",
             )
             return
 
         import base64
+
         try:
             file_bytes = base64.b64decode(file_bytes_b64)
         except Exception as exc:
-            yield self._failed(execution, request, "INVALID_BASE64",
-                               f"Could not decode file_bytes_b64: {exc}")
+            yield self._failed(
+                execution, request, "INVALID_BASE64", f"Could not decode file_bytes_b64: {exc}"
+            )
             return
 
         yield AgentThinkingEvent(
@@ -179,8 +187,9 @@ class PdfAgent(Agent):
         try:
             rag_service.validate_mime_and_upload(filename, len(file_bytes), mime_type)
         except Exception as exc:
-            yield self._failed(execution, request, "VALIDATION_ERROR",
-                               f"File validation failed: {exc}")
+            yield self._failed(
+                execution, request, "VALIDATION_ERROR", f"File validation failed: {exc}"
+            )
             return
 
         # Store in MinIO/GCS — does NOT load entire file into memory during streaming
@@ -193,8 +202,9 @@ class PdfAgent(Agent):
             )
         except Exception as exc:
             logger.exception("PdfAgent: storage error: %s", exc)
-            yield self._failed(execution, request, "STORAGE_ERROR",
-                               "Failed to store file. Please try again.")
+            yield self._failed(
+                execution, request, "STORAGE_ERROR", "Failed to store file. Please try again."
+            )
             return
 
         yield AgentThinkingEvent(step_index=1, thought="File stored. Creating document record…")
@@ -219,14 +229,14 @@ class PdfAgent(Agent):
             # Dispatch Celery task (non-fatal if fails)
             try:
                 from app.workers.rag_worker import ingest_document_task  # type: ignore
+
                 ingest_document_task.delay(document_id_str, user_id_str)
             except Exception as task_exc:
                 logger.warning("PdfAgent: could not dispatch Celery task: %s", task_exc)
 
         except Exception as exc:
             logger.exception("PdfAgent: document record creation error: %s", exc)
-            yield self._failed(execution, request, "DB_ERROR",
-                               "Failed to create document record.")
+            yield self._failed(execution, request, "DB_ERROR", "Failed to create document record.")
             return
 
         summary = (
@@ -235,14 +245,16 @@ class PdfAgent(Agent):
             "Query it once ingestion completes."
         )
         yield AgentTokenEvent(token=summary)
-        yield AgentCompletedEvent(result=AgentResult(
-            execution_id=execution.execution_id,
-            request_id=request.request_id,
-            agent_name=self.name,
-            status=AgentStatus.COMPLETED,
-            content=summary,
-            metadata={"document_id": document_id_str, "minio_key": minio_key},
-        ))
+        yield AgentCompletedEvent(
+            result=AgentResult(
+                execution_id=execution.execution_id,
+                request_id=request.request_id,
+                agent_name=self.name,
+                status=AgentStatus.COMPLETED,
+                content=summary,
+                metadata={"document_id": document_id_str, "minio_key": minio_key},
+            )
+        )
 
     # ── Query / Summarize / Search ─────────────────────────────────────────────
 
@@ -278,8 +290,12 @@ class PdfAgent(Agent):
                     timeout=_QUERY_TIMEOUT,
                 )
         except asyncio.TimeoutError:
-            yield self._failed(execution, request, "QUERY_TIMEOUT",
-                               f"Document {action} timed out after {_QUERY_TIMEOUT}s.")
+            yield self._failed(
+                execution,
+                request,
+                "QUERY_TIMEOUT",
+                f"Document {action} timed out after {_QUERY_TIMEOUT}s.",
+            )
             return
         except Exception as exc:
             logger.exception("PdfAgent: query error: %s", exc)
@@ -292,8 +308,12 @@ class PdfAgent(Agent):
         yield AgentRetrievalCompletedEvent(query=query_text, chunk_count=len(chunks))
 
         if not chunks:
-            yield self._failed(execution, request, "NO_RELEVANT_CONTENT",
-                               f"No relevant content found in document for: {query_text[:100]}")
+            yield self._failed(
+                execution,
+                request,
+                "NO_RELEVANT_CONTENT",
+                f"No relevant content found in document for: {query_text[:100]}",
+            )
             return
 
         # Generate answer
@@ -307,13 +327,15 @@ class PdfAgent(Agent):
             async with AsyncSessionLocal() as db:
                 orc = AIOrchestrator(db=db)
                 answer = await asyncio.wait_for(
-                    orc.complete(prompt=prompt, provider="gemini", max_tokens=2048,
-                                 user_id=str(user_uuid)),
+                    orc.complete(
+                        prompt=prompt, provider="gemini", max_tokens=2048, user_id=str(user_uuid)
+                    ),
                     timeout=_GENERATION_TIMEOUT,
                 )
         except asyncio.TimeoutError:
-            yield self._failed(execution, request, "GENERATION_TIMEOUT",
-                               "Answer generation timed out.")
+            yield self._failed(
+                execution, request, "GENERATION_TIMEOUT", "Answer generation timed out."
+            )
             return
         except Exception as exc:
             logger.exception("PdfAgent: generation error: %s", exc)
@@ -332,19 +354,21 @@ class PdfAgent(Agent):
         ]
 
         yield AgentTokenEvent(token=answer_text)
-        yield AgentCompletedEvent(result=AgentResult(
-            execution_id=execution.execution_id,
-            request_id=request.request_id,
-            agent_name=self.name,
-            status=AgentStatus.COMPLETED,
-            content=answer_text,
-            citations=citations,
-            metadata={
-                "action": action,
-                "document_id": document_id,
-                "chunk_count": str(len(chunks)),
-            },
-        ))
+        yield AgentCompletedEvent(
+            result=AgentResult(
+                execution_id=execution.execution_id,
+                request_id=request.request_id,
+                agent_name=self.name,
+                status=AgentStatus.COMPLETED,
+                content=answer_text,
+                citations=citations,
+                metadata={
+                    "action": action,
+                    "document_id": document_id,
+                    "chunk_count": str(len(chunks)),
+                },
+            )
+        )
 
     @staticmethod
     def _failed(
@@ -353,13 +377,15 @@ class PdfAgent(Agent):
         code: str,
         msg: str,
     ) -> AgentFailedEvent:
-        return AgentFailedEvent(result=AgentResult(
-            execution_id=execution.execution_id,
-            request_id=request.request_id,
-            agent_name=PDF_AGENT_NAME,
-            status=AgentStatus.FAILED,
-            error=AgentError(code=code, message=msg),
-        ))
+        return AgentFailedEvent(
+            result=AgentResult(
+                execution_id=execution.execution_id,
+                request_id=request.request_id,
+                agent_name=PDF_AGENT_NAME,
+                status=AgentStatus.FAILED,
+                error=AgentError(code=code, message=msg),
+            )
+        )
 
 
 def _parse_uuid(s: str) -> uuid.UUID:

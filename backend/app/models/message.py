@@ -94,9 +94,7 @@ class Message(Base):
     # ------------------------------------------------------------------
     # Relationships
     # ------------------------------------------------------------------
-    conversation: Mapped[Conversation] = relationship(
-        "Conversation", back_populates="messages"
-    )
+    conversation: Mapped[Conversation] = relationship("Conversation", back_populates="messages")
     token_usage: Mapped[TokenUsage | None] = relationship(
         "TokenUsage", back_populates="message", uselist=False
     )

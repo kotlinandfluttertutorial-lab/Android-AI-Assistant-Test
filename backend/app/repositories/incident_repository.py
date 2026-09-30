@@ -62,9 +62,9 @@ class IncidentRepository:
         incident = await self.get_by_id(incident_id)
         if incident is None:
             return
-        incident.analysis_id       = analysis_id
-        incident.ai_summary        = ai_summary
-        incident.ai_confidence     = ai_confidence
+        incident.analysis_id = analysis_id
+        incident.ai_summary = ai_summary
+        incident.ai_confidence = ai_confidence
         incident.ai_recommended_fix = ai_recommended_fix
         await self._db.flush()
 
@@ -81,10 +81,10 @@ class IncidentRepository:
         incident = await self.get_by_id(incident_id)
         if incident is None:
             return
-        incident.rca_analysis_id             = rca_analysis_id
-        incident.rca_summary                 = rca_summary
-        incident.rca_confidence              = rca_confidence
-        incident.rca_candidates_json         = rca_candidates_json
+        incident.rca_analysis_id = rca_analysis_id
+        incident.rca_summary = rca_summary
+        incident.rca_confidence = rca_confidence
+        incident.rca_candidates_json = rca_candidates_json
         incident.rca_investigation_steps_json = rca_investigation_steps_json
         await self._db.flush()
 
@@ -106,9 +106,7 @@ class IncidentRepository:
     # ── Read ──────────────────────────────────────────────────────────────────
 
     async def get_by_id(self, incident_id: uuid.UUID) -> Incident | None:
-        result = await self._db.execute(
-            select(Incident).where(Incident.id == incident_id)
-        )
+        result = await self._db.execute(select(Incident).where(Incident.id == incident_id))
         return result.scalar_one_or_none()
 
     async def list_recent(
@@ -129,10 +127,9 @@ class IncidentRepository:
     async def get_open_count(self) -> int:
         """Return how many incidents are currently OPEN or INVESTIGATING."""
         from sqlalchemy import func as _func
+
         result = await self._db.execute(
-            select(_func.count(Incident.id)).where(
-                Incident.status.in_(["OPEN", "INVESTIGATING"])
-            )
+            select(_func.count(Incident.id)).where(Incident.status.in_(["OPEN", "INVESTIGATING"]))
         )
         return result.scalar_one() or 0
 
@@ -148,14 +145,17 @@ class IncidentRepository:
         ago and the error rate is still high, we do NOT create another one.
         """
         from datetime import timedelta
+
         cutoff = datetime.now(tz=UTC) - timedelta(minutes=within_minutes)
         result = await self._db.execute(
-            select(Incident).where(
+            select(Incident)
+            .where(
                 and_(
                     Incident.triggered_by == triggered_by,
                     Incident.status.in_(["OPEN", "INVESTIGATING"]),
                     Incident.detected_at >= cutoff,
                 )
-            ).limit(1)
+            )
+            .limit(1)
         )
         return result.scalar_one_or_none() is not None

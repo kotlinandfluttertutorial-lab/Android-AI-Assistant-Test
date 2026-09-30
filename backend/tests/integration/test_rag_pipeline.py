@@ -293,9 +293,9 @@ class TestFullRoundTrip:
             mock_rag_svc.store_file_minio = AsyncMock(return_value=doc.minio_key)
             mock_rag_svc.create_ingestion_job = AsyncMock(return_value=job.id)
 
-            _app.dependency_overrides[
-                __import__("app.database", fromlist=["get_db"]).get_db
-            ] = _override_get_db(mock_db)
+            _app.dependency_overrides[__import__("app.database", fromlist=["get_db"]).get_db] = (
+                _override_get_db(mock_db)
+            )
 
             with (
                 patch("app.workers.rag_worker.ingest_document_task") as mock_task,
@@ -342,9 +342,7 @@ class TestFullRoundTrip:
 
         chunk_rows_created: list[dict] = []
 
-        async def fake_create_chunk(
-            *, document_id, chunk_index, page_number, content, chroma_id
-        ):
+        async def fake_create_chunk(*, document_id, chunk_index, page_number, content, chroma_id):
             chunk_rows_created.append(
                 {
                     "document_id": document_id,
@@ -408,9 +406,7 @@ class TestFullRoundTrip:
                     return_value=mock_job_repo,
                 ),
             ):
-                result = asyncio.run(
-                    _run_ingestion(mock_task, str(doc_id), str(user_id))
-                )
+                result = asyncio.run(_run_ingestion(mock_task, str(doc_id), str(user_id)))
 
         assert result["status"] == "completed"
         assert result["document_id"] == str(doc_id)
@@ -461,9 +457,9 @@ class TestJobLifecycle:
             mock_rag_svc.create_ingestion_job = AsyncMock(return_value=job.id)
             mock_task.delay = MagicMock(return_value=MagicMock(id="celery-id-1"))
 
-            _app.dependency_overrides[
-                __import__("app.database", fromlist=["get_db"]).get_db
-            ] = _override_get_db(mock_db)
+            _app.dependency_overrides[__import__("app.database", fromlist=["get_db"]).get_db] = (
+                _override_get_db(mock_db)
+            )
 
             with TestClient(_app) as client:
                 resp = client.post(
@@ -494,9 +490,9 @@ class TestJobLifecycle:
             job_repo = MockJobRepo.return_value
             job_repo.get_by_id = AsyncMock(return_value=job)
 
-            _app.dependency_overrides[
-                __import__("app.database", fromlist=["get_db"]).get_db
-            ] = _override_get_db(mock_db)
+            _app.dependency_overrides[__import__("app.database", fromlist=["get_db"]).get_db] = (
+                _override_get_db(mock_db)
+            )
 
             with TestClient(_app) as client:
                 resp = client.get(
@@ -524,9 +520,7 @@ class TestJobLifecycle:
 
         # queued → running → completed sequence
         job_queued = _make_job(job_id=job_id, user_id=user_id, status=JobStatus.queued)
-        job_running = _make_job(
-            job_id=job_id, user_id=user_id, status=JobStatus.running
-        )
+        job_running = _make_job(job_id=job_id, user_id=user_id, status=JobStatus.running)
         job_completed = _make_job(
             job_id=job_id,
             user_id=user_id,
@@ -540,9 +534,7 @@ class TestJobLifecycle:
         status_log: list[str] = []
 
         async def _capture_update_status(jid, new_status, **kwargs):
-            status_log.append(
-                new_status.value if hasattr(new_status, "value") else str(new_status)
-            )
+            status_log.append(new_status.value if hasattr(new_status, "value") else str(new_status))
             if new_status == JobStatus.running:
                 return job_running
             return job_completed
@@ -587,9 +579,7 @@ class TestJobLifecycle:
                     return_value=mock_job_repo,
                 ),
             ):
-                result = asyncio.run(
-                    _run_ingestion(mock_task, str(doc_id), str(user_id))
-                )
+                result = asyncio.run(_run_ingestion(mock_task, str(doc_id), str(user_id)))
 
         assert result["status"] == "completed"
         # running then completed
@@ -663,14 +653,12 @@ class TestQueryReturnsCitations:
             mock_orchestrator_instance = AsyncMock()
             mock_completion = MagicMock()
             mock_completion.text = "The fox jumps [Source: sample.txt, Page 1]."
-            mock_orchestrator_instance.complete = AsyncMock(
-                return_value=mock_completion
-            )
+            mock_orchestrator_instance.complete = AsyncMock(return_value=mock_completion)
             MockOrchestrator.return_value = mock_orchestrator_instance
 
-            _app.dependency_overrides[
-                __import__("app.database", fromlist=["get_db"]).get_db
-            ] = _override_get_db(mock_db)
+            _app.dependency_overrides[__import__("app.database", fromlist=["get_db"]).get_db] = (
+                _override_get_db(mock_db)
+            )
 
             with TestClient(_app) as client:
                 resp = client.post(
@@ -718,9 +706,9 @@ class TestQueryReturnsCitations:
             mock_rag_svc.query_documents = AsyncMock(return_value=empty_result)
             mock_rag_svc._format_citations = MagicMock(return_value=[])
 
-            _app.dependency_overrides[
-                __import__("app.database", fromlist=["get_db"]).get_db
-            ] = _override_get_db(mock_db)
+            _app.dependency_overrides[__import__("app.database", fromlist=["get_db"]).get_db] = (
+                _override_get_db(mock_db)
+            )
 
             with TestClient(_app) as client:
                 resp = client.post(
@@ -775,9 +763,9 @@ class TestDeleteRemovesAllData:
             mock_rag_svc.delete_embeddings = AsyncMock(return_value=None)
             mock_rag_svc.delete_file_minio = AsyncMock(return_value=None)
 
-            _app.dependency_overrides[
-                __import__("app.database", fromlist=["get_db"]).get_db
-            ] = _override_get_db(mock_db)
+            _app.dependency_overrides[__import__("app.database", fromlist=["get_db"]).get_db] = (
+                _override_get_db(mock_db)
+            )
 
             with TestClient(_app) as client:
                 resp = client.delete(
@@ -793,9 +781,7 @@ class TestDeleteRemovesAllData:
         doc_repo.delete.assert_called_once_with(doc_id, uuid.UUID(str(user_id)))
 
         # rag_service.delete_embeddings called with the document_id string and user_id string
-        mock_rag_svc.delete_embeddings.assert_called_once_with(
-            str(doc_id), str(user_id)
-        )
+        mock_rag_svc.delete_embeddings.assert_called_once_with(str(doc_id), str(user_id))
 
         # rag_service.delete_file_minio called with the minio_key
         mock_rag_svc.delete_file_minio.assert_called_once_with(minio_key)
@@ -818,9 +804,9 @@ class TestDeleteRemovesAllData:
             # Simulate deleted document's job not found
             job_repo.get_by_id = AsyncMock(return_value=None)
 
-            _app.dependency_overrides[
-                __import__("app.database", fromlist=["get_db"]).get_db
-            ] = _override_get_db(mock_db)
+            _app.dependency_overrides[__import__("app.database", fromlist=["get_db"]).get_db] = (
+                _override_get_db(mock_db)
+            )
 
             with TestClient(_app) as client:
                 resp = client.get(
@@ -847,9 +833,9 @@ class TestDeleteRemovesAllData:
             doc_repo = MockDocRepo.return_value
             doc_repo.get_by_id = AsyncMock(return_value=None)  # not found
 
-            _app.dependency_overrides[
-                __import__("app.database", fromlist=["get_db"]).get_db
-            ] = _override_get_db(mock_db)
+            _app.dependency_overrides[__import__("app.database", fromlist=["get_db"]).get_db] = (
+                _override_get_db(mock_db)
+            )
 
             with TestClient(_app) as client:
                 resp = client.delete(
@@ -903,9 +889,9 @@ class TestCrossUserIsolation:
             # Scoped query with user_b_id finds nothing
             doc_repo.get_by_id = AsyncMock(return_value=None)
 
-            _app.dependency_overrides[
-                __import__("app.database", fromlist=["get_db"]).get_db
-            ] = _override_get_db(mock_db)
+            _app.dependency_overrides[__import__("app.database", fromlist=["get_db"]).get_db] = (
+                _override_get_db(mock_db)
+            )
 
             with TestClient(_app) as client:
                 resp = client.delete(
@@ -943,9 +929,9 @@ class TestCrossUserIsolation:
             # Scoped query with user_b_id finds nothing
             job_repo.get_by_id = AsyncMock(return_value=None)
 
-            _app.dependency_overrides[
-                __import__("app.database", fromlist=["get_db"]).get_db
-            ] = _override_get_db(mock_db)
+            _app.dependency_overrides[__import__("app.database", fromlist=["get_db"]).get_db] = (
+                _override_get_db(mock_db)
+            )
 
             with TestClient(_app) as client:
                 resp = client.get(
@@ -982,9 +968,9 @@ class TestCrossUserIsolation:
             mock_rag_svc.query_documents = AsyncMock(side_effect=_capture_query)
             mock_rag_svc._format_citations = MagicMock(return_value=[])
 
-            _app.dependency_overrides[
-                __import__("app.database", fromlist=["get_db"]).get_db
-            ] = _override_get_db(mock_db)
+            _app.dependency_overrides[__import__("app.database", fromlist=["get_db"]).get_db] = (
+                _override_get_db(mock_db)
+            )
 
             with TestClient(_app) as client:
                 resp = client.post(
@@ -1045,9 +1031,9 @@ class TestUploadValidationFailures:
             )
             mock_rag_svc.store_file_minio = AsyncMock()
 
-            _app.dependency_overrides[
-                __import__("app.database", fromlist=["get_db"]).get_db
-            ] = _override_get_db(mock_db)
+            _app.dependency_overrides[__import__("app.database", fromlist=["get_db"]).get_db] = (
+                _override_get_db(mock_db)
+            )
 
             with TestClient(_app) as client:
                 resp = client.post(
@@ -1090,9 +1076,9 @@ class TestUploadValidationFailures:
             )
             mock_rag_svc.store_file_minio = AsyncMock()
 
-            _app.dependency_overrides[
-                __import__("app.database", fromlist=["get_db"]).get_db
-            ] = _override_get_db(mock_db)
+            _app.dependency_overrides[__import__("app.database", fromlist=["get_db"]).get_db] = (
+                _override_get_db(mock_db)
+            )
 
             with TestClient(_app) as client:
                 resp = client.post(
@@ -1190,9 +1176,7 @@ class TestExtractionFailure:
                     return_value=mock_job_repo,
                 ),
             ):
-                result = asyncio.run(
-                    _run_ingestion(mock_task, str(doc_id), str(user_id))
-                )
+                result = asyncio.run(_run_ingestion(mock_task, str(doc_id), str(user_id)))
 
         # Worker returns failed status
         assert result["status"] == "failed"
@@ -1275,13 +1259,11 @@ class TestFullPipelineCycle:
             mock_rag_svc.validate_mime_and_upload = MagicMock()
             mock_rag_svc.store_file_minio = AsyncMock(return_value=minio_key)
             mock_rag_svc.create_ingestion_job = AsyncMock(return_value=job_id)
-            mock_celery_task.delay = MagicMock(
-                return_value=MagicMock(id="celery-cycle-id")
-            )
+            mock_celery_task.delay = MagicMock(return_value=MagicMock(id="celery-cycle-id"))
 
-            _app.dependency_overrides[
-                __import__("app.database", fromlist=["get_db"]).get_db
-            ] = _override_get_db(mock_db)
+            _app.dependency_overrides[__import__("app.database", fromlist=["get_db"]).get_db] = (
+                _override_get_db(mock_db)
+            )
 
             with TestClient(_app) as client:
                 upload_resp = client.post(
@@ -1307,9 +1289,9 @@ class TestFullPipelineCycle:
             job_repo2 = MockJobRepo2.return_value
             job_repo2.get_by_id = AsyncMock(return_value=job_queued)
 
-            _app.dependency_overrides[
-                __import__("app.database", fromlist=["get_db"]).get_db
-            ] = _override_get_db(mock_db2)
+            _app.dependency_overrides[__import__("app.database", fromlist=["get_db"]).get_db] = (
+                _override_get_db(mock_db2)
+            )
 
             with TestClient(_app) as client:
                 job_resp_before = client.get(
@@ -1366,13 +1348,9 @@ class TestFullPipelineCycle:
                     return_value=mock_job_repo3,
                 ),
             ):
-                ingest_result = asyncio.run(
-                    _run_ingestion(mock_task, str(doc_id), str(user_id))
-                )
+                ingest_result = asyncio.run(_run_ingestion(mock_task, str(doc_id), str(user_id)))
 
-        assert (
-            ingest_result["status"] == "completed"
-        ), f"Ingestion failed: {ingest_result}"
+        assert ingest_result["status"] == "completed", f"Ingestion failed: {ingest_result}"
 
         # ---------------------------------------------------------------
         # Phase 4 — Check job is completed via GET /jobs/{job_id}
@@ -1385,9 +1363,9 @@ class TestFullPipelineCycle:
             job_repo4 = MockJobRepo4.return_value
             job_repo4.get_by_id = AsyncMock(return_value=job_completed)
 
-            _app.dependency_overrides[
-                __import__("app.database", fromlist=["get_db"]).get_db
-            ] = _override_get_db(mock_db4)
+            _app.dependency_overrides[__import__("app.database", fromlist=["get_db"]).get_db] = (
+                _override_get_db(mock_db4)
+            )
 
             with TestClient(_app) as client:
                 job_resp_after = client.get(
@@ -1414,9 +1392,7 @@ class TestFullPipelineCycle:
             retrieved_chunks=[retrieved_chunk],
             context=_SAMPLE_TEXT,
         )
-        citation_dicts = [
-            {"document_name": _SAMPLE_FILENAME, "page_number": 1, "chunk_index": 0}
-        ]
+        citation_dicts = [{"document_name": _SAMPLE_FILENAME, "page_number": 1, "chunk_index": 0}]
 
         with (
             patch("app.api.rag.router.rag_service") as mock_rag_svc5,
@@ -1432,9 +1408,9 @@ class TestFullPipelineCycle:
             mock_orch5_inst.complete = AsyncMock(return_value=mock_comp5)
             MockOrch5.return_value = mock_orch5_inst
 
-            _app.dependency_overrides[
-                __import__("app.database", fromlist=["get_db"]).get_db
-            ] = _override_get_db(mock_db5)
+            _app.dependency_overrides[__import__("app.database", fromlist=["get_db"]).get_db] = (
+                _override_get_db(mock_db5)
+            )
 
             with TestClient(_app) as client:
                 query_resp = client.post(
@@ -1467,9 +1443,9 @@ class TestFullPipelineCycle:
             mock_rag_svc6.delete_embeddings = AsyncMock(return_value=None)
             mock_rag_svc6.delete_file_minio = AsyncMock(return_value=None)
 
-            _app.dependency_overrides[
-                __import__("app.database", fromlist=["get_db"]).get_db
-            ] = _override_get_db(mock_db6)
+            _app.dependency_overrides[__import__("app.database", fromlist=["get_db"]).get_db] = (
+                _override_get_db(mock_db6)
+            )
 
             with TestClient(_app) as client:
                 delete_resp = client.delete(
@@ -1492,9 +1468,9 @@ class TestFullPipelineCycle:
             job_repo7 = MockJobRepo7.return_value
             job_repo7.get_by_id = AsyncMock(return_value=None)
 
-            _app.dependency_overrides[
-                __import__("app.database", fromlist=["get_db"]).get_db
-            ] = _override_get_db(mock_db7)
+            _app.dependency_overrides[__import__("app.database", fromlist=["get_db"]).get_db] = (
+                _override_get_db(mock_db7)
+            )
 
             with TestClient(_app) as client:
                 job_gone_resp = client.get(

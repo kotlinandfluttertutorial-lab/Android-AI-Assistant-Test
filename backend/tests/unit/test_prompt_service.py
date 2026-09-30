@@ -308,9 +308,7 @@ class TestCreateVersion:
     @pytest.mark.asyncio
     async def test_content_stored_correctly(self) -> None:
         """The content passed to create_version is used in the ORM constructor."""
-        new_template = _make_template(
-            version=1, content="My special content", is_active=True
-        )
+        new_template = _make_template(version=1, content="My special content", is_active=True)
         db = self._make_db_for_create(existing_rows=[], new_template=new_template)
 
         with patch(

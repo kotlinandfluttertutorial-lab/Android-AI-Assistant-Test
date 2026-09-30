@@ -73,10 +73,7 @@ class _FakeTemplateRow:
     updated_at: datetime = field(default_factory=lambda: _NOW)
 
     def __repr__(self) -> str:  # pragma: no cover
-        return (
-            f"<FakeRow name={self.name!r} version={self.version} "
-            f"is_active={self.is_active}>"
-        )
+        return f"<FakeRow name={self.name!r} version={self.version} is_active={self.is_active}>"
 
 
 # ---------------------------------------------------------------------------
@@ -115,9 +112,7 @@ class _FakePromptTemplateRepository:
         for row in reversed(self._rows):
             if row.name == name and row.is_active:
                 return row
-        raise TemplateNotFoundError(
-            f"No active prompt template found with name={name!r}"
-        )
+        raise TemplateNotFoundError(f"No active prompt template found with name={name!r}")
 
     async def get_version(self, name: str, version: int) -> _FakeTemplateRow:
         """Return the specific version row for *name*.
@@ -128,9 +123,7 @@ class _FakePromptTemplateRepository:
         for row in self._rows:
             if row.name == name and row.version == version:
                 return row
-        raise TemplateNotFoundError(
-            f"No version {version} found for template name={name!r}"
-        )
+        raise TemplateNotFoundError(f"No version {version} found for template name={name!r}")
 
     async def list_versions(self, name: str) -> list[_FakeTemplateRow]:
         """Return all version rows for *name*, sorted by version ascending."""
@@ -292,16 +285,15 @@ async def test_16_prompt_template_version_rollback(
 
     # Sanity-check the setup: we should have exactly N version rows numbered 1..N
     all_rows_before = repo.all_rows_for(name)
-    assert (
-        len(all_rows_before) == n
-    ), f"[Setup] Expected {n} rows before rollback, got {len(all_rows_before)}"
+    assert len(all_rows_before) == n, (
+        f"[Setup] Expected {n} rows before rollback, got {len(all_rows_before)}"
+    )
     for i, row in enumerate(all_rows_before):
-        assert (
-            row.version == i + 1
-        ), f"[Setup] Row at index {i} should have version {i + 1}, got {row.version}"
+        assert row.version == i + 1, (
+            f"[Setup] Row at index {i} should have version {i + 1}, got {row.version}"
+        )
         assert row.content == contents[i], (
-            f"[Setup] Row v{i + 1} content mismatch: "
-            f"expected {contents[i]!r}, got {row.content!r}"
+            f"[Setup] Row v{i + 1} content mismatch: expected {contents[i]!r}, got {row.content!r}"
         )
 
     # --- Action: rollback to version V ---
@@ -345,13 +337,12 @@ async def test_16_prompt_template_version_rollback(
 
     # 16c: The rollback row has a version strictly greater than N
     rollback_row_version = all_rows_after[-1].version  # newest = last after sort
-    assert (
-        rollback_row_version > n
-    ), f"[Property 16c] Rollback row version {rollback_row_version} must be > N={n}"
+    assert rollback_row_version > n, (
+        f"[Property 16c] Rollback row version {rollback_row_version} must be > N={n}"
+    )
     # Specifically it should be N + 1
     assert rollback_row_version == n + 1, (
-        f"[Property 16c] Rollback row version should be N+1={n + 1}, "
-        f"got {rollback_row_version}"
+        f"[Property 16c] Rollback row version should be N+1={n + 1}, got {rollback_row_version}"
     )
 
     # 16d: Exactly one row is active after rollback
@@ -378,9 +369,7 @@ async def test_16_prompt_template_version_rollback(
 @given(
     name=st_template_name,
     contents=st.lists(st_content, min_size=3, max_size=8),
-    rollback_indices=st.lists(
-        st.integers(min_value=0, max_value=7), min_size=2, max_size=4
-    ),
+    rollback_indices=st.lists(st.integers(min_value=0, max_value=7), min_size=2, max_size=4),
 )
 @settings(max_examples=50, suppress_health_check=[HealthCheck.too_slow], deadline=None)
 @pytest.mark.asyncio
@@ -422,12 +411,12 @@ async def test_16_repeated_rollbacks_preserve_all_history(
         # Original N rows (1..N) must still be intact
         for i in range(n):
             row = all_rows[i]
-            assert (
-                row.version == i + 1
-            ), f"[16-repeated] Original v{i + 1} is missing after rollback"
-            assert (
-                row.content == contents[i]
-            ), f"[16-repeated] Original v{i + 1} content was mutated"
+            assert row.version == i + 1, (
+                f"[16-repeated] Original v{i + 1} is missing after rollback"
+            )
+            assert row.content == contents[i], (
+                f"[16-repeated] Original v{i + 1} content was mutated"
+            )
 
         # Active content must match the targeted historical version
         active_content = await service.get_template(name)
@@ -437,9 +426,9 @@ async def test_16_repeated_rollbacks_preserve_all_history(
         )
 
         # Exactly one row is active
-        assert (
-            repo.count_active(name) == 1
-        ), "[16-repeated] More than one active row detected after rollback"
+        assert repo.count_active(name) == 1, (
+            "[16-repeated] More than one active row detected after rollback"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -458,9 +447,7 @@ async def test_16_rollback_to_version_1_of_2() -> None:
     v1_content = "You are a helpful assistant."
     v2_content = "You are a coding assistant."
 
-    service, repo = await _create_service_with_n_versions(
-        name, [v1_content, v2_content]
-    )
+    service, repo = await _create_service_with_n_versions(name, [v1_content, v2_content])
 
     # Active should be v2 at this point
     assert await service.get_template(name) == v2_content
@@ -518,9 +505,7 @@ async def test_16_rollback_nonexistent_version_raises() -> None:
     ``TemplateNotFoundError`` without modifying the repository.
     """
     name = "test_template"
-    service, repo = await _create_service_with_n_versions(
-        name, ["v1 content", "v2 content"]
-    )
+    service, repo = await _create_service_with_n_versions(name, ["v1 content", "v2 content"])
 
     rows_before = len(repo.all_rows_for(name))
 
@@ -561,8 +546,7 @@ async def test_16_rollback_content_exact_match_all_versions() -> None:
         # 16a: active content matches the targeted version
         active = await service.get_template(name)
         assert active == contents[target_v - 1], (
-            f"After rollback to v{target_v}: expected {contents[target_v - 1]!r}, "
-            f"got {active!r}"
+            f"After rollback to v{target_v}: expected {contents[target_v - 1]!r}, got {active!r}"
         )
 
         # 16b: all N originals intact

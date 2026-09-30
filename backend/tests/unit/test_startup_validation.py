@@ -68,8 +68,7 @@ class TestStartupValidation:
             with pytest.raises(SystemExit) as exc_info:
                 startup_validation()
         assert exc_info.value.code == 1, (
-            f"Expected exit code 1 when {missing_var!r} is missing, "
-            f"got {exc_info.value.code!r}"
+            f"Expected exit code 1 when {missing_var!r} is missing, got {exc_info.value.code!r}"
         )
 
     @pytest.mark.parametrize("missing_var", list(_REQUIRED_VARS.keys()))
@@ -92,8 +91,7 @@ class TestStartupValidation:
         # The structured error log must mention the missing variable name.
         log_text = " ".join(record.getMessage() for record in caplog.records)
         assert missing_var in log_text, (
-            f"Expected {missing_var!r} to appear in the error log, "
-            f"but log contained: {log_text!r}"
+            f"Expected {missing_var!r} to appear in the error log, but log contained: {log_text!r}"
         )
 
     def test_does_not_exit_when_all_vars_present(self) -> None:
@@ -177,9 +175,7 @@ class TestGetMissingEnvVars:
 
         with patch.dict(os.environ, _env_without(missing_var), clear=True):
             result = get_missing_env_vars()
-        assert (
-            missing_var in result
-        ), f"Expected {missing_var!r} in missing vars, got {result!r}"
+        assert missing_var in result, f"Expected {missing_var!r} in missing vars, got {result!r}"
 
     def test_returns_multiple_missing_vars(self) -> None:
         """Reports all missing variables when more than one is absent.

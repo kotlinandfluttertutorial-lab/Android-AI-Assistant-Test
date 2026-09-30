@@ -105,9 +105,7 @@ def _make_refresh_token_record(
     record.used = used
     record.revoked = revoked
     record.family_id = family_id or uuid.uuid4()
-    record.expires_at = datetime.now(tz=timezone.utc) + timedelta(
-        seconds=expires_seconds
-    )
+    record.expires_at = datetime.now(tz=timezone.utc) + timedelta(seconds=expires_seconds)
     return record
 
 
@@ -644,25 +642,21 @@ class TestGoogleOAuthFlow:
             patch("app.config.settings.get_settings", return_value=mock_settings),
         ):
             repo = MockRepo.return_value
-            repo.get_by_google_id = AsyncMock(
-                return_value=None
-            )  # no existing google user
+            repo.get_by_google_id = AsyncMock(return_value=None)  # no existing google user
             repo.get_by_email = AsyncMock(return_value=None)  # no existing email user
             repo.create_google_user = AsyncMock(return_value=google_user)
 
             MockAudit.return_value.log_login = AsyncMock()
 
-            _app.dependency_overrides[
-                __import__("app.database", fromlist=["get_db"]).get_db
-            ] = _override_get_db(mock_db)
+            _app.dependency_overrides[__import__("app.database", fromlist=["get_db"]).get_db] = (
+                _override_get_db(mock_db)
+            )
             _app.dependency_overrides[
                 __import__("app.database.redis", fromlist=["get_redis"]).get_redis
             ] = _override_get_redis(mock_redis)
 
             with TestClient(_app) as client:
-                resp = client.post(
-                    "/auth/google", json={"id_token": "mock.google.id.token"}
-                )
+                resp = client.post("/auth/google", json={"id_token": "mock.google.id.token"})
 
         _app.dependency_overrides.clear()
 
@@ -717,17 +711,15 @@ class TestGoogleOAuthFlow:
 
             MockAudit.return_value.log_login = AsyncMock()
 
-            _app.dependency_overrides[
-                __import__("app.database", fromlist=["get_db"]).get_db
-            ] = _override_get_db(mock_db)
+            _app.dependency_overrides[__import__("app.database", fromlist=["get_db"]).get_db] = (
+                _override_get_db(mock_db)
+            )
             _app.dependency_overrides[
                 __import__("app.database.redis", fromlist=["get_redis"]).get_redis
             ] = _override_get_redis(mock_redis)
 
             with TestClient(_app) as client:
-                resp = client.post(
-                    "/auth/google", json={"id_token": "mock.google.id.token"}
-                )
+                resp = client.post("/auth/google", json={"id_token": "mock.google.id.token"})
 
         _app.dependency_overrides.clear()
 
@@ -779,25 +771,21 @@ class TestGoogleOAuthFlow:
             patch("app.config.settings.get_settings", return_value=mock_settings),
         ):
             repo = MockRepo.return_value
-            repo.get_by_google_id = AsyncMock(
-                return_value=None
-            )  # no google_id match yet
+            repo.get_by_google_id = AsyncMock(return_value=None)  # no google_id match yet
             repo.get_by_email = AsyncMock(return_value=existing_user)  # email match
             repo.update_google_id = AsyncMock(return_value=linked_user)
 
             MockAudit.return_value.log_login = AsyncMock()
 
-            _app.dependency_overrides[
-                __import__("app.database", fromlist=["get_db"]).get_db
-            ] = _override_get_db(mock_db)
+            _app.dependency_overrides[__import__("app.database", fromlist=["get_db"]).get_db] = (
+                _override_get_db(mock_db)
+            )
             _app.dependency_overrides[
                 __import__("app.database.redis", fromlist=["get_redis"]).get_redis
             ] = _override_get_redis(mock_redis)
 
             with TestClient(_app) as client:
-                resp = client.post(
-                    "/auth/google", json={"id_token": "mock.google.id.token"}
-                )
+                resp = client.post("/auth/google", json={"id_token": "mock.google.id.token"})
 
         _app.dependency_overrides.clear()
 
@@ -894,13 +882,13 @@ class TestAccountLockout:
             with TestClient(_app) as client:
                 for attempt in range(1, 5):
                     resp = self._make_login_request(client)
-                    assert (
-                        resp.status_code == 401
-                    ), f"Attempt {attempt} should return 401, got {resp.status_code}"
+                    assert resp.status_code == 401, (
+                        f"Attempt {attempt} should return 401, got {resp.status_code}"
+                    )
 
-        assert (
-            len(audit_calls) == 4
-        ), f"Expected 4 failed_login audit entries, got {len(audit_calls)}"
+        assert len(audit_calls) == 4, (
+            f"Expected 4 failed_login audit entries, got {len(audit_calls)}"
+        )
 
     def test_fifth_failure_triggers_lockout_status(self) -> None:
         """5th failed attempt returns 429 (locked) or 401, account is now locked.
@@ -970,9 +958,7 @@ class TestAccountLockout:
             patch("app.api.auth.router.UserRepository") as MockRepo,
             patch("app.api.auth.router.AuditService") as MockAudit,
             patch("app.api.auth.router.AccountLockoutService") as MockLockout,
-            patch(
-                "app.api.auth.router.verify_password", return_value=True
-            ),  # correct password
+            patch("app.api.auth.router.verify_password", return_value=True),  # correct password
         ):
             repo = MockRepo.return_value
             repo.get_by_email = AsyncMock(return_value=user)
@@ -1027,8 +1013,8 @@ class TestAccountLockout:
                 for _ in range(3):
                     self._make_login_request(client)
 
-        assert (
-            len(audit_log_calls) == 3
-        ), f"Expected 3 audit log entries for 3 failed attempts, got {len(audit_log_calls)}"
+        assert len(audit_log_calls) == 3, (
+            f"Expected 3 audit log entries for 3 failed attempts, got {len(audit_log_calls)}"
+        )
         for call in audit_log_calls:
             assert call.get("reason") == "wrong_password"

@@ -153,9 +153,7 @@ class TestOfflineTranslation:
         """Response must indicate offline_mode=True."""
         response = client.post(
             "/translate",
-            json=_translate_payload(
-                text="Bonjour", source="fr", target="en", offline=True
-            ),
+            json=_translate_payload(text="Bonjour", source="fr", target="en", offline=True),
         )
         assert response.status_code == 200
         assert response.json()["offline_mode"] is True
@@ -170,9 +168,7 @@ class TestOfflineTranslation:
         provider = response.json()["provider"]
         assert "offline" in provider.lower() or "on-device" in provider.lower()
 
-    def test_offline_mode_includes_source_text_in_response(
-        self, client: TestClient
-    ) -> None:
+    def test_offline_mode_includes_source_text_in_response(self, client: TestClient) -> None:
         """Offline translated text should contain the original text (stub behavior)."""
         text = "Good morning"
         response = client.post(
@@ -183,9 +179,7 @@ class TestOfflineTranslation:
         # Stub response wraps original text
         assert text in response.json()["translated_text"]
 
-    def test_offline_mode_does_not_call_ai_orchestrator(
-        self, client: TestClient
-    ) -> None:
+    def test_offline_mode_does_not_call_ai_orchestrator(self, client: TestClient) -> None:
         """AIOrchestrator must not be called in offline mode."""
         with patch("app.api.translation.router.AIOrchestrator") as MockOrch:
             response = client.post(
@@ -199,9 +193,7 @@ class TestOfflineTranslation:
         """Response language codes must match the request."""
         response = client.post(
             "/translate",
-            json=_translate_payload(
-                text="Hello", source="en", target="de", offline=True
-            ),
+            json=_translate_payload(text="Hello", source="en", target="de", offline=True),
         )
         assert response.status_code == 200
         body = response.json()
@@ -263,9 +255,7 @@ class TestOnlineTranslation:
         assert response.status_code == 200
         assert response.json()["translated_text"] == expected
 
-    def test_online_mode_returns_503_on_orchestrator_failure(
-        self, client: TestClient
-    ) -> None:
+    def test_online_mode_returns_503_on_orchestrator_failure(self, client: TestClient) -> None:
         """If AIOrchestrator raises, endpoint should return 503."""
         with patch("app.api.translation.router.AIOrchestrator") as MockOrch:
             mock_inst = AsyncMock()
@@ -287,9 +277,7 @@ class TestOnlineTranslation:
             MockOrch.return_value = mock_inst
             response = client.post(
                 "/translate",
-                json=_translate_payload(
-                    text="Hello", source="en", target="ja", offline=False
-                ),
+                json=_translate_payload(text="Hello", source="en", target="ja", offline=False),
             )
         assert response.status_code == 200
         body = response.json()

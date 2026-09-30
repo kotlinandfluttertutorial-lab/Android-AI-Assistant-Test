@@ -188,9 +188,7 @@ class RefreshResponse(BaseModel):
     """
 
     access_token: str = Field(description="New signed JWT access token.")
-    refresh_token: str = Field(
-        description="New opaque refresh token (old token is invalidated)."
-    )
+    refresh_token: str = Field(description="New opaque refresh token (old token is invalidated).")
     access_token_expires_at: int = Field(
         description="Epoch milliseconds when the new access token expires."
     )

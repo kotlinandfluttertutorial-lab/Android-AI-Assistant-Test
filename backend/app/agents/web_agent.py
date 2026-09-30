@@ -81,9 +81,7 @@ class WebSearchProvider(Protocol):
     @property
     def is_configured(self) -> bool: ...
 
-    async def search(
-        self, query: str, max_results: int
-    ) -> list[dict[str, str]]:
+    async def search(self, query: str, max_results: int) -> list[dict[str, str]]:
         """Return a list of {title, url, snippet} dicts."""
         ...
 
@@ -99,9 +97,7 @@ class _StubWebSearchProvider:
     def is_configured(self) -> bool:
         return False
 
-    async def search(
-        self, query: str, max_results: int
-    ) -> list[dict[str, str]]:
+    async def search(self, query: str, max_results: int) -> list[dict[str, str]]:
         return []
 
 
@@ -135,10 +131,12 @@ class WebAgent(Agent):
 
     @property
     def capabilities(self) -> frozenset[AgentCapability]:
-        return frozenset({
-            AgentCapability.SEMANTIC_SEARCH,
-            AgentCapability.TEXT_GENERATION,
-        })
+        return frozenset(
+            {
+                AgentCapability.SEMANTIC_SEARCH,
+                AgentCapability.TEXT_GENERATION,
+            }
+        )
 
     async def execute(
         self,
@@ -153,7 +151,8 @@ class WebAgent(Agent):
         # ── Provider configured? ─────────────────────────────────────────────
         if not self._provider.is_configured:
             yield self._failed(
-                execution, request,
+                execution,
+                request,
                 "PROVIDER_NOT_CONFIGURED",
                 "Web search is not yet configured. Add a search API key in Settings.",
             )
@@ -163,8 +162,9 @@ class WebAgent(Agent):
         metadata = request.metadata or {}
         query = (metadata.get("query") or request.input or "").strip()
         if not query:
-            yield self._failed(execution, request, "BLANK_QUERY",
-                               "A non-empty search query is required.")
+            yield self._failed(
+                execution, request, "BLANK_QUERY", "A non-empty search query is required."
+            )
             return
 
         raw_max = metadata.get("max_results", "")
@@ -178,8 +178,7 @@ class WebAgent(Agent):
             results = await self._provider.search(query, max_results)
         except Exception as exc:
             logger.warning("WebAgent: search failed: %s", exc)
-            yield self._failed(execution, request, "SEARCH_ERROR",
-                               f"Web search failed: {exc}")
+            yield self._failed(execution, request, "SEARCH_ERROR", f"Web search failed: {exc}")
             return
 
         yield AgentRetrievalCompletedEvent(query=query, chunk_count=len(results))
@@ -187,14 +186,16 @@ class WebAgent(Agent):
         if not results:
             msg = f"No web results found for: {query}"
             yield AgentTokenEvent(token=msg)
-            yield AgentCompletedEvent(result=AgentResult(
-                execution_id=execution.execution_id,
-                request_id=request.request_id,
-                agent_name=self.name,
-                status=AgentStatus.COMPLETED,
-                content=msg,
-                metadata={"query": query, "result_count": "0"},
-            ))
+            yield AgentCompletedEvent(
+                result=AgentResult(
+                    execution_id=execution.execution_id,
+                    request_id=request.request_id,
+                    agent_name=self.name,
+                    status=AgentStatus.COMPLETED,
+                    content=msg,
+                    metadata={"query": query, "result_count": "0"},
+                )
+            )
             return
 
         # ── Format response ───────────────────────────────────────────────────
@@ -211,27 +212,31 @@ class WebAgent(Agent):
             if timestamp:
                 lines.append(f"   Published: {timestamp}")
             lines.append("")
-            citations.append(AgentCitation(
-                document_id=url,
-                document_name=title,
-                excerpt=snippet[:300],
-            ))
+            citations.append(
+                AgentCitation(
+                    document_id=url,
+                    document_name=title,
+                    excerpt=snippet[:300],
+                )
+            )
 
         formatted = "\n".join(lines).rstrip()
         yield AgentTokenEvent(token=formatted)
-        yield AgentCompletedEvent(result=AgentResult(
-            execution_id=execution.execution_id,
-            request_id=request.request_id,
-            agent_name=self.name,
-            status=AgentStatus.COMPLETED,
-            content=formatted,
-            citations=citations,
-            metadata={
-                "query": query,
-                "result_count": str(len(results)),
-                "provider": self._provider.provider_name,
-            },
-        ))
+        yield AgentCompletedEvent(
+            result=AgentResult(
+                execution_id=execution.execution_id,
+                request_id=request.request_id,
+                agent_name=self.name,
+                status=AgentStatus.COMPLETED,
+                content=formatted,
+                citations=citations,
+                metadata={
+                    "query": query,
+                    "result_count": str(len(results)),
+                    "provider": self._provider.provider_name,
+                },
+            )
+        )
 
     @staticmethod
     def _failed(
@@ -240,10 +245,12 @@ class WebAgent(Agent):
         code: str,
         msg: str,
     ) -> AgentFailedEvent:
-        return AgentFailedEvent(result=AgentResult(
-            execution_id=execution.execution_id,
-            request_id=request.request_id,
-            agent_name=WEB_AGENT_NAME,
-            status=AgentStatus.FAILED,
-            error=AgentError(code=code, message=msg),
-        ))
+        return AgentFailedEvent(
+            result=AgentResult(
+                execution_id=execution.execution_id,
+                request_id=request.request_id,
+                agent_name=WEB_AGENT_NAME,
+                status=AgentStatus.FAILED,
+                error=AgentError(code=code, message=msg),
+            )
+        )

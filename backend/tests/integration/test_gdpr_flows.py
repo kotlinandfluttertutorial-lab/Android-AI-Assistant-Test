@@ -475,9 +475,7 @@ class TestExportWorkerTask:
         async def _execute_side_effect(_query):
             idx = call_index[0]
             call_index[0] += 1
-            return _scalars_result(
-                fetch_returns[idx] if idx < len(fetch_returns) else []
-            )
+            return _scalars_result(fetch_returns[idx] if idx < len(fetch_returns) else [])
 
         mock_db = AsyncMock()
         mock_db.commit = AsyncMock()
@@ -493,9 +491,7 @@ class TestExportWorkerTask:
             update_status_calls.append((job_uuid, status, kwargs))
 
         mock_job_repo_instance = MagicMock()
-        mock_job_repo_instance.update_status = AsyncMock(
-            side_effect=_fake_update_status
-        )
+        mock_job_repo_instance.update_status = AsyncMock(side_effect=_fake_update_status)
 
         mock_task = MagicMock()
 
@@ -520,9 +516,9 @@ class TestExportWorkerTask:
             (c for c in update_status_calls if c[1] == JobStatus.completed),
             None,
         )
-        assert (
-            completed_call is not None
-        ), "job_repo.update_status was never called with JobStatus.completed"
+        assert completed_call is not None, (
+            "job_repo.update_status was never called with JobStatus.completed"
+        )
 
         archive = completed_call[2].get("result_payload", {})
         expected_keys = {

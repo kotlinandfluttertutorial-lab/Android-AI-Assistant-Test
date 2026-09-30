@@ -111,9 +111,7 @@ class SlackReadConnector(MCPToolConnector):
             headers = _auth_headers()
 
             if action == "list_channels":
-                resp = await client.get(
-                    f"{_SLACK_BASE}/conversations.list", headers=headers
-                )
+                resp = await client.get(f"{_SLACK_BASE}/conversations.list", headers=headers)
                 resp.raise_for_status()
                 data = resp.json()
                 if not data.get("ok"):

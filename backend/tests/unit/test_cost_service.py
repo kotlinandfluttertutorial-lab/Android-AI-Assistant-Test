@@ -236,9 +236,7 @@ class TestCreateSpendingAlert:
         db.execute = AsyncMock(return_value=_make_mock_execute_result(scalar=3))
 
         with pytest.raises(ValueError, match=r"Maximum of 3"):
-            await create_spending_alert(
-                db=db, user_id=user_id, threshold_usd=Decimal("10.00")
-            )
+            await create_spending_alert(db=db, user_id=user_id, threshold_usd=Decimal("10.00"))
 
         # db.add must NOT be called
         db.add.assert_not_called()
@@ -254,9 +252,7 @@ class TestCreateSpendingAlert:
         db.execute = AsyncMock(return_value=_make_mock_execute_result(scalar=0))
 
         with pytest.raises(ValueError, match=r"between"):
-            await create_spending_alert(
-                db=db, user_id=user_id, threshold_usd=Decimal("0.00")
-            )
+            await create_spending_alert(db=db, user_id=user_id, threshold_usd=Decimal("0.00"))
 
     @pytest.mark.asyncio
     async def test_raises_on_threshold_above_maximum(self) -> None:
@@ -269,9 +265,7 @@ class TestCreateSpendingAlert:
         db.execute = AsyncMock(return_value=_make_mock_execute_result(scalar=0))
 
         with pytest.raises(ValueError, match=r"between"):
-            await create_spending_alert(
-                db=db, user_id=user_id, threshold_usd=Decimal("1000.00")
-            )
+            await create_spending_alert(db=db, user_id=user_id, threshold_usd=Decimal("1000.00"))
 
     @pytest.mark.asyncio
     async def test_creates_alert_at_minimum_threshold(self) -> None:
@@ -283,9 +277,7 @@ class TestCreateSpendingAlert:
         db = _make_mock_db()
         db.execute = AsyncMock(return_value=_make_mock_execute_result(scalar=0))
 
-        dto = await create_spending_alert(
-            db=db, user_id=user_id, threshold_usd=_THRESHOLD_MIN
-        )
+        dto = await create_spending_alert(db=db, user_id=user_id, threshold_usd=_THRESHOLD_MIN)
         assert dto.threshold_usd == pytest.approx(float(_THRESHOLD_MIN))
 
     @pytest.mark.asyncio
@@ -298,9 +290,7 @@ class TestCreateSpendingAlert:
         db = _make_mock_db()
         db.execute = AsyncMock(return_value=_make_mock_execute_result(scalar=0))
 
-        dto = await create_spending_alert(
-            db=db, user_id=user_id, threshold_usd=_THRESHOLD_MAX
-        )
+        dto = await create_spending_alert(db=db, user_id=user_id, threshold_usd=_THRESHOLD_MAX)
         assert dto.threshold_usd == pytest.approx(float(_THRESHOLD_MAX))
 
 
@@ -326,9 +316,7 @@ class TestDeleteSpendingAlert:
         alert_stub = _make_alert_stub(user_id=user_id, alert_id=alert_id)
 
         db = _make_mock_db()
-        db.execute = AsyncMock(
-            return_value=_make_mock_execute_result(scalar=alert_stub)
-        )
+        db.execute = AsyncMock(return_value=_make_mock_execute_result(scalar=alert_stub))
 
         result = await delete_spending_alert(db=db, user_id=user_id, alert_id=alert_id)
 
@@ -367,9 +355,7 @@ class TestDeleteSpendingAlert:
         # Simulate: the WHERE clause (id AND user_id) returns NULL for the attacker
         db.execute = AsyncMock(return_value=_make_mock_execute_result(scalar=None))
 
-        result = await delete_spending_alert(
-            db=db, user_id=attacker_user_id, alert_id=alert_id
-        )
+        result = await delete_spending_alert(db=db, user_id=attacker_user_id, alert_id=alert_id)
 
         # Must not delete a non-owned alert
         assert result is False
@@ -466,9 +452,7 @@ class TestCheckSpendingAlerts:
 
         db.execute = mock_execute
 
-        with patch(
-            "app.services.cost_service._enqueue_alert_notifications"
-        ) as mock_enqueue:
+        with patch("app.services.cost_service._enqueue_alert_notifications") as mock_enqueue:
             await check_spending_alerts(db=db)
 
         # Alert must be marked as triggered
@@ -509,9 +493,7 @@ class TestCheckSpendingAlerts:
 
         db.execute = mock_execute
 
-        with patch(
-            "app.services.cost_service._enqueue_alert_notifications"
-        ) as mock_enqueue:
+        with patch("app.services.cost_service._enqueue_alert_notifications") as mock_enqueue:
             await check_spending_alerts(db=db)
 
         assert alert.is_triggered is False
@@ -534,9 +516,7 @@ class TestCheckSpendingAlerts:
         db = _make_mock_db()
         db.execute = AsyncMock(return_value=_make_mock_execute_result(scalars=[]))
 
-        with patch(
-            "app.services.cost_service._enqueue_alert_notifications"
-        ) as mock_enqueue:
+        with patch("app.services.cost_service._enqueue_alert_notifications") as mock_enqueue:
             await check_spending_alerts(db=db)
 
         mock_enqueue.assert_not_called()
@@ -550,9 +530,7 @@ class TestCheckSpendingAlerts:
         db = _make_mock_db()
         db.execute = AsyncMock(return_value=_make_mock_execute_result(scalars=[]))
 
-        with patch(
-            "app.services.cost_service._enqueue_alert_notifications"
-        ) as mock_enqueue:
+        with patch("app.services.cost_service._enqueue_alert_notifications") as mock_enqueue:
             await check_spending_alerts(db=db)
 
         mock_enqueue.assert_not_called()
@@ -630,9 +608,9 @@ class TestUsageRouterPerUserScoping:
             headers={"Authorization": f"Bearer {token}"},
         )
 
-        assert (
-            response.status_code == 403
-        ), f"Expected HTTP 403 when foreign user_id supplied, got {response.status_code}"
+        assert response.status_code == 403, (
+            f"Expected HTTP 403 when foreign user_id supplied, got {response.status_code}"
+        )
 
     @pytest.mark.asyncio
     async def test_get_cost_allows_own_user_id_in_query(self) -> None:
@@ -648,9 +626,7 @@ class TestUsageRouterPerUserScoping:
         auth_user_id = uuid.uuid4()
         token, _ = create_access_token(user_id=auth_user_id, role="user")
 
-        with patch(
-            "app.api.usage.router.cost_service.get_user_cost_summary"
-        ) as mock_svc:
+        with patch("app.api.usage.router.cost_service.get_user_cost_summary") as mock_svc:
             from app.services.cost_service import CostSummary
 
             mock_svc.return_value = CostSummary(
@@ -667,9 +643,7 @@ class TestUsageRouterPerUserScoping:
             )
 
         # Must NOT be 403 (own user_id is OK)
-        assert (
-            response.status_code != 403
-        ), "Unexpectedly got HTTP 403 when supplying own user_id"
+        assert response.status_code != 403, "Unexpectedly got HTTP 403 when supplying own user_id"
 
 
 # ===========================================================================
@@ -697,12 +671,8 @@ class TestUsageRouterAlertLimit:
         auth_user_id = uuid.uuid4()
         token, _ = create_access_token(user_id=auth_user_id, role="user")
 
-        with patch(
-            "app.api.usage.router.cost_service.create_spending_alert"
-        ) as mock_svc:
-            mock_svc.side_effect = ValueError(
-                "Maximum of 3 spending alerts allowed per user"
-            )
+        with patch("app.api.usage.router.cost_service.create_spending_alert") as mock_svc:
+            mock_svc.side_effect = ValueError("Maximum of 3 spending alerts allowed per user")
 
             client = TestClient(app, raise_server_exceptions=False)
             response = client.post(
@@ -711,9 +681,9 @@ class TestUsageRouterAlertLimit:
                 json={"threshold_usd": "5.00"},
             )
 
-        assert (
-            response.status_code == 422
-        ), f"Expected HTTP 422 when alert limit is reached, got {response.status_code}"
+        assert response.status_code == 422, (
+            f"Expected HTTP 422 when alert limit is reached, got {response.status_code}"
+        )
 
     @pytest.mark.asyncio
     async def test_delete_alerts_endpoint(self) -> None:
@@ -730,9 +700,7 @@ class TestUsageRouterAlertLimit:
         alert_id = str(uuid.uuid4())
         token, _ = create_access_token(user_id=auth_user_id, role="user")
 
-        with patch(
-            "app.api.usage.router.cost_service.delete_spending_alert"
-        ) as mock_del:
+        with patch("app.api.usage.router.cost_service.delete_spending_alert") as mock_del:
             mock_del.return_value = True
 
             client = TestClient(app, raise_server_exceptions=False)

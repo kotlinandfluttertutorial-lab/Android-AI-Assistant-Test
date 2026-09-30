@@ -85,9 +85,7 @@ class TestGetDb:
         mock_session.__aexit__ = AsyncMock(return_value=False)
 
         mock_session_factory = MagicMock()
-        mock_session_factory.return_value.__aenter__ = AsyncMock(
-            return_value=mock_session
-        )
+        mock_session_factory.return_value.__aenter__ = AsyncMock(return_value=mock_session)
         mock_session_factory.return_value.__aexit__ = AsyncMock(return_value=False)
 
         with patch("app.database.AsyncSessionLocal", mock_session_factory):
