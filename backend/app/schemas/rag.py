@@ -312,3 +312,160 @@ class ChunkQueryResponse(BaseModel):
         )
     )
     total_chunks: int = Field(description="Number of chunks retrieved.")
+
+
+# ---------------------------------------------------------------------------
+# /api/v1/documents schemas
+# ---------------------------------------------------------------------------
+
+
+class V1DocumentDetailResponse(BaseModel):
+    """Document detail schema for GET /api/v1/documents/{id}.
+
+    Extends :class:`DocumentResponse` with the last ingestion job status so
+    clients can check whether the document is ready to query without a separate
+    /jobs/ call.
+    """
+
+    model_config = ConfigDict(from_attributes=True, populate_by_name=True)
+
+    document_id: uuid.UUID = Field(
+        alias="id",
+        serialization_alias="document_id",
+        description="UUID of the document.",
+    )
+    file_name: str = Field(description="Original uploaded filename.")
+    mime_type: str = Field(description="Detected MIME type.")
+    size_bytes: int = Field(description="File size in bytes.")
+    ingestion_status: str = Field(description="pending | processing | ready | failed.")
+    page_count: int | None = Field(
+        default=None, description="Page count for PDF/DOCX; null for text."
+    )
+    created_at: datetime = Field(description="Upload timestamp (UTC).")
+
+
+# ---------------------------------------------------------------------------
+# /api/v1/rag schemas
+# ---------------------------------------------------------------------------
+
+
+class V1SearchRequest(BaseModel):
+    """Request body for POST /api/v1/rag/search.
+
+    Retrieves the most relevant document chunks without generating an LLM answer.
+    """
+
+    query: str = Field(
+        description="Natural-language search query.",
+        min_length=1,
+        max_length=_MAX_QUERY_LEN,
+    )
+    document_ids: list[str] | None = Field(
+        default=None,
+        description="Optional list of document UUIDs to restrict search to.",
+    )
+    top_k: int = Field(
+        default=5,
+        ge=1,
+        le=20,
+        description="Maximum number of relevant chunks to return.",
+    )
+    min_similarity: float = Field(
+        default=0.0,
+        ge=0.0,
+        le=1.0,
+        description="Minimum cosine-similarity threshold. Chunks below this score are excluded.",
+    )
+
+    @field_validator("query")
+    @classmethod
+    def sanitize_query(cls, v: str) -> str:
+        return sanitize_user_string(cls, v)
+
+
+class V1SearchSource(BaseModel):
+    """A single retrieved source returned by POST /api/v1/rag/search."""
+
+    document_id: str = Field(description="UUID of the parent document.")
+    document_name: str = Field(description="Original filename.")
+    page_number: int | None = Field(
+        default=None, description="1-based page number; null for TXT/Markdown."
+    )
+    chunk_index: int = Field(description="Zero-based chunk position within the document.")
+    excerpt: str = Field(description="First 200 characters of the chunk text.")
+    similarity: float = Field(
+        description="Cosine similarity score (0.0–1.0).", ge=0.0, le=1.0
+    )
+    retrieval_path: str = Field(
+        default="ann",
+        description="Retrieval method: ann | pgvector | bm25 | rrf.",
+    )
+
+
+class V1SearchResponse(BaseModel):
+    """Response body for POST /api/v1/rag/search."""
+
+    query: str = Field(description="The original query string.")
+    sources: list[V1SearchSource] = Field(
+        description="Retrieved chunks ordered by similarity descending."
+    )
+    total_sources: int = Field(description="Number of sources returned.")
+
+
+class V1AskRequest(BaseModel):
+    """Request body for POST /api/v1/rag/ask."""
+
+    question: str = Field(
+        description="Natural-language question to answer from the document corpus.",
+        min_length=1,
+        max_length=_MAX_QUERY_LEN,
+    )
+    document_ids: list[str] | None = Field(
+        default=None,
+        description="Optional list of document UUIDs to restrict retrieval to.",
+    )
+    top_k: int = Field(
+        default=5,
+        ge=1,
+        le=20,
+        description="Maximum number of chunks to retrieve before generating the answer.",
+    )
+    min_similarity: float = Field(
+        default=0.0,
+        ge=0.0,
+        le=1.0,
+        description="Minimum cosine-similarity threshold for retrieved chunks.",
+    )
+
+    @field_validator("question")
+    @classmethod
+    def sanitize_question(cls, v: str) -> str:
+        return sanitize_user_string(cls, v)
+
+
+class V1AskSource(BaseModel):
+    """A single source citation in a POST /api/v1/rag/ask response."""
+
+    document_id: str = Field(description="UUID of the parent document.")
+    document_name: str = Field(description="Original filename.")
+    page_number: int | None = Field(default=None, description="1-based page number.")
+    chunk_index: int = Field(description="Zero-based chunk position.")
+    excerpt: str = Field(description="First 200 characters of the chunk text.")
+
+
+class V1AskResponse(BaseModel):
+    """Response body for POST /api/v1/rag/ask."""
+
+    question: str = Field(description="The original question.")
+    answer: str = Field(
+        description=(
+            "LLM-generated answer grounded in the retrieved document context. "
+            "If no relevant documents were found, a graceful 'not found' message is returned."
+        )
+    )
+    sources: list[V1AskSource] = Field(
+        description="Source citations for the retrieved chunks used to ground the answer."
+    )
+    has_sources: bool = Field(
+        description="True when at least one relevant chunk was retrieved."
+    )
