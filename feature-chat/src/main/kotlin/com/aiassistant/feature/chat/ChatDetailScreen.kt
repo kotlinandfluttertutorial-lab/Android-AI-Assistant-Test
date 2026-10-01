@@ -212,18 +212,22 @@ internal fun ChatDetailScreenContent(
                             // Online status dot + label
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                modifier = Modifier.semantics {
+                                    contentDescription = "AI Assistant is online"
+                                },
                             ) {
                                 Box(
                                     modifier = Modifier
                                         .size(6.dp)
                                         .clip(CircleShape)
-                                        .background(Color(0xFF386A20)) // green
+                                        // StitchColors.voiceProcessing = #386A20 (same green)
+                                        .background(StitchColors.voiceProcessing)
                                 )
                                 Text(
                                     text = "Online",
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = Color(0xFF386A20)
+                                    color = StitchColors.voiceProcessing
                                 )
                             }
                         }
