@@ -321,3 +321,189 @@ object AppTypeExtended {
         letterSpacing = 0.1.sp
     )
 }
+
+// ── Stitch design-reference type tokens (Phase A — UI Migration) ──────────────
+// Fira Code is NOT bundled — the project uses FontFamily.Monospace (system default,
+// e.g., Roboto Mono or Droid Sans Mono) which matches Stitch's intent and keeps APK
+// size minimal.  If Fira Code is added in a future phase, swap FontFamily.Monospace
+// for the loaded FontFamily here without changing callers.
+
+object StitchType {
+
+    // ── Screen / section headings ─────────────────────────────────────────────
+
+    /** 32 sp Bold — app name on SplashScreen. */
+    val splashAppName = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Bold,
+        fontSize = 32.sp,
+        lineHeight = 38.sp,
+        letterSpacing = (-0.5).sp
+    )
+
+    /** 30 sp Bold — onboarding slide title ("Meet Your AI\nAssistant"). */
+    val onboardingTitle = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Bold,
+        fontSize = 30.sp,
+        lineHeight = 36.sp,
+        letterSpacing = (-0.5).sp
+    )
+
+    /** 22 sp Bold — home greeting "Hello, Firoj 👋". */
+    val homeGreeting = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Bold,
+        fontSize = 22.sp,
+        lineHeight = 28.sp,
+        letterSpacing = 0.sp
+    )
+
+    /** 18 sp Bold — featured banner headline. */
+    val bannerHeadline = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Bold,
+        fontSize = 18.sp,
+        lineHeight = 24.sp,
+        letterSpacing = 0.sp
+    )
+
+    // ── Cards & list items ────────────────────────────────────────────────────
+
+    /** 16 sp SemiBold — section header ("Quick Actions", "Recent Chats"). */
+    val sectionTitle = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 16.sp,
+        lineHeight = 24.sp,
+        letterSpacing = 0.sp
+    )
+
+    /** 14 sp SemiBold — list item primary label (chat title, tool name, doc name). */
+    val listItemTitle = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.1.sp
+    )
+
+    /** 13 sp Normal — banner body copy, secondary descriptions. */
+    val bannerBody = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Normal,
+        fontSize = 13.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.2.sp
+    )
+
+    /** 12 sp Normal — list item preview / subtitle. */
+    val listItemPreview = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Normal,
+        fontSize = 12.sp,
+        lineHeight = 18.sp,
+        letterSpacing = 0.3.sp
+    )
+
+    /** 11 sp Medium — relative timestamp ("2m ago", "Yesterday"). */
+    val timestamp = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Medium,
+        fontSize = 11.sp,
+        lineHeight = 16.sp,
+        letterSpacing = 0.sp
+    )
+
+    /** 11 sp Normal — quick-action card label below icon. */
+    val quickActionLabel = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Medium,
+        fontSize = 11.sp,
+        lineHeight = 14.sp,
+        letterSpacing = 0.sp
+    )
+
+    // ── Code editor ───────────────────────────────────────────────────────────
+
+    /**
+     * 12.5 sp Monospace — code editor body text.
+     * Maps to FontFamily.Monospace (system default, e.g., Roboto Mono).
+     * Fira Code may be substituted here in a future phase by adding the font to
+     * core-ui/res/font/ and updating this style's fontFamily.
+     */
+    val codeEditorBody = TextStyle(
+        fontFamily = FontFamily.Monospace,
+        fontWeight = FontWeight.Normal,
+        fontSize = 12.5.sp,
+        lineHeight = 21.sp, // 1.7 × 12.5
+        letterSpacing = 0.sp
+    )
+
+    /** 12 sp Monospace — filename label in editor tab / header bar. */
+    val codeEditorFilename = TextStyle(
+        fontFamily = FontFamily.Monospace,
+        fontWeight = FontWeight.Medium,
+        fontSize = 12.sp,
+        lineHeight = 16.sp,
+        letterSpacing = 0.sp
+    )
+
+    // ── Voice screen ──────────────────────────────────────────────────────────
+
+    /** 14 sp Normal — voice state label ("Listening…", "Processing…"). */
+    val voiceStateLabel = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Normal,
+        fontSize = 14.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.sp
+    )
+
+    /** 16 sp Normal — voice transcript text. */
+    val voiceTranscript = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Normal,
+        fontSize = 16.sp,
+        lineHeight = 24.sp,
+        letterSpacing = 0.sp
+    )
+
+    // ── Profile / Settings ────────────────────────────────────────────────────
+
+    /** 22 sp Bold — profile display name. */
+    val profileName = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Bold,
+        fontSize = 22.sp,
+        lineHeight = 28.sp,
+        letterSpacing = 0.sp
+    )
+
+    /** 16 sp Bold — stat value in profile stats card ("247", "84.2K"). */
+    val statValue = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Bold,
+        fontSize = 16.sp,
+        lineHeight = 20.sp,
+        letterSpacing = 0.sp
+    )
+
+    /** 10 sp Normal — stat label below value ("Total Chats", "Days Active"). */
+    val statLabel = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Normal,
+        fontSize = 10.sp,
+        lineHeight = 14.sp,
+        letterSpacing = 0.3.sp
+    )
+
+    /** 12 sp Normal — version footer ("AI Assistant v2.4.1"). */
+    val versionFooter = TextStyle(
+        fontFamily = FontFamily.SansSerif,
+        fontWeight = FontWeight.Normal,
+        fontSize = 12.sp,
+        lineHeight = 16.sp,
+        letterSpacing = 0.3.sp
+    )
+}

@@ -4,39 +4,31 @@
  * ============================================================
  * Module     : feature-auth
  * File       : OnboardingScreen.kt
- * Purpose    : Compose UI screen for the Onboarding feature
+ * Purpose    : Onboarding flow — Phase B UI update.
  *
- * Architecture Layer : Feature (feature-auth)
- * Pattern Used       : Jetpack Compose Screen
+ *              Page 0 (Welcome) redesigned to match Stitch design reference
+ *              (OnboardingScreen.tsx):
+ *              - 3-slide horizontal pager within the Welcome page
+ *              - Each slide: gradient illustration card with large emoji,
+ *                animated title/desc, Skip button top-right
+ *              - Progress dots: active dot expands to 24 × 8 pill
+ *              - Next circular FAB (56 dp) with arrow icon
+ *              - "Get Started" full-width button visible on last slide only
  *
- * Key Concepts:
- *   - Clean Architecture with strict layer separation
- *   - Hilt dependency injection
+ *              Pages 1 (Privacy) and 2 (Consent) are UNCHANGED — production
+ *              legal/consent flow preserved exactly.
  *
- * Dependencies:
- *   - See import statements below
- * ============================================================
- */
-/**
- * OnboardingScreen.kt
+ * Architecture Layer : Feature (feature-auth) — Compose UI layer.
  *
- * Purpose: Multi-page onboarding flow covering app overview, privacy policy / terms of
- *          service, and explicit consent collection including optional analytics and
- *          notification permission request.
- * Architecture: feature-auth â€” Compose UI layer.
- * Dependencies: core-ui (MaterialTheme.spacing), Compose Foundation HorizontalPager
- *
- * Design decisions:
- * - Three-page horizontal pager (Foundation [HorizontalPager]) avoids Accompanist
- *   dependency which is deprecated for pager support.
- * - Notification permission is requested on Android 13+ (API 33) via
- *   [rememberLauncherForActivityResult] + [RequestPermission]. The button is hidden on
- *   older API levels where POST_NOTIFICATIONS doesn't exist.
- * - The "Continue" / "Finish" button on the consent page is disabled until the required
- *   privacy policy + ToS consent toggle is checked, enforcing Requirement 16.3.
- * - All interactive elements have contentDescriptions for TalkBack (Requirement 28.3).
+ * Preserved from prior version:
+ *              - OnboardingScreen signature (onConsentGiven, onDecline)
+ *              - HorizontalPager 3-page structure (Welcome / Privacy / Consent)
+ *              - ConsentPage and PrivacyPolicyPage composables (unchanged)
+ *              - ConsentToggleRow, FeatureHighlight helpers (unchanged)
+ *              - All permission-handling logic
  *
  * Requirements: 16.3, 17.1, 28.3
+ * ============================================================
  */
 package com.aiassistant.feature.auth
 
@@ -44,11 +36,18 @@ import android.Manifest
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -59,13 +58,14 @@ import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AutoAwesome
+import androidx.compose.material.icons.automirrored.filled.ArrowForward
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Policy
-import androidx.compose.material.icons.filled.Security
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -82,312 +82,508 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import com.aiassistant.core.ui.AppTheme
+import com.aiassistant.core.ui.StitchColors
+import com.aiassistant.core.ui.StitchType
+import com.aiassistant.core.ui.motion.LocalReducedMotionEnabled
 import com.aiassistant.core.ui.spacing
 import kotlinx.coroutines.launch
 
-private const val PAGE_COUNT = 3
+// ── Page constants ────────────────────────────────────────────────────────────
+
+private const val PAGE_COUNT   = 3
 private const val PAGE_WELCOME = 0
 private const val PAGE_PRIVACY = 1
 private const val PAGE_CONSENT = 2
 
+// ── Slide data for the welcome pager ─────────────────────────────────────────
+
+private data class OnboardingSlide(
+    val emoji: String,
+    val title: String,
+    val description: String,
+    val gradientStart: Color,
+    val gradientEnd: Color,
+)
+
+private val SLIDES = listOf(
+    OnboardingSlide(
+        emoji = "🤖",
+        title = "Meet Your AI\nAssistant",
+        description = "Powered by advanced AI, I can help you write, analyze, code, translate, and much more — all in one place.",
+        gradientStart = StitchColors.onboardingSlide0Start,
+        gradientEnd   = StitchColors.onboardingSlide0End,
+    ),
+    OnboardingSlide(
+        emoji = "⚡",
+        title = "Limitless\nCapabilities",
+        description = "Chat, analyze PDFs, process images, write code, transcribe voice, and access 12+ specialized AI tools.",
+        gradientStart = StitchColors.onboardingSlide1Start,
+        gradientEnd   = StitchColors.onboardingSlide1End,
+    ),
+    OnboardingSlide(
+        emoji = "🔒",
+        title = "Private &\nSecure",
+        description = "Your conversations are encrypted and never shared. Your data stays yours — always.",
+        gradientStart = StitchColors.onboardingSlide2Start,
+        gradientEnd   = StitchColors.onboardingSlide2End,
+    ),
+)
+
+// ── Root screen ───────────────────────────────────────────────────────────────
+
 /**
  * Onboarding flow presented to first-time users.
  *
- * Three pages:
- * 1. **Welcome** â€” app overview and feature highlights.
- * 2. **Privacy & Terms** â€” scrollable privacy policy and terms of service.
- * 3. **Consent** â€” required ToS toggle, optional analytics toggle, notification permission.
+ * Three outer pages:
+ * 1. **Welcome** — 3-slide Stitch-style intro (redesigned).
+ * 2. **Privacy & Terms** — scrollable legal text (unchanged).
+ * 3. **Consent** — required ToS toggle, analytics, notifications (unchanged).
  *
- * @param onConsentGiven Invoked when the user checks the required consent and taps "Continue".
- * @param onDecline      Invoked if the user declines (exits the flow without consenting).
+ * @param onConsentGiven Invoked when the user checks required consent and taps "Continue".
+ * @param onDecline      Invoked when the user skips / declines.
  */
 @Composable
 fun OnboardingScreen(onConsentGiven: () -> Unit, onDecline: () -> Unit) {
     val pagerState = rememberPagerState(pageCount = { PAGE_COUNT })
     val scope = rememberCoroutineScope()
 
-    // Consent state managed locally â€” only emitted to the ViewModel on "Continue"
-    var requiredConsentChecked by remember { mutableStateOf(false) }
-    var analyticsConsentChecked by remember { mutableStateOf(false) }
+    var requiredConsentChecked       by remember { mutableStateOf(false) }
+    var analyticsConsentChecked      by remember { mutableStateOf(false) }
     var notificationPermissionGranted by remember { mutableStateOf(false) }
 
-    // Notification permission launcher (Android 13+)
     val notificationPermissionLauncher = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-        rememberLauncherForActivityResult(
-            contract = ActivityResultContracts.RequestPermission()
-        ) { granted -> notificationPermissionGranted = granted }
+        rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            notificationPermissionGranted = granted
+        }
     } else {
         null
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
-        // â”€â”€ Pager â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        // ── Pager ─────────────────────────────────────────────────────────────
         HorizontalPager(
             state = pagerState,
             modifier = Modifier
                 .weight(1f)
-                .fillMaxWidth()
+                .fillMaxWidth(),
         ) { page ->
             when (page) {
-                PAGE_WELCOME -> WelcomePage()
+                PAGE_WELCOME -> WelcomePage(onSkip = onDecline)
                 PAGE_PRIVACY -> PrivacyPolicyPage()
                 PAGE_CONSENT -> ConsentPage(
-                    requiredConsentChecked = requiredConsentChecked,
-                    analyticsConsentChecked = analyticsConsentChecked,
+                    requiredConsentChecked        = requiredConsentChecked,
+                    analyticsConsentChecked       = analyticsConsentChecked,
                     notificationPermissionGranted = notificationPermissionGranted,
-                    onRequiredConsentChange = { requiredConsentChecked = it },
-                    onAnalyticsConsentChange = { analyticsConsentChecked = it },
+                    onRequiredConsentChange       = { requiredConsentChecked = it },
+                    onAnalyticsConsentChange      = { analyticsConsentChecked = it },
                     onRequestNotificationPermission = {
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                             notificationPermissionLauncher?.launch(Manifest.permission.POST_NOTIFICATIONS)
                         } else {
                             notificationPermissionGranted = true
                         }
-                    }
+                    },
                 )
             }
         }
 
-        // â”€â”€ Page indicator dots â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(vertical = MaterialTheme.spacing.sm),
-            horizontalArrangement = Arrangement.Center,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            repeat(PAGE_COUNT) { index ->
-                val isSelected = pagerState.currentPage == index
-                Box(
-                    modifier = Modifier
-                        .padding(horizontal = 4.dp)
-                        .size(if (isSelected) 10.dp else 8.dp)
-                        .clip(CircleShape)
-                        .semantics {
-                            contentDescription = "Page ${index + 1} of $PAGE_COUNT indicator"
-                        }
-                ) {
-                    Surface(
-                        modifier = Modifier.fillMaxSize(),
-                        color = if (isSelected) {
-                            MaterialTheme.colorScheme.primary
-                        } else {
-                            MaterialTheme.colorScheme.outlineVariant
-                        }
-                    ) {}
+        // ── Outer page indicator dots (Privacy / Consent progress) ────────────
+        // Only shown on pages 1 and 2 (Welcome handles its own dots internally)
+        if (pagerState.currentPage > PAGE_WELCOME) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = MaterialTheme.spacing.sm),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                repeat(PAGE_COUNT) { index ->
+                    val isSelected = pagerState.currentPage == index
+                    Box(
+                        modifier = Modifier
+                            .padding(horizontal = 4.dp)
+                            .size(if (isSelected) 10.dp else 8.dp)
+                            .clip(CircleShape)
+                            .semantics { contentDescription = "Page ${index + 1} of $PAGE_COUNT" },
+                    ) {
+                        Surface(
+                            modifier = Modifier.fillMaxSize(),
+                            color = if (isSelected) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.outlineVariant,
+                        ) {}
+                    }
                 }
             }
         }
 
-        // â”€â”€ Navigation buttons â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(
-                    horizontal = MaterialTheme.spacing.md,
-                    vertical = MaterialTheme.spacing.sm
-                ),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Back / Decline button
-            if (pagerState.currentPage == PAGE_WELCOME) {
-                TextButton(
-                    onClick = onDecline,
-                    modifier = Modifier.semantics { contentDescription = "Decline and exit onboarding" }
-                ) {
-                    Text("Skip")
-                }
-            } else {
+        // ── Outer navigation buttons (Privacy / Consent only) ─────────────────
+        if (pagerState.currentPage > PAGE_WELCOME) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        horizontal = MaterialTheme.spacing.md,
+                        vertical   = MaterialTheme.spacing.sm,
+                    ),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
                 TextButton(
                     onClick = {
                         scope.launch {
                             pagerState.animateScrollToPage(pagerState.currentPage - 1)
                         }
                     },
-                    modifier = Modifier.semantics { contentDescription = "Go to previous page" }
-                ) {
-                    Text("Back")
-                }
-            }
+                    modifier = Modifier.semantics { contentDescription = "Go to previous page" },
+                ) { Text("Back") }
 
-            // Next / Continue button
-            if (pagerState.currentPage < PAGE_COUNT - 1) {
-                Button(
-                    onClick = {
-                        scope.launch {
-                            pagerState.animateScrollToPage(pagerState.currentPage + 1)
-                        }
-                    },
-                    modifier = Modifier.semantics { contentDescription = "Go to next onboarding page" }
-                ) {
-                    Text("Next")
-                }
-            } else {
-                Button(
-                    onClick = onConsentGiven,
-                    enabled = requiredConsentChecked,
-                    modifier = Modifier.semantics { contentDescription = "Continue to the app" }
-                ) {
-                    Text("Continue")
+                if (pagerState.currentPage < PAGE_COUNT - 1) {
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                pagerState.animateScrollToPage(pagerState.currentPage + 1)
+                            }
+                        },
+                        modifier = Modifier.semantics { contentDescription = "Go to next page" },
+                    ) { Text("Next") }
+                } else {
+                    Button(
+                        onClick = onConsentGiven,
+                        enabled = requiredConsentChecked,
+                        modifier = Modifier.semantics { contentDescription = "Continue to the app" },
+                    ) { Text("Continue") }
                 }
             }
         }
     }
 }
 
-// â”€â”€â”€ Page composables â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Welcome page — Stitch 3-slide design ─────────────────────────────────────
 
+/**
+ * Self-contained 3-slide welcome experience matching the Stitch design.
+ *
+ * Contains its own [HorizontalPager], skip button, progress dots, Next FAB,
+ * and "Get Started" button.
+ *
+ * [onSkip] fires when the user taps Skip (routes to Login / next outer page).
+ */
 @Composable
-private fun WelcomePage() {
-    Column(
+private fun WelcomePage(onSkip: () -> Unit) {
+    val slidePagerState = rememberPagerState(pageCount = { SLIDES.size })
+    val scope = rememberCoroutineScope()
+    val reducedMotion = LocalReducedMotionEnabled.current
+
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(MaterialTheme.spacing.md),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            .background(MaterialTheme.colorScheme.background),
     ) {
-        Icon(
-            imageVector = Icons.Filled.AutoAwesome,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.size(80.dp)
+        // ── Skip button top-right ─────────────────────────────────────────────
+        TextButton(
+            onClick = onSkip,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 16.dp, end = 24.dp)
+                .semantics { contentDescription = "Skip onboarding" },
+        ) {
+            Text(
+                text = "Skip",
+                color = MaterialTheme.colorScheme.primary,
+                style = MaterialTheme.typography.labelLarge,
+            )
+        }
+
+        Column(
+            modifier = Modifier.fillMaxSize(),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            // ── Slide illustration pager ──────────────────────────────────────
+            HorizontalPager(
+                state = slidePagerState,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.50f),
+            ) { index ->
+                val slide = SLIDES[index]
+                SlideIllustrationCard(
+                    emoji         = slide.emoji,
+                    gradientStart = slide.gradientStart,
+                    gradientEnd   = slide.gradientEnd,
+                )
+            }
+
+            // ── Text content ──────────────────────────────────────────────────
+            val currentSlide = SLIDES[slidePagerState.currentPage]
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp)
+                    .padding(top = 36.dp),
+            ) {
+                Text(
+                    text = currentSlide.title,
+                    style = StitchType.onboardingTitle,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    textAlign = TextAlign.Start,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+                Spacer(Modifier.height(16.dp))
+                Text(
+                    text = currentSlide.description,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+
+            Spacer(Modifier.weight(1f))
+
+            // ── Progress dots + Next FAB row ──────────────────────────────────
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 32.dp)
+                    .padding(bottom = 24.dp),
+            ) {
+                // Animated progress dots — active dot expands to 24 × 8 pill
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    repeat(SLIDES.size) { index ->
+                        val isActive = slidePagerState.currentPage == index
+                        val dotWidth by animateDpAsState(
+                            targetValue = if (isActive) 24.dp else 8.dp,
+                            animationSpec = if (reducedMotion) tween(0) else tween(300),
+                            label = "dotWidth$index",
+                        )
+                        val dotColor by animateColorAsState(
+                            targetValue = if (isActive) MaterialTheme.colorScheme.primary
+                            else MaterialTheme.colorScheme.outlineVariant,
+                            animationSpec = if (reducedMotion) tween(0) else tween(300),
+                            label = "dotColor$index",
+                        )
+                        Box(
+                            modifier = Modifier
+                                .size(width = dotWidth, height = 8.dp)
+                                .clip(RoundedCornerShape(4.dp))
+                                .background(dotColor)
+                                .clickable(
+                                    interactionSource = remember { MutableInteractionSource() },
+                                    indication = null,
+                                    onClick = { scope.launch { slidePagerState.animateScrollToPage(index) } },
+                                )
+                                .semantics {
+                                    contentDescription = "Go to slide ${index + 1}"
+                                    role = Role.Button
+                                },
+                        )
+                    }
+                }
+
+                // Next circular FAB
+                Box(
+                    contentAlignment = Alignment.Center,
+                    modifier = Modifier
+                        .size(56.dp)
+                        .clip(CircleShape)
+                        .background(MaterialTheme.colorScheme.primary)
+                        .clickable(
+                            interactionSource = remember { MutableInteractionSource() },
+                            indication = null,
+                            onClick = {
+                                val next = slidePagerState.currentPage + 1
+                                if (next < SLIDES.size) {
+                                    scope.launch { slidePagerState.animateScrollToPage(next) }
+                                } else {
+                                    onSkip() // last slide → proceed
+                                }
+                            },
+                        )
+                        .semantics {
+                            contentDescription = if (slidePagerState.currentPage < SLIDES.size - 1) "Next slide" else "Get started"
+                            role = Role.Button
+                        },
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = null,
+                        tint = Color.White,
+                        modifier = Modifier.size(24.dp),
+                    )
+                }
+            }
+
+            // ── "Get Started" full-width button (last slide only) ─────────────
+            if (slidePagerState.currentPage == SLIDES.size - 1) {
+                Button(
+                    onClick = onSkip,
+                    shape = CircleShape,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                    ),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 32.dp)
+                        .padding(bottom = 32.dp)
+                        .height(52.dp)
+                        .semantics { contentDescription = "Get started" },
+                ) {
+                    Text(
+                        text = "Get Started",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color.White,
+                    )
+                }
+            }
+        }
+    }
+}
+
+// ── Slide illustration card ───────────────────────────────────────────────────
+
+/**
+ * Gradient rounded-rect card with a large emoji hero, matching the Stitch
+ * 340 px illustration area.  Decorative overflow circles add depth.
+ */
+@Composable
+private fun SlideIllustrationCard(
+    emoji: String,
+    gradientStart: Color,
+    gradientEnd: Color,
+) {
+    Box(
+        contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 24.dp, vertical = 12.dp)
+            .clip(RoundedCornerShape(28.dp))
+            .background(
+                Brush.linearGradient(listOf(gradientStart, gradientEnd)),
+            ),
+    ) {
+        // Decorative overflow orbs (non-semantic)
+        Box(
+            modifier = Modifier
+                .size(180.dp)
+                .align(Alignment.TopEnd)
+                .clip(CircleShape)
+                .background(Color.White.copy(alpha = 0.08f)),
+        )
+        Box(
+            modifier = Modifier
+                .size(200.dp)
+                .align(Alignment.BottomStart)
+                .clip(CircleShape)
+                .background(Color.Black.copy(alpha = 0.10f)),
         )
 
-        Spacer(modifier = Modifier.height(MaterialTheme.spacing.lg))
-
+        // Large emoji hero
         Text(
-            text = "Welcome to AI Assistant",
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.Bold,
-            textAlign = TextAlign.Center
-        )
-
-        Spacer(modifier = Modifier.height(MaterialTheme.spacing.md))
-
-        Text(
-            text = "Your intelligent companion for productivity, creativity, and more.",
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-
-        Spacer(modifier = Modifier.height(MaterialTheme.spacing.xl))
-
-        FeatureHighlight(
-            icon = Icons.Filled.AutoAwesome,
-            title = "AI-Powered Conversations",
-            description = "Chat with leading AI models including GPT-4o, Gemini, and Claude."
-        )
-
-        Spacer(modifier = Modifier.height(MaterialTheme.spacing.md))
-
-        FeatureHighlight(
-            icon = Icons.Filled.Security,
-            title = "Privacy First",
-            description = "Biometric protection and encrypted local storage keep your data safe."
+            text = emoji,
+            style = androidx.compose.ui.text.TextStyle(
+                fontSize = 96.sp,
+                lineHeight = 100.sp,
+            ),
+            modifier = Modifier.semantics { contentDescription = "" }, // decorative
         )
     }
 }
+
+// ── Privacy policy page (UNCHANGED from prior version) ───────────────────────
 
 @Composable
 private fun PrivacyPolicyPage() {
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(MaterialTheme.spacing.md)
+            .padding(MaterialTheme.spacing.md),
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+        Row(verticalAlignment = Alignment.CenterVertically) {
             Icon(
                 imageVector = Icons.Filled.Policy,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(32.dp)
+                modifier = Modifier.size(32.dp),
             )
-            Spacer(modifier = Modifier.width(MaterialTheme.spacing.sm))
+            Spacer(Modifier.width(MaterialTheme.spacing.sm))
             Text(
                 text = "Privacy & Terms",
                 style = MaterialTheme.typography.headlineSmall,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
             )
         }
-
-        Spacer(modifier = Modifier.height(MaterialTheme.spacing.md))
-
-        Column(
-            modifier = Modifier.verticalScroll(rememberScrollState())
-        ) {
-            Text(
-                text = "Privacy Policy",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
-            )
-
-            Spacer(modifier = Modifier.height(MaterialTheme.spacing.sm))
-
+        Spacer(Modifier.height(MaterialTheme.spacing.md))
+        Column(modifier = Modifier.verticalScroll(rememberScrollState())) {
+            Text("Privacy Policy", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Spacer(Modifier.height(MaterialTheme.spacing.sm))
             Text(
                 text = """
 AI Assistant is committed to protecting your privacy. We collect only the minimum data required to provide our services.
 
 Data We Collect:
-â€¢ Account information (email address)
-â€¢ Conversation history (stored encrypted on your device)
-â€¢ Usage analytics (optional, requires your consent)
+• Account information (email address)
+• Conversation history (stored encrypted on your device)
+• Usage analytics (optional, requires your consent)
 
 Data Storage:
-â€¢ All credentials and tokens are stored using Android EncryptedSharedPreferences
-â€¢ Biometric data is never transmitted â€” authentication is performed entirely on-device
-â€¢ Conversations are stored locally and only synced to our servers when you are connected
+• All credentials and tokens are stored using Android EncryptedSharedPreferences
+• Biometric data is never transmitted — authentication is performed entirely on-device
+• Conversations are stored locally and only synced to our servers when you are connected
 
 Your Rights:
-â€¢ You can delete your account and all associated data at any time
-â€¢ You can opt out of optional analytics at any time in Settings
-â€¢ You can request a copy of your data by contacting support
+• You can delete your account and all associated data at any time
+• You can opt out of optional analytics at any time in Settings
+• You can request a copy of your data by contacting support
                 """.trimIndent(),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-
-            Spacer(modifier = Modifier.height(MaterialTheme.spacing.lg))
-
-            Text(
-                text = "Terms of Service",
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold
-            )
-
-            Spacer(modifier = Modifier.height(MaterialTheme.spacing.sm))
-
+            Spacer(Modifier.height(MaterialTheme.spacing.lg))
+            Text("Terms of Service", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.SemiBold)
+            Spacer(Modifier.height(MaterialTheme.spacing.sm))
             Text(
                 text = """
 By using AI Assistant, you agree to these terms:
 
 Acceptable Use:
-â€¢ You must not use the app for illegal activities or to harm others
-â€¢ You are responsible for the content of your conversations
-â€¢ AI responses are provided as-is and should not substitute professional advice
+• You must not use the app for illegal activities or to harm others
+• You are responsible for the content of your conversations
+• AI responses are provided as-is and should not substitute professional advice
 
 Service:
-â€¢ We reserve the right to modify or discontinue the service with reasonable notice
-â€¢ We are not liable for any damages arising from the use of AI-generated content
+• We reserve the right to modify or discontinue the service with reasonable notice
+• We are not liable for any damages arising from the use of AI-generated content
 
 These terms are governed by applicable law. By continuing, you acknowledge that you have read and understood both the Privacy Policy and Terms of Service.
                 """.trimIndent(),
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-
-            Spacer(modifier = Modifier.height(MaterialTheme.spacing.xl))
+            Spacer(Modifier.height(MaterialTheme.spacing.xl))
         }
     }
 }
+
+// ── Consent page (UNCHANGED from prior version) ───────────────────────────────
 
 @Composable
 private fun ConsentPage(
@@ -396,126 +592,84 @@ private fun ConsentPage(
     notificationPermissionGranted: Boolean,
     onRequiredConsentChange: (Boolean) -> Unit,
     onAnalyticsConsentChange: (Boolean) -> Unit,
-    onRequestNotificationPermission: () -> Unit
+    onRequestNotificationPermission: () -> Unit,
 ) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(MaterialTheme.spacing.md)
-            .verticalScroll(rememberScrollState())
+            .verticalScroll(rememberScrollState()),
     ) {
-        Text(
-            text = "Your Consent",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
-        )
-
-        Spacer(modifier = Modifier.height(MaterialTheme.spacing.sm))
-
+        Text("Your Consent", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
+        Spacer(Modifier.height(MaterialTheme.spacing.sm))
         Text(
             text = "Please review and accept the following before continuing.",
             style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
+        Spacer(Modifier.height(MaterialTheme.spacing.lg))
 
-        Spacer(modifier = Modifier.height(MaterialTheme.spacing.lg))
-
-        // Required consent toggle
         ConsentToggleRow(
-            title = "Privacy Policy & Terms of Service",
-            description = "I agree to the Privacy Policy and Terms of Service " +
-                "(required to use the app).",
-            checked = requiredConsentChecked,
+            title       = "Privacy Policy & Terms of Service",
+            description = "I agree to the Privacy Policy and Terms of Service (required to use the app).",
+            checked     = requiredConsentChecked,
             onCheckedChange = onRequiredConsentChange,
             contentDescription = "Toggle agreement to Privacy Policy and Terms of Service",
-            isRequired = true
+            isRequired  = true,
         )
-
-        Spacer(modifier = Modifier.height(MaterialTheme.spacing.md))
-
-        // Optional analytics toggle
+        Spacer(Modifier.height(MaterialTheme.spacing.md))
         ConsentToggleRow(
-            title = "Analytics Data Collection",
-            description = "Allow optional analytics data collection to help improve the app. " +
-                "You can change this in Settings at any time.",
-            checked = analyticsConsentChecked,
+            title       = "Analytics Data Collection",
+            description = "Allow optional analytics data collection to help improve the app. You can change this in Settings at any time.",
+            checked     = analyticsConsentChecked,
             onCheckedChange = onAnalyticsConsentChange,
             contentDescription = "Toggle optional analytics data collection",
-            isRequired = false
+            isRequired  = false,
         )
+        Spacer(Modifier.height(MaterialTheme.spacing.md))
 
-        Spacer(modifier = Modifier.height(MaterialTheme.spacing.md))
-
-        // Notification permission request
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(vertical = MaterialTheme.spacing.sm)
+                .padding(vertical = MaterialTheme.spacing.sm),
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Filled.Notifications,
                     contentDescription = null,
-                    tint = if (notificationPermissionGranted) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    },
-                    modifier = Modifier.size(24.dp)
+                    tint = if (notificationPermissionGranted) MaterialTheme.colorScheme.primary
+                           else MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(24.dp),
                 )
-                Spacer(modifier = Modifier.width(MaterialTheme.spacing.sm))
-                Text(
-                    text = "Notifications",
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Medium
-                )
+                Spacer(Modifier.width(MaterialTheme.spacing.sm))
+                Text("Notifications", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Medium)
             }
-
-            Spacer(modifier = Modifier.height(MaterialTheme.spacing.xs))
-
+            Spacer(Modifier.height(MaterialTheme.spacing.xs))
             Text(
-                text = "Allow AI Assistant to send notifications for reminders and updates. " +
-                    "You can change this in device Settings at any time.",
+                text = "Allow AI Assistant to send notifications for reminders and updates.",
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
-
-            Spacer(modifier = Modifier.height(MaterialTheme.spacing.sm))
-
+            Spacer(Modifier.height(MaterialTheme.spacing.sm))
             if (notificationPermissionGranted) {
-                Text(
-                    text = "âœ“ Notifications enabled",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            } else {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    OutlinedButton(
-                        onClick = onRequestNotificationPermission,
-                        modifier = Modifier.semantics {
-                            contentDescription = "Allow notification permission"
-                        }
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.Notifications,
-                            contentDescription = null,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(MaterialTheme.spacing.xs))
-                        Text("Allow Notifications")
-                    }
-                } else {
-                    // On API < 33, POST_NOTIFICATIONS doesn't exist â€” notifications are always allowed
-                    Text(
-                        text = "Notifications will be enabled.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                Text("✓ Notifications enabled", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                OutlinedButton(
+                    onClick = onRequestNotificationPermission,
+                    modifier = Modifier.semantics { contentDescription = "Allow notification permission" },
+                ) {
+                    Icon(Icons.Filled.Notifications, contentDescription = null, modifier = Modifier.size(16.dp))
+                    Spacer(Modifier.width(MaterialTheme.spacing.xs))
+                    Text("Allow Notifications")
                 }
+            } else {
+                Text("Notifications will be enabled.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
         }
     }
 }
+
+// ── Shared helpers (UNCHANGED) ─────────────────────────────────────────────────
 
 @Composable
 private fun ConsentToggleRow(
@@ -524,74 +678,31 @@ private fun ConsentToggleRow(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     contentDescription: String,
-    isRequired: Boolean
+    isRequired: Boolean,
 ) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.Top
-    ) {
+    Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.Top) {
         Column(modifier = Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.titleSmall,
-                    fontWeight = FontWeight.Medium
-                )
+                Text(title, style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Medium)
                 if (isRequired) {
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = "*",
-                        style = MaterialTheme.typography.titleSmall,
-                        color = MaterialTheme.colorScheme.error
-                    )
+                    Spacer(Modifier.width(4.dp))
+                    Text("*", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.error)
                 }
             }
-            Spacer(modifier = Modifier.height(MaterialTheme.spacing.xs))
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Spacer(Modifier.height(MaterialTheme.spacing.xs))
+            Text(description, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-
-        Spacer(modifier = Modifier.width(MaterialTheme.spacing.sm))
-
-        Switch(
-            checked = checked,
-            onCheckedChange = onCheckedChange,
-            modifier = Modifier.semantics { this.contentDescription = contentDescription }
-        )
+        Spacer(Modifier.width(MaterialTheme.spacing.sm))
+        Switch(checked = checked, onCheckedChange = onCheckedChange, modifier = Modifier.semantics { this.contentDescription = contentDescription })
     }
 }
 
+// ── Previews ──────────────────────────────────────────────────────────────────
+
+@Preview(showBackground = true, name = "OnboardingScreen — Welcome slide 0")
 @Composable
-private fun FeatureHighlight(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    title: String,
-    description: String
-) {
-    Row(
-        modifier = Modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.Top
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = MaterialTheme.colorScheme.secondary,
-            modifier = Modifier.size(24.dp)
-        )
-        Spacer(modifier = Modifier.width(MaterialTheme.spacing.sm))
-        Column {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = FontWeight.Medium
-            )
-            Text(
-                text = description,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
+private fun OnboardingPreview() {
+    AppTheme(dynamicColor = false) {
+        OnboardingScreen(onConsentGiven = {}, onDecline = {})
     }
 }

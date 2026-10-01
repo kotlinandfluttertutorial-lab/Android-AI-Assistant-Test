@@ -282,7 +282,26 @@ fun LoginScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
 
-                    Spacer(modifier = Modifier.height(MaterialTheme.spacing.lg))
+                    // ── Forgot password link ──────────────────────────────────
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End
+                    ) {
+                        TextButton(
+                            onClick = { /* TODO Phase B: navigate to password reset */ },
+                            modifier = Modifier.semantics {
+                                contentDescription = "Forgot password, send reset link"
+                            }
+                        ) {
+                            Text(
+                                text = "Forgot password?",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(MaterialTheme.spacing.sm))
 
                     // ── 4 + 5. Gradient button with Crossfade loading state ───
                     GradientSignInButton(

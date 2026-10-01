@@ -44,6 +44,8 @@ import com.aiassistant.feature.chat.ChatRoute
 import com.aiassistant.feature.chat.chatNavGraph
 import com.aiassistant.feature.code.codeNavGraph
 import com.aiassistant.feature.dashboard.dashboardNavGraph
+import com.aiassistant.feature.dashboard.ToolsRoute
+import com.aiassistant.feature.dashboard.toolsNavGraph
 import com.aiassistant.feature.email.emailNavGraph
 import com.aiassistant.feature.history.historyNavGraph
 import com.aiassistant.feature.meeting.meetingNavGraph
@@ -349,5 +351,8 @@ private fun rootNavHost(navController: NavHostController) {
 
         // ── AI DevOps Dashboard (Phase 14) ────────────────────────────────────────
         dashboardNavGraph(navController = navController)
+
+        // ── AI Tools Library (Phase C) ────────────────────────────────────────────
+        toolsNavGraph(navController = navController)
     }
 }
