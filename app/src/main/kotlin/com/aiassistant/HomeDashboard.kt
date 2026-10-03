@@ -89,7 +89,14 @@ import androidx.navigation.NavHostController
 import com.aiassistant.core.ui.AppColors
 import com.aiassistant.core.ui.AppIcons
 import com.aiassistant.core.ui.AppType
+import com.aiassistant.core.ui.StitchColors
+import com.aiassistant.core.ui.StitchType
 import com.aiassistant.core.ui.components.EnvironmentIndicator
+import com.aiassistant.core.ui.components.FeaturedBannerCard
+import com.aiassistant.core.ui.components.QuickAction
+import com.aiassistant.core.ui.components.QuickActionFixedGrid
+import com.aiassistant.core.ui.components.SearchInputBar
+import com.aiassistant.core.ui.components.SearchInputBarMode
 import com.aiassistant.core.ui.elevation
 import com.aiassistant.core.ui.motion.pressScale
 import com.aiassistant.core.ui.spacing
@@ -98,6 +105,7 @@ import com.aiassistant.feature.camera.CAMERA_ROUTE
 import com.aiassistant.feature.chat.ChatRoute
 import com.aiassistant.feature.code.CodeRoute
 import com.aiassistant.feature.dashboard.DashboardRoute
+import com.aiassistant.feature.dashboard.ToolsRoute
 import com.aiassistant.feature.email.EmailRoute
 import com.aiassistant.feature.history.HistoryRoute
 import com.aiassistant.feature.meeting.meetingRoute
@@ -131,17 +139,84 @@ private val featureCards = listOf(
     FeatureCardItem("DevOps Dashboard",   AppIcons.Status.Syncing,               DashboardRoute.SCREEN)
 )
 
-// ── Quick-action definitions ──────────────────────────────────────────────────
+// ── Quick-action chip definitions (legacy LazyRow chips) ─────────────────────
 
-private data class QuickAction(val label: String, val icon: ImageVector, val route: String)
+/** Local chip action — distinct from [com.aiassistant.core.ui.components.QuickAction] grid items. */
+private data class ChipAction(val label: String, val icon: ImageVector, val route: String)
 
 private val quickActions = listOf(
-    QuickAction("New Chat",  AppIcons.Destinations.NewChat,        ChatRoute.LIST),
-    QuickAction("Voice",     AppIcons.Chat.Mic,                    VoiceRoute.GRAPH),
-    QuickAction("Documents", AppIcons.Documents.Document,          RAGRoute.DOCUMENT_LIST),
-    QuickAction("History",   AppIcons.Destinations.HistoryFilled,  HistoryRoute.GRAPH),
-    QuickAction("Notes",     AppIcons.Documents.Document,          NotesRoute.GRAPH)
+    ChipAction("New Chat",  AppIcons.Destinations.NewChat,        ChatRoute.LIST),
+    ChipAction("Voice",     AppIcons.Chat.Mic,                    VoiceRoute.GRAPH),
+    ChipAction("Documents", AppIcons.Documents.Document,          RAGRoute.DOCUMENT_LIST),
+    ChipAction("History",   AppIcons.Destinations.HistoryFilled,  HistoryRoute.GRAPH),
+    ChipAction("Notes",     AppIcons.Documents.Document,          NotesRoute.GRAPH)
 )
+
+// ── Stitch 8-item icon grid quick actions (HomeScreen.tsx) ────────────────────
+
+private val stitchQuickActions = listOf(
+    com.aiassistant.core.ui.components.QuickAction(
+        id = "chat", label = "Chat",
+        icon = AppIcons.Destinations.ChatFilled,
+        iconBg = StitchColors.qaChat, iconTint = StitchColors.qaIconChat,
+        actionDescription = "Open AI chat",
+    ),
+    com.aiassistant.core.ui.components.QuickAction(
+        id = "voice", label = "Voice",
+        icon = AppIcons.Chat.Mic,
+        iconBg = StitchColors.qaVoice, iconTint = StitchColors.qaIconVoice,
+        actionDescription = "Open voice assistant",
+    ),
+    com.aiassistant.core.ui.components.QuickAction(
+        id = "pdf", label = "PDF",
+        icon = AppIcons.Documents.Document,
+        iconBg = StitchColors.qaPdf, iconTint = StitchColors.qaIconPdf,
+        actionDescription = "Open PDF assistant",
+    ),
+    com.aiassistant.core.ui.components.QuickAction(
+        id = "image", label = "Image",
+        icon = AppIcons.Chat.Camera,
+        iconBg = StitchColors.qaImage, iconTint = StitchColors.qaIconImage,
+        actionDescription = "Open image assistant",
+    ),
+    com.aiassistant.core.ui.components.QuickAction(
+        id = "code", label = "Code",
+        icon = AppIcons.Chat.Code,
+        iconBg = StitchColors.qaCode, iconTint = StitchColors.qaIconCode,
+        actionDescription = "Open code assistant",
+    ),
+    com.aiassistant.core.ui.components.QuickAction(
+        id = "translate", label = "Translate",
+        icon = AppIcons.Settings.About,
+        iconBg = StitchColors.qaTranslate, iconTint = StitchColors.qaIconTranslate,
+        actionDescription = "Open translator",
+    ),
+    com.aiassistant.core.ui.components.QuickAction(
+        id = "notes", label = "Notes",
+        icon = AppIcons.Chat.Rename,
+        iconBg = StitchColors.qaNotes, iconTint = StitchColors.qaIconNotes,
+        actionDescription = "Open notes",
+    ),
+    com.aiassistant.core.ui.components.QuickAction(
+        id = "tools", label = "Tools",
+        icon = AppIcons.Settings.Appearance,
+        iconBg = StitchColors.qaTools, iconTint = StitchColors.qaIconTools,
+        actionDescription = "Open AI tools library",
+    ),
+)
+
+/** Maps a Stitch quick-action id to a navigation route string. */
+private fun stitchQuickActionRoute(id: String): String = when (id) {
+    "chat"      -> ChatRoute.LIST
+    "voice"     -> VoiceRoute.GRAPH
+    "pdf"       -> RAGRoute.DOCUMENT_LIST
+    "image"     -> CAMERA_ROUTE
+    "code"      -> CodeRoute.GRAPH
+    "translate" -> TRANSLATOR_ROUTE
+    "notes"     -> NotesRoute.GRAPH
+    "tools"     -> ToolsRoute.SCREEN
+    else        -> HOME_ROUTE
+}
 
 // ── Route constant ────────────────────────────────────────────────────────────
 
@@ -177,12 +252,23 @@ fun homeDashboard(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)
                     ) {
-                        Text(
-                            text = "AI Assistant",
-                            style = MaterialTheme.typography.titleMedium
-                        )
-                        // Visible in local and stage builds — zero cost in production.
-                        EnvironmentIndicator(environmentName = viewModel.environmentName)
+                        Column {
+                            Text(
+                                text = "Good morning",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs)
+                            ) {
+                                Text(
+                                    text = "Hello, ${(uiState as? HomeDashboardUiState.Ready)?.userName ?: "there"} 👋",
+                                    style = StitchType.homeGreeting
+                                )
+                                EnvironmentIndicator(environmentName = viewModel.environmentName)
+                            }
+                        }
                     }
                 },
                 navigationIcon = {
@@ -237,12 +323,11 @@ fun homeDashboard(
                 )
             )
 
-            // ── Hero "Ask AI" card ─────────────────────────────────────────
-            HeroAskAiCard(
-                userName = ready?.userName ?: "there",
-                todayDate = ready?.todayDate ?: "",
-                isDark = isDark,
-                onClick = { navController.navigate(ChatRoute.LIST) },
+            // ── Tappable search bar → chat (Stitch: "Ask me anything…") ───
+            SearchInputBar(
+                placeholder = "Ask me anything…",
+                mode = SearchInputBarMode.TAPPABLE,
+                onTap = { navController.navigate(ChatRoute.LIST) },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(
@@ -251,17 +336,49 @@ fun homeDashboard(
                     )
             )
 
-            // ── Quick-action chips ─────────────────────────────────────────
-            QuickActionChipRow(
-                actions = quickActions,
-                onActionClick = { navController.navigate(it) },
+            // ── Featured banner (Stitch: "Gemini 2.0 Ultra" gradient card) ─
+            FeaturedBannerCard(
+                headline = "Gemini 2.0 Ultra",
+                body = "Now with improved reasoning and multimodal capabilities",
+                gradientStart = StitchColors.featuredBannerStart,
+                gradientEnd   = StitchColors.featuredBannerEnd,
+                tag = "New",
+                ctaLabel = "Try now →",
+                onCtaClick = { navController.navigate(ChatRoute.LIST) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        start = MaterialTheme.spacing.screenEdge,
+                        end = MaterialTheme.spacing.screenEdge,
+                        bottom = MaterialTheme.spacing.md
+                    )
+            )
+
+            // ── Quick Actions header ────────────────────────────────────────
+            Text(
+                text = "Quick Actions",
+                style = StitchType.sectionTitle,
                 modifier = Modifier.padding(
-                    start = MaterialTheme.spacing.screenEdge,
-                    bottom = MaterialTheme.spacing.sm
+                    horizontal = MaterialTheme.spacing.screenEdge,
+                    vertical = MaterialTheme.spacing.xs
                 )
             )
 
-            // ── Recent conversations ───────────────────────────────────────
+            // ── 4-column icon grid (Stitch: 8 quick actions) ──────────────
+            QuickActionFixedGrid(
+                actions = stitchQuickActions,
+                onActionClick = { id -> navController.navigate(stitchQuickActionRoute(id)) },
+                columns = 4,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(
+                        start = MaterialTheme.spacing.screenEdge,
+                        end = MaterialTheme.spacing.screenEdge,
+                        bottom = MaterialTheme.spacing.sm
+                    )
+            )
+
+            // ── Recent conversations header ─────────────────────────────────
             val conversations = ready?.recentConversations ?: emptyList()
 
             if (conversations.isNotEmpty()) {
@@ -272,13 +389,30 @@ fun homeDashboard(
                     Column(
                         modifier = Modifier.padding(horizontal = MaterialTheme.spacing.screenEdge)
                     ) {
-                        Text(
-                            text = "RECENT",
-                            style = AppType.sectionLabel,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(bottom = MaterialTheme.spacing.xs)
-                        )
-                        conversations.take(3).forEach { conversation ->
+                        // Section header row with "See all" button
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(bottom = MaterialTheme.spacing.xs),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Recent Chats",
+                                style = StitchType.sectionTitle,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+                            androidx.compose.material3.TextButton(
+                                onClick = { navController.navigate(HistoryRoute.GRAPH) }
+                            ) {
+                                Text(
+                                    text = "See all",
+                                    style = MaterialTheme.typography.labelLarge,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            }
+                        }
+                        conversations.take(4).forEach { conversation ->
                             ConversationPreviewCard(
                                 conversation = conversation,
                                 onTap = { navController.navigate(ChatRoute.detail(conversation.id)) },
@@ -302,9 +436,9 @@ fun homeDashboard(
 
             // ── Feature cards grid ─────────────────────────────────────────
             Text(
-                text = "FEATURES",
-                style = AppType.sectionLabel,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                text = "Features",
+                style = StitchType.sectionTitle,
+                color = MaterialTheme.colorScheme.onSurface,
                 modifier = Modifier.padding(
                     start = MaterialTheme.spacing.screenEdge,
                     bottom = MaterialTheme.spacing.xs
@@ -465,7 +599,7 @@ private fun HeroAskAiCard(
 
 @Composable
 private fun QuickActionChipRow(
-    actions: List<QuickAction>,
+    actions: List<ChipAction>,
     onActionClick: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {

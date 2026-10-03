@@ -305,3 +305,117 @@ object AppColors {
     val codeBlockOnSurface    = Color(0xFFCBD5E1) // Slate-300
     val codeBlockLineNumber   = Color(0xFF64748B) // Slate-500
 }
+
+// ── Stitch design-reference tokens (Phase A — UI Migration) ──────────────────
+// These tokens are derived directly from the Stitch TSX design files and cover
+// colour values that had no equivalent in the existing AppColors palette.
+
+object StitchColors {
+
+    // ── Splash screen gradient ────────────────────────────────────────────────
+    // 4-stop diagonal gradient used in SplashScreen.kt.
+    // From Stitch: linear-gradient(160deg, #1a0533 → #381E72 → #6750A4 → #9C89C4)
+    val splashGradientStop0 = Color(0xFF1A0533) // Deep plum — darkest corner
+    val splashGradientStop1 = Color(0xFF381E72) // Dark purple
+    val splashGradientStop2 = Color(0xFF6750A4) // Material primary (matches brand)
+    val splashGradientStop3 = Color(0xFF9C89C4) // Soft lavender — lightest corner
+
+    // Ambient orb blobs on splash (semi-transparent)
+    val splashOrbLight = Color(0x1FD0BCFF) // rgba(208,188,255,0.12)
+    val splashOrbDark  = Color(0x4C6750A4) // rgba(103,80,164,0.30)
+
+    // ── Onboarding slide gradients ────────────────────────────────────────────
+    // Each slide has a two-stop gradient background on the illustration card.
+    val onboardingSlide0Start = Color(0xFF6750A4) // Purple — "Meet Your AI"
+    val onboardingSlide0End   = Color(0xFF9C89C4)
+    val onboardingSlide1Start = Color(0xFF7D5260) // Rose   — "Limitless Capabilities"
+    val onboardingSlide1End   = Color(0xFFB26978)
+    val onboardingSlide2Start = Color(0xFF386A20) // Green  — "Private & Secure"
+    val onboardingSlide2End   = Color(0xFF5A9E3C)
+
+    // ── Home screen featured banner ───────────────────────────────────────────
+    // Gradient card promoting Gemini 2.0 / featured capability.
+    val featuredBannerStart = Color(0xFF6750A4)
+    val featuredBannerEnd   = Color(0xFF9C89C4)
+
+    // ── Tools screen featured banner ──────────────────────────────────────────
+    // Rose gradient — "Resume Builder AI" featured card.
+    val toolsFeaturedStart = Color(0xFF7D5260)
+    val toolsFeaturedEnd   = Color(0xFFB26978)
+
+    // ── Profile screen header band ────────────────────────────────────────────
+    val profileHeaderStart = Color(0xFF6750A4)
+    val profileHeaderEnd   = Color(0xFF9C89C4)
+
+    // ── Quick action icon backgrounds ─────────────────────────────────────────
+    // Each quick-action card uses a distinct tinted container so the icon is
+    // clearly distinguishable without relying on colour alone (WCAG 1.4.1).
+    val qaChat       = Color(0xFFE8DEF8) // Purple tonal  — Chat
+    val qaVoice      = Color(0xFFD3E4FF) // Blue tonal    — Voice
+    val qaPdf        = Color(0xFFFFD7D4) // Red tonal     — PDF
+    val qaImage      = Color(0xFFD6EDCC) // Green tonal   — Image
+    val qaCode       = Color(0xFFFFD8E4) // Pink tonal    — Code
+    val qaTranslate  = Color(0xFFF3EDF7) // Lavender      — Translate
+    val qaNotes      = Color(0xFFD6EDCC) // Green tonal   — Notes
+    val qaTools      = Color(0xFFFFD8E4) // Pink tonal    — Tools
+
+    // ── Quick action icon foreground colours ──────────────────────────────────
+    val qaIconChat      = Color(0xFF6750A4) // purple
+    val qaIconVoice     = Color(0xFF0061A4) // blue
+    val qaIconPdf       = Color(0xFFB3261E) // red / error
+    val qaIconImage     = Color(0xFF386A20) // green / tertiary
+    val qaIconCode      = Color(0xFF7D5260) // rose / tertiary-variant
+    val qaIconTranslate = Color(0xFF6750A4) // purple
+    val qaIconNotes     = Color(0xFF386A20) // green
+    val qaIconTools     = Color(0xFF7D5260) // rose
+
+    // ── Voice assistant state colours ─────────────────────────────────────────
+    // The mic button changes colour to communicate the current interaction state.
+    val voiceIdle       = Color(0xFF6750A4) // Primary — ready to listen
+    val voiceListening  = Color(0xFFB3261E) // Error/red — actively recording
+    val voiceProcessing = Color(0xFF386A20) // Tertiary/green — processing response
+    val voiceSpeaking   = Color(0xFF0061A4) // Blue — playing back response
+
+    // Pulse-ring overlay (three expanding rings, visible while listening)
+    val voicePulseRing0 = Color(0x266750A4) // 15 % primary
+    val voicePulseRing1 = Color(0x1A6750A4) // 10 % primary
+    val voicePulseRing2 = Color(0x0D6750A4) //  5 % primary
+
+    // Transcript card & AI-response card
+    val voiceTranscriptBg      = Color(0xFFE8DEF8) // secondaryContainer-equiv
+    val voiceTranscriptBorder  = Color(0xFFD0BCFF)
+    val voiceResponseText      = Color(0xFF21005D) // onPrimaryContainer dark
+
+    // ── Code editor (VSCode-style dark theme) ─────────────────────────────────
+    // Always dark, regardless of app theme, to match developer tool conventions.
+    // The existing AppColors.codeBlockBackground covers the outer container; these
+    // tokens add the VSCode "One Dark"-inspired syntax palette from the Stitch design.
+    val codeEditorBg        = Color(0xFF1E1E2E) // Editor background (Catppuccin Mocha)
+    val codeEditorFg        = Color(0xFFCDD6F4) // Default text
+    val codeEditorTrafficRed    = Color(0xFFFF5F57) // macOS traffic-light close
+    val codeEditorTrafficAmber  = Color(0xFFFFBD2E) // macOS traffic-light minimise
+    val codeEditorTrafficGreen  = Color(0xFF28CA41) // macOS traffic-light expand
+
+    // Syntax highlight colours (Catppuccin Mocha palette — same as Stitch design)
+    val syntaxKeyword   = Color(0xFFF38BA8) // pink    — import, def, async, if, etc.
+    val syntaxModule    = Color(0xFF89B4FA) // blue    — module names, types
+    val syntaxFunction  = Color(0xFFF9E2AF) // yellow  — function/method names
+    val syntaxString    = Color(0xFFA6E3A1) // green   — string literals
+    val syntaxNumber    = Color(0xFFCBA6F7) // mauve   — numeric literals
+    val syntaxParam     = Color(0xFFFAB387) // peach   — parameters, variables
+    val syntaxComment   = Color(0xFF6C7086) // overlay — comments, docstrings
+    val syntaxDiffAdd   = Color(0xFFA6E3A1) // green   — diff +added lines
+    val syntaxDiffAddBg = Color(0x1AA6E3A1) // 10 % green bg for added lines
+    val syntaxDiffDel   = Color(0xFFF38BA8) // pink    — diff -removed lines
+    val syntaxDiffDelBg = Color(0x1AF38BA8) // 10 % pink bg for removed lines
+
+    // ── Sign-out / destructive button ─────────────────────────────────────────
+    // Not a Material role — explicit Stitch value for the sign-out button surface.
+    val signOutBg     = Color(0xFFFFD7D4) // errorContainer-like, warmer than M3
+    val signOutBorder = Color(0xFFF2B8B5)
+    val signOutText   = Color(0xFFB3261E) // error
+
+    // ── Navigation indicator pill ─────────────────────────────────────────────
+    // Active tab indicator pill behind the nav icon (64 × 32 dp).
+    val navIndicator = Color(0xFFE8DEF8) // secondaryContainer light
+}

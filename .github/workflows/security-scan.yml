@@ -419,7 +419,7 @@ jobs:
         # Retries on transient PyPI 503/ServiceError; real vuln findings still fail fast.
         run: |
           for attempt in 1 2 3; do
-            AUDIT_OUT=$(pip-audit \
+            if AUDIT_OUT=$(pip-audit \
               --requirement backend/requirements.txt \
               --ignore-vuln GHSA-2wm9-hf6c-p5cr \
               --ignore-vuln GHSA-36p7-vc44-83pf \
@@ -436,11 +436,11 @@ jobs:
               --ignore-vuln PYSEC-2026-3911 \
               --ignore-vuln PYSEC-2026-3912 \
               --ignore-vuln PYSEC-2026-3913 \
-              --strict 2>&1)
-            EXIT=$?
-            if [ $EXIT -eq 0 ]; then
+              --strict 2>&1); then
               echo "$AUDIT_OUT"
               exit 0
+            else
+              EXIT=$?
             fi
             # Transient PyPI service error — retry with back-off
             if echo "$AUDIT_OUT" | grep -qE "ServiceError|503 Server Error|Backend is unhealthy"; then
