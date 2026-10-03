@@ -733,6 +733,52 @@ class Settings(BaseSettings):
     )
 
     # -------------------------------------------------------------------------
+    # Atlassian MCP Server (external gateway — distinct from the internal
+    # Jira REST connector above)
+    # -------------------------------------------------------------------------
+
+    ATLASSIAN_MCP_SERVER_URL: str = Field(
+        default="",
+        description=(
+            "Base URL of the Atlassian MCP gateway, e.g. "
+            "https://mcp.atlassian.com/v1.  Leave blank to disable the "
+            "Atlassian MCP connector."
+        ),
+    )
+
+    ATLASSIAN_CLOUD_ID: str = Field(
+        default="",
+        description=(
+            "Atlassian Cloud site ID (UUID).  Required when the MCP server "
+            "uses cloud-scoped endpoints.  Find it under "
+            "https://<your-site>.atlassian.net/_edge/tenant_info."
+        ),
+    )
+
+    ATLASSIAN_CLIENT_ID: str = Field(
+        default="",
+        description=(
+            "OAuth 2.0 client ID issued by developer.atlassian.com.  "
+            "Used to obtain access tokens for the Atlassian MCP server."
+        ),
+    )
+
+    ATLASSIAN_CLIENT_SECRET: str = Field(
+        default="",
+        description=(
+            "OAuth 2.0 client secret.  Keep this value secret — "
+            "never commit it to source control."
+        ),
+    )
+
+    ATLASSIAN_MCP_TIMEOUT_S: float = Field(
+        default=20.0,
+        ge=1.0,
+        le=120.0,
+        description="Per-request timeout (seconds) for calls to the Atlassian MCP server.",
+    )
+
+    # -------------------------------------------------------------------------
     # Observability
     # -------------------------------------------------------------------------
 
