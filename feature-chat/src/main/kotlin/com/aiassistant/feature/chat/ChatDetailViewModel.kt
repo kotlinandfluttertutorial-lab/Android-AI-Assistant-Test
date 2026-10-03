@@ -4,50 +4,25 @@
  * ============================================================
  * Module     : feature-chat
  * File       : ChatDetailViewModel.kt
- * Purpose    : Manages UI state and delegates actions to domain use cases for the ChatDetail feature
+ * Purpose    : Manages UI state for the ChatDetail screen, including
+ *              multi-mode execution: DIRECT_LLM, RAG, and AGENT.
  *
- * Architecture Layer : Feature (feature-chat)
- * Pattern Used       : MVVM ViewModel
+ * Architecture Layer : Feature (feature-chat) — MVVM ViewModel
+ * Pattern Used       : MVVM + StateFlow + cold Flow collection
  *
  * Key Concepts:
  *   - Clean Architecture with strict layer separation
  *   - Hilt dependency injection
+ *   - AgentGatewayRepository is the single execution path for all three modes:
+ *       DIRECT_LLM → AgentMode.CHAT  → conversational agent (existing stream)
+ *       RAG        → AgentMode.DOCUMENT → RAG agent (retrieval + LLM)
+ *       AGENT      → AgentMode.AUTO    → full orchestration layer
+ *   - AIStreamClient is retained as an optional fallback only.
  *
- * Dependencies:
- *   - See import statements below
+ * Requirements: 2.1, 2.2, 2.5, 2.6, 2.7, 2.8, 2.10
  * ============================================================
  */
 
-/*
- * ============================================================
- * Android AI Assistant (Enterprise Edition)
- * ============================================================
- * Module     : feature-chat
- * File       : ChatDetailViewModel.kt
- * Purpose    : Manages UI state and delegates actions to domain use cases for the ChatDetail feature
- *
- * Architecture Layer : Feature (feature-chat)
- * Pattern Used       : MVVM ViewModel
- *
- * Key Concepts:
- *   - Clean Architecture with strict layer separation
- *   - Hilt dependency injection
- *
- * Dependencies:
- *   - See import statements below
- * ============================================================
- */
-/**
- * ChatDetailViewModel.kt
- *
- * Purpose: Manages all UI state for the ChatDetail screen. Connects the AIStreamClient
- *          WebSocket, processes StreamEvent tokens incrementally, handles typing indicator,
- *          regeneration, and streaming error recovery.
- * Architecture: feature-chat â€” MVVM ViewModel; injected via Hilt.
- * Dependencies: domain use cases, AIStreamClient (core-ai), DispatcherProvider (core-common)
- *
- * Requirements: 2.1, 2.2, 2.5, 2.6, 2.7, 2.8, 2.10
- */
 package com.aiassistant.feature.chat
 
 import androidx.lifecycle.SavedStateHandle
@@ -61,6 +36,11 @@ import com.aiassistant.core.common.ApiResult
 import com.aiassistant.core.common.DispatcherProvider
 import com.aiassistant.core.common.DomainError
 import com.aiassistant.core.security.SecureStorage
+import com.aiassistant.domain.agent.AgentEvent
+import com.aiassistant.domain.agent.AgentGatewayRepository
+import com.aiassistant.domain.agent.AgentStatus
+import com.aiassistant.domain.agent.AgentToolCall
+import com.aiassistant.domain.agent.ChatExecutionMode
 import com.aiassistant.domain.model.ExportFormat
 import com.aiassistant.domain.model.Message
 import com.aiassistant.domain.model.ScreenContext
@@ -85,21 +65,30 @@ import kotlinx.coroutines.withContext
  * ViewModel for the ChatDetail screen.
  *
  * Exposes a [StateFlow] of [ChatDetailUiState]. All streaming I/O is dispatched on
- * [DispatcherProvider.io]; UI state updates are published on the calling coroutine's
+ * [DispatcherProvider.io]; UI-state updates are published on the calling coroutine's
  * context (StateFlow is thread-safe).
  *
- * Streaming lifecycle:
- * 1. [sendMessage] persists the user message, starts the typing indicator, connects
- *    the AIStreamClient, and sends the payload.
- * 2. On the first [StreamEvent.Token], the typing indicator is hidden; tokens are
- *    appended to [ChatDetailUiState.streamingText].
- * 3. On [StreamEvent.Done] the accumulated text is committed to [ChatDetailUiState.messages]
- *    as a new assistant Message and the streaming state is cleared.
- * 4. On [StreamEvent.Error] the [ChatDetailUiState.showRetryOption] flag is set; the
- *    stream is not resumed until the user taps [retryStreaming].
+ * ## Execution modes
  *
- * The JWT is currently hard-coded to a placeholder; the auth module provides the real
- * token through a shared [SecureStorage] dependency in a future integration task.
+ * The user may select one of three [ChatExecutionMode] values via [setExecutionMode].
+ * All three modes funnel through [AgentGatewayRepository.executeChat] — the mode is
+ * translated to an [com.aiassistant.domain.agent.AgentMode] by
+ * [ChatExecutionMode.toAgentMode]:
+ *
+ * | Mode        | AgentMode | What streams back                                    |
+ * |-------------|-----------|------------------------------------------------------|
+ * | DIRECT_LLM  | CHAT      | Token events only — fastest path                     |
+ * | RAG         | DOCUMENT  | Token events + RetrievalCompleted → citations shown  |
+ * | AGENT       | AUTO      | Token + Tool* + Thinking events → steps/tool display |
+ *
+ * ## Streaming lifecycle
+ * 1. [sendMessage] persists the user message, starts the typing indicator, and calls
+ *    [startStreamingViaGateway].
+ * 2. On the first [AgentEvent.Token], the typing indicator is hidden.
+ * 3. On [AgentEvent.Completed] the final text is committed as an assistant [Message].
+ * 4. On [AgentEvent.Failed] the retry option is shown.
+ * 5. On [AgentEvent.RetrievalCompleted] the citation list from the result is stored.
+ * 6. On [AgentEvent.ToolStarted/ToolCompleted/ToolFailed] activeToolCalls is updated.
  */
 @HiltViewModel
 class ChatDetailViewModel @Inject constructor(
@@ -107,12 +96,12 @@ class ChatDetailViewModel @Inject constructor(
     private val sendMessageUseCase: SendMessageUseCase,
     private val regenerateMessageUseCase: RegenerateMessageUseCase,
     private val exportConversationUseCase: ExportConversationUseCase,
-    private val streamClient: AIStreamClient,
+    private val agentGatewayRepository: AgentGatewayRepository,
     private val dispatchers: DispatcherProvider,
     private val getContextSuggestionsUseCase: GetContextSuggestionsUseCase,
-    // Phase 3: injected to resolve the real JWT instead of the placeholder.
-    // Optional (default null) so existing unit tests that don't provide this
-    // dependency continue to compile and run without modification.
+    // Retained for on-device fallback path and unit-test compatibility.
+    private val streamClient: AIStreamClient,
+    // Optional; present when the auth module is wired.
     private val secureStorage: SecureStorage? = null,
 ) : ViewModel() {
 
@@ -131,17 +120,17 @@ class ChatDetailViewModel @Inject constructor(
     /** Active streaming collection job; cancelled when a new stream starts. */
     private var streamingJob: Job? = null
 
-    /** Token index tracker for StreamingInterrupted recovery (Req 2.8). */
+    /** Last token index for StreamingInterrupted recovery (Req 2.8). */
     private var lastTokenIndex: Int = -1
 
-    /** Pending message content held for retry after a StreamingInterrupted error. */
-    private var pendingMessagePayload: MessagePayload? = null
+    /** Pending payload held for retry after a streaming error. */
+    private var pendingContent: String? = null
 
-    // ─── Suggestion settings (updated by Settings screen) ────────────────────
+    // ─── Suggestion settings ──────────────────────────────────────────────────
     private var isSuggestionsEnabled: Boolean = true
     private var isPrivacyModeEnabled: Boolean = false
 
-    // â”€â”€â”€ Public actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ─── Public actions ───────────────────────────────────────────────────────
 
     /**
      * Sets the LLM provider identifier for this conversation.
@@ -151,21 +140,31 @@ class ChatDetailViewModel @Inject constructor(
     }
 
     /**
+     * Changes the execution mode.
+     *
+     * The new mode takes effect on the **next** [sendMessage] call.
+     * The current conversation history is preserved; only new messages
+     * are processed with the updated mode.
+     *
+     * @param mode One of [ChatExecutionMode.DIRECT_LLM], [ChatExecutionMode.RAG],
+     *             or [ChatExecutionMode.AGENT].
+     */
+    fun setExecutionMode(mode: ChatExecutionMode) {
+        _uiState.update { it.copy(executionMode = mode) }
+    }
+
+    /**
      * Sends [content] as a new user message within the conversation.
      *
-     * - Validates via [SendMessageUseCase].
-     * - Appends the user message optimistically to [ChatDetailUiState.messages].
-     * - Shows typing indicator (Req 2.10).
-     * - Starts streaming from the AIStreamClient (Req 2.2).
-     *
-     * @param content The user's message text. Must not be blank.
+     * Execution mode is read from [ChatDetailUiState.executionMode] at call time.
+     * Clears citations, tool calls, and the step counter from the previous run.
      */
     fun sendMessage(content: String) {
         if (content.isBlank()) return
 
         val provider = _uiState.value.provider
+        val mode = _uiState.value.executionMode
 
-        // Optimistically append user message to the list immediately
         val userMessage = Message(
             id = UUID.randomUUID().toString(),
             conversationId = conversationId,
@@ -175,126 +174,69 @@ class ChatDetailViewModel @Inject constructor(
             syncStatus = "pending",
             createdAt = Instant.now()
         )
+
+        // Optimistic UI + clear previous run state
         _uiState.update { state ->
             state.copy(
                 messages = state.messages + userMessage,
                 error = null,
-                showRetryOption = false
+                showRetryOption = false,
+                citations = emptyList(),
+                activeToolCalls = emptyList(),
+                agentStepCount = 0,
             )
         }
 
         viewModelScope.launch(dispatchers.io) {
-            // Persist via use case (non-blocking; optimistic UI already shown)
             sendMessageUseCase(conversationId, content.trim(), provider)
-
-            // Show typing indicator before the stream starts (Req 2.10)
             _uiState.update { it.copy(isTypingIndicatorVisible = true) }
-
-            val payload = MessagePayload(
-                conversationId = conversationId,
-                content = content.trim(),
-                provider = provider
-            )
-            pendingMessagePayload = payload
-            startStreaming(payload)
+            pendingContent = content.trim()
+            startStreamingViaGateway(content.trim(), provider, mode)
         }
     }
 
     /**
-     * Connects the AIStreamClient and processes [StreamEvent] values.
+     * Routes a chat turn through [AgentGatewayRepository] with the selected
+     * [ChatExecutionMode] translated to the appropriate [AgentMode].
      *
-     * Called internally by [sendMessage] and [retryStreaming].
+     * Handles all [AgentEvent] subtypes:
+     * - [AgentEvent.Token]              → append to streamingText
+     * - [AgentEvent.Thinking]           → increment agentStepCount
+     * - [AgentEvent.ToolStarted]        → add pending tool entry
+     * - [AgentEvent.ToolCompleted]      → mark tool entry as complete
+     * - [AgentEvent.ToolFailed]         → mark tool entry as failed
+     * - [AgentEvent.RetrievalCompleted] → store citations from final result
+     * - [AgentEvent.Completed]          → commit message + citations + tool calls
+     * - [AgentEvent.Failed]             → show retry option
+     * - [AgentEvent.Cancelled]          → clear streaming state
      */
-    private fun startStreaming(payload: MessagePayload) {
+    private fun startStreamingViaGateway(
+        content: String,
+        provider: String,
+        mode: ChatExecutionMode,
+    ) {
         streamingJob?.cancel()
         lastTokenIndex = -1
-
-        // Placeholder JWT â€” real token comes from SecureStorage in auth module
-        // Phase 3: resolve real JWT from SecureStorage; fall back to empty string so
-        // the backend rejects with a clear 4001 error instead of silently using a debug token.
-        val jwt = secureStorage?.getJwt() ?: ""
-
-        // Determine whether this request uses on-device inference (Requirement 31.3)
-        val isOnDevice = payload.provider == ON_DEVICE_PROVIDER_ID
+        val isOnDevice = provider == ON_DEVICE_PROVIDER_ID
 
         streamingJob = viewModelScope.launch(dispatchers.io) {
-            _uiState.update { it.copy(isStreaming = true, streamingText = "", isRunningOnDevice = isOnDevice) }
+            _uiState.update {
+                it.copy(
+                    isStreaming = true,
+                    streamingText = "",
+                    isRunningOnDevice = isOnDevice,
+                )
+            }
 
             try {
-                val flow = streamClient.connect(conversationId, jwt)
-
-                // Send the message payload after connection is established
-                streamClient.sendMessage(payload)
-
-                flow.collect { event ->
-                    when (event) {
-                        is StreamEvent.Token -> {
-                            lastTokenIndex++
-                            _uiState.update { state ->
-                                state.copy(
-                                    // Hide typing indicator on first token (Req 2.10)
-                                    isTypingIndicatorVisible = false,
-                                    streamingText = state.streamingText + event.text
-                                )
-                            }
-                        }
-
-                        is StreamEvent.Done -> {
-                            // Commit accumulated streaming text as a persisted assistant message
-                            val completedText = _uiState.value.streamingText
-                            if (completedText.isNotEmpty()) {
-                                val assistantMessage = Message(
-                                    id = UUID.randomUUID().toString(),
-                                    conversationId = conversationId,
-                                    role = "assistant",
-                                    content = completedText,
-                                    inputTokens = event.usage.inputTokens,
-                                    outputTokens = event.usage.outputTokens,
-                                    provider = _uiState.value.provider,
-                                    syncStatus = "synced",
-                                    createdAt = Instant.now()
-                                )
-                                _uiState.update { state ->
-                                    state.copy(
-                                        messages = state.messages + assistantMessage,
-                                        streamingText = "",
-                                        isStreaming = false,
-                                        isTypingIndicatorVisible = false,
-                                        isRunningOnDevice = false
-                                    )
-                                }
-                            } else {
-                                _uiState.update {
-                                    it.copy(
-                                        isStreaming = false,
-                                        isTypingIndicatorVisible = false,
-                                        isRunningOnDevice = false
-                                    )
-                                }
-                            }
-                            pendingMessagePayload = null
-                        }
-
-                        is StreamEvent.Error -> {
-                            // Streaming interrupted â€” show retry option, do not auto-reconnect (Req 2.8)
-                            _uiState.update { state ->
-                                state.copy(
-                                    isStreaming = false,
-                                    isTypingIndicatorVisible = false,
-                                    error = DomainError.StreamingInterrupted(
-                                        message = event.message,
-                                        lastTokenIndex = if (lastTokenIndex >= 0) lastTokenIndex else null
-                                    ),
-                                    showRetryOption = true
-                                )
-                            }
-                        }
-
-                        is StreamEvent.ToolCall -> {
-                            // Tool calls are handled transparently; tokens continue after the tool completes
-                        }
-                    }
-                }
+                agentGatewayRepository
+                    .executeChat(
+                        conversationId = conversationId,
+                        content = content,
+                        provider = provider,
+                        mode = mode.toAgentMode(),
+                    )
+                    .collect { event -> handleAgentEvent(event, provider) }
             } catch (e: Exception) {
                 _uiState.update { state ->
                     state.copy(
@@ -302,53 +244,196 @@ class ChatDetailViewModel @Inject constructor(
                         isTypingIndicatorVisible = false,
                         error = DomainError.StreamingInterrupted(
                             message = e.message ?: "Streaming connection was interrupted.",
-                            lastTokenIndex = if (lastTokenIndex >= 0) lastTokenIndex else null
+                            lastTokenIndex = if (lastTokenIndex >= 0) lastTokenIndex else null,
                         ),
-                        showRetryOption = true
+                        showRetryOption = true,
                     )
                 }
             }
         }
     }
 
-    /**
-     * Resumes streaming after the user taps the retry button.
-     *
-     * Clears the error / retry state and re-opens the WebSocket (Req 2.8).
-     * No-op when there is no pending payload to retry.
-     */
-    fun retryStreaming() {
-        val payload = pendingMessagePayload ?: return
-        _uiState.update { it.copy(error = null, showRetryOption = false) }
-        viewModelScope.launch(dispatchers.io) {
-            startStreaming(payload)
+    /** Processes a single [AgentEvent] emitted by [AgentGatewayRepository]. */
+    private fun handleAgentEvent(event: AgentEvent, provider: String) {
+        when (event) {
+            // ── Content streaming ────────────────────────────────────────
+            is AgentEvent.Token -> {
+                lastTokenIndex++
+                _uiState.update { state ->
+                    state.copy(
+                        isTypingIndicatorVisible = false,
+                        streamingText = state.streamingText + event.token,
+                    )
+                }
+            }
+
+            // ── Reasoning (AGENT mode) ───────────────────────────────────
+            is AgentEvent.Thinking -> {
+                _uiState.update { state ->
+                    state.copy(agentStepCount = state.agentStepCount + 1)
+                }
+            }
+
+            // ── Tool lifecycle (AGENT mode) ──────────────────────────────
+            is AgentEvent.ToolStarted -> {
+                val pending = AgentToolCall(
+                    toolName = event.toolName,
+                    input = event.parameters,
+                    output = null,
+                    failed = false,
+                    durationMs = 0L,
+                )
+                _uiState.update { state ->
+                    state.copy(activeToolCalls = state.activeToolCalls + pending)
+                }
+            }
+
+            is AgentEvent.ToolCompleted -> {
+                _uiState.update { state ->
+                    state.copy(
+                        activeToolCalls = state.activeToolCalls.map { call ->
+                            if (call.toolName == event.toolName && call.output == null) {
+                                call.copy(output = event.output, durationMs = event.durationMs)
+                            } else call
+                        }
+                    )
+                }
+            }
+
+            is AgentEvent.ToolFailed -> {
+                _uiState.update { state ->
+                    state.copy(
+                        activeToolCalls = state.activeToolCalls.map { call ->
+                            if (call.toolName == event.toolName && !call.failed) {
+                                call.copy(failed = true, errorMessage = event.errorMessage)
+                            } else call
+                        }
+                    )
+                }
+            }
+
+            // ── Retrieval (RAG + AGENT modes) ────────────────────────────
+            is AgentEvent.RetrievalCompleted -> {
+                // Citations arrive in the terminal Completed event; this event
+                // confirms retrieval finished so the UI can show a progress hint.
+                _uiState.update { state ->
+                    state.copy(agentStepCount = state.agentStepCount + 1)
+                }
+            }
+
+            // ── Terminal: success ────────────────────────────────────────
+            is AgentEvent.Completed -> {
+                val result = event.result
+                val finalText = result.content
+                    ?: _uiState.value.streamingText.takeIf { it.isNotEmpty() }
+
+                val assistantMessage = if (finalText != null) {
+                    Message(
+                        id = UUID.randomUUID().toString(),
+                        conversationId = conversationId,
+                        role = "assistant",
+                        content = finalText,
+                        inputTokens = result.usage?.inputTokens ?: 0,
+                        outputTokens = result.usage?.outputTokens ?: 0,
+                        provider = provider,
+                        syncStatus = "synced",
+                        createdAt = Instant.now(),
+                    )
+                } else null
+
+                _uiState.update { state ->
+                    state.copy(
+                        messages = if (assistantMessage != null) {
+                            state.messages + assistantMessage
+                        } else state.messages,
+                        streamingText = "",
+                        isStreaming = false,
+                        isTypingIndicatorVisible = false,
+                        isRunningOnDevice = false,
+                        // Persist citations from the result (RAG + AGENT modes)
+                        citations = result.citations,
+                        // Persist complete tool call record from the result
+                        activeToolCalls = result.toolCalls,
+                    )
+                }
+                pendingContent = null
+            }
+
+            // ── Terminal: failure ────────────────────────────────────────
+            is AgentEvent.Failed -> {
+                val errorMsg = event.result.error?.message
+                    ?: "The agent encountered an error."
+                _uiState.update { state ->
+                    state.copy(
+                        isStreaming = false,
+                        isTypingIndicatorVisible = false,
+                        error = DomainError.StreamingInterrupted(
+                            message = errorMsg,
+                            lastTokenIndex = if (lastTokenIndex >= 0) lastTokenIndex else null,
+                        ),
+                        showRetryOption = true,
+                    )
+                }
+            }
+
+            // ── Terminal: cancelled ──────────────────────────────────────
+            is AgentEvent.Cancelled -> {
+                _uiState.update { state ->
+                    state.copy(
+                        isStreaming = false,
+                        isTypingIndicatorVisible = false,
+                    )
+                }
+            }
+
+            // ── Informational / ignored ──────────────────────────────────
+            is AgentEvent.Started,
+            is AgentEvent.StatusChanged,
+            is AgentEvent.HandoffStarted,
+            is AgentEvent.HandoffCompleted,
+            is AgentEvent.ToolConfirmationRequired -> {
+                // No UI change needed for these events currently.
+            }
         }
     }
 
     /**
-     * Regenerates the assistant's response for the message identified by [messageId].
-     *
-     * The new response is appended as an alternative to the existing message (Req 2.6).
-     * Starts a new streaming session after the regeneration request is accepted.
-     *
-     * @param messageId The ID of the assistant message to regenerate.
+     * Resumes streaming after the user taps the retry button (Req 2.8).
+     */
+    fun retryStreaming() {
+        val content = pendingContent ?: return
+        _uiState.update { it.copy(error = null, showRetryOption = false) }
+        viewModelScope.launch(dispatchers.io) {
+            val provider = _uiState.value.provider
+            val mode = _uiState.value.executionMode
+            _uiState.update { it.copy(isTypingIndicatorVisible = true) }
+            startStreamingViaGateway(content, provider, mode)
+        }
+    }
+
+    /**
+     * Regenerates the assistant's response for [messageId] (Req 2.6).
      */
     fun regenerateMessage(messageId: String) {
         viewModelScope.launch(dispatchers.io) {
-            _uiState.update { it.copy(isTypingIndicatorVisible = true, error = null, showRetryOption = false) }
+            _uiState.update {
+                it.copy(
+                    isTypingIndicatorVisible = true,
+                    error = null,
+                    showRetryOption = false,
+                    citations = emptyList(),
+                    activeToolCalls = emptyList(),
+                    agentStepCount = 0,
+                )
+            }
 
             val result = regenerateMessageUseCase(conversationId, messageId)
             when (result) {
                 is ApiResult.Success -> {
-                    // The regenerated message is streamed; start the stream
                     val provider = _uiState.value.provider
-                    val payload = MessagePayload(
-                        conversationId = conversationId,
-                        content = "", // context is inferred server-side for regeneration
-                        provider = provider
-                    )
-                    pendingMessagePayload = payload
-                    startStreaming(payload)
+                    val mode = _uiState.value.executionMode
+                    pendingContent = ""
+                    startStreamingViaGateway("", provider, mode)
                 }
                 is ApiResult.Error -> {
                     _uiState.update { it.copy(isTypingIndicatorVisible = false, error = result.error) }
@@ -367,11 +452,7 @@ class ChatDetailViewModel @Inject constructor(
     }
 
     /**
-     * Exports the conversation in the given [format].
-     *
-     * @param format [ExportFormat.MARKDOWN] or [ExportFormat.PDF].
-     * @param onResult Callback invoked with the exported content string or file path,
-     *                 or `null` on failure.
+     * Exports the conversation in the given [format] (Req 2.7).
      */
     fun exportConversation(format: ExportFormat, onResult: (String?) -> Unit) {
         viewModelScope.launch(dispatchers.io) {
@@ -380,58 +461,28 @@ class ChatDetailViewModel @Inject constructor(
                 is ApiResult.Success -> result.data
                 else -> null
             }
-            withContext(dispatchers.main) {
-                onResult(value)
-            }
+            withContext(dispatchers.main) { onResult(value) }
         }
     }
 
-    /**
-     * Dismisses the current error banner without retrying.
-     */
+    /** Dismisses the current error banner without retrying. */
     fun dismissError() {
         _uiState.update { it.copy(error = null, showRetryOption = false) }
     }
 
-    // ─── Continuation suggestion methods (Requirement 33.3) ──────────────────
+    // ─── Continuation suggestion methods (Req 33.3) ───────────────────────────
 
-    /**
-     * Updates the enabled state for global context suggestions (Requirement 33.8).
-     *
-     * @param enabled `false` when the user has disabled suggestions globally.
-     */
-    fun updateSuggestionsEnabled(enabled: Boolean) {
-        isSuggestionsEnabled = enabled
-    }
+    fun updateSuggestionsEnabled(enabled: Boolean) { isSuggestionsEnabled = enabled }
+    fun updatePrivacyMode(enabled: Boolean) { isPrivacyModeEnabled = enabled }
 
-    /**
-     * Updates the privacy mode flag (Requirement 33.7).
-     *
-     * @param enabled `true` when privacy mode is active.
-     */
-    fun updatePrivacyMode(enabled: Boolean) {
-        isPrivacyModeEnabled = enabled
-    }
-
-    /**
-     * Checks whether the last message in this conversation is older than 24 hours and,
-     * if so, requests a "Continue this conversation" suggestion (Requirement 33.3).
-     *
-     * - Uses a 3-second timeout; silently leaves [ChatDetailUiState.continuationSuggestion]
-     *   null on timeout or if no messages exist.
-     * - No loading indicator is shown while the request is in-flight.
-     * - No-op when privacy mode is enabled or suggestions are globally disabled.
-     *
-     * Call this after the initial message list is loaded.
-     */
     fun checkContinuationSuggestion() {
         val messages = _uiState.value.messages
         if (messages.isEmpty()) return
 
         val lastMessage = messages.last()
-        val lastMessageAgeMs = Instant.now().toEpochMilli() - lastMessage.createdAt.toEpochMilli()
+        val lastMessageAgeMs =
+            Instant.now().toEpochMilli() - lastMessage.createdAt.toEpochMilli()
 
-        // Only suggest continuation when the last message is >24 hours old (Req 33.3)
         if (lastMessageAgeMs < CONTINUATION_THRESHOLD_MS) return
 
         viewModelScope.launch {
@@ -441,7 +492,6 @@ class ChatDetailViewModel @Inject constructor(
                 screenInstanceId = conversationId
             )
 
-            // 3-second timeout — no loading indicator shown
             val result = kotlinx.coroutines.withTimeoutOrNull(3_000L) {
                 withContext(dispatchers.io) {
                     getContextSuggestionsUseCase(
@@ -453,10 +503,9 @@ class ChatDetailViewModel @Inject constructor(
             }
 
             val suggestion = when (result) {
-                is ApiResult.Success -> result.data.firstOrNull {
-                    it.type == SuggestionType.CONTINUE_CONVERSATION
-                }
-                else -> null // timeout or error — leave suggestion null
+                is ApiResult.Success ->
+                    result.data.firstOrNull { it.type == SuggestionType.CONTINUE_CONVERSATION }
+                else -> null
             }
 
             if (suggestion != null) {
@@ -465,32 +514,17 @@ class ChatDetailViewModel @Inject constructor(
         }
     }
 
-    /**
-     * Accepts the continuation suggestion by pre-filling the input field with its
-     * [preFillText] and clearing the chip (Requirement 33.3).
-     */
     fun acceptContinuationSuggestion() {
         val suggestion = _uiState.value.continuationSuggestion ?: return
         _uiState.update {
-            it.copy(
-                continuationSuggestion = null,
-                preFillInputText = suggestion.preFillText
-            )
+            it.copy(continuationSuggestion = null, preFillInputText = suggestion.preFillText)
         }
     }
 
-    /**
-     * Dismisses the continuation suggestion chip without acting on it (Requirement 33.5).
-     *
-     * The dismissal is session-scoped via the ViewModel lifecycle.
-     */
     fun dismissContinuationSuggestion() {
         _uiState.update { it.copy(continuationSuggestion = null) }
     }
 
-    /**
-     * Clears the pre-fill text after it has been consumed by the input field.
-     */
     fun clearPreFillText() {
         _uiState.update { it.copy(preFillInputText = "") }
     }
@@ -502,7 +536,6 @@ class ChatDetailViewModel @Inject constructor(
     }
 
     private companion object {
-        /** Threshold in milliseconds after which a stale conversation gets a continuation chip (24 hours). */
         const val CONTINUATION_THRESHOLD_MS = 24 * 60 * 60 * 1_000L
     }
 }

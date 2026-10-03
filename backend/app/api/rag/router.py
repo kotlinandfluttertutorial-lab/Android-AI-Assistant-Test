@@ -826,3 +826,460 @@ def _normalise_job_status(raw_status: str) -> str:
     if raw_status == "running":
         return "processing"
     return raw_status
+
+
+# ===========================================================================
+# /api/v1/documents  — Versioned document management router
+# ===========================================================================
+#
+# Follows the existing versioning convention: a separate APIRouter with the
+# /api/v1/... prefix lives in the same file and is registered independently
+# in main.py.  All business logic delegates to existing services and helpers
+# rather than duplicating them.
+#
+# Endpoints:
+#   POST   /api/v1/documents/upload   — upload a document (starts ingestion)
+#   GET    /api/v1/documents          — list all documents owned by the user
+#   GET    /api/v1/documents/{id}     — get single document details
+#   DELETE /api/v1/documents/{id}     — delete document + all associated data
+# ===========================================================================
+
+from app.schemas.rag import (  # noqa: E402 (re-import for v1 schemas)
+    V1AskRequest,
+    V1AskResponse,
+    V1AskSource,
+    V1DocumentDetailResponse,
+    V1SearchRequest,
+    V1SearchResponse,
+    V1SearchSource,
+)
+
+v1_documents_router = APIRouter(
+    prefix="/api/v1/documents",
+    tags=["documents-v1"],
+    dependencies=[Depends(get_current_user)],
+)
+
+
+# ---------------------------------------------------------------------------
+# POST /api/v1/documents/upload
+# ---------------------------------------------------------------------------
+
+
+@v1_documents_router.post(
+    "/upload",
+    response_model=DocumentUploadResponse,
+    status_code=status.HTTP_202_ACCEPTED,
+    summary="Upload a document for RAG ingestion",
+    description=(
+        "**POST /api/v1/documents/upload**\n\n"
+        "Accepts PDF, DOCX, TXT, and Markdown files up to 50 MB.\n\n"
+        "**Validation** happens before any I/O — an invalid format or oversized file "
+        "returns HTTP 422 immediately without writing anything to storage.\n\n"
+        "**Response** — HTTP 202 Accepted:\n"
+        "```json\n"
+        '{"document_id": "<uuid>", "job_id": "<uuid>", "status": "pending"}\n'
+        "```\n"
+        "Poll `GET /api/v1/documents/{document_id}` for ingestion progress.\n\n"
+        "Supported MIME types: `application/pdf`, "
+        "`application/vnd.openxmlformats-officedocument.wordprocessingml.document`, "
+        "`text/plain`, `text/markdown`."
+    ),
+    responses={
+        202: {"description": "Document accepted and queued for ingestion."},
+        401: {"description": "Missing or invalid Bearer token."},
+        422: {"description": "Unsupported file format or file exceeds size limit."},
+        500: {"description": "Storage error — retry is safe (nothing was persisted)."},
+    },
+)
+async def v1_upload_document(
+    file: UploadFile,
+    current_user: TokenPayload = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> DocumentUploadResponse:
+    """Upload a document and queue it for asynchronous RAG ingestion.
+
+    Delegates to the shared ``_ingest_document`` helper used by the
+    non-versioned ``POST /documents`` endpoint.
+
+    Ownership: the uploaded document is scoped to ``current_user.sub``.
+    """
+    return await _ingest_document(file, current_user, db)
+
+
+# ---------------------------------------------------------------------------
+# GET /api/v1/documents
+# ---------------------------------------------------------------------------
+
+
+@v1_documents_router.get(
+    "",
+    response_model=DocumentListResponse,
+    summary="List all documents owned by the authenticated user",
+    description=(
+        "**GET /api/v1/documents**\n\n"
+        "Returns every document the authenticated user has uploaded, ordered by "
+        "`created_at` descending.\n\n"
+        "Documents at any ingestion stage (`pending`, `processing`, `ready`, `failed`) "
+        "are included.\n\n"
+        "**Response:**\n"
+        "```json\n"
+        '{"documents": [...], "total": 3}\n'
+        "```"
+    ),
+    responses={
+        200: {"description": "List of documents owned by the user."},
+        401: {"description": "Missing or invalid Bearer token."},
+    },
+)
+async def v1_list_documents(
+    current_user: TokenPayload = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> DocumentListResponse:
+    """Return all documents owned by the authenticated user."""
+    user_id = uuid.UUID(current_user.sub)
+    doc_repo = DocumentRepository(db)
+    documents = await doc_repo.list_by_user(user_id)
+    doc_responses = [DocumentResponse.model_validate(doc) for doc in documents]
+    return DocumentListResponse(documents=doc_responses, total=len(doc_responses))
+
+
+# ---------------------------------------------------------------------------
+# GET /api/v1/documents/{document_id}
+# ---------------------------------------------------------------------------
+
+
+@v1_documents_router.get(
+    "/{document_id}",
+    response_model=V1DocumentDetailResponse,
+    summary="Get document details",
+    description=(
+        "**GET /api/v1/documents/{document_id}**\n\n"
+        "Returns metadata for a single document owned by the authenticated user.\n\n"
+        "**Ownership enforcement:** documents belonging to other users return HTTP 404 "
+        "(not HTTP 403) to avoid leaking whether a document UUID exists.\n\n"
+        "**Response** includes `ingestion_status` which reflects the current "
+        "pipeline stage: `pending` → `processing` → `ready` | `failed`."
+    ),
+    responses={
+        200: {"description": "Document found and owned by the user."},
+        401: {"description": "Missing or invalid Bearer token."},
+        404: {"description": "Document not found or not owned by the requesting user."},
+    },
+)
+async def v1_get_document(
+    document_id: uuid.UUID,
+    current_user: TokenPayload = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> V1DocumentDetailResponse:
+    """Get details for a single document, enforcing user ownership."""
+    user_id = uuid.UUID(current_user.sub)
+    doc_repo = DocumentRepository(db)
+
+    document = await doc_repo.get_by_id(document_id, user_id=user_id)
+    if document is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Document {document_id} not found.",
+        )
+
+    return V1DocumentDetailResponse.model_validate(document)
+
+
+# ---------------------------------------------------------------------------
+# DELETE /api/v1/documents/{document_id}
+# ---------------------------------------------------------------------------
+
+
+@v1_documents_router.delete(
+    "/{document_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_model=None,
+    summary="Delete a document and all associated data",
+    description=(
+        "**DELETE /api/v1/documents/{document_id}**\n\n"
+        "Permanently deletes the document record, all embedding chunks, the "
+        "vector-store index entries, and the raw file from object storage.\n\n"
+        "**Ownership enforcement:** only the owning user can delete a document. "
+        "Attempting to delete another user's document returns HTTP 404.\n\n"
+        "Object-storage and vector-store deletions are **best-effort** — the "
+        "database record is removed first. Orphaned storage objects do not "
+        "affect API correctness.\n\n"
+        "Returns **HTTP 204 No Content** on success."
+    ),
+    responses={
+        204: {"description": "Document deleted successfully."},
+        401: {"description": "Missing or invalid Bearer token."},
+        404: {"description": "Document not found or not owned by the requesting user."},
+    },
+)
+async def v1_delete_document(
+    document_id: uuid.UUID,
+    current_user: TokenPayload = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> None:
+    """Delete a document and all associated storage and index data.
+
+    Mirrors the non-versioned ``DELETE /documents/{document_id}`` handler.
+    """
+    user_id = uuid.UUID(current_user.sub)
+    doc_repo = DocumentRepository(db)
+
+    document = await doc_repo.get_by_id(document_id, user_id=user_id)
+    if document is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Document {document_id} not found.",
+        )
+
+    minio_key = document.minio_key
+
+    # Remove from PostgreSQL (cascades to DocumentChunk rows)
+    await doc_repo.delete(document_id, user_id)
+    await db.commit()
+
+    # Remove embeddings — best-effort (graceful degradation)
+    try:
+        await rag_service.delete_embeddings(str(document_id), str(user_id))
+    except Exception:
+        logger.warning(
+            "v1: embedding deletion failed for document %s (best-effort)", document_id
+        )
+
+    # Remove raw file from MinIO — best-effort
+    try:
+        await rag_service.delete_file_minio(minio_key)
+    except Exception:
+        logger.warning(
+            "v1: MinIO file deletion failed for document %s (best-effort)", document_id
+        )
+
+
+# ===========================================================================
+# /api/v1/rag  — Versioned RAG retrieval and question-answering router
+# ===========================================================================
+#
+# Endpoints:
+#   POST /api/v1/rag/search   — semantic retrieval (no LLM, returns ranked chunks)
+#   POST /api/v1/rag/ask      — retrieval + LLM answer generation
+# ===========================================================================
+
+v1_rag_router = APIRouter(
+    prefix="/api/v1/rag",
+    tags=["rag-v1"],
+    dependencies=[Depends(get_current_user)],
+)
+
+
+def _get_rag_pipeline():
+    """Build a RAGPipeline from application-level singletons.
+
+    Using lazy imports keeps startup fast and avoids circular imports.
+    The embedding provider and vector store share the same configuration
+    as the document ingestion pipeline so embeddings are comparable.
+    """
+    from app.embedding import EmbeddingConfig, SentenceTransformerEmbeddingProvider
+    from app.llm.service import get_llm_service
+    from app.rag.pipeline import RAGPipeline
+    from app.rag.retriever import RetrievalConfig, VectorRetriever
+    from app.vector import ChromaConfig, ChromaVectorStore
+
+    embedding_provider = SentenceTransformerEmbeddingProvider(EmbeddingConfig())
+    vector_store = ChromaVectorStore(ChromaConfig.from_settings())
+    retriever = VectorRetriever(
+        embedding_provider=embedding_provider,
+        vector_store=vector_store,
+        llm_service=get_llm_service(),
+        config=RetrievalConfig(),
+    )
+    return RAGPipeline(retriever=retriever)
+
+
+# ---------------------------------------------------------------------------
+# POST /api/v1/rag/search
+# ---------------------------------------------------------------------------
+
+
+@v1_rag_router.post(
+    "/search",
+    response_model=V1SearchResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Semantic search over user documents",
+    description=(
+        "**POST /api/v1/rag/search**\n\n"
+        "Performs vector similarity search over the authenticated user's document "
+        "corpus and returns the most relevant chunks **without** generating an LLM "
+        "answer.  Use `POST /api/v1/rag/ask` when an LLM-generated answer is needed.\n\n"
+        "**Request:**\n"
+        "```json\n"
+        '{"query": "...", "top_k": 5, "min_similarity": 0.4, "document_ids": null}\n'
+        "```\n\n"
+        "**Response** — ordered by similarity descending:\n"
+        "```json\n"
+        '{"query": "...", "sources": [{...}], "total_sources": 3}\n'
+        "```\n\n"
+        "**When no relevant documents are found** the response contains an empty "
+        "`sources` list with `total_sources: 0` — HTTP 200 is still returned.\n\n"
+        "Each source includes `document_name`, `page_number`, `excerpt`, `similarity`, "
+        "and `retrieval_path` for full citation support."
+    ),
+    responses={
+        200: {"description": "Search completed. Sources list may be empty."},
+        400: {"description": "Blank or invalid query."},
+        401: {"description": "Missing or invalid Bearer token."},
+        422: {"description": "Request body validation failed."},
+    },
+)
+async def v1_rag_search(
+    request: V1SearchRequest,
+    current_user: TokenPayload = Depends(get_current_user),
+) -> V1SearchResponse:
+    """Semantic retrieval — returns ranked chunks without LLM generation.
+
+    Embedding and vector search failures are handled gracefully: an empty
+    sources list is returned rather than raising a 5xx error, preventing
+    internal infrastructure details from leaking to API consumers.
+    """
+    user_id = current_user.sub
+
+    try:
+        from app.embedding import EmbeddingConfig, SentenceTransformerEmbeddingProvider
+        from app.rag.retriever import RetrievalConfig, VectorRetriever
+        from app.vector import ChromaConfig, ChromaVectorStore
+
+        embedding_provider = SentenceTransformerEmbeddingProvider(EmbeddingConfig())
+        vector_store = ChromaVectorStore(ChromaConfig.from_settings())
+        retriever = VectorRetriever(
+            embedding_provider=embedding_provider,
+            vector_store=vector_store,
+            config=RetrievalConfig(
+                top_k=request.top_k,
+                min_similarity=request.min_similarity,
+            ),
+        )
+
+        result = await retriever.retrieve(
+            user_id=user_id,
+            query=request.query,
+            document_ids=request.document_ids,
+        )
+
+    except Exception as exc:
+        logger.warning(
+            "v1 RAG search failed gracefully for user=%s query=%r: %s",
+            user_id, request.query[:80], exc,
+        )
+        return V1SearchResponse(query=request.query, sources=[], total_sources=0)
+
+    sources = [
+        V1SearchSource(
+            document_id=rc.chunk.document_id,
+            document_name=rc.chunk.document_name,
+            page_number=rc.chunk.page_number,
+            chunk_index=rc.chunk.chunk_index,
+            excerpt=rc.chunk.text[:200],
+            similarity=rc.similarity,
+            retrieval_path=rc.retrieval_path,
+        )
+        for rc in result.chunks
+    ]
+
+    return V1SearchResponse(
+        query=request.query,
+        sources=sources,
+        total_sources=len(sources),
+    )
+
+
+# ---------------------------------------------------------------------------
+# POST /api/v1/rag/ask
+# ---------------------------------------------------------------------------
+
+
+@v1_rag_router.post(
+    "/ask",
+    response_model=V1AskResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Answer a question using retrieved document context (RAG)",
+    description=(
+        "**POST /api/v1/rag/ask**\n\n"
+        "Performs the full RAG pipeline: semantic retrieval → context assembly → "
+        "LLM answer generation.\n\n"
+        "**Request:**\n"
+        "```json\n"
+        '{"question": "...", "top_k": 5, "min_similarity": 0.0, "document_ids": null}\n'
+        "```\n\n"
+        "**Response:**\n"
+        "```json\n"
+        '{"question": "...", "answer": "...", "sources": [{...}], "has_sources": true}\n'
+        "```\n\n"
+        "**No-results handling:** when no relevant documents are found the LLM is "
+        "**not** called and `answer` contains a graceful 'not found' message. "
+        "`has_sources` is `false`.\n\n"
+        "**LLM failure handling:** if the LLM call fails, `sources` are still returned "
+        "with a generic `answer` so the client can display retrieved content even "
+        "without a generated response.\n\n"
+        "All citations include `document_name` and `page_number` (PDF/DOCX) so clients "
+        "can render full source references."
+    ),
+    responses={
+        200: {
+            "description": (
+                "Answer generated. May contain a 'not found' message when no documents matched."
+            )
+        },
+        400: {"description": "Blank or invalid question."},
+        401: {"description": "Missing or invalid Bearer token."},
+        422: {"description": "Request body validation failed."},
+    },
+)
+async def v1_rag_ask(
+    request: V1AskRequest,
+    current_user: TokenPayload = Depends(get_current_user),
+) -> V1AskResponse:
+    """Full RAG QA: retrieve relevant chunks and generate a grounded answer.
+
+    Delegates to :class:`~app.rag.pipeline.RAGPipeline` which handles all
+    error cases internally — this endpoint never returns a 5xx for LLM or
+    vector-search failures.
+    """
+    user_id = current_user.sub
+
+    try:
+        pipeline = _get_rag_pipeline()
+        rag_answer = await pipeline.ask(
+            user_id=user_id,
+            question=request.question,
+            top_k=request.top_k,
+            document_ids=request.document_ids,
+        )
+    except Exception as exc:
+        # Catch any unexpected pipeline-construction errors (e.g. config missing)
+        # so internal details are never exposed.
+        logger.error(
+            "v1 RAG ask pipeline construction failed for user=%s: %s", user_id, exc
+        )
+        return V1AskResponse(
+            question=request.question,
+            answer="An error occurred while processing your request. Please try again.",
+            sources=[],
+            has_sources=False,
+        )
+
+    sources = [
+        V1AskSource(
+            document_id=src.get("document_id", ""),
+            document_name=src.get("document_name", ""),
+            page_number=src.get("page_number"),
+            chunk_index=src.get("chunk_index", 0),
+            excerpt=src.get("excerpt", ""),
+        )
+        for src in rag_answer.sources
+    ]
+
+    return V1AskResponse(
+        question=request.question,
+        answer=rag_answer.answer,
+        sources=sources,
+        has_sources=rag_answer.has_sources,
+    )

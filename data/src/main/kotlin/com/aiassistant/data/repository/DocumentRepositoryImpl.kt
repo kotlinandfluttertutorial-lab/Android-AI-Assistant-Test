@@ -76,6 +76,8 @@ import com.aiassistant.data.mapper.toEntity
 import com.aiassistant.data.remote.document.DocumentRemoteDataSource
 import com.aiassistant.domain.model.Document
 import com.aiassistant.domain.model.IngestionStatus
+import com.aiassistant.domain.model.RagAnswer
+import com.aiassistant.domain.model.RagCitationSource
 import com.aiassistant.domain.repository.DocumentRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
@@ -306,4 +308,44 @@ class DocumentRepositoryImpl @Inject constructor(
 
     /** Resolves the authenticated user's ID from [SecureStorage]. */
     private fun resolveUserId(): String = secureStorage.getJwt()?.substringAfterLast('.') ?: ""
+
+    /**
+     * Submits a question to `POST /api/v1/rag/query` and returns a [RagAnswer] with
+     * structured citations — excerpt text and cosine-similarity score per source
+     * (Requirements 4.6, 4.7).
+     *
+     * @param question    User's natural-language question.
+     * @param documentIds Optional scope restriction; `null` queries all user documents.
+     * @param topK        Max chunks to retrieve (backend default: 5).
+     */
+    override suspend fun ragQuery(
+        question: String,
+        documentIds: List<String>?,
+        topK: Int,
+    ): ApiResult<RagAnswer> = withContext(dispatchers.io) {
+        if (!connectivityObserver.isConnected()) return@withContext ApiResult.NetworkUnavailable
+
+        when (val result = remoteSource.getRagAnswer(question, documentIds, topK)) {
+            is ApiResult.Success -> {
+                val dto = result.data
+                ApiResult.Success(
+                    RagAnswer(
+                        answer = dto.answer,
+                        sources = dto.sources.map { s ->
+                            RagCitationSource(
+                                documentName = s.documentName,
+                                pageNumber = s.pageNumber,
+                                excerpt = s.excerpt,
+                                score = s.score,
+                            )
+                        },
+                        requestId = dto.requestId,
+                    )
+                )
+            }
+            is ApiResult.Error -> result
+            is ApiResult.NetworkUnavailable -> ApiResult.NetworkUnavailable
+            is ApiResult.Loading -> ApiResult.Loading
+        }
+    }
 }
