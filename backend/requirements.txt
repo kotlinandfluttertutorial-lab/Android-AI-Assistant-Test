@@ -48,7 +48,8 @@ celery==5.4.0
 # GHSA-w6j9-cwv2-h6wq / CVE-2026-102274 — malformed RSA JWK aborts JWK Set
 #   parsing (DoS); ValueError from RSAAlgorithm.from_jwk not caught by
 #   PyJWKSet's except PyJWTError guard; fix: >=2.14.0
-PyJWT[crypto]==2.14.0
+# PYSEC-2026-4141 — fix: >=2.15.0
+PyJWT[crypto]==2.15.0
 passlib[bcrypt]==1.7.4
 bcrypt==4.2.0
 # PYSEC-2026-35/1284/2141/3553/3554, GHSA-537c-gmf6-5ccf — fix: >=49.0.0
@@ -153,7 +154,8 @@ pytesseract==0.3.13
 #   GHSA-jm82-fx9c-mx94 — fix: >=6.15.0
 # GHSA-jp53-mhqp-8xcg — fix: >=6.16.0
 # GHSA-23w6-3w8w-8484, GHSA-763m-79hh-57f2 — fix: >=6.16.1
-pypdf==6.16.1
+# PYSEC-2026-4153/4154/4155/4156/4157/4158/4159/4160 — fix: >=6.19.0
+pypdf==6.19.0
 python-docx==1.1.2
 pdf2image==1.17.0
 
