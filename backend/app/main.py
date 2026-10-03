@@ -80,8 +80,10 @@ from app.api.productivity.router import router as productivity_router  # noqa: E
 from app.api.prompts.router import router as prompts_router  # noqa: E402
 from app.api.rag.router import jobs_router as rag_jobs_router  # noqa: E402
 from app.api.rag.router import router as rag_router  # noqa: E402
-from app.api.rag.router import v1_documents_router  # noqa: E402
-from app.api.rag.router import v1_rag_router  # noqa: E402
+from app.api.rag.router import (  # noqa: E402
+    v1_documents_router,
+    v1_rag_router,
+)
 from app.api.search.router import router as search_router  # noqa: E402
 from app.api.suggestions.router import router as suggestions_router  # noqa: E402
 from app.api.transcription.router import router as transcription_router  # noqa: E402

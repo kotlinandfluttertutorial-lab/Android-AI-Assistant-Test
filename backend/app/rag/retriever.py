@@ -19,17 +19,12 @@
 from __future__ import annotations
 
 import logging
-import uuid
-from dataclasses import dataclass, field
-from typing import Any
+from dataclasses import dataclass
 
 from app.interfaces.core import (
-    DocumentChunk,
-    EmbeddingVector,
     IEmbeddingProvider,
     IRetriever,
     IVectorStore,
-    RetrievedChunk,
     RetrievalResult,
 )
 
@@ -217,7 +212,10 @@ class VectorRetriever(IRetriever):
             return RetrievalResult(
                 query=query,
                 chunks=[],
-                answer="I could not find any relevant information in your documents to answer this question.",
+                answer=(
+                    "I could not find any relevant information in your documents "
+                    "to answer this question."
+                ),
                 citations=[],
             )
 

@@ -6,7 +6,7 @@ No network, no LLM API, no vector DB, no credentials required.
 
 from __future__ import annotations
 
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 

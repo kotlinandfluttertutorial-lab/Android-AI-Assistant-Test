@@ -69,7 +69,7 @@ class MCPServer:
         allowed_tools: set[str] | None = None,
         default_timeout_ms: int = 30_000,
         strict_duplicates: bool = False,
-    ) -> "MCPServer":
+    ) -> MCPServer:
         """Construct a fully wired :class:`MCPServer` for one request.
 
         Args:

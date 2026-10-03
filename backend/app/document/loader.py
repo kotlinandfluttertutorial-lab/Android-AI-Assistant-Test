@@ -27,7 +27,7 @@ import io
 import os
 import re
 import unicodedata
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 from app.interfaces.core import (
@@ -314,7 +314,9 @@ class DocumentLoader(IDocumentLoader):
 
         # 2. Remove control characters except \\t, \\n, \\r
         text = "".join(
-            ch for ch in text if ch in ("\t", "\n", "\r") or not unicodedata.category(ch).startswith("C")
+            ch
+            for ch in text
+            if ch in ("\t", "\n", "\r") or not unicodedata.category(ch).startswith("C")
         )
 
         # 3. Normalise line endings

@@ -16,7 +16,10 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Any
+from typing import TYPE_CHECKING, Any
+
+if TYPE_CHECKING:
+    from app.schemas.mcp import MCPToolSchema
 
 
 # ---------------------------------------------------------------------------
@@ -102,7 +105,7 @@ class MCPToolModel:
         return [p.name for p in self.param_descriptors]
 
     @classmethod
-    def from_schema(cls, schema: "MCPToolSchema") -> "MCPToolModel":  # type: ignore[name-defined]  # noqa: F821
+    def from_schema(cls, schema: MCPToolSchema) -> MCPToolModel:
         """Build an :class:`MCPToolModel` from an existing :class:`MCPToolSchema`.
 
         Parses the raw ``parameters`` JSON Schema dict to extract

@@ -16,8 +16,6 @@ from __future__ import annotations
 
 import inspect
 from collections.abc import AsyncIterator
-from typing import Any
-from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -39,7 +37,6 @@ from app.interfaces.core import (
     DocumentChunk,
     DocumentContent,
     DocumentLoadError,
-    EmbeddingError,
     EmbeddingVector,
     MemoryEntry,
     MemoryType,
@@ -50,8 +47,8 @@ from app.interfaces.core import (
     ToolExecutionResult,
     UnsupportedFormatError,
 )
-from app.agents.models import AgentEvent, AgentExecution, AgentRequest
-from app.schemas.mcp import MCPToolResult, MCPToolSchema
+from app.agents.models import AgentEvent, AgentRequest
+from app.schemas.mcp import MCPToolResult
 
 
 # ===========================================================================
@@ -645,15 +642,15 @@ class TestInitReExports:
     """All symbols promised in __init__.py are importable."""
 
     def test_llm_provider_re_exported(self):
-        from app.interfaces import LLMProvider  # noqa: F401
+        from app.interfaces import LLMProvider
         assert LLMProvider is not None
 
     def test_agent_re_exported(self):
-        from app.interfaces import Agent  # noqa: F401
+        from app.interfaces import Agent
         assert Agent is not None
 
     def test_mcp_tool_connector_re_exported(self):
-        from app.interfaces import MCPToolConnector  # noqa: F401
+        from app.interfaces import MCPToolConnector
         assert MCPToolConnector is not None
 
     def test_new_abcs_re_exported(self):

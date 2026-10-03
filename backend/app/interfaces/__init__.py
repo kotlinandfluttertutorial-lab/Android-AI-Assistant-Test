@@ -26,6 +26,11 @@ locations; the convenience re-exports here are opt-in.
 # ── New ABCs and value objects (no infra imports) ────────────────────────────
 # Always import eagerly — these have zero infrastructure dependencies.
 from app.interfaces.core import (  # noqa: F401
+    DocumentChunk,
+    DocumentContent,
+    DocumentLoadError,
+    EmbeddingError,
+    EmbeddingVector,
     IAgentExecutor,
     IDocumentLoader,
     IEmbeddingProvider,
@@ -35,12 +40,6 @@ from app.interfaces.core import (  # noqa: F401
     IRetriever,
     IToolExecutor,
     IVectorStore,
-    # Value objects
-    DocumentChunk,
-    DocumentContent,
-    DocumentLoadError,
-    EmbeddingError,
-    EmbeddingVector,
     MemoryEntry,
     MemoryType,
     RetrievalResult,
@@ -55,7 +54,7 @@ from app.interfaces.core import (  # noqa: F401
 # Deferred to avoid triggering infrastructure imports at package load time.
 # Access via `from app.interfaces import LLMProvider` works normally.
 
-def __getattr__(name: str):  # noqa: N807
+def __getattr__(name: str):
     if name in ("LLMProvider", "LLMRequest", "LLMResponse", "LLMUsage"):
         from app.llm import base as _llm_base
         return getattr(_llm_base, name)
@@ -71,7 +70,8 @@ def __getattr__(name: str):  # noqa: N807
     if name == "MCPToolConnector":
         # Import directly from the module file to bypass services/__init__.py
         # which chains through ai_orchestrator → llm_clients → google.genai
-        import importlib.util, os
+        import importlib.util
+        import os
         _broker_path = os.path.join(
             os.path.dirname(__file__), "..", "services", "mcp_broker.py"
         )

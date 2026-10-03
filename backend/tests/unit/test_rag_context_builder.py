@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import pytest
 
-from app.interfaces.core import DocumentChunk, EmbeddingVector, RetrievedChunk
+from app.interfaces.core import DocumentChunk, RetrievedChunk
 from app.rag.context_builder import ContextBuilder, _citation_tag
 
 

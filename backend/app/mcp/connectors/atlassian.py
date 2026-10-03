@@ -257,7 +257,10 @@ class AtlassianMCPConnector(MCPToolConnector):
             return MCPToolResult(
                 tool_name=_TOOL_NAME,
                 success=False,
-                error=f"Request to Atlassian MCP server timed out after {self._config.timeout_s:.0f}s.",
+                error=(
+                    f"Request to Atlassian MCP server timed out after "
+                    f"{self._config.timeout_s:.0f}s."
+                ),
                 result_status="error",
             )
         except httpx.ConnectError:
@@ -268,7 +271,10 @@ class AtlassianMCPConnector(MCPToolConnector):
             return MCPToolResult(
                 tool_name=_TOOL_NAME,
                 success=False,
-                error="Could not connect to the Atlassian MCP server. Check ATLASSIAN_MCP_SERVER_URL.",
+                error=(
+                    "Could not connect to the Atlassian MCP server. "
+                    "Check ATLASSIAN_MCP_SERVER_URL."
+                ),
                 result_status="error",
             )
         except Exception as exc:

@@ -845,13 +845,13 @@ def _normalise_job_status(raw_status: str) -> str:
 # ===========================================================================
 
 from app.schemas.rag import (  # noqa: E402 (re-import for v1 schemas)
+    V1AskRequest,
+    V1AskResponse,
+    V1AskSource,
     V1DocumentDetailResponse,
     V1SearchRequest,
     V1SearchResponse,
     V1SearchSource,
-    V1AskRequest,
-    V1AskResponse,
-    V1AskSource,
 )
 
 v1_documents_router = APIRouter(
@@ -1143,8 +1143,8 @@ async def v1_rag_search(
     user_id = current_user.sub
 
     try:
-        from app.rag.retriever import RetrievalConfig, VectorRetriever
         from app.embedding import EmbeddingConfig, SentenceTransformerEmbeddingProvider
+        from app.rag.retriever import RetrievalConfig, VectorRetriever
         from app.vector import ChromaConfig, ChromaVectorStore
 
         embedding_provider = SentenceTransformerEmbeddingProvider(EmbeddingConfig())
@@ -1223,7 +1223,11 @@ async def v1_rag_search(
         "can render full source references."
     ),
     responses={
-        200: {"description": "Answer generated. May contain a 'not found' message when no documents matched."},
+        200: {
+            "description": (
+                "Answer generated. May contain a 'not found' message when no documents matched."
+            )
+        },
         400: {"description": "Blank or invalid question."},
         401: {"description": "Missing or invalid Bearer token."},
         422: {"description": "Request body validation failed."},

@@ -25,8 +25,6 @@ sys.modules.setdefault("google.genai", _g)
 sys.modules.setdefault("google.genai.types", _g)
 
 import asyncio
-import json
-from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import httpx
@@ -51,7 +49,7 @@ _CSEC   = "test-client-secret"   # not a real secret
 
 
 def _config(**kw) -> AtlassianMCPConfig:
-    defaults = dict(server_url=_SERVER, cloud_id=_CLOUD, client_id=_CID, client_secret=_CSEC)
+    defaults = {"server_url": _SERVER, "cloud_id": _CLOUD, "client_id": _CID, "client_secret": _CSEC}
     defaults.update(kw)
     return AtlassianMCPConfig(**defaults)
 
@@ -60,7 +58,7 @@ def _connector(**kw) -> AtlassianMCPConnector:
     return AtlassianMCPConnector(_config(**kw))
 
 
-def _token_resp(token: str = "tok-abc") -> httpx.Response:
+def _token_resp(token: str = "tok-abc") -> httpx.Response:  # noqa: S107
     return httpx.Response(200, json={"access_token": token, "token_type": "Bearer"})
 
 

@@ -6,7 +6,7 @@ Atlassian:
     atlassian_connector_from_settings() – build connector from application Settings
 """
 
-from app.mcp.connectors.atlassian import (  # noqa: F401
+from app.mcp.connectors.atlassian import (
     AtlassianMCPConfig,
     AtlassianMCPConnector,
     atlassian_connector_from_settings,

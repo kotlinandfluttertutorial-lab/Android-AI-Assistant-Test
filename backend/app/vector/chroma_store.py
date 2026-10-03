@@ -94,7 +94,7 @@ class ChromaConfig:
             )
 
     @classmethod
-    def from_settings(cls) -> "ChromaConfig":
+    def from_settings(cls) -> ChromaConfig:
         """Build from the application Settings singleton.
 
         Falls back gracefully when Settings cannot be imported (e.g. in
@@ -227,7 +227,9 @@ class ChromaVectorStore(IVectorStore):
         distances = raw.get("distances", [[]])[0]
         documents = raw.get("documents", [[]])[0]
 
-        for chunk_id, meta, dist, doc_text in zip(ids, metadatas, distances, documents):
+        for chunk_id, meta, dist, doc_text in zip(
+            ids, metadatas, distances, documents, strict=True
+        ):
             similarity = _distance_to_similarity(dist)
             if similarity < min_similarity:
                 continue

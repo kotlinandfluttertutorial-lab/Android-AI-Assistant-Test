@@ -26,7 +26,7 @@ from dataclasses import dataclass, field
 from typing import Any
 
 from app.interfaces.core import IRetriever, RetrievalResult
-from app.rag.retriever import RetrievalConfig, VectorRetriever
+from app.rag.retriever import RetrievalConfig
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +68,7 @@ class RAGAnswer:
         result: RetrievalResult,
         latency_ms: float,
         request_id: str,
-    ) -> "RAGAnswer":
+    ) -> RAGAnswer:
         return cls(
             question=question,
             answer=result.answer,
@@ -87,10 +87,12 @@ class RAGAnswer:
         message: str,
         latency_ms: float,
         request_id: str,
-    ) -> "RAGAnswer":
+    ) -> RAGAnswer:
         return cls(
             question=question,
-            answer="I was unable to process your question due to a service error. Please try again.",
+            answer=(
+                "I was unable to process your question due to a service error. Please try again."
+            ),
             sources=[],
             chunk_count=0,
             has_sources=False,

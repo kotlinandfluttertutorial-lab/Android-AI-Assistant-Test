@@ -26,7 +26,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import threading
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 from app.interfaces.core import EmbeddingError, EmbeddingVector, IEmbeddingProvider
 
@@ -175,7 +175,7 @@ class SentenceTransformerEmbeddingProvider(IEmbeddingProvider):
                 source_text=text,
                 model_name=self._config.model_name,
             )
-            for vec, text in zip(raw_vectors, texts)
+            for vec, text in zip(raw_vectors, texts, strict=True)
         ]
 
     # ── Private helpers ───────────────────────────────────────────────────────

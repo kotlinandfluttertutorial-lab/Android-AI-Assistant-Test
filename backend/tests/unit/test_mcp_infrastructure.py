@@ -17,7 +17,6 @@ _g = _MagicMock()
 sys.modules.setdefault("google.genai", _g)
 sys.modules.setdefault("google.genai.types", _g)
 
-import asyncio
 import uuid
 from typing import Any
 from unittest.mock import AsyncMock, MagicMock, patch

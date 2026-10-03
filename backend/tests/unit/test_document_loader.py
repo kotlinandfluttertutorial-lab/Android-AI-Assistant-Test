@@ -11,9 +11,7 @@ from __future__ import annotations
 
 import hashlib
 import io
-import struct
-from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -243,7 +241,7 @@ class TestCleanText:
 class TestLoadText:
     @pytest.mark.asyncio
     async def test_utf8(self, loader):
-        text, count, meta = await loader._load_text("Hello world".encode("utf-8"), "f.txt")
+        text, count, meta = await loader._load_text(b"Hello world", "f.txt")
         assert text == "Hello world"
         assert count == 1
         assert meta["encoding"] in ("utf-8", "UTF-8")
@@ -252,7 +250,7 @@ class TestLoadText:
     async def test_latin1_fallback(self, loader):
         # 0xe9 is 'é' in Latin-1 but not valid UTF-8 standalone
         latin1_bytes = b"caf\xe9"
-        text, count, meta = await loader._load_text(latin1_bytes, "f.txt")
+        text, count, _meta = await loader._load_text(latin1_bytes, "f.txt")
         assert "caf" in text
         assert count == 1
 

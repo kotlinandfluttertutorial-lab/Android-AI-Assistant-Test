@@ -11,9 +11,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from app.interfaces.core import DocumentChunk, DocumentContent
+from app.document.chunker import DocumentChunker
 from app.document.loader import DocumentLoader
-from app.document.chunker import ChunkingConfig, DocumentChunker
+from app.interfaces.core import DocumentChunk, DocumentContent
 
 
 @dataclass

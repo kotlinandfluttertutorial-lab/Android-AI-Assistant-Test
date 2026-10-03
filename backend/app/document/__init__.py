@@ -20,8 +20,8 @@ Usage::
     chunks = chunker.chunk(content)
 """
 
-from app.document.loader import DocumentLoader, PageSpan
 from app.document.chunker import ChunkingConfig, DocumentChunker
+from app.document.loader import DocumentLoader, PageSpan
 from app.document.pipeline import DocumentIngestion, IngestedDocument
 
 __all__ = [

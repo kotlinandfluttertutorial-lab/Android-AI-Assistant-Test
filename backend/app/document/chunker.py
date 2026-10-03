@@ -20,11 +20,10 @@
 from __future__ import annotations
 
 import hashlib
-from dataclasses import dataclass, field
-
-from app.interfaces.core import DocumentChunk, DocumentContent
+from dataclasses import dataclass
 
 from app.document.loader import PageSpan
+from app.interfaces.core import DocumentChunk, DocumentContent
 
 # ---------------------------------------------------------------------------
 # ChunkingConfig
@@ -60,7 +59,9 @@ class ChunkingConfig:
 
     def __post_init__(self) -> None:
         if self.min_chunk_size < 1:
-            raise ValueError(f"ChunkingConfig.min_chunk_size must be ≥ 1, got {self.min_chunk_size}.")
+            raise ValueError(
+                f"ChunkingConfig.min_chunk_size must be ≥ 1, got {self.min_chunk_size}."
+            )
         if self.max_chunk_size < self.min_chunk_size:
             raise ValueError(
                 f"ChunkingConfig.max_chunk_size ({self.max_chunk_size}) must be ≥ "
@@ -165,7 +166,7 @@ class DocumentChunker:
             page_number = _page_for_offset(page_spans, char_start)
 
             # Stable chunk ID: document_id + index + short hash of content
-            short_hash = hashlib.sha1(chunk_text.encode()).hexdigest()[:8]
+            short_hash = hashlib.sha256(chunk_text.encode()).hexdigest()[:8]
             chunk_id = f"{content.document_id}_chunk_{chunk_index}_{short_hash}"
 
             chunks.append(
@@ -208,7 +209,7 @@ def _build_token_char_offsets(enc, tokens: list, text: str) -> list[int]:
     """
     offsets: list[int] = []
     cursor = 0
-    for i, token in enumerate(tokens):
+    for token in tokens:
         offsets.append(cursor)
         token_text = enc.decode([token])
         cursor += len(token_text)

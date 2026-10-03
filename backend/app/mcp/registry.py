@@ -16,10 +16,9 @@ from __future__ import annotations
 
 import logging
 import threading
-from typing import Any
 
 from app.mcp.models import MCPToolModel
-from app.schemas.mcp import MCPToolResult, MCPToolSchema
+from app.schemas.mcp import MCPToolSchema
 from app.services.mcp_broker import MCPBroker, MCPToolConnector
 
 logger = logging.getLogger(__name__)

@@ -24,8 +24,8 @@ Usage::
 """
 
 from app.rag.context_builder import ContextBuilder
-from app.rag.retriever import RetrievalConfig, VectorRetriever
 from app.rag.pipeline import RAGAnswer, RAGPipeline
+from app.rag.retriever import RetrievalConfig, VectorRetriever
 
 __all__ = [
     "ContextBuilder",

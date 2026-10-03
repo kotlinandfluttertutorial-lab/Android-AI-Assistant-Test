@@ -16,7 +16,7 @@ No production credentials required.
 
 from __future__ import annotations
 
-from unittest.mock import MagicMock, call, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -97,8 +97,8 @@ class TestChromaConfig:
         assert ChromaConfig().port == 8000
 
     def test_custom_persist_dir(self):
-        cfg = ChromaConfig(persist_dir="/tmp/test_chroma")
-        assert cfg.persist_dir == "/tmp/test_chroma"
+        cfg = ChromaConfig(persist_dir="/tmp/test_chroma")  # noqa: S108
+        assert cfg.persist_dir == "/tmp/test_chroma"  # noqa: S108
 
     def test_max_retries_default(self):
         assert ChromaConfig().max_retries == 3
@@ -170,11 +170,11 @@ class TestClientInit:
         assert store._client is None
 
     def test_persistent_client_created_lazily(self):
-        store = ChromaVectorStore(ChromaConfig(persist_dir="/tmp/test_cp"))
+        store = ChromaVectorStore(ChromaConfig(persist_dir="/tmp/test_cp"))  # noqa: S108
         mock_client = MagicMock()
         with patch("chromadb.PersistentClient", return_value=mock_client) as mock_cls:
             client = store._get_client()
-            mock_cls.assert_called_once_with(path="/tmp/test_cp")
+            mock_cls.assert_called_once_with(path="/tmp/test_cp")  # noqa: S108
         assert client is mock_client
 
     def test_http_client_created_when_mode_is_http(self):
@@ -186,7 +186,7 @@ class TestClientInit:
         assert client is mock_client
 
     def test_client_reused_on_second_call(self):
-        store, mock_client, _ = _make_store_with_mock_client()
+        store, _mock_client, _ = _make_store_with_mock_client()
         c1 = store._get_client()
         c2 = store._get_client()
         assert c1 is c2
@@ -197,14 +197,14 @@ class TestClientInit:
 class TestUpsert:
     @pytest.mark.asyncio
     async def test_upsert_calls_collection_upsert(self):
-        store, mock_client, mock_collection = _make_store_with_mock_client()
+        store, _mock_client, mock_collection = _make_store_with_mock_client()
         sc = _stored()
         await store.upsert(sc)
         mock_collection.upsert.assert_called_once()
 
     @pytest.mark.asyncio
     async def test_upsert_uses_correct_collection(self):
-        store, mock_client, mock_collection = _make_store_with_mock_client()
+        store, mock_client, _mock_collection = _make_store_with_mock_client()
         sc = _stored(_chunk(user_id="alice"))
         await store.upsert(sc)
         mock_client.get_or_create_collection.assert_called_once_with(
@@ -370,7 +370,7 @@ class TestDeleteByDocument:
 
     @pytest.mark.asyncio
     async def test_delete_by_document_correct_collection(self):
-        store, mock_client, mock_collection = _make_store_with_mock_client()
+        store, mock_client, _mock_collection = _make_store_with_mock_client()
         await store.delete_by_document("charlie", "doc-1")
         mock_client.get_or_create_collection.assert_called_with(
             name="docs_charlie",
