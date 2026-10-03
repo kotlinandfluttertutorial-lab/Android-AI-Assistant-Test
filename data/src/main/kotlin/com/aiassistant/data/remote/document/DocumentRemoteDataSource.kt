@@ -102,6 +102,41 @@ class DocumentRemoteDataSource @Inject constructor(
             }
         }
 
+    /**
+     * Submits a question to `POST /api/v1/rag/query` and returns a structured
+     * [RagQueryResponseDto] with answer text, sources (excerpt + score), and request ID.
+     *
+     * @param question    The user's natural language question.
+     * @param documentIds Optional document scope restriction.  Pass `null` to query all docs.
+     * @param topK        Maximum number of retrieved chunks (default 5).
+     */
+    suspend fun getRagAnswer(
+        question: String,
+        documentIds: List<String>? = null,
+        topK: Int = 5,
+    ): ApiResult<RagQueryResponseDto> =
+        withContext(dispatchers.io) {
+            safeApiCall {
+                api.ragQuery(
+                    RagQueryRequest(
+                        question = question,
+                        documentIds = documentIds?.ifEmpty { null },
+                        topK = topK,
+                    )
+                )
+            }
+        }
+
+    /**
+     * Polls `GET /api/v1/documents/{id}/status` for per-document ingestion progress.
+     *
+     * Returns a [DocumentStatusDto] with `status`, optional `progress` (0.0–1.0), and
+     * `error_message`.  Prefer this over [getJobStatus] when a `documentId` (not a
+     * `jobId`) is available — it is the spec-contract endpoint.
+     */
+    suspend fun getDocumentStatus(documentId: String): ApiResult<DocumentStatusDto> =
+        withContext(dispatchers.io) { safeApiCall { api.getDocumentStatus(documentId) } }
+
     /** Deletes a document and its embeddings. */
     suspend fun deleteDocument(documentId: String): ApiResult<Unit> =
         withContext(dispatchers.io) { safeApiCall { api.deleteDocument(documentId) } }

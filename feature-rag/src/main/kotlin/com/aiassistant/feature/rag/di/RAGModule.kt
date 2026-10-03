@@ -64,6 +64,7 @@ package com.aiassistant.feature.rag.di
 import com.aiassistant.domain.repository.DocumentRepository
 import com.aiassistant.domain.usecase.document.DeleteDocumentUseCase
 import com.aiassistant.domain.usecase.document.QueryDocumentUseCase
+import com.aiassistant.domain.usecase.document.QueryDocumentWithSourcesUseCase
 import com.aiassistant.domain.usecase.document.UploadDocumentUseCase
 import dagger.Module
 import dagger.Provides
@@ -75,30 +76,37 @@ import javax.inject.Singleton
 @InstallIn(SingletonComponent::class)
 object RAGModule {
 
-    /**
-     * Provides [UploadDocumentUseCase] backed by the singleton [DocumentRepository].
-     */
     @Provides
     @Singleton
     fun provideUploadDocumentUseCase(documentRepository: DocumentRepository): UploadDocumentUseCase =
         UploadDocumentUseCase(documentRepository)
 
-    /**
-     * Provides [DeleteDocumentUseCase] backed by the singleton [DocumentRepository].
-     */
     @Provides
     @Singleton
     fun provideDeleteDocumentUseCase(documentRepository: DocumentRepository): DeleteDocumentUseCase =
         DeleteDocumentUseCase(documentRepository)
 
     /**
-     * Provides [QueryDocumentUseCase] backed by the singleton [DocumentRepository].
-     *
-     * Used by [DocumentChatViewModel] to submit natural language queries against
-     * the RAG pipeline (Requirements 4.6, 4.7).
+     * Provides the legacy [QueryDocumentUseCase] (returns raw answer string with
+     * embedded citation markers). Retained for backward compatibility — existing
+     * callers that rely on text-parsed citations continue to work unchanged.
      */
     @Provides
     @Singleton
     fun provideQueryDocumentUseCase(documentRepository: DocumentRepository): QueryDocumentUseCase =
         QueryDocumentUseCase(documentRepository)
+
+    /**
+     * Provides [QueryDocumentWithSourcesUseCase] which calls `POST /api/v1/rag/query`
+     * and returns a structured [com.aiassistant.domain.model.RagAnswer] with per-source
+     * excerpts and similarity scores (Requirements 4.6, 4.7).
+     *
+     * Used by [com.aiassistant.feature.rag.DocumentChatViewModel] so the UI can display
+     * rich citations without client-side text parsing.
+     */
+    @Provides
+    @Singleton
+    fun provideQueryDocumentWithSourcesUseCase(
+        documentRepository: DocumentRepository,
+    ): QueryDocumentWithSourcesUseCase = QueryDocumentWithSourcesUseCase(documentRepository)
 }

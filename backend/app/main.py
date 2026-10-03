@@ -55,6 +55,7 @@ from prometheus_fastapi_instrumentator import Instrumentator  # noqa: E402
 from sqlalchemy import text  # noqa: E402
 
 from app.api.admin.router import router as admin_router  # noqa: E402
+from app.api.agent.router import router as agent_router  # noqa: E402
 from app.api.analysis.router import router as analysis_router  # noqa: E402
 from app.api.analytics.router import router as analytics_router  # noqa: E402
 from app.api.auth.router import router as auth_router  # noqa: E402
@@ -378,6 +379,7 @@ app.include_router(v1_rag_router)
 app.include_router(memory_router)
 app.include_router(mcp_router)
 app.include_router(admin_router)
+app.include_router(agent_router)
 app.include_router(analytics_router)
 app.include_router(notifications_router)
 app.include_router(websocket_router)

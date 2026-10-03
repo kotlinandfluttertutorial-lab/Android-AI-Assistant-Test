@@ -127,6 +127,7 @@ fun ChatDetailScreen(viewModel: ChatDetailViewModel, onNavigateUp: () -> Unit) {
                 result?.let { shareText(context, it) }
             }
         },
+        onModeSelected = viewModel::setExecutionMode,
         onAcceptContinuationSuggestion = viewModel::acceptContinuationSuggestion,
         onDismissContinuationSuggestion = viewModel::dismissContinuationSuggestion,
         onPreFillConsumed = viewModel::clearPreFillText,
@@ -146,6 +147,7 @@ internal fun ChatDetailScreenContent(
     onDismissError: () -> Unit,
     onExportConversation: (ExportFormat) -> Unit,
     onNavigateUp: () -> Unit,
+    onModeSelected: (com.aiassistant.domain.agent.ChatExecutionMode) -> Unit = {},
     onAcceptContinuationSuggestion: () -> Unit = {},
     onDismissContinuationSuggestion: () -> Unit = {},
     onPreFillConsumed: () -> Unit = {}
@@ -183,6 +185,12 @@ internal fun ChatDetailScreenContent(
                         onDismiss = onDismissContinuationSuggestion
                     )
                 }
+                // ── Execution mode selector ────────────────────────────────
+                ExecutionModeSelectorRow(
+                    selectedMode = uiState.executionMode,
+                    onModeSelected = onModeSelected,
+                    enabled = !uiState.isStreaming,
+                )
                 // ── Redesigned pill MessageInputBar ────────────────────────
                 PillMessageInputBar(
                     isStreaming = uiState.isStreaming,
@@ -264,6 +272,37 @@ internal fun ChatDetailScreenContent(
                                 )
                             }
                         }
+                    }
+                }
+                // ── Agent step indicator (shown while AGENT mode is running) ─
+                if (uiState.isStreaming && uiState.agentStepCount > 0) {
+                    item(key = "agent_step") {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(
+                                    horizontal = MaterialTheme.spacing.sm,
+                                    vertical = MaterialTheme.spacing.xs
+                                ),
+                            horizontalArrangement = Arrangement.Start
+                        ) {
+                            AgentStepIndicator(stepCount = uiState.agentStepCount)
+                        }
+                    }
+                }
+                // ── Tool-calls panel (AGENT mode) ─────────────────────────
+                if (uiState.activeToolCalls.isNotEmpty() || uiState.agentStepCount > 0) {
+                    item(key = "tool_calls") {
+                        ToolCallsPanel(
+                            toolCalls = uiState.activeToolCalls,
+                            stepCount = uiState.agentStepCount,
+                        )
+                    }
+                }
+                // ── Citations panel (RAG + AGENT modes) ───────────────────
+                if (uiState.citations.isNotEmpty()) {
+                    item(key = "citations") {
+                        CitationsPanel(citations = uiState.citations)
                     }
                 }
             }

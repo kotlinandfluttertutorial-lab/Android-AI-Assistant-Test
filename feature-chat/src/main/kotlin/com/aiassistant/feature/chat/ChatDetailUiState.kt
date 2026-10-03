@@ -49,6 +49,9 @@
 package com.aiassistant.feature.chat
 
 import com.aiassistant.core.common.DomainError
+import com.aiassistant.domain.agent.AgentCitation
+import com.aiassistant.domain.agent.AgentToolCall
+import com.aiassistant.domain.agent.ChatExecutionMode
 import com.aiassistant.domain.model.Message
 
 /**
@@ -78,6 +81,18 @@ import com.aiassistant.domain.model.Message
  *                                  when the last message is >24 hours old (Requirement 33.3).
  * @param preFillInputText          Text to pre-fill into the message input field when a
  *                                  continuation suggestion is accepted (Requirement 33.3).
+ * @param executionMode             The active [ChatExecutionMode] selected by the user.
+ *                                  Defaults to [ChatExecutionMode.DIRECT_LLM] so existing
+ *                                  behaviour is preserved with no config change needed.
+ * @param citations                 RAG source citations populated when [executionMode] is
+ *                                  [ChatExecutionMode.RAG] and a response has been received.
+ *                                  Empty in all other modes.
+ * @param activeToolCalls           Tool calls that occurred during the current or most recent
+ *                                  AGENT run.  Populated incrementally as
+ *                                  [AgentEvent.ToolStarted/ToolCompleted/ToolFailed] events
+ *                                  arrive.  Cleared at the start of each new user message.
+ * @param agentStepCount            Number of reasoning steps executed in the current or most
+ *                                  recent AGENT run.  Reset to 0 when a new message is sent.
  */
 data class ChatDetailUiState(
     val messages: List<Message> = emptyList(),
@@ -91,5 +106,10 @@ data class ChatDetailUiState(
     val provider: String = "openai",
     val isRunningOnDevice: Boolean = false,
     val continuationSuggestion: com.aiassistant.domain.model.ContextSuggestion? = null,
-    val preFillInputText: String = ""
+    val preFillInputText: String = "",
+    // ── Multi-mode additions ────────────────────────────────────────────────
+    val executionMode: ChatExecutionMode = ChatExecutionMode.DIRECT_LLM,
+    val citations: List<AgentCitation> = emptyList(),
+    val activeToolCalls: List<AgentToolCall> = emptyList(),
+    val agentStepCount: Int = 0,
 )
