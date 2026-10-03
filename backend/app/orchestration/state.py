@@ -16,11 +16,11 @@
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
 import enum
 import time
-import uuid
-from dataclasses import dataclass, field
 from typing import Any
+import uuid
 
 
 # ---------------------------------------------------------------------------
@@ -225,7 +225,7 @@ class OrchestrationResult:
         return self.status == RunStatus.COMPLETED
 
     @classmethod
-    def from_state(cls, state: OrchestrationState, elapsed_ms: int) -> "OrchestrationResult":
+    def from_state(cls, state: OrchestrationState, elapsed_ms: int) -> OrchestrationResult:
         """Build a result snapshot from a finished :class:`OrchestrationState`."""
         return cls(
             run_id=state.run_id,

@@ -12,7 +12,6 @@ from __future__ import annotations
 
 import logging
 from collections.abc import AsyncIterator
-from typing import Any
 
 from app.agents.models import AgentEvent, AgentRequest
 from app.agents.registry import AgentRegistry
@@ -119,13 +118,14 @@ class SingleAgentRunner:
         # ── Plan ──────────────────────────────────────────────────────────────
         planning = self._planner.plan(request)
         if not planning.success or planning.plan is None:
+            import uuid as _uuid
+
             from app.agents.models import (
                 AgentError,
                 AgentFailedEvent,
                 AgentResult,
                 AgentStatus,
             )
-            import uuid as _uuid
 
             result = AgentResult(
                 execution_id=str(_uuid.uuid4()),
@@ -173,8 +173,9 @@ class SingleAgentRunner:
         # Plan first so we have the agent name for the state object
         planning = self._planner.plan(request)
         if not planning.success or planning.plan is None:
-            from app.orchestration.state import RunStatus
             import uuid as _uuid
+
+            from app.orchestration.state import RunStatus
 
             return OrchestrationResult(
                 run_id=str(_uuid.uuid4()),

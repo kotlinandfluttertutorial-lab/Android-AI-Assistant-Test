@@ -24,13 +24,10 @@ import asyncio
 import logging
 import time
 from collections.abc import AsyncIterator
-from typing import Any
 
 from app.agents.models import (
-    AgentCapability,
     AgentDecision,
     AgentEvent,
-    AgentExecution,
     AgentRequest,
     AgentRetrievalCompletedEvent,
     AgentStatus,
@@ -50,10 +47,7 @@ from app.agents.registry import AgentRegistry
 from app.orchestration.config import OrchestrationConfig
 from app.orchestration.dispatcher import ActionDispatcher, ActionOutcome
 from app.orchestration.observer import ObservabilityTracker
-from app.orchestration.planner import OrchestrationPlanner
 from app.orchestration.state import (
-    ExecutionSpan,
-    OrchestrationResult,
     OrchestrationState,
     RunStatus,
 )
@@ -160,7 +154,7 @@ class AgentExecutionLoop:
             agent_name=state.agent_name,
         )
 
-        counters = PlanCounters(start_ms=time.monotonic() * 1000)
+        PlanCounters(start_ms=time.monotonic() * 1000)
         # Accumulated context from previous steps (used to build prompts)
         prior_context: str = request.input
 
@@ -212,7 +206,7 @@ class AgentExecutionLoop:
                         )
 
                     # ── Execute action ────────────────────────────────────────
-                    step_start_ms = int(time.monotonic() * 1000)
+                    _step_start_ms = int(time.monotonic() * 1000)
 
                     # For RespondDecision the content IS the answer — use it
                     # directly rather than re-calling the LLM.  All other
@@ -523,7 +517,7 @@ def _input_summary(decision: AgentDecision) -> str:
     return str(decision)[:200]
 
 
-def _dict_to_citation(c: dict) -> "AgentCitation":  # noqa: F821
+def _dict_to_citation(c: dict) -> AgentCitation:  # noqa: F821
     from app.agents.models import AgentCitation
 
     return AgentCitation(

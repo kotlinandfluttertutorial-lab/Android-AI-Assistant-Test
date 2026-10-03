@@ -14,7 +14,11 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:  # avoid circular import at runtime
+    from app.config.settings import Settings
 
 # Hard caps — kept in sync with app.agents.planner constants
 _HARD_MAX_STEPS: int = 50
@@ -92,3 +96,40 @@ class OrchestrationConfig:
                 f"OrchestrationConfig.llm_temperature must be 0.0–2.0, "
                 f"got {self.llm_temperature}."
             )
+
+    @classmethod
+    def from_settings(cls, settings: "Settings", **overrides: object) -> "OrchestrationConfig":
+        """Construct an :class:`OrchestrationConfig` from application settings.
+
+        Reads ``MAX_AGENT_STEPS``, ``MAX_AGENT_TOOL_CALLS``, and
+        ``AGENT_TIMEOUT_SECONDS`` from *settings* so that the execution limits
+        configured via environment variables are honoured at runtime.
+
+        Any keyword argument in *overrides* is forwarded to the dataclass
+        constructor, taking precedence over the values read from *settings*.
+        This allows per-request customisation without touching global config.
+
+        Args:
+            settings: Application :class:`~app.config.settings.Settings` instance,
+                      typically obtained via ``get_settings()``.
+            **overrides: Optional per-run field overrides (e.g. ``enable_rag=False``).
+
+        Returns:
+            A fully validated :class:`OrchestrationConfig`.
+
+        Example::
+
+            from app.config.settings import get_settings
+            from app.orchestration.config import OrchestrationConfig
+
+            cfg = OrchestrationConfig.from_settings(get_settings())
+            # Per-request override example:
+            cfg_no_rag = OrchestrationConfig.from_settings(get_settings(), enable_rag=False)
+        """
+        base: dict[str, object] = {
+            "max_steps": settings.MAX_AGENT_STEPS,
+            "max_tool_calls": settings.MAX_AGENT_TOOL_CALLS,
+            "timeout_s": settings.AGENT_TIMEOUT_SECONDS,
+        }
+        base.update(overrides)
+        return cls(**base)  # type: ignore[arg-type]

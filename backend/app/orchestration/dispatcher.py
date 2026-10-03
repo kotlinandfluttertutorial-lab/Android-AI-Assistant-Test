@@ -277,7 +277,7 @@ class ActionDispatcher:
             answer = getattr(rag_result, "answer", "") or ""
             sources = getattr(rag_result, "sources", []) or []
             citations = [
-                {k: v for k, v in (s.items() if isinstance(s, dict) else vars(s).items())}
+                dict(s.items() if isinstance(s, dict) else vars(s).items())
                 for s in sources
             ]
             return ActionOutcome(

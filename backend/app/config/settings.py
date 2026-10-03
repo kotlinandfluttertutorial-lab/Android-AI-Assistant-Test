@@ -779,6 +779,47 @@ class Settings(BaseSettings):
     )
 
     # -------------------------------------------------------------------------
+    # Agent execution limits
+    # -------------------------------------------------------------------------
+
+    MAX_AGENT_STEPS: int = Field(
+        default=10,
+        ge=1,
+        le=50,
+        description=(
+            "Maximum number of decide→act→observe cycles the agent may execute "
+            "in a single run before the loop is forcibly terminated.  "
+            "Hard cap: 50 (mirrors AgentPlanner.HARD_LIMIT_MAX_STEPS).  "
+            "Raise this value for complex multi-step tasks; lower it to reduce "
+            "resource consumption and runaway-loop risk."
+        ),
+    )
+
+    MAX_AGENT_TOOL_CALLS: int = Field(
+        default=20,
+        ge=0,
+        le=100,
+        description=(
+            "Maximum total MCP tool invocations allowed across all steps of one "
+            "agent run.  Hard cap: 100 (mirrors AgentPlanner.HARD_LIMIT_MAX_TOOL_CALLS).  "
+            "Set to 0 to disable MCP tool use entirely for this deployment."
+        ),
+    )
+
+    AGENT_TIMEOUT_SECONDS: float = Field(
+        default=120.0,
+        ge=1.0,
+        le=300.0,
+        description=(
+            "Wall-clock timeout in seconds for a single agent run.  "
+            "The execution loop is cancelled with asyncio.TimeoutError once this "
+            "limit is exceeded.  Hard cap: 300 s.  "
+            "Increase for long-running document-analysis tasks; "
+            "keep low in latency-sensitive deployments."
+        ),
+    )
+
+    # -------------------------------------------------------------------------
     # Observability
     # -------------------------------------------------------------------------
 

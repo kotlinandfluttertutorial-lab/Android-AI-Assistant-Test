@@ -39,7 +39,7 @@ class PlanningResult:
     error: str = ""
 
     @classmethod
-    def failed(cls, reason: str) -> "PlanningResult":
+    def failed(cls, reason: str) -> PlanningResult:
         return cls(plan=None, agent_name="", success=False, error=reason)
 
 
