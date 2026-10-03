@@ -29,7 +29,7 @@ dependencyResolutionManagement {
     // No explicit create("libs") { from(...) } needed — that would call from() twice and fail.
 }
 
-rootProject.name = "DevelopMain_Android-AI"
+rootProject.name = "UI-Stitch_Android-AI"
 
 // Application module
 include(":app")

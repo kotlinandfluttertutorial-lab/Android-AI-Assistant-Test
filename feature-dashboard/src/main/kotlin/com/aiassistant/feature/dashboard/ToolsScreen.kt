@@ -190,7 +190,8 @@ fun ToolsScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(
-                            horizontal = MaterialTheme.spacing.screenEdge,
+                            start = MaterialTheme.spacing.screenEdge,
+                            end = MaterialTheme.spacing.screenEdge,
                             bottom = MaterialTheme.spacing.md,
                         ),
                 )

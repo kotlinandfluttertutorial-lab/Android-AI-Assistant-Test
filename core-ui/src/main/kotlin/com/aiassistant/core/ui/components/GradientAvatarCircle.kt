@@ -40,6 +40,7 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.MaterialTheme
@@ -247,7 +248,7 @@ private fun AvatarSmallPreview() {
         GradientAvatarCircle(
             name = "Firoj Khan",
             size = 40.dp,
-            modifier = androidx.compose.ui.Modifier.padding(16.dp),
+            modifier = Modifier.padding(16.dp),
         )
     }
 }
@@ -262,7 +263,7 @@ private fun AvatarLargePreview() {
             showOnlineDot = true,
             borderColor = Color.White.copy(alpha = 0.3f),
             borderWidth = 3.dp,
-            modifier = androidx.compose.ui.Modifier.padding(16.dp),
+            modifier = Modifier.padding(16.dp),
         )
     }
 }
@@ -276,7 +277,7 @@ private fun AvatarMediumPreview() {
             size = 56.dp,
             gradientStart = StitchColors.onboardingSlide1Start,
             gradientEnd = StitchColors.onboardingSlide1End,
-            modifier = androidx.compose.ui.Modifier.padding(16.dp),
+            modifier = Modifier.padding(16.dp),
         )
     }
 }

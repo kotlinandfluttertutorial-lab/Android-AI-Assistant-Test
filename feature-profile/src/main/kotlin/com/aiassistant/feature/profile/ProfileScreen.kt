@@ -458,8 +458,8 @@ private fun ProfileGradientHeader(user: User?, modifier: Modifier = Modifier) {
                     .background(
                         Brush.linearGradient(
                             listOf(
-                                // D0BCFF ≈ primary-fixed-dim; 9C89C4 = splashGradientStop3
-                                MaterialTheme.colorScheme.primaryFixed.copy(alpha = 0.85f),
+                                // D0BCFF ≈ primary tonal; 9C89C4 = splashGradientStop3
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.85f),
                                 StitchColors.splashGradientStop3,
                             )
                         )
