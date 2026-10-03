@@ -47,6 +47,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.CameraAlt
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
@@ -56,6 +57,7 @@ import androidx.compose.material.icons.filled.Logout
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.PersonOff
 import androidx.compose.material.icons.filled.Shield
+import androidx.compose.material.icons.filled.Stars
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -96,6 +98,8 @@ import androidx.compose.ui.unit.dp
 import coil.compose.AsyncImage
 import com.aiassistant.core.ui.AppColors
 import com.aiassistant.core.ui.AppType
+import com.aiassistant.core.ui.StitchColors
+import com.aiassistant.core.ui.StitchType
 import com.aiassistant.core.ui.elevation
 import com.aiassistant.core.ui.motion.pressScale
 import com.aiassistant.core.ui.spacing
@@ -250,38 +254,60 @@ private fun ProfileBody(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .verticalScroll(rememberScrollState())
-            .padding(horizontal = MaterialTheme.spacing.screenEdge),
+            .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md)
     ) {
-        Spacer(Modifier.height(MaterialTheme.spacing.xs))
+        // ── Stitch: gradient header band ──────────────────────────────────────
+        ProfileGradientHeader(user = state.user)
 
-        AvatarCard(
-            user = state.user,
-            isEditingName = state.isEditingName,
-            editingName = state.editingName,
-            isSavingName = state.isSavingName,
-            onStartEditName = onStartEditName,
-            onUpdateEditingName = onUpdateEditingName,
-            onCancelEditName = onCancelEditName,
-            onSaveDisplayName = onSaveDisplayName
-        )
-
-        MemorySummaryCard(
+        // ── Stitch: floating stats card (overlaps header by -16 dp) ───────────
+        ProfileStatsCard(
             memories = state.memories,
-            deletingIds = state.deletingMemoryIds,
-            onDeleteMemory = onDeleteMemory,
-            onViewAll = onNavigateToMemoryList
+            modifier = Modifier
+                .padding(horizontal = MaterialTheme.spacing.screenEdge)
+                .offset(y = (-16).dp),
         )
 
-        ProfileSettingsGroups(
-            onRequestDataExport = onRequestDataExport,
-            onInitiateAccountDeletion = onInitiateAccountDeletion
-        )
+        // ── Stitch: Upgrade to Pro banner ─────────────────────────────────────
+        val isPremium = state.user?.role == com.aiassistant.domain.model.UserRole.PREMIUM
+        if (!isPremium) {
+            UpgradeBannerCard(
+                modifier = Modifier.padding(horizontal = MaterialTheme.spacing.screenEdge)
+            )
+        }
 
-        SignOutCard(onLogout = onLogout)
+        // ── Existing: AvatarCard (name edit, tier chip, avatar) ───────────────
+        Column(
+            modifier = Modifier.padding(horizontal = MaterialTheme.spacing.screenEdge),
+            verticalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
+        ) {
+            AvatarCard(
+                user = state.user,
+                isEditingName = state.isEditingName,
+                editingName = state.editingName,
+                isSavingName = state.isSavingName,
+                onStartEditName = onStartEditName,
+                onUpdateEditingName = onUpdateEditingName,
+                onCancelEditName = onCancelEditName,
+                onSaveDisplayName = onSaveDisplayName
+            )
 
-        Spacer(Modifier.height(MaterialTheme.spacing.xl))
+            MemorySummaryCard(
+                memories = state.memories,
+                deletingIds = state.deletingMemoryIds,
+                onDeleteMemory = onDeleteMemory,
+                onViewAll = onNavigateToMemoryList
+            )
+
+            ProfileSettingsGroups(
+                onRequestDataExport = onRequestDataExport,
+                onInitiateAccountDeletion = onInitiateAccountDeletion
+            )
+
+            SignOutCard(onLogout = onLogout)
+
+            Spacer(Modifier.height(MaterialTheme.spacing.xl))
+        }
     }
 
     ProfileDialogs(
@@ -378,6 +404,278 @@ private fun ProfileDialogs(
             message = (state.accountDeletionState as AccountDeletionState.Failed).message,
             onDismiss = onDismissDeletionError
         )
+    }
+}
+
+// ── Stitch: gradient profile header band ─────────────────────────────────────
+
+/**
+ * Full-width purple gradient band matching Stitch ProfileScreen header.
+ * Shows avatar, display name, email, and plan badge on a gradient background.
+ * No edit controls here — those remain in the existing AvatarCard below.
+ */
+@Composable
+private fun ProfileGradientHeader(user: User?, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(
+                Brush.linearGradient(
+                    listOf(
+                        StitchColors.splashGradientStop2, // #6750A4
+                        StitchColors.splashGradientStop3, // #9C89C4
+                    )
+                )
+            )
+            .padding(
+                start = MaterialTheme.spacing.md,
+                end = MaterialTheme.spacing.md,
+                top = MaterialTheme.spacing.xl,
+                bottom = MaterialTheme.spacing.xl + 16.dp, // extra room for floating stats card
+            ),
+    ) {
+        // Decorative overflow circle
+        Box(
+            modifier = Modifier
+                .size(140.dp)
+                .offset(x = (-30).dp, y = (-30).dp)
+                .clip(CircleShape)
+                .background(Color.White.copy(alpha = 0.08f))
+                .align(Alignment.TopEnd),
+        )
+
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.md),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            // Avatar circle
+            Box(
+                contentAlignment = Alignment.Center,
+                modifier = Modifier
+                    .size(72.dp)
+                    .clip(CircleShape)
+                    .background(
+                        Brush.linearGradient(
+                            listOf(
+                                // D0BCFF ≈ primary tonal; 9C89C4 = splashGradientStop3
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.85f),
+                                StitchColors.splashGradientStop3,
+                            )
+                        )
+                    )
+                    .semantics { contentDescription = "${user?.displayName ?: "User"}'s avatar" },
+            ) {
+                val initials = user?.displayName
+                    ?.split(" ")
+                    ?.take(2)
+                    ?.mapNotNull { it.firstOrNull()?.uppercaseChar() }
+                    ?.joinToString("") ?: "?"
+                Text(
+                    text = initials,
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = StitchColors.splashGradientStop1, // #381E72 dark purple on light bg
+                    fontWeight = FontWeight.Bold,
+                )
+            }
+
+            Column {
+                Text(
+                    text = user?.displayName ?: "—",
+                    style = StitchType.profileName,
+                    color = Color.White,
+                )
+                Text(
+                    text = user?.email ?: "",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = Color.White.copy(alpha = 0.80f),
+                )
+                Spacer(Modifier.height(4.dp))
+                // Plan badge
+                Surface(
+                    shape = RoundedCornerShape(12.dp),
+                    color = Color.White.copy(alpha = 0.20f),
+                    modifier = Modifier.semantics {
+                        val isPremium = user?.role == com.aiassistant.domain.model.UserRole.PREMIUM
+                        contentDescription = if (isPremium) "Premium plan" else "Free plan"
+                    },
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 3.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                    ) {
+                        Text(text = "⚡", style = MaterialTheme.typography.labelSmall)
+                        val isPremium = user?.role == com.aiassistant.domain.model.UserRole.PREMIUM
+                        Text(
+                            text = if (isPremium) "Premium" else "Free Plan",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = Color.White,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+// ── Stitch: floating stats card ───────────────────────────────────────────────
+
+/**
+ * 4-column stats card that floats over the gradient header (-16 dp offset).
+ * Stats are derived from available data; counts without ViewModel backing use
+ * the memories list as a proxy until a dedicated stats endpoint is added.
+ */
+@Composable
+private fun ProfileStatsCard(
+    memories: List<Memory>,
+    modifier: Modifier = Modifier,
+) {
+    val isDark = isSystemInDarkTheme()
+
+    ElevatedCard(
+        modifier = modifier.fillMaxWidth(),
+        elevation = CardDefaults.elevatedCardElevation(defaultElevation = MaterialTheme.elevation.mid),
+        shape = RoundedCornerShape(20.dp),
+        colors = CardDefaults.elevatedCardColors(
+            containerColor = if (isDark) AppColors.surfaceTonal1Dark else MaterialTheme.colorScheme.surface,
+        ),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(MaterialTheme.spacing.md),
+            horizontalArrangement = Arrangement.SpaceEvenly,
+        ) {
+            listOf(
+                Triple("💬", "—", "Total Chats"),
+                Triple("✍️", "—", "Words"),
+                Triple("📄", "${memories.size}", "Memories"),
+                Triple("🔥", "—", "Days Active"),
+            ).forEachIndexed { i, (emoji, value, label) ->
+                if (i > 0) {
+                    Box(
+                        modifier = Modifier
+                            .height(40.dp)
+                            .width(1.dp)
+                            .background(MaterialTheme.colorScheme.outlineVariant)
+                            .align(Alignment.CenterVertically),
+                    )
+                }
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    modifier = Modifier.padding(horizontal = MaterialTheme.spacing.xs),
+                ) {
+                    Text(text = emoji, style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        text = value,
+                        style = StitchType.statValue,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    Text(
+                        text = label,
+                        style = StitchType.statLabel,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+        }
+    }
+}
+
+// ── Stitch: Upgrade to Pro gradient banner ────────────────────────────────────
+
+/**
+ * Purple gradient promotional card shown for Free plan users.
+ * Matches Stitch ProfileScreen.tsx Upgrade to Pro section.
+ */
+@Composable
+private fun UpgradeBannerCard(modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(
+                Brush.linearGradient(
+                    listOf(
+                        StitchColors.splashGradientStop2,
+                        StitchColors.splashGradientStop1,
+                    )
+                )
+            )
+            .semantics { contentDescription = "Upgrade to Pro" },
+    ) {
+        // Background decorative icon
+        Icon(
+            imageVector = Icons.Filled.AutoAwesome,
+            contentDescription = null,
+            tint = Color.White.copy(alpha = 0.20f),
+            modifier = Modifier
+                .size(120.dp)
+                .align(Alignment.CenterEnd)
+                .offset(x = 20.dp),
+        )
+        Column(modifier = Modifier.padding(MaterialTheme.spacing.md)) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(6.dp),
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Stars,
+                    contentDescription = null,
+                    tint = Color(0xFFFFDF93), // amber/gold
+                    modifier = Modifier.size(16.dp),
+                )
+                Text(
+                    text = "PREMIUM ACCESS",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = Color.White.copy(alpha = 0.90f),
+                    letterSpacing = androidx.compose.ui.unit.TextUnit(
+                        1f, androidx.compose.ui.unit.TextUnitType.Sp
+                    ),
+                )
+            }
+            Spacer(Modifier.height(MaterialTheme.spacing.xs))
+            Text(
+                text = "Upgrade to Pro",
+                style = MaterialTheme.typography.titleMedium,
+                color = Color.White,
+                fontWeight = FontWeight.Bold,
+            )
+            Spacer(Modifier.height(4.dp))
+            Text(
+                text = "Unlock unlimited conversations, priority responses, and exclusive features.",
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.White.copy(alpha = 0.85f),
+            )
+            Spacer(Modifier.height(MaterialTheme.spacing.sm))
+            Surface(
+                onClick = { /* TODO: navigate to subscription screen */ },
+                shape = RoundedCornerShape(percent = 50),
+                color = Color(0xFFFFDF93), // amber/gold
+                modifier = Modifier.semantics { contentDescription = "Upgrade now" },
+            ) {
+                Row(
+                    modifier = Modifier.padding(horizontal = MaterialTheme.spacing.md, vertical = MaterialTheme.spacing.xs),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp),
+                ) {
+                    Text(
+                        text = "Upgrade Now",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = Color(0xFF21005D),
+                        fontWeight = FontWeight.SemiBold,
+                    )
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = null,
+                        tint = Color(0xFF21005D),
+                        modifier = Modifier.size(16.dp),
+                    )
+                }
+            }
+        }
     }
 }
 

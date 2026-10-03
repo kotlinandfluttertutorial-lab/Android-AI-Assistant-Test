@@ -24,6 +24,8 @@
 package com.aiassistant.data.di
 
 import com.aiassistant.data.agent.AgentGateway
+import com.aiassistant.data.agent.NoOpSpeechToTextProvider
+import com.aiassistant.data.agent.NoOpTextToSpeechProvider
 import com.aiassistant.data.agent.tools.CalculatorTool
 import com.aiassistant.data.agent.tools.DateTimeTool
 import com.aiassistant.data.agent.tools.DocumentSearchTool
@@ -36,6 +38,8 @@ import com.aiassistant.domain.agent.AgentGatewayOnDeviceExtension
 import com.aiassistant.domain.agent.AgentGatewayRepository
 import com.aiassistant.domain.agent.AgentGatewayWebExtension
 import com.aiassistant.domain.agent.DefaultToolRegistry
+import com.aiassistant.domain.agent.SpeechToTextProvider
+import com.aiassistant.domain.agent.TextToSpeechProvider
 import com.aiassistant.domain.agent.ToolRegistry
 import com.aiassistant.domain.agent.WebSearchProvider
 import com.aiassistant.domain.network.ImageAnalysisRemoteDataSource
@@ -81,6 +85,22 @@ abstract class AgentDataModule {
     @Binds
     @Singleton
     abstract fun bindWebSearchProvider(impl: StubWebSearchProvider): WebSearchProvider
+
+    /**
+     * Bind [SpeechToTextProvider] to the no-op stub.
+     * Replace with a real Android STT adapter when wiring the voice feature end-to-end.
+     */
+    @Binds
+    @Singleton
+    abstract fun bindSpeechToTextProvider(impl: NoOpSpeechToTextProvider): SpeechToTextProvider
+
+    /**
+     * Bind [TextToSpeechProvider] to the no-op stub.
+     * Replace with a real Android TTS adapter when wiring the voice feature end-to-end.
+     */
+    @Binds
+    @Singleton
+    abstract fun bindTextToSpeechProvider(impl: NoOpTextToSpeechProvider): TextToSpeechProvider
 
     /**
      * Bind [ImageAnalysisRemoteDataSource] to the OkHttp-backed implementation

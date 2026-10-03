@@ -45,8 +45,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
@@ -58,10 +60,12 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.CompareArrows
 import androidx.compose.material.icons.filled.ContentCopy
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Share
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AssistChipDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -97,6 +101,8 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.aiassistant.core.ui.AppColors
+import com.aiassistant.core.ui.AppIcons
+import com.aiassistant.core.ui.StitchColors
 import com.aiassistant.core.ui.components.ChatBubble
 import com.aiassistant.core.ui.components.ChatBubbleRole
 import com.aiassistant.core.ui.components.ErrorBanner
@@ -108,6 +114,14 @@ import com.aiassistant.domain.model.Message
 
 // Max characters per message (Requirement 2.1)
 private const val MAX_MESSAGE_LENGTH = 32_000
+
+// Stitch: suggestion chips shown when the conversation has ≤ 3 messages
+private val SUGGESTION_CHIPS = listOf(
+    "Explain quantum computing simply",
+    "Write a Python web scraper",
+    "Summarize this article",
+    "Help me debug my code",
+)
 
 // ── Entry point ───────────────────────────────────────────────────────────────
 
@@ -162,7 +176,63 @@ internal fun ChatDetailScreenContent(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Conversation") },
+                title = {
+                    // Stitch: AI avatar circle + "AI Assistant" + online status dot
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.sm)
+                    ) {
+                        // AI avatar — gradient circle with SmartToy icon
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .clip(CircleShape)
+                                .background(
+                                    Brush.linearGradient(
+                                        listOf(
+                                            StitchColors.splashGradientStop2,
+                                            StitchColors.splashGradientStop3
+                                        )
+                                    )
+                                ),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = AppIcons.Ai.Assistant,
+                                contentDescription = null,
+                                tint = Color.White,
+                                modifier = Modifier.size(22.dp)
+                            )
+                        }
+                        Column {
+                            Text(
+                                text = "AI Assistant",
+                                style = MaterialTheme.typography.titleSmall
+                            )
+                            // Online status dot + label
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                modifier = Modifier.semantics {
+                                    contentDescription = "AI Assistant is online"
+                                },
+                            ) {
+                                Box(
+                                    modifier = Modifier
+                                        .size(6.dp)
+                                        .clip(CircleShape)
+                                        // StitchColors.voiceProcessing = #386A20 (same green)
+                                        .background(StitchColors.voiceProcessing)
+                                )
+                                Text(
+                                    text = "Online",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = StitchColors.voiceProcessing
+                                )
+                            }
+                        }
+                    }
+                },
                 navigationIcon = {
                     IconButton(
                         onClick = onNavigateUp,
@@ -171,11 +241,19 @@ internal fun ChatDetailScreenContent(
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = null)
                     }
                 },
+                // 3-dot menu: export actions only
                 actions = { ExportMenuButton(onExportConversation) }
             )
         },
         bottomBar = {
             Column {
+                // Stitch: suggestion chips shown only when conversation is new (≤ 3 messages)
+                if (uiState.messages.size <= 3 && !uiState.isStreaming) {
+                    SuggestionChipsRow(
+                        chips = SUGGESTION_CHIPS,
+                        onChipClick = { suggestion -> onSendMessage(suggestion) }
+                    )
+                }
                 if (uiState.continuationSuggestion != null) {
                     ContinuationSuggestionChip(
                         suggestion = uiState.continuationSuggestion,
@@ -457,7 +535,8 @@ private fun PillMessageInputBar(
                 isOverLimit = isOverLimit,
                 onCameraClick = onCameraClick,
                 onAttachClick = onAttachClick,
-                onCompareClick = onCompareClick
+                onCompareClick = onCompareClick,
+                onMicClick = { /* TODO Phase D: open voice input */ }
             )
 
             // ── Pill input row ─────────────────────────────────────────────
@@ -474,7 +553,7 @@ private fun PillMessageInputBar(
                         .clip(RoundedCornerShape(28.dp))
                         .semantics { contentDescription = "Message input" },
                     placeholder = {
-                        Text("Type a message…", style = MaterialTheme.typography.bodyMedium)
+                        Text("Message AI Assistant…", style = MaterialTheme.typography.bodyMedium)
                     },
                     maxLines = 5,
                     enabled = !isStreaming,
@@ -516,22 +595,14 @@ private fun PillAccessoryRow(
     isOverLimit: Boolean,
     onCameraClick: () -> Unit,
     onAttachClick: () -> Unit,
-    onCompareClick: () -> Unit
+    onCompareClick: () -> Unit,
+    onMicClick: () -> Unit = {},
 ) {
     Row(
         horizontalArrangement = Arrangement.spacedBy(0.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton(
-            onClick = onCameraClick,
-            modifier = Modifier.semantics { contentDescription = "Open camera" }
-        ) {
-            Icon(
-                Icons.Filled.CameraAlt,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
+        // Stitch accessory row: attach 📎 → camera 📷 → mic 🎙️
         IconButton(
             onClick = onAttachClick,
             modifier = Modifier.semantics { contentDescription = "Attach file" }
@@ -543,11 +614,21 @@ private fun PillAccessoryRow(
             )
         }
         IconButton(
-            onClick = onCompareClick,
-            modifier = Modifier.semantics { contentDescription = "Compare models" }
+            onClick = onCameraClick,
+            modifier = Modifier.semantics { contentDescription = "Open camera" }
         ) {
             Icon(
-                Icons.Filled.CompareArrows,
+                Icons.Filled.CameraAlt,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        IconButton(
+            onClick = onMicClick,
+            modifier = Modifier.semantics { contentDescription = "Voice input" }
+        ) {
+            Icon(
+                Icons.Filled.Mic,
                 contentDescription = null,
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -711,6 +792,53 @@ private fun ContinuationSuggestionChip(
         }
     }
 }
+
+// ── Suggestion chips row (Stitch: shown when messages ≤ 3) ───────────────────
+
+/**
+ * Horizontally-scrolling row of pre-built suggestion chips.
+ * Tapping a chip fires [onChipClick] with the chip's text and sends it as a message.
+ */
+@Composable
+private fun SuggestionChipsRow(
+    chips: List<String>,
+    onChipClick: (String) -> Unit,
+    modifier: Modifier = Modifier,
+) {
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 1.dp,
+    ) {
+        LazyRow(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(
+                    horizontal = MaterialTheme.spacing.sm,
+                    vertical = MaterialTheme.spacing.xs,
+                ),
+            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
+            contentPadding = PaddingValues(horizontal = MaterialTheme.spacing.xs),
+        ) {
+            items(chips) { chip ->
+                AssistChip(
+                    onClick = { onChipClick(chip) },
+                    label = {
+                        Text(chip, style = MaterialTheme.typography.labelMedium)
+                    },
+                    colors = AssistChipDefaults.assistChipColors(
+                        containerColor = MaterialTheme.colorScheme.surface,
+                        labelColor = MaterialTheme.colorScheme.primary,
+                    ),
+                    border = AssistChipDefaults.assistChipBorder(enabled = true),
+                    modifier = Modifier.semantics { contentDescription = "Suggest: $chip" },
+                )
+            }
+        }
+    }
+}
+
+// ── Export menu button ────────────────────────────────────────────────────────
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

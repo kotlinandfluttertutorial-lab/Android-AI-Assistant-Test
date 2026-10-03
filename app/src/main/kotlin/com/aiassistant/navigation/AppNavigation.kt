@@ -81,6 +81,7 @@ import com.aiassistant.core.ui.DURATION_QUICK
 import com.aiassistant.core.ui.spacing
 import com.aiassistant.feature.camera.CAMERA_ROUTE
 import com.aiassistant.feature.chat.ChatRoute
+import com.aiassistant.feature.dashboard.ToolsRoute
 import com.aiassistant.feature.history.HistoryRoute
 import com.aiassistant.feature.notes.NotesRoute
 import com.aiassistant.feature.productivity.ProductivityRoute
@@ -106,39 +107,38 @@ data class NavSection(
     val items: List<NavItem>
 )
 
-// ── Bottom navigation items (compact/phone) ───────────────────────────────────
+// ── Bottom navigation items — Stitch 4-tab layout ─────────────────────────────
+// Matches BottomNav.tsx: Home / Chats / AI Tools / Profile
 
 val bottomNavItems = listOf(
     NavItem(
-        label = "Chat",
-        selectedIcon = AppIcons.Destinations.ChatFilled,
+        label = "Home",
+        selectedIcon  = AppIcons.Destinations.HomeFilled,
+        unselectedIcon = AppIcons.Destinations.HomeOutlined,
+        route = HOME_ROUTE,
+        contentDescription = "Home"
+    ),
+    NavItem(
+        label = "Chats",
+        selectedIcon  = AppIcons.Destinations.ChatFilled,
         unselectedIcon = AppIcons.Destinations.ChatOutlined,
-        route = ChatRoute.LIST
+        route = HistoryRoute.GRAPH,
+        contentDescription = "Chat history"
     ),
     NavItem(
-        label = "History",
-        selectedIcon = AppIcons.Destinations.HistoryFilled,
-        unselectedIcon = AppIcons.Destinations.HistoryOutlined,
-        route = HistoryRoute.GRAPH
+        label = "AI Tools",
+        selectedIcon  = AppIcons.Ai.AssistantOutlined,  // filled on active
+        unselectedIcon = AppIcons.Ai.AssistantOutlined,
+        route = ToolsRoute.SCREEN,
+        contentDescription = "AI Tools library"
     ),
     NavItem(
-        label = "Docs",
-        selectedIcon = AppIcons.Destinations.DocumentsFilled,
-        unselectedIcon = AppIcons.Destinations.DocumentsOutlined,
-        route = RAGRoute.DOCUMENT_LIST
+        label = "Profile",
+        selectedIcon  = AppIcons.Destinations.Profile,
+        unselectedIcon = AppIcons.Destinations.ProfileOutlined,
+        route = ProfileRoute.SCREEN,
+        contentDescription = "Profile"
     ),
-    NavItem(
-        label = "Voice",
-        selectedIcon = AppIcons.Chat.Mic,
-        unselectedIcon = AppIcons.Chat.Mic,
-        route = VoiceRoute.GRAPH
-    ),
-    NavItem(
-        label = "Settings",
-        selectedIcon = AppIcons.Destinations.SettingsFilled,
-        unselectedIcon = AppIcons.Destinations.SettingsOutlined,
-        route = SettingsRoute.SCREEN
-    )
 )
 
 // ── Drawer navigation sections ────────────────────────────────────────────────
@@ -456,6 +456,8 @@ fun AppNavigationShell(
 
     fun navigate(route: String) {
         navController.navigate(route) {
+            // Pop back to Home so each tab tap resets its sub-stack cleanly.
+            // For the Home tab itself this is a no-op since we're already there.
             popUpTo(HOME_ROUTE) { saveState = true }
             launchSingleTop = true
             restoreState = true

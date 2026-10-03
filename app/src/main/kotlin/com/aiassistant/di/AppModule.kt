@@ -14,7 +14,10 @@
  */
 package com.aiassistant.di
 
+import android.app.Application
+import android.content.ContentResolver
 import com.aiassistant.BuildConfig
+import com.aiassistant.core.network.EnvironmentConfig
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -45,4 +48,28 @@ object AppModule {
     @Singleton
     @Named("isDebugBuild")
     fun provideIsDebugBuild(): Boolean = BuildConfig.DEBUG
+
+    /**
+     * Provides the API base URL as a named string binding.
+     *
+     * [ImageAnalysisRemoteDataSourceImpl] and any other data-layer class that needs
+     * the raw URL string can inject `@Named("apiBaseUrl") baseUrl: String` rather than
+     * depending on the full [EnvironmentConfig].
+     */
+    @Provides
+    @Singleton
+    @Named("apiBaseUrl")
+    fun provideApiBaseUrl(config: EnvironmentConfig): String = config.apiBaseUrl
+
+    /**
+     * Provides the application's [ContentResolver] for data-layer components that
+     * need to read content URIs (e.g. [com.aiassistant.data.remote.image.ImageAnalysisRemoteDataSourceImpl]).
+     *
+     * Injecting [ContentResolver] directly (rather than [android.content.Context]) keeps
+     * those classes narrowly scoped to the single capability they need.
+     */
+    @Provides
+    @Singleton
+    fun provideContentResolver(application: Application): ContentResolver =
+        application.contentResolver
 }

@@ -402,6 +402,15 @@ internal fun SettingsScreenContent(
                 }
             }
 
+            // ── 7. API Configuration (Stitch: API Key section) ────────────────
+            ApiKeySection()
+
+            // ── 8. Voice settings (Stitch: Voice section) ────────────────────
+            VoiceSettingsSection()
+
+            // ── 9. General — Language (Stitch: General section) ───────────────
+            GeneralSettingsSection()
+
             Spacer(Modifier.height(MaterialTheme.spacing.xl))
         }
     }
@@ -430,6 +439,170 @@ internal fun SettingsScreenContent(
             },
             onDismiss = { showLogoutDialog = false }
         )
+    }
+}
+
+// ── Stitch-aligned section composables ───────────────────────────────────────
+
+/**
+ * API Configuration section — password input for Gemini API key.
+ * Matches Stitch SettingsScreen.tsx "API Key" section.
+ * Local state only; no ViewModel backing yet — TODO: wire to SettingsViewModel.saveApiKey().
+ */
+@Composable
+private fun ApiKeySection() {
+    var apiKey     by rememberSaveable { mutableStateOf("") }
+    var apiVisible by rememberSaveable { mutableStateOf(false) }
+
+    SettingsSectionCard(
+        title = "API Configuration",
+        icon  = { Icon(AppIcons.Status.Lock, contentDescription = null, modifier = Modifier.size(18.dp)) },
+    ) {
+        Text(
+            text = "Your Gemini API Key",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = MaterialTheme.spacing.xs),
+        )
+        OutlinedTextField(
+            value         = apiKey,
+            onValueChange = { apiKey = it },
+            placeholder   = { Text("AIza\u2026", style = MaterialTheme.typography.bodySmall) },
+            singleLine    = true,
+            visualTransformation = if (apiVisible) androidx.compose.ui.text.input.VisualTransformation.None
+                                   else androidx.compose.ui.text.input.PasswordVisualTransformation(),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            trailingIcon = {
+                IconButton(
+                    onClick = { apiVisible = !apiVisible },
+                    modifier = Modifier.semantics {
+                        contentDescription = if (apiVisible) "Hide API key" else "Show API key"
+                    }
+                ) {
+                    Icon(
+                        imageVector = if (apiVisible) AppIcons.Navigation.Close else AppIcons.Status.Lock,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                .semantics { contentDescription = "API key input" },
+        )
+        Spacer(Modifier.height(MaterialTheme.spacing.sm))
+        Button(
+            onClick = { /* TODO: viewModel.saveApiKey(apiKey) */ },
+            modifier = Modifier
+                .fillMaxWidth()
+                .semantics { contentDescription = "Save API key" },
+        ) { Text("Save API Key") }
+    }
+}
+
+/**
+ * Voice settings section — voice model selector + speech speed slider.
+ * Matches Stitch SettingsScreen.tsx "Voice" section.
+ * Local state only; voice model and speed are not yet in SettingsUiState.
+ */
+@Composable
+private fun VoiceSettingsSection() {
+    var selectedModel  by rememberSaveable { mutableStateOf("Model A") }
+    var speechSpeed    by rememberSaveable { mutableStateOf(1.0f) }
+
+    SettingsSectionCard(
+        title = "Voice",
+        icon  = { Icon(AppIcons.Chat.Mic, contentDescription = null, modifier = Modifier.size(18.dp)) },
+    ) {
+        Text(
+            text  = "Voice Output",
+            style = MaterialTheme.typography.labelMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = MaterialTheme.spacing.xs),
+        )
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
+            modifier = Modifier.fillMaxWidth(),
+        ) {
+            listOf("Model A" to "Warm & Calm", "Model B" to "Professional").forEach { (model, desc) ->
+                val sel = selectedModel == model
+                FilterChip(
+                    selected  = sel,
+                    onClick   = { selectedModel = model },
+                    label     = { Text(model, style = MaterialTheme.typography.labelSmall) },
+                    modifier  = Modifier
+                        .weight(1f)
+                        .semantics { contentDescription = "Select $model — $desc${if (sel) ", selected" else ""}" },
+                )
+            }
+        }
+        Spacer(Modifier.height(MaterialTheme.spacing.sm))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text("Speech Speed", style = MaterialTheme.typography.bodyMedium)
+            Text(
+                "%.1fx".format(speechSpeed),
+                style = MaterialTheme.typography.labelMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
+        androidx.compose.material3.Slider(
+            value         = speechSpeed,
+            onValueChange = { speechSpeed = it },
+            valueRange    = 0.5f..2.0f,
+            steps         = 14, // 0.1 increments
+            modifier      = Modifier
+                .fillMaxWidth()
+                .semantics { contentDescription = "Speech speed: %.1fx".format(speechSpeed) },
+        )
+    }
+}
+
+/**
+ * General settings section — Language picker.
+ * Matches Stitch SettingsScreen.tsx "General" section.
+ * Local state only; language preference is not yet in SettingsUiState.
+ */
+@Composable
+private fun GeneralSettingsSection() {
+    var language        by rememberSaveable { mutableStateOf("English") }
+    var langMenuOpen    by rememberSaveable { mutableStateOf(false) }
+    val languages = listOf("English", "Spanish", "French", "German", "Japanese", "Chinese", "Arabic")
+
+    SettingsSectionCard(
+        title = "General",
+        icon  = { Icon(AppIcons.Settings.About, contentDescription = null, modifier = Modifier.size(18.dp)) },
+    ) {
+        androidx.compose.foundation.layout.Box(modifier = Modifier.fillMaxWidth()) {
+            OutlinedButton(
+                onClick  = { langMenuOpen = true },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .semantics { contentDescription = "Select language: $language" },
+            ) {
+                Text(text = language, modifier = Modifier.weight(1f))
+                Icon(
+                    imageVector        = AppIcons.Navigation.ExpandMore,
+                    contentDescription = null,
+                    modifier           = Modifier.size(18.dp),
+                )
+            }
+            androidx.compose.material3.DropdownMenu(
+                expanded          = langMenuOpen,
+                onDismissRequest  = { langMenuOpen = false },
+            ) {
+                languages.forEach { lang ->
+                    androidx.compose.material3.DropdownMenuItem(
+                        text     = { Text(lang) },
+                        onClick  = { language = lang; langMenuOpen = false },
+                        modifier = Modifier.semantics { contentDescription = "Select $lang" },
+                    )
+                }
+            }
+        }
     }
 }
 

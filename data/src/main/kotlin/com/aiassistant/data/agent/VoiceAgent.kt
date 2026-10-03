@@ -50,6 +50,7 @@ import com.aiassistant.domain.agent.SpeechToTextProvider
 import com.aiassistant.domain.agent.SttEvent
 import com.aiassistant.domain.agent.TextToSpeechProvider
 import com.aiassistant.domain.agent.TtsEvent
+import dagger.Lazy
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlinx.coroutines.flow.Flow
@@ -61,7 +62,7 @@ import timber.log.Timber
 class VoiceAgent @Inject constructor(
     private val sttProvider: SpeechToTextProvider,
     private val ttsProvider: TextToSpeechProvider,
-    private val chatGateway: AgentGatewayRepository,
+    private val chatGateway: Lazy<AgentGatewayRepository>,
 ) : Agent {
 
     override val name: String = NAME
@@ -164,7 +165,7 @@ class VoiceAgent @Inject constructor(
         var llmResponse = ""
         var llmFailed = false
 
-        chatGateway.executeChat(
+        chatGateway.get().executeChat(
             conversationId = conversationId,
             content = transcript,
             provider = provider,

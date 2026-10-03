@@ -294,3 +294,32 @@ object AppIcons {
         val Account    = Icons.Filled.PersonSearch
     }
 }
+
+// ── Stitch icon additions (Phase A — UI Migration) ────────────────────────────
+// Added as a file-level extension block to avoid modifying the object body and
+// risking a merge conflict with the existing registry.
+
+/**
+ * Voice assistant screen icons.
+ * These icons communicate the current voice interaction state alongside colour.
+ * State changes use BOTH icon shape AND colour (never colour alone) — WCAG 1.4.1.
+ */
+object AppVoiceIcons {
+    /** Idle / speaking — standard microphone (tap to start listening). */
+    val MicReady     = Icons.Filled.Mic
+
+    /** Listening — stop square shown inside the mic button while recording. */
+    val MicStop      = Icons.Filled.Stop
+
+    /** Muted / disabled. */
+    val MicOff       = Icons.Filled.MicOff
+
+    /** Camera shortcut inside voice bottom-actions row. */
+    val Camera       = Icons.Filled.CameraAlt
+
+    /** "Switch to chat" action. */
+    val SwitchToChat = Icons.AutoMirrored.Filled.Chat
+}
+
+// Re-export filled mic icons already in AppIcons.Chat for convenience at voice-screen
+// call sites — avoids importing two objects.

@@ -4,54 +4,29 @@
  * ============================================================
  * Module     : feature-code
  * File       : CodeEditorScreen.kt
- * Purpose    : Compose UI screen for the CodeEditor feature
+ * Purpose    : Code editor composable — Phase E UI update.
  *
- * Architecture Layer : Feature (feature-code)
- * Pattern Used       : Jetpack Compose Screen
+ *              Aligned to Stitch design reference (CodeScreen.tsx):
+ *              - Dark #1e1e2e editor container with macOS traffic-light dots header
+ *              - Inline horizontal-scroll language picker (pill chips)
+ *              - 3-column action card grid with per-action active fill colour
+ *                (Explain=purple / Fix Bug=red / Generate Tests=green)
+ *              - BasicTextField text editor with syntax highlighting (unchanged)
+ *              - ExtendedFAB "Analyze" submit button (unchanged)
  *
- * Key Concepts:
- *   - Clean Architecture with strict layer separation
- *   - Hilt dependency injection
+ * Preserved from prior version:
+ *              - All syntax highlighting helpers (keywordsForLanguage, buildSyntaxHighlightedString)
+ *              - CodeEditorScreen signature + all ViewModel callbacks
+ *              - SupportedLanguage / CodeAction extension functions
  *
- * Dependencies:
- *   - See import statements below
+ * Architecture Layer : Feature (feature-code) — Compose UI layer.
+ * Requirements       : 12.1, 12.2, 12.3, 12.4
  * ============================================================
- */
-
-/*
- * ============================================================
- * Android AI Assistant (Enterprise Edition)
- * ============================================================
- * Module     : feature-code
- * File       : CodeEditorScreen.kt
- * Purpose    : Compose UI screen for the CodeEditor feature
- *
- * Architecture Layer : Feature (feature-code)
- * Pattern Used       : Jetpack Compose Screen
- *
- * Key Concepts:
- *   - Clean Architecture with strict layer separation
- *   - Hilt dependency injection
- *
- * Dependencies:
- *   - See import statements below
- * ============================================================
- */
-/**
- * CodeEditorScreen.kt
- *
- * Purpose: Code editor composable with syntax-highlighted input supporting six languages,
- *          language selector, action selector (Explain/Fix Bug/Generate Tests), and submit.
- * Architecture: feature-code â€” MVVM presentation layer (stateless composable pattern).
- * Dependencies: core-ui (LoadingIndicator), domain (SupportedLanguage, CodeAction),
- *               Compose Material 3, Compose Foundation
- *
- * Requirements: 12.1, 12.2, 12.3, 12.4
  */
 package com.aiassistant.feature.code
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -62,26 +37,23 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
-import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Science
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
@@ -91,6 +63,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -102,41 +76,41 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.aiassistant.core.ui.AppTheme
+import com.aiassistant.core.ui.StitchColors
 import com.aiassistant.core.ui.components.LoadingIndicator
 import com.aiassistant.core.ui.components.LoadingIndicatorStyle
+import com.aiassistant.core.ui.spacing
 import com.aiassistant.domain.model.CodeAction
 import com.aiassistant.domain.model.SupportedLanguage
 
-// â”€â”€â”€ Syntax highlighting helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Language / action extension functions ────────────────────────────────────
 
-/** Returns the language identifier string used for CodeBlock rendering (Requirement 12.6). */
 fun SupportedLanguage.toLanguageId(): String = when (this) {
-    SupportedLanguage.KOTLIN -> "kotlin"
-    SupportedLanguage.JAVA -> "java"
-    SupportedLanguage.PYTHON -> "python"
+    SupportedLanguage.KOTLIN     -> "kotlin"
+    SupportedLanguage.JAVA       -> "java"
+    SupportedLanguage.PYTHON     -> "python"
     SupportedLanguage.JAVASCRIPT -> "javascript"
-    SupportedLanguage.CPP -> "cpp"
-    SupportedLanguage.SQL -> "sql"
+    SupportedLanguage.CPP        -> "cpp"
+    SupportedLanguage.SQL        -> "sql"
 }
 
-/** Human-readable display label for UI selectors. */
 fun SupportedLanguage.displayName(): String = when (this) {
-    SupportedLanguage.KOTLIN -> "Kotlin"
-    SupportedLanguage.JAVA -> "Java"
-    SupportedLanguage.PYTHON -> "Python"
+    SupportedLanguage.KOTLIN     -> "Kotlin"
+    SupportedLanguage.JAVA       -> "Java"
+    SupportedLanguage.PYTHON     -> "Python"
     SupportedLanguage.JAVASCRIPT -> "JavaScript"
-    SupportedLanguage.CPP -> "C++"
-    SupportedLanguage.SQL -> "SQL"
+    SupportedLanguage.CPP        -> "C++"
+    SupportedLanguage.SQL        -> "SQL"
 }
 
-/** Human-readable display label for action selectors. */
 fun CodeAction.displayName(): String = when (this) {
-    CodeAction.EXPLAIN -> "Explain"
-    CodeAction.FIX_BUG -> "Fix Bug"
-    CodeAction.GENERATE_TESTS -> "Generate Tests"
+    CodeAction.EXPLAIN        -> "Explain"
+    CodeAction.FIX_BUG        -> "Fix Bug"
+    CodeAction.GENERATE_TESTS -> "Gen Tests"
 }
 
-/** Keyword sets for simple keyword-based syntax highlighting (Requirement 12.1). */
+// ── Syntax highlighting helpers ───────────────────────────────────────────────
+
 private fun keywordsForLanguage(language: SupportedLanguage): Set<String> = when (language) {
     SupportedLanguage.KOTLIN -> setOf(
         "fun", "val", "var", "class", "object", "interface", "data", "sealed", "enum",
@@ -166,7 +140,7 @@ private fun keywordsForLanguage(language: SupportedLanguage): Set<String> = when
         "do", "switch", "case", "break", "continue", "try", "catch", "finally",
         "throw", "class", "extends", "import", "export", "default", "new", "this",
         "super", "null", "undefined", "true", "false", "typeof", "instanceof", "in",
-        "of", "async", "await", "yield", "from", "arrow"
+        "of", "async", "await", "yield", "from"
     )
     SupportedLanguage.CPP -> setOf(
         "auto", "bool", "break", "case", "catch", "char", "class", "const",
@@ -178,143 +152,84 @@ private fun keywordsForLanguage(language: SupportedLanguage): Set<String> = when
         "unsigned", "using", "virtual", "void", "volatile", "while"
     )
     SupportedLanguage.SQL -> setOf(
-        "SELECT", "FROM", "WHERE", "JOIN", "LEFT", "RIGHT", "INNER", "OUTER", "ON",
-        "INSERT", "INTO", "VALUES", "UPDATE", "SET", "DELETE", "CREATE", "TABLE",
-        "DROP", "ALTER", "ADD", "COLUMN", "INDEX", "PRIMARY", "KEY", "FOREIGN",
-        "REFERENCES", "NOT", "NULL", "UNIQUE", "DEFAULT", "AND", "OR", "IN",
-        "LIKE", "BETWEEN", "ORDER", "BY", "GROUP", "HAVING", "LIMIT", "OFFSET",
-        "COUNT", "SUM", "AVG", "MIN", "MAX", "DISTINCT", "AS", "CASE", "WHEN",
-        "THEN", "ELSE", "END", "BEGIN", "COMMIT", "ROLLBACK", "TRANSACTION",
-        // lowercase variants
-        "select", "from", "where", "join", "insert", "into", "update", "delete",
-        "create", "table", "drop", "alter", "and", "or", "not", "null", "order",
-        "group", "having", "limit", "count", "distinct", "as", "case", "when"
+        "SELECT", "FROM", "WHERE", "JOIN", "INSERT", "INTO", "VALUES", "UPDATE",
+        "SET", "DELETE", "CREATE", "TABLE", "DROP", "ALTER", "AND", "OR", "NOT",
+        "NULL", "ORDER", "BY", "GROUP", "HAVING", "LIMIT", "COUNT", "DISTINCT",
+        "AS", "CASE", "WHEN", "THEN", "ELSE", "END", "select", "from", "where",
+        "join", "insert", "update", "delete", "create", "table", "and", "or",
+        "not", "null", "order", "group", "having", "limit", "count", "distinct"
     )
 }
 
-/**
- * Builds an [androidx.compose.ui.text.AnnotatedString] with simple keyword-based
- * syntax highlighting for the given [language] (Requirement 12.1).
- *
- * Colors:
- * - Keywords: [MaterialTheme.colorScheme.primary]
- * - String literals (single/double-quoted): [MaterialTheme.colorScheme.tertiary]
- * - Line comments (// and #): [MaterialTheme.colorScheme.outline]
- * - Everything else: default on-surface color
- */
 @Composable
-fun buildSyntaxHighlightedString(code: String, language: SupportedLanguage): androidx.compose.ui.text.AnnotatedString {
-    val keywords = keywordsForLanguage(language)
+fun buildSyntaxHighlightedString(
+    code: String,
+    language: SupportedLanguage,
+): androidx.compose.ui.text.AnnotatedString {
+    val keywords     = keywordsForLanguage(language)
     val keywordColor = MaterialTheme.colorScheme.primary
-    val stringColor = MaterialTheme.colorScheme.tertiary
+    val stringColor  = MaterialTheme.colorScheme.tertiary
     val commentColor = MaterialTheme.colorScheme.outline
     val defaultColor = MaterialTheme.colorScheme.onSurface
 
     return buildAnnotatedString {
         val lines = code.lines()
         lines.forEachIndexed { lineIndex, line ->
-            // Detect line comment prefix based on language
             val commentPrefix = when (language) {
                 SupportedLanguage.PYTHON -> "#"
-                SupportedLanguage.SQL -> "--"
-                else -> "//"
+                SupportedLanguage.SQL    -> "--"
+                else                     -> "//"
             }
-
             val commentStart = line.indexOf(commentPrefix)
-            val codePart = if (commentStart >= 0) line.substring(0, commentStart) else line
+            val codePart    = if (commentStart >= 0) line.substring(0, commentStart) else line
             val commentPart = if (commentStart >= 0) line.substring(commentStart) else null
 
-            // Tokenise the code portion (before any comment)
-            tokenizeAndAppend(
-                text = codePart,
-                keywords = keywords,
-                keywordColor = keywordColor,
-                stringColor = stringColor,
-                defaultColor = defaultColor
-            )
+            tokenizeAndAppend(codePart, keywords, keywordColor, stringColor, defaultColor)
 
-            // Append comment in comment color
             if (commentPart != null) {
-                withStyle(
-                    style = androidx.compose.ui.text.SpanStyle(color = commentColor)
-                ) {
+                withStyle(style = androidx.compose.ui.text.SpanStyle(color = commentColor)) {
                     append(commentPart)
                 }
             }
-
             if (lineIndex < lines.lastIndex) append('\n')
         }
     }
 }
 
-/** Tokenises [text] into words/symbols and colours keywords and string literals. */
 private fun androidx.compose.ui.text.AnnotatedString.Builder.tokenizeAndAppend(
     text: String,
     keywords: Set<String>,
     keywordColor: androidx.compose.ui.graphics.Color,
     stringColor: androidx.compose.ui.graphics.Color,
-    defaultColor: androidx.compose.ui.graphics.Color
+    defaultColor: androidx.compose.ui.graphics.Color,
 ) {
     var i = 0
     while (i < text.length) {
         val ch = text[i]
-        // String literal detection
         if (ch == '"' || ch == '\'') {
-            val quote = ch
-            val start = i
-            i++ // skip opening quote
-            while (i < text.length && text[i] != quote) {
-                if (text[i] == '\\') i++ // skip escaped char
-                i++
-            }
-            if (i < text.length) i++ // skip closing quote
+            val quote = ch; val start = i; i++
+            while (i < text.length && text[i] != quote) { if (text[i] == '\\') i++; i++ }
+            if (i < text.length) i++
             withStyle(style = androidx.compose.ui.text.SpanStyle(color = stringColor)) {
                 append(text.substring(start, i))
             }
             continue
         }
-
-        // Word / identifier detection
         if (ch.isLetterOrDigit() || ch == '_') {
             val start = i
-            while (i < text.length && (text[i].isLetterOrDigit() || text[i] == '_')) {
-                i++
-            }
+            while (i < text.length && (text[i].isLetterOrDigit() || text[i] == '_')) i++
             val word = text.substring(start, i)
-            if (word in keywords) {
-                withStyle(style = androidx.compose.ui.text.SpanStyle(color = keywordColor)) {
-                    append(word)
-                }
-            } else {
-                withStyle(style = androidx.compose.ui.text.SpanStyle(color = defaultColor)) {
-                    append(word)
-                }
-            }
+            val color = if (word in keywords) keywordColor else defaultColor
+            withStyle(style = androidx.compose.ui.text.SpanStyle(color = color)) { append(word) }
             continue
         }
-
-        // All other characters â€” append with default color
-        withStyle(style = androidx.compose.ui.text.SpanStyle(color = defaultColor)) {
-            append(ch)
-        }
+        withStyle(style = androidx.compose.ui.text.SpanStyle(color = defaultColor)) { append(ch) }
         i++
     }
 }
 
-// â”€â”€â”€ Screen composable â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Screen ────────────────────────────────────────────────────────────────────
 
-/**
- * Code editor screen composable.
- *
- * Stateless composable â€” all state changes are delegated to ViewModel via lambda callbacks.
- *
- * @param uiState          The current [CodeUiState] observed from [CodeViewModel].
- * @param onCodeChange     Called when the user edits the code content.
- * @param onLanguageSelect Called when the user selects a language from the dropdown.
- * @param onActionSelect   Called when the user selects an analysis action chip.
- * @param onSubmit         Called when the user taps the submit FAB.
- * @param modifier         Optional [Modifier] applied to the root [Scaffold].
- */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CodeEditorScreen(
@@ -323,219 +238,232 @@ fun CodeEditorScreen(
     onLanguageSelect: (SupportedLanguage) -> Unit,
     onActionSelect: (CodeAction) -> Unit,
     onSubmit: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
-    // Derive displayed values from state
     val currentCode = when (uiState) {
-        is CodeUiState.Editing -> uiState.code
+        is CodeUiState.Editing   -> uiState.code
         is CodeUiState.Analyzing -> uiState.code
-        else -> ""
+        else                     -> ""
     }
     val currentLanguage = when (uiState) {
-        is CodeUiState.Editing -> uiState.language
+        is CodeUiState.Editing   -> uiState.language
         is CodeUiState.Analyzing -> uiState.language
-        else -> SupportedLanguage.KOTLIN
+        else                     -> SupportedLanguage.KOTLIN
     }
     val currentAction = when (uiState) {
         is CodeUiState.Editing -> uiState.selectedAction
-        else -> CodeAction.EXPLAIN
+        else                   -> CodeAction.EXPLAIN
     }
     val isAnalyzing = uiState is CodeUiState.Analyzing
-    val canSubmit = currentCode.isNotBlank() && !isAnalyzing
-
-    var languageMenuExpanded by remember { mutableStateOf(false) }
+    val canSubmit   = currentCode.isNotBlank() && !isAnalyzing
 
     Scaffold(
         modifier = modifier,
-        topBar = {
-            TopAppBar(
-                title = { Text("Code Assistant") },
-                actions = {
-                    // Language selector dropdown
-                    Box(modifier = Modifier.wrapContentSize(Alignment.TopEnd)) {
-                        OutlinedButton(
-                            onClick = { languageMenuExpanded = true },
-                            modifier = Modifier.semantics {
-                                contentDescription = "Select language: ${currentLanguage.displayName()}"
-                            }
-                        ) {
-                            Text(currentLanguage.displayName())
-                            Icon(
-                                imageVector = Icons.Filled.ArrowDropDown,
-                                contentDescription = null,
-                                modifier = Modifier.size(ButtonDefaults.IconSize)
-                            )
-                        }
-                        DropdownMenu(
-                            expanded = languageMenuExpanded,
-                            onDismissRequest = { languageMenuExpanded = false }
-                        ) {
-                            SupportedLanguage.entries.forEach { lang ->
-                                DropdownMenuItem(
-                                    text = { Text(lang.displayName()) },
-                                    onClick = {
-                                        onLanguageSelect(lang)
-                                        languageMenuExpanded = false
-                                    },
-                                    modifier = Modifier.semantics {
-                                        contentDescription = "Select ${lang.displayName()}"
-                                    }
-                                )
-                            }
-                        }
-                    }
-                }
-            )
-        },
+        topBar = { TopAppBar(title = { Text("Code Assistant") }) },
         floatingActionButton = {
             ExtendedFloatingActionButton(
                 onClick = { if (canSubmit) onSubmit() },
-                icon = {
-                    Icon(
-                        imageVector = Icons.AutoMirrored.Filled.Send,
-                        contentDescription = null
-                    )
-                },
-                text = { Text("Analyze") },
+                icon    = { Icon(Icons.AutoMirrored.Filled.Send, null) },
+                text    = { Text("Analyze") },
                 modifier = Modifier.semantics {
-                    contentDescription = if (canSubmit) "Submit code for analysis" else "Enter code to analyze"
+                    contentDescription = if (canSubmit) "Submit code for analysis"
+                                         else "Enter code to analyze"
                 },
-                containerColor = if (canSubmit) {
-                    MaterialTheme.colorScheme.primaryContainer
-                } else {
-                    MaterialTheme.colorScheme.surfaceVariant
-                }
+                containerColor = if (canSubmit) MaterialTheme.colorScheme.primaryContainer
+                                 else MaterialTheme.colorScheme.surfaceVariant,
             )
-        }
+        },
     ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .padding(horizontal = 16.dp)
+                .padding(horizontal = MaterialTheme.spacing.md),
         ) {
-            // â”€â”€ Action selector chips â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+            // ── Inline language picker — horizontal scroll pill chips ──────────
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 8.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    .horizontalScroll(rememberScrollState())
+                    .padding(vertical = MaterialTheme.spacing.xs),
+                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
             ) {
-                CodeAction.entries.forEach { action ->
-                    FilterChip(
-                        selected = currentAction == action,
-                        onClick = { onActionSelect(action) },
-                        label = { Text(action.displayName()) },
-                        leadingIcon = {
+                SupportedLanguage.entries.forEach { lang ->
+                    val sel = currentLanguage == lang
+                    Surface(
+                        onClick = { onLanguageSelect(lang) },
+                        shape   = RoundedCornerShape(percent = 50),
+                        color   = if (sel) MaterialTheme.colorScheme.primary
+                                  else MaterialTheme.colorScheme.surfaceVariant,
+                        modifier = Modifier.semantics {
+                            contentDescription = "Select ${lang.displayName()}" +
+                                if (sel) ", selected" else ""
+                        },
+                    ) {
+                        Text(
+                            text     = lang.displayName(),
+                            style    = MaterialTheme.typography.labelMedium,
+                            color    = if (sel) MaterialTheme.colorScheme.onPrimary
+                                       else MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(horizontal = 14.dp, vertical = 6.dp),
+                        )
+                    }
+                }
+            }
+
+            // ── 3-col action grid with per-action active colour ───────────────
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = MaterialTheme.spacing.xs),
+                horizontalArrangement = Arrangement.spacedBy(MaterialTheme.spacing.xs),
+            ) {
+                data class Cfg(val action: CodeAction, val activeColor: Color)
+                listOf(
+                    Cfg(CodeAction.EXPLAIN,        StitchColors.voiceIdle),
+                    Cfg(CodeAction.FIX_BUG,        StitchColors.voiceListening),
+                    Cfg(CodeAction.GENERATE_TESTS, StitchColors.voiceProcessing),
+                ).forEach { (action, activeColor) ->
+                    val sel = currentAction == action
+                    Surface(
+                        onClick  = { onActionSelect(action) },
+                        shape    = RoundedCornerShape(14.dp),
+                        color    = if (sel) activeColor
+                                   else MaterialTheme.colorScheme.surfaceContainerLow,
+                        modifier = Modifier.weight(1f).semantics {
+                            contentDescription = action.displayName() + if (sel) ", selected" else ""
+                        },
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center,
+                            modifier            = Modifier.padding(vertical = MaterialTheme.spacing.sm),
+                        ) {
                             Icon(
                                 imageVector = when (action) {
-                                    CodeAction.EXPLAIN -> Icons.Filled.Info
-                                    CodeAction.FIX_BUG -> Icons.Filled.BugReport
+                                    CodeAction.EXPLAIN        -> Icons.Filled.Info
+                                    CodeAction.FIX_BUG        -> Icons.Filled.BugReport
                                     CodeAction.GENERATE_TESTS -> Icons.Filled.Science
                                 },
                                 contentDescription = null,
-                                modifier = Modifier.size(18.dp)
+                                tint    = if (sel) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(20.dp),
                             )
-                        },
-                        modifier = Modifier.semantics {
-                            contentDescription =
-                                "${action.displayName()} action${if (currentAction == action) ", selected" else ""}"
+                            Text(
+                                text  = action.displayName(),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = if (sel) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                         }
-                    )
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(Modifier.height(MaterialTheme.spacing.xs))
 
-            // â”€â”€ Code editor â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-            Box(
+            // ── Dark editor container (Stitch: #1e1e2e + traffic-light header) ─
+            Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .weight(1f)
-                    .border(
-                        width = 1.dp,
-                        color = MaterialTheme.colorScheme.outline,
-                        shape = MaterialTheme.shapes.small
-                    )
-                    .background(
-                        color = MaterialTheme.colorScheme.surfaceVariant,
-                        shape = MaterialTheme.shapes.small
-                    )
-                    .semantics { contentDescription = "Code editor" }
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(StitchColors.codeEditorBg)
+                    .semantics { contentDescription = "Code editor" },
             ) {
+                // Traffic-light dots header
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(Color.Black.copy(alpha = 0.3f))
+                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
+                    listOf(
+                        StitchColors.codeEditorTrafficRed,
+                        StitchColors.codeEditorTrafficAmber,
+                        StitchColors.codeEditorTrafficGreen,
+                    ).forEach { dotColor ->
+                        Box(
+                            modifier = Modifier
+                                .size(10.dp)
+                                .clip(CircleShape)
+                                .background(dotColor),
+                        )
+                    }
+                    Spacer(Modifier.width(MaterialTheme.spacing.sm))
+                    Text(
+                        text  = "main.${currentLanguage.toLanguageId()}",
+                        style = MaterialTheme.typography.labelSmall.copy(fontFamily = FontFamily.Monospace),
+                        color = Color.White.copy(alpha = 0.5f),
+                    )
+                }
+
+                // Editor body
                 if (isAnalyzing) {
-                    // Show loading overlay while analysis is in flight
-                    Column(
-                        modifier = Modifier.fillMaxSize(),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        LoadingIndicator(
-                            style = LoadingIndicatorStyle.CIRCULAR,
-                            contentDescription = "Analyzing codeâ€¦"
-                        )
-                        Spacer(modifier = Modifier.height(12.dp))
-                        Text(
-                            text = "Analyzingâ€¦",
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            LoadingIndicator(
+                                style = LoadingIndicatorStyle.CIRCULAR,
+                                contentDescription = "Analyzing code\u2026",
+                            )
+                            Spacer(Modifier.height(12.dp))
+                            Text(
+                                "Analyzing\u2026",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = StitchColors.codeEditorFg.copy(alpha = 0.7f),
+                            )
+                        }
                     }
                 } else {
                     val scrollState = rememberScrollState()
-                    val annotatedCode = buildSyntaxHighlightedString(
-                        code = currentCode,
-                        language = currentLanguage
-                    )
+                    val annotatedCode = buildSyntaxHighlightedString(currentCode, currentLanguage)
                     val codeStyle = TextStyle(
                         fontFamily = FontFamily.Monospace,
-                        fontSize = 13.sp,
-                        color = MaterialTheme.colorScheme.onSurface
+                        fontSize   = 13.sp,
+                        lineHeight = 22.sp,
+                        color      = StitchColors.codeEditorFg,
                     )
-
                     BasicTextField(
-                        value = if (currentCode.isEmpty()) {
+                        value = if (currentCode.isEmpty())
                             androidx.compose.ui.text.input.TextFieldValue("")
-                        } else {
+                        else
                             androidx.compose.ui.text.input.TextFieldValue(
                                 annotatedString = annotatedCode,
-                                selection = androidx.compose.ui.text.TextRange(currentCode.length)
-                            )
-                        },
-                        onValueChange = { tfv ->
-                            onCodeChange(tfv.text, currentLanguage)
-                        },
+                                selection = androidx.compose.ui.text.TextRange(currentCode.length),
+                            ),
+                        onValueChange = { tfv -> onCodeChange(tfv.text, currentLanguage) },
                         modifier = Modifier
                             .fillMaxSize()
                             .verticalScroll(scrollState)
-                            .padding(12.dp),
-                        textStyle = codeStyle,
-                        cursorBrush = SolidColor(MaterialTheme.colorScheme.primary),
-                        decorationBox = { innerTextField ->
+                            .padding(14.dp),
+                        textStyle    = codeStyle,
+                        cursorBrush  = SolidColor(MaterialTheme.colorScheme.primary),
+                        decorationBox = { inner ->
                             Box {
                                 if (currentCode.isEmpty()) {
                                     Text(
-                                        text = "Paste or type your ${currentLanguage.displayName()} code hereâ€¦",
+                                        "Paste or type your ${currentLanguage.displayName()} code here\u2026",
                                         style = codeStyle.copy(
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.5f)
-                                        )
+                                            color = StitchColors.codeEditorFg.copy(alpha = 0.4f),
+                                        ),
                                     )
                                 }
-                                innerTextField()
+                                inner()
                             }
-                        }
+                        },
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.height(80.dp)) // FAB clearance
+            Spacer(Modifier.height(80.dp))
         }
     }
 }
 
-// â”€â”€â”€ Previews â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ── Previews ──────────────────────────────────────────────────────────────────
 
-@Preview(showBackground = true, name = "CodeEditorScreen â€“ Idle")
+@Preview(showBackground = true, name = "CodeEditorScreen — Idle")
 @Composable
 private fun CodeEditorIdlePreview() {
     AppTheme(dynamicColor = false) {
@@ -549,7 +477,7 @@ private fun CodeEditorIdlePreview() {
     }
 }
 
-@Preview(showBackground = true, name = "CodeEditorScreen â€“ Editing")
+@Preview(showBackground = true, name = "CodeEditorScreen — Editing")
 @Composable
 private fun CodeEditorEditingPreview() {
     AppTheme(dynamicColor = false) {
@@ -567,7 +495,7 @@ private fun CodeEditorEditingPreview() {
     }
 }
 
-@Preview(showBackground = true, name = "CodeEditorScreen â€“ Analyzing")
+@Preview(showBackground = true, name = "CodeEditorScreen — Analyzing")
 @Composable
 private fun CodeEditorAnalyzingPreview() {
     AppTheme(dynamicColor = false) {
