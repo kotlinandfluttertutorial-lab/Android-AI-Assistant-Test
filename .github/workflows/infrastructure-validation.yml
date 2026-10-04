@@ -75,6 +75,10 @@ jobs:
           # docker-compose.yml uses ${COMPOSE_ENV_FILE:-.env.local} — create a
           # minimal stub so docker compose config can parse the file without error.
           cp .env.local.example .env.local || touch .env.local
+          # docker-compose.yml env_file defaults to ./backend/.env.docker.
+          # Create a stub from the example so docker compose config can resolve
+          # the file without error (the values are not used during validation).
+          cp backend/.env.docker.example backend/.env.docker
 
       - name: Validate docker-compose.yml syntax
         run: |

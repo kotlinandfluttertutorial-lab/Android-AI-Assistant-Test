@@ -34,7 +34,7 @@ from __future__ import annotations
 
 import sys
 import time
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 from fastapi import FastAPI
@@ -64,7 +64,6 @@ def _make_app_with_auth() -> tuple[FastAPI, MagicMock]:
     from app.api.agent.router import router as agent_router
     from app.agent.factory import get_agent_service_factory
     from app.database import get_db
-    from app.security.dependencies import get_current_user
 
     app = FastAPI()
     app.include_router(agent_router)
@@ -284,7 +283,6 @@ class TestAuthorization:
         """require_roles() FastAPI dependency must return 403 for insufficient role."""
         from fastapi import Depends
         from app.security.rbac import require_roles
-        from app.security.jwt_handler import TokenPayload
 
         # Build a minimal app that requires "admin" role
         mini_app = FastAPI()

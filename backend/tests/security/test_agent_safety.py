@@ -37,7 +37,7 @@ import logging
 import sys
 import uuid
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -49,7 +49,6 @@ sys.modules.setdefault("google.genai.types", _g)
 from app.agents.models import (
     AgentCapability,
     AgentRequest,
-    AgentStatus,
 )
 from app.agents.registry import AgentRegistry
 from app.orchestration.config import OrchestrationConfig
@@ -238,8 +237,6 @@ class TestPromptInjection:
     @pytest.mark.asyncio
     async def test_injection_in_tool_output_does_not_propagate(self) -> None:
         """Injection payload in a tool result must be sanitised before accumulation."""
-        from app.orchestration.dispatcher import ActionDispatcher
-        from app.agents.models import CallToolDecision
         from app.orchestration.safety import AgentSafetyGuard
 
         class _InjectionMCP:
@@ -317,7 +314,7 @@ class TestAgentLogSafety:
     ) -> None:
         """Tool output summaries in spans are truncated to 200 chars — any secrets
         longer than 200 chars from the beginning are automatically cut off."""
-        from app.orchestration.observer import ObservabilityTracker, _truncate
+        from app.orchestration.observer import _truncate
 
         long_secret = "api_key=AIzaSy" + "X" * 300  # > 200 chars
         truncated = _truncate(long_secret)

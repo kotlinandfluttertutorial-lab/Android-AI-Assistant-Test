@@ -16,19 +16,18 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
 import enum
 import time
-from typing import Any
 import uuid
-
+from dataclasses import dataclass, field
+from typing import Any
 
 # ---------------------------------------------------------------------------
 # RunStatus
 # ---------------------------------------------------------------------------
 
 
-class RunStatus(str, enum.Enum):
+class RunStatus(str, enum.Enum):  # noqa: UP042
     """Lifecycle state of one :class:`OrchestrationState` run."""
 
     PENDING = "pending"       # created, not yet started

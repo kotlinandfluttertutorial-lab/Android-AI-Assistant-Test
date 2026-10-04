@@ -123,7 +123,10 @@ class MCPExecutor:
             )
             logger.warning(
                 "MCPExecutor: allowlist rejection",
-                extra={"tool_name": tool_name, "user_id": user_id[:8] + "…" if len(user_id) > 8 else user_id},
+                extra={
+                    "tool_name": tool_name,
+                    "user_id": user_id[:8] + "…" if len(user_id) > 8 else user_id,
+                },
             )
             if self._reraise_errors:
                 raise MCPExecutionError(tool_name=tool_name, safe_message=msg)

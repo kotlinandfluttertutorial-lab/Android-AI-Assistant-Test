@@ -35,7 +35,7 @@ import asyncio
 import logging
 import sys
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import MagicMock, patch
 
 import pytest
 
@@ -45,13 +45,7 @@ sys.modules.setdefault("google.genai", _g)
 sys.modules.setdefault("google.genai.types", _g)
 
 from app.mcp.executor import MCPExecutor
-from app.mcp.models import (
-    MCPExecutionError,
-    MCPParamDescriptor,
-    MCPTimeoutError,
-    MCPToolModel,
-    MCPValidationError,
-)
+from app.mcp.models import MCPTimeoutError
 from app.mcp.registry import MCPRegistry
 from app.mcp.validator import MCPValidator
 from app.schemas.mcp import MCPToolResult, MCPToolSchema

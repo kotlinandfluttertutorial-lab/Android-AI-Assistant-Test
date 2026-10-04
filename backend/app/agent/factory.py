@@ -73,7 +73,7 @@ logger = logging.getLogger(__name__)
 def _build_default_registry() -> AgentRegistry:
     """Return a registry with the built-in AI-assistant agent registered."""
     from app.agents.base import Agent
-    from app.agents.models import AgentCapability, AgentEvent, AgentExecution, AgentRequest
+    from app.agents.models import AgentCapability, AgentExecution, AgentRequest
 
     class _AIAssistantAgent(Agent):
         """General-purpose AI-assistant agent used by the unified execution flow."""

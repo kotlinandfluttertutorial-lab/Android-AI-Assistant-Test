@@ -98,7 +98,7 @@ class OrchestrationConfig:
             )
 
     @classmethod
-    def from_settings(cls, settings: "Settings", **overrides: object) -> "OrchestrationConfig":
+    def from_settings(cls, settings: Settings, **overrides: object) -> OrchestrationConfig:
         """Construct an :class:`OrchestrationConfig` from application settings.
 
         Reads ``MAX_AGENT_STEPS``, ``MAX_AGENT_TOOL_CALLS``, and

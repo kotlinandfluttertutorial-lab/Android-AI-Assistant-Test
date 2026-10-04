@@ -37,7 +37,7 @@ from __future__ import annotations
 import logging
 import uuid
 from collections import deque
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -173,7 +173,7 @@ class ConversationMemoryBuffer:
 
 
 class AgentMemoryAdapter:
-    """Async adapter bridging the orchestration loop and :class:`~app.services.memory_service.MemoryService`.
+    """Async adapter bridging loop and :class:`~app.services.memory_service.MemoryService`.
 
     Provides two operations the loop needs:
 
@@ -204,7 +204,7 @@ class AgentMemoryAdapter:
 
     def __init__(
         self,
-        memory_service: "MemoryService",
+        memory_service: MemoryService,
         user_id: uuid.UUID,
         redis: object | None = None,
     ) -> None:
@@ -272,7 +272,7 @@ class AgentMemoryAdapter:
         self,
         query: str,
         top_k: int = 3,
-    ) -> "list[MemoryEntry]":
+    ) -> list[MemoryEntry]:
         """Retrieve the most semantically relevant memories for *query*.
 
         Delegates to :meth:`~app.services.memory_service.MemoryService.get_relevant_memories`.
@@ -309,10 +309,10 @@ class AgentMemoryAdapter:
 
     def format_memories_as_text(
         self,
-        entries: "list[MemoryEntry]",
+        entries: list[MemoryEntry],
         header: str = "Relevant memories:",
     ) -> str:
-        """Format a list of :class:`~app.services.memory_service.MemoryEntry` objects for prompt injection.
+        """Format a list of :class:`~app.services.memory_service.MemoryEntry` for prompt injection.
 
         Args:
             entries: List returned by :meth:`retrieve_relevant`.

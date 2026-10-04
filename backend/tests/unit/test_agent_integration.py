@@ -57,19 +57,13 @@ sys.modules.setdefault("google.genai.types", _g)
 # ── App imports ───────────────────────────────────────────────────────────────
 from app.agents.models import (
     AgentCapability,
-    AgentCompletedEvent,
-    AgentFailedEvent,
     AgentRequest,
-    AgentStartedEvent,
-    AgentStatus,
-    AgentTokenEvent,
 )
 from app.agents.registry import AgentRegistry
 from app.llm.adapter import LLMServiceAdapter
 from app.orchestration.config import OrchestrationConfig
-from app.orchestration.dispatcher import ActionOutcome
 from app.orchestration.runner import SingleAgentRunner
-from app.orchestration.state import OrchestrationResult, RunStatus
+from app.orchestration.state import RunStatus
 
 # ===========================================================================
 # Shared fakes

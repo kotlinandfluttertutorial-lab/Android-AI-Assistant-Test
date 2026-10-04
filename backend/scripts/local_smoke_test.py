@@ -34,13 +34,10 @@
 
 from __future__ import annotations
 
-import asyncio
-import io
 import json
 import os
 import sys
 import time
-import traceback
 from typing import Any
 
 # ---------------------------------------------------------------------------
@@ -131,10 +128,10 @@ def _http(
         data = json.dumps(json_body).encode()
         req_headers["Content-Type"] = "application/json"
 
-    req = urllib.request.Request(url, data=data, headers=req_headers, method=method.upper())
+    req = urllib.request.Request(url, data=data, headers=req_headers, method=method.upper())  # noqa: S310
 
     try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
+        with urllib.request.urlopen(req, timeout=timeout) as resp:  # noqa: S310
             raw = resp.read()
             try:
                 return resp.status, json.loads(raw)
@@ -178,7 +175,7 @@ def check_fastapi() -> None:
     try:
         code, body = _get("/health")
         if code == 200 and isinstance(body, dict) and body.get("status") == "ok":
-            _pass("GET /health", f"status=ok")
+            _pass("GET /health", "status=ok")
         else:
             _fail("GET /health", f"HTTP {code}: {body}")
     except Exception as exc:
@@ -215,7 +212,9 @@ def check_postgres() -> None:
         )
         # Convert asyncpg URL to sync psycopg2 for a quick probe
         sync_url = db_url.replace("postgresql+asyncpg://", "postgresql+psycopg2://")
-        engine = sqlalchemy.create_engine(sync_url, pool_pre_ping=True, connect_args={"connect_timeout": 5})
+        engine = sqlalchemy.create_engine(
+            sync_url, pool_pre_ping=True, connect_args={"connect_timeout": 5}
+        )
         with engine.connect() as conn:
             result = conn.execute(sqlalchemy.text("SELECT 1")).scalar()
         engine.dispose()
@@ -284,7 +283,7 @@ def check_celery() -> None:
     try:
         result = subprocess.run(
             [
-                "python", "-m", "celery",
+                sys.executable, "-m", "celery",
                 "-A", "app.workers.celery_app",
                 "inspect", "ping",
                 "--timeout=10",
@@ -384,11 +383,18 @@ def check_document_ingestion() -> None:
             timeout=60,
         )
         if code in (200, 201) and isinstance(body, dict):
-            doc_id = body.get("document_id") or body.get("id") or (body.get("data") or {}).get("document_id")
+            doc_id = (
+                body.get("document_id")
+                or body.get("id")
+                or (body.get("data") or {}).get("document_id")
+            )
             if doc_id:
                 _TEST_DOC_ID = str(doc_id)
                 status = body.get("status", "?")
-                _pass("POST /api/v1/documents/upload", f"document_id={_TEST_DOC_ID}  status={status}")
+                _pass(
+                    "POST /api/v1/documents/upload",
+                    f"document_id={_TEST_DOC_ID}  status={status}",
+                )
             else:
                 _fail("POST /api/v1/documents/upload", f"no document_id in response: {body}")
                 return
@@ -411,13 +417,15 @@ def check_document_ingestion() -> None:
             if code == 200 and isinstance(body, dict):
                 last_status = body.get("status", "?")
                 progress = body.get("progress")
-                detail = f"status={last_status}" + (f"  progress={progress}" if progress is not None else "")
+                detail = f"status={last_status}" + (
+                    f"  progress={progress}" if progress is not None else ""
+                )
                 if last_status in ("ready", "completed"):
-                    _pass(f"GET /api/v1/documents/{{id}}/status", detail)
+                    _pass("GET /api/v1/documents/{id}/status", detail)
                     return
                 if last_status == "failed":
                     err = body.get("error_message", "")
-                    _fail(f"GET /api/v1/documents/{{id}}/status", f"ingestion failed: {err}")
+                    _fail("GET /api/v1/documents/{id}/status", f"ingestion failed: {err}")
                     return
             # Still processing — wait and retry
             time.sleep(3)
@@ -428,7 +436,7 @@ def check_document_ingestion() -> None:
     if last_status in ("pending", "processing"):
         _pass(
             "GET /api/v1/documents/{id}/status",
-            f"status={last_status} after 30 s (ingestion in progress — Celery may be slow on first run)",
+            f"status={last_status} after 30 s (ingestion running)",
         )
     else:
         _fail("GET /api/v1/documents/{id}/status", f"timed out  last_status={last_status}")
@@ -459,7 +467,10 @@ def check_rag_retrieval() -> None:
                 f"answer_len={len(answer)}  sources={len(sources)}  request_id={request_id[:8]}…",
             )
         elif code in (503, 422) and not body:
-            _skip("POST /api/v1/rag/query", "no document ready for retrieval yet (ingestion may still be running)")
+            _skip(
+                "POST /api/v1/rag/query",
+                "no document ready for retrieval yet (ingestion running)",
+            )
         else:
             _fail("POST /api/v1/rag/query", f"HTTP {code}: {str(body)[:200]}")
     except Exception as exc:
@@ -624,7 +635,7 @@ def main() -> int:
 
     # Authenticated checks — register + login first
     _print_header("Auth (prerequisite for checks 6-9)")
-    authed = _register_and_login()
+    _authed = _register_and_login()
 
     check_document_ingestion()
     check_rag_retrieval()
