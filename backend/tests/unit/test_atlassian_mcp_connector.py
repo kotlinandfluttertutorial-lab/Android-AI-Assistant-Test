@@ -43,13 +43,18 @@ from app.schemas.mcp import MCPToolResult, MCPToolSchema
 # ---------------------------------------------------------------------------
 
 _SERVER = "https://mcp.atlassian.com/v1"
-_CLOUD  = "test-cloud-id"
-_CID    = "test-client-id"
-_CSEC   = "test-client-secret"   # not a real secret
+_CLOUD = "test-cloud-id"
+_CID = "test-client-id"
+_CSEC = "test-client-secret"  # not a real secret
 
 
 def _config(**kw) -> AtlassianMCPConfig:
-    defaults = {"server_url": _SERVER, "cloud_id": _CLOUD, "client_id": _CID, "client_secret": _CSEC}
+    defaults = {
+        "server_url": _SERVER,
+        "cloud_id": _CLOUD,
+        "client_id": _CID,
+        "client_secret": _CSEC,
+    }
     defaults.update(kw)
     return AtlassianMCPConfig(**defaults)
 
@@ -114,6 +119,7 @@ def _rpc_error_resp(message: str = "Not found") -> httpx.Response:
 # AtlassianMCPConfig
 # ---------------------------------------------------------------------------
 
+
 class TestAtlassianMCPConfig:
     def test_valid_construction(self):
         c = _config()
@@ -159,6 +165,7 @@ class TestAtlassianMCPConfig:
 # _redact
 # ---------------------------------------------------------------------------
 
+
 class TestRedact:
     def test_bearer_token_redacted(self):
         text = "Authorization: Bearer supersecrettoken123"
@@ -181,6 +188,7 @@ class TestRedact:
 # ---------------------------------------------------------------------------
 # Factory: atlassian_connector_from_settings
 # ---------------------------------------------------------------------------
+
 
 class TestAtlassianConnectorFromSettings:
     def _fake_settings(self, **kw):
@@ -237,6 +245,7 @@ class TestAtlassianConnectorFromSettings:
 # get_schema
 # ---------------------------------------------------------------------------
 
+
 class TestGetSchema:
     def test_tool_name(self):
         assert _connector().get_schema().tool_name == "atlassian_mcp"
@@ -257,6 +266,7 @@ class TestGetSchema:
 # ---------------------------------------------------------------------------
 # discover_tools — mocking httpx
 # ---------------------------------------------------------------------------
+
 
 class TestDiscoverTools:
     @pytest.mark.asyncio
@@ -305,9 +315,7 @@ class TestDiscoverTools:
             mock_client = AsyncMock()
             mock_cls.return_value.__aenter__ = AsyncMock(return_value=mock_client)
             mock_cls.return_value.__aexit__ = AsyncMock(return_value=False)
-            mock_client.post = AsyncMock(
-                side_effect=httpx.ConnectError("Connection refused")
-            )
+            mock_client.post = AsyncMock(side_effect=httpx.ConnectError("Connection refused"))
             schemas = await c.discover_tools()
         assert schemas == []
 
@@ -329,9 +337,7 @@ class TestDiscoverTools:
             mock_client = AsyncMock()
             mock_cls.return_value.__aenter__ = AsyncMock(return_value=mock_client)
             mock_cls.return_value.__aexit__ = AsyncMock(return_value=False)
-            mock_client.post = AsyncMock(
-                side_effect=[_token_resp(), httpx.Response(401)]
-            )
+            mock_client.post = AsyncMock(side_effect=[_token_resp(), httpx.Response(401)])
             schemas = await c.discover_tools()
         assert schemas == []
 
@@ -360,6 +366,7 @@ class TestDiscoverTools:
 # ---------------------------------------------------------------------------
 # invoke — mocking httpx
 # ---------------------------------------------------------------------------
+
 
 class TestInvoke:
     @pytest.mark.asyncio
@@ -474,9 +481,7 @@ class TestInvoke:
             mock_client = AsyncMock()
             mock_cls.return_value.__aenter__ = AsyncMock(return_value=mock_client)
             mock_cls.return_value.__aexit__ = AsyncMock(return_value=False)
-            mock_client.post = AsyncMock(
-                side_effect=httpx.ConnectError("Connection refused")
-            )
+            mock_client.post = AsyncMock(side_effect=httpx.ConnectError("Connection refused"))
             result = await c.invoke({"tool_name": "jira_get_issue"}, "u1")
         assert not result.success
         assert "connect" in result.error.lower() or "ATLASSIAN_MCP_SERVER_URL" in result.error
@@ -560,7 +565,9 @@ class TestInvoke:
             mock_client = AsyncMock()
             mock_cls.return_value.__aenter__ = AsyncMock(return_value=mock_client)
             mock_cls.return_value.__aexit__ = AsyncMock(return_value=False)
-            mock_client.post = AsyncMock(side_effect=RuntimeError("ultra-secret-value-xyz exposed!"))
+            mock_client.post = AsyncMock(
+                side_effect=RuntimeError("ultra-secret-value-xyz exposed!")
+            )
             result = await c.invoke({"tool_name": "jira_get_issue"}, "u1")
         assert "ultra-secret-value-xyz" not in result.error
 
@@ -589,15 +596,17 @@ class TestInvoke:
 # Module-level: no hard-coded credentials in source
 # ---------------------------------------------------------------------------
 
+
 class TestNoHardcodedCredentials:
     def test_connector_source_has_no_credentials(self):
         import inspect
         import app.mcp.connectors.atlassian as mod
+
         src = inspect.getsource(mod)
         dangerous_patterns = [
-            "atlassian.net",   # organisation-specific URL
-            "ghp_",            # GitHub token pattern (wrong file check)
-            "xoxb-",           # Slack token
+            "atlassian.net",  # organisation-specific URL
+            "ghp_",  # GitHub token pattern (wrong file check)
+            "xoxb-",  # Slack token
         ]
         for pat in dangerous_patterns:
             assert pat not in src, f"Possible hardcoded value found: {pat!r}"
@@ -605,6 +614,7 @@ class TestNoHardcodedCredentials:
     def test_connector_source_has_no_bearer_literals(self):
         import inspect
         import app.mcp.connectors.atlassian as mod
+
         src = inspect.getsource(mod)
         # Check that no real token values appear as string literals.
         # The string "Bearer " legitimately appears in the header construction

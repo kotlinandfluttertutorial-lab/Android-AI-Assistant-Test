@@ -29,6 +29,7 @@ from app.interfaces.core import DocumentContent, DocumentLoadError, UnsupportedF
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
+
 @pytest.fixture()
 def loader() -> DocumentLoader:
     return DocumentLoader()
@@ -231,7 +232,7 @@ class TestCleanText:
     def test_unicode_normalisation_nfc(self):
         # NFD composed character → NFC
         nfd = "e\u0301"  # e + combining acute accent
-        nfc = "\xe9"     # é pre-composed
+        nfc = "\xe9"  # é pre-composed
         assert DocumentLoader._clean_text(nfd) == nfc
 
 
@@ -258,7 +259,11 @@ class TestLoadText:
     async def test_undecodable_raises(self, loader):
         # Inject bytes that will fail UTF-8 AND Latin-1 by patching
         # This simulates a future stricter codec; we test the error surface.
-        with patch.object(loader, "_load_text", side_effect=DocumentLoadError("text_decode", "f.txt", "Cannot decode")):
+        with patch.object(
+            loader,
+            "_load_text",
+            side_effect=DocumentLoadError("text_decode", "f.txt", "Cannot decode"),
+        ):
             with pytest.raises(DocumentLoadError, match="text_decode"):
                 await loader._load_text(b"\xff\xfe", "f.txt")
 

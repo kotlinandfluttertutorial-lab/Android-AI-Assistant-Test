@@ -51,11 +51,10 @@ def _schema(
     return MCPToolSchema(
         tool_name=tool_name,
         description=description,
-        parameters=params or {
+        parameters=params
+        or {
             "type": "object",
-            "properties": {
-                "message": {"type": "string", "description": "Text to echo."}
-            },
+            "properties": {"message": {"type": "string", "description": "Text to echo."}},
             "required": ["message"],
         },
         requires_confirmation=requires_confirmation,
@@ -120,6 +119,7 @@ def _mock_broker(
 # MCPParamDescriptor
 # ===========================================================================
 
+
 class TestMCPParamDescriptor:
     def test_valid_construction(self):
         p = MCPParamDescriptor(name="query", type="string", required=True)
@@ -147,6 +147,7 @@ class TestMCPParamDescriptor:
 # ===========================================================================
 # MCPToolModel
 # ===========================================================================
+
 
 class TestMCPToolModel:
     def test_valid_construction(self):
@@ -214,6 +215,7 @@ class TestMCPToolModel:
 # Error types
 # ===========================================================================
 
+
 class TestErrorTypes:
     def test_validation_error_message(self):
         e = MCPValidationError("github_read", "action", "is required")
@@ -243,6 +245,7 @@ class TestErrorTypes:
 # MCPRegistry
 # ===========================================================================
 
+
 class TestMCPRegistry:
     def _registry(self, allowed=None, strict=False):
         broker = _mock_broker()
@@ -257,6 +260,7 @@ class TestMCPRegistry:
 
     def test_register_duplicate_logs_warning_by_default(self, caplog):
         import logging
+
         r = self._registry()
         r.register(_connector("echo"))
         with caplog.at_level(logging.WARNING):
@@ -366,6 +370,7 @@ class TestMCPRegistry:
 # MCPValidator
 # ===========================================================================
 
+
 class TestMCPValidator:
     def _model(self, *descriptors: MCPParamDescriptor, tool_name: str = "tool") -> MCPToolModel:
         return MCPToolModel(
@@ -426,16 +431,12 @@ class TestMCPValidator:
 
     def test_enum_member_passes(self):
         v = self._validator()
-        model = self._model(
-            MCPParamDescriptor("action", enum=("read", "write"))
-        )
+        model = self._model(MCPParamDescriptor("action", enum=("read", "write")))
         v.validate({"action": "read"}, model)
 
     def test_enum_non_member_raises(self):
         v = self._validator()
-        model = self._model(
-            MCPParamDescriptor("action", enum=("read", "write"))
-        )
+        model = self._model(MCPParamDescriptor("action", enum=("read", "write")))
         with pytest.raises(MCPValidationError) as exc_info:
             v.validate({"action": "delete"}, model)
         assert exc_info.value.param_name == "action"
@@ -457,9 +458,7 @@ class TestMCPValidator:
 
     def test_validate_result_unknown_status_raises(self):
         v = self._validator()
-        result = MCPToolResult(
-            tool_name="echo", success=True, result_status="pending"
-        )
+        result = MCPToolResult(tool_name="echo", success=True, result_status="pending")
         with pytest.raises(MCPValidationError, match="result_status"):
             v.validate_result(result, "echo")
 
@@ -479,6 +478,7 @@ class TestMCPValidator:
 # ===========================================================================
 # MCPExecutor
 # ===========================================================================
+
 
 class TestMCPExecutor:
     def _executor(
@@ -526,9 +526,7 @@ class TestMCPExecutor:
 
     @pytest.mark.asyncio
     async def test_allowlist_rejection_reraises_when_configured(self):
-        executor = self._executor(
-            connector=_connector("echo"), allowed={"slack"}, reraise=True
-        )
+        executor = self._executor(connector=_connector("echo"), allowed={"slack"}, reraise=True)
         with pytest.raises(MCPExecutionError):
             await executor.execute("echo", {}, USER_ID)
 
@@ -588,9 +586,7 @@ class TestMCPExecutor:
         broker = _mock_broker()
         registry = MCPRegistry(broker=broker)
         registry.register(_connector("echo"))
-        executor = MCPExecutor(
-            registry=registry, default_timeout_ms=50, reraise_errors=True
-        )
+        executor = MCPExecutor(registry=registry, default_timeout_ms=50, reraise_errors=True)
         with patch("app.mcp.executor.asyncio.timeout", _always_timeout):
             with pytest.raises(MCPTimeoutError):
                 await executor.execute("echo", {"message": "hi"}, USER_ID)
@@ -632,6 +628,7 @@ class TestMCPExecutor:
 # ===========================================================================
 # MCPServer (façade)
 # ===========================================================================
+
 
 class TestMCPServer:
     def _server(self, db=None, allowed=None) -> MCPServer:
@@ -710,10 +707,12 @@ class TestMCPServer:
 # Credentials — no hardcoded secrets
 # ===========================================================================
 
+
 class TestNoHardcodedCredentials:
     def test_models_module_has_no_credentials(self):
         import inspect
         import app.mcp.models as mod
+
         src = inspect.getsource(mod)
         for pattern in ("Bearer ", "sk-", "ghp_", "xoxb-", "password=", "api_key="):
             assert pattern not in src, f"Possible hardcoded credential found: {pattern!r}"
@@ -721,6 +720,7 @@ class TestNoHardcodedCredentials:
     def test_registry_module_has_no_credentials(self):
         import inspect
         import app.mcp.registry as mod
+
         src = inspect.getsource(mod)
         for pattern in ("Bearer ", "sk-", "ghp_", "xoxb-"):
             assert pattern not in src
@@ -728,6 +728,7 @@ class TestNoHardcodedCredentials:
     def test_executor_module_has_no_credentials(self):
         import inspect
         import app.mcp.executor as mod
+
         src = inspect.getsource(mod)
         for pattern in ("Bearer ", "sk-", "ghp_", "xoxb-"):
             assert pattern not in src

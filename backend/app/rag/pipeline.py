@@ -256,7 +256,8 @@ class RAGPipeline:
         except Exception as exc:
             latency_ms = time.monotonic() * 1000.0 - start_ms
             logger.warning(
-                "RAG pipeline retrieve_only failed: %s", exc,
+                "RAG pipeline retrieve_only failed: %s",
+                exc,
                 extra={"request_id": request_id},
             )
             return RAGAnswer.error(
@@ -269,6 +270,7 @@ class RAGPipeline:
         # Build citations even when answer is empty so callers can render them
         if result.has_results and not result.citations:
             from app.rag.context_builder import ContextBuilder
+
             builder = ContextBuilder()
             citations = builder.build_citations(result.chunks)
             result = RetrievalResult(
@@ -285,6 +287,7 @@ class RAGPipeline:
             latency_ms=latency_ms,
             request_id=request_id,
         )
+
 
 # ---------------------------------------------------------------------------
 # Private helpers

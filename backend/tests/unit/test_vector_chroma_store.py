@@ -34,6 +34,7 @@ from app.vector.chroma_store import (
 
 # ── Fixtures ──────────────────────────────────────────────────────────────────
 
+
 def _chunk(
     chunk_id: str = "c1",
     document_id: str = "doc-1",
@@ -78,6 +79,7 @@ def _make_store_with_mock_client() -> tuple[ChromaVectorStore, MagicMock, MagicM
 
 # ── ChromaConfig ──────────────────────────────────────────────────────────────
 
+
 class TestChromaConfig:
     def test_default_mode_is_persistent(self):
         assert ChromaConfig().mode == "persistent"
@@ -105,6 +107,7 @@ class TestChromaConfig:
 
 
 # ── Module helpers ────────────────────────────────────────────────────────────
+
 
 class TestModuleHelpers:
     def test_collection_name_format(self):
@@ -164,6 +167,7 @@ class TestModuleHelpers:
 
 # ── ChromaVectorStore — client initialisation ─────────────────────────────────
 
+
 class TestClientInit:
     def test_client_not_created_at_construction(self):
         store = ChromaVectorStore(ChromaConfig())
@@ -193,6 +197,7 @@ class TestClientInit:
 
 
 # ── upsert ─────────────────────────────────────────────────────────────────────
+
 
 class TestUpsert:
     @pytest.mark.asyncio
@@ -249,6 +254,7 @@ class TestUpsert:
 
 
 # ── search ────────────────────────────────────────────────────────────────────
+
 
 def _make_query_result(
     chunk_id: str = "c1",
@@ -354,6 +360,7 @@ class TestSearch:
 
 # ── delete_by_document ────────────────────────────────────────────────────────
 
+
 class TestDeleteByDocument:
     @pytest.mark.asyncio
     async def test_delete_by_document_calls_collection_delete(self):
@@ -380,6 +387,7 @@ class TestDeleteByDocument:
 
 # ── delete_all ────────────────────────────────────────────────────────────────
 
+
 class TestDeleteAll:
     @pytest.mark.asyncio
     async def test_delete_all_drops_collection(self):
@@ -397,6 +405,7 @@ class TestDeleteAll:
 
 # ── count ─────────────────────────────────────────────────────────────────────
 
+
 class TestCount:
     @pytest.mark.asyncio
     async def test_count_delegates_to_collection_count(self):
@@ -413,6 +422,7 @@ class TestCount:
 
 
 # ── retry logic ───────────────────────────────────────────────────────────────
+
 
 class TestRetryLogic:
     @pytest.mark.asyncio
@@ -447,8 +457,10 @@ class TestRetryLogic:
 
 # ── IVectorStore contract ─────────────────────────────────────────────────────
 
+
 class TestIVectorStoreContract:
     def test_implements_interface(self):
         from app.interfaces.core import IVectorStore
+
         store = ChromaVectorStore()
         assert isinstance(store, IVectorStore)

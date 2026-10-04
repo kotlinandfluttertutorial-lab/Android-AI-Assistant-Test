@@ -50,7 +50,7 @@ if TYPE_CHECKING:
     from app.models.user import User
 
 
-class IngestionStatus(str, enum.Enum):
+class IngestionStatus(enum.StrEnum):
     """Lifecycle state of a document through the RAG ingestion pipeline."""
 
     pending = "pending"

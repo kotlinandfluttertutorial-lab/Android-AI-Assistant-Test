@@ -118,9 +118,7 @@ class MCPExecutor:
 
         # ── Step 1: Allowlist check ────────────────────────────────────────
         if not self._registry.is_allowed(tool_name):
-            msg = (
-                f"Tool '{tool_name}' is not registered or not on the allowlist."
-            )
+            msg = f"Tool '{tool_name}' is not registered or not on the allowlist."
             logger.warning(
                 "MCPExecutor: allowlist rejection",
                 extra={

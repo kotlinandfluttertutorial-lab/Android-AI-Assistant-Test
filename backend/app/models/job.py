@@ -56,7 +56,7 @@ if TYPE_CHECKING:
     from app.models.user import User
 
 
-class JobStatus(str, enum.Enum):
+class JobStatus(enum.StrEnum):
     """Lifecycle state of a background job.
 
     The Android client polls GET /jobs/{job_id} for these values.  The spec

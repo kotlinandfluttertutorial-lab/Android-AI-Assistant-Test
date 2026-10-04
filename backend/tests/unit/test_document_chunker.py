@@ -84,6 +84,7 @@ class TestChunkingConfig:
 class TestBuildTokenCharOffsets:
     def test_length_is_tokens_plus_one(self):
         import tiktoken
+
         enc = tiktoken.encoding_for_model("gpt-3.5-turbo")
         text = "Hello world"
         tokens = enc.encode(text)
@@ -92,6 +93,7 @@ class TestBuildTokenCharOffsets:
 
     def test_first_offset_is_zero(self):
         import tiktoken
+
         enc = tiktoken.encoding_for_model("gpt-3.5-turbo")
         text = "Hello"
         tokens = enc.encode(text)
@@ -100,6 +102,7 @@ class TestBuildTokenCharOffsets:
 
     def test_last_offset_equals_decoded_length(self):
         import tiktoken
+
         enc = tiktoken.encoding_for_model("gpt-3.5-turbo")
         text = "Hello world"
         tokens = enc.encode(text)
@@ -109,6 +112,7 @@ class TestBuildTokenCharOffsets:
 
     def test_offsets_are_monotonically_non_decreasing(self):
         import tiktoken
+
         enc = tiktoken.encoding_for_model("gpt-3.5-turbo")
         text = "The quick brown fox jumps"
         tokens = enc.encode(text)
@@ -230,8 +234,8 @@ class TestDocumentChunker:
             assert chunk.page_number == 1
 
     def test_page_number_from_spans_multi_page(self):
-        page1 = "alpha " * 50   # ~300 chars
-        page2 = "beta " * 50    # ~250 chars
+        page1 = "alpha " * 50  # ~300 chars
+        page2 = "beta " * 50  # ~250 chars
         text = page1 + page2
         spans = [
             PageSpan(1, 0, len(page1)),

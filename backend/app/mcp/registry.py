@@ -93,9 +93,7 @@ class MCPRegistry:
                         f"MCPRegistry: tool '{name}' is already registered. "
                         "Use strict_duplicates=False to allow replacement."
                     )
-                logger.warning(
-                    "MCPRegistry: replacing existing connector for tool=%r", name
-                )
+                logger.warning("MCPRegistry: replacing existing connector for tool=%r", name)
             schema = connector.get_schema()
             self._models[name] = MCPToolModel.from_schema(schema)
         self._broker.register(connector)

@@ -55,6 +55,7 @@ from app.schemas.mcp import MCPToolResult
 # MemoryType
 # ===========================================================================
 
+
 class TestMemoryType:
     def test_has_all_expected_values(self):
         assert MemoryType.FACT.value == "fact"
@@ -69,6 +70,7 @@ class TestMemoryType:
 # ===========================================================================
 # MemoryEntry
 # ===========================================================================
+
 
 class TestMemoryEntry:
     def test_valid_construction(self):
@@ -120,6 +122,7 @@ class TestMemoryEntry:
 # EmbeddingVector
 # ===========================================================================
 
+
 class TestEmbeddingVector:
     def test_valid_construction(self):
         ev = EmbeddingVector(values=[0.1, 0.2, 0.3])
@@ -148,6 +151,7 @@ class TestEmbeddingVector:
 # DocumentContent
 # ===========================================================================
 
+
 class TestDocumentContent:
     def test_valid_construction(self):
         dc = DocumentContent(document_id="doc-1", text="Hello world")
@@ -175,6 +179,7 @@ class TestDocumentContent:
 # ===========================================================================
 # DocumentChunk
 # ===========================================================================
+
 
 class TestDocumentChunk:
     def test_valid_construction(self):
@@ -228,11 +233,16 @@ class TestDocumentChunk:
 # StoredChunk
 # ===========================================================================
 
+
 class TestStoredChunk:
     def _make_chunk(self) -> DocumentChunk:
         return DocumentChunk(
-            chunk_id="c1", document_id="d1", document_name="Doc",
-            user_id="u1", chunk_index=0, text="some text",
+            chunk_id="c1",
+            document_id="d1",
+            document_name="Doc",
+            user_id="u1",
+            chunk_index=0,
+            text="some text",
         )
 
     def test_valid_construction(self):
@@ -246,11 +256,16 @@ class TestStoredChunk:
 # RetrievedChunk
 # ===========================================================================
 
+
 class TestRetrievedChunk:
     def _make_chunk(self) -> DocumentChunk:
         return DocumentChunk(
-            chunk_id="c1", document_id="d1", document_name="Doc",
-            user_id="u1", chunk_index=0, text="text",
+            chunk_id="c1",
+            document_id="d1",
+            document_name="Doc",
+            user_id="u1",
+            chunk_index=0,
+            text="text",
         )
 
     def test_valid_construction(self):
@@ -276,6 +291,7 @@ class TestRetrievedChunk:
 # RetrievalResult
 # ===========================================================================
 
+
 class TestRetrievalResult:
     def test_empty_result(self):
         r = RetrievalResult(query="what is X?")
@@ -285,8 +301,12 @@ class TestRetrievalResult:
 
     def test_has_results(self):
         chunk = DocumentChunk(
-            chunk_id="c1", document_id="d1", document_name="n",
-            user_id="u1", chunk_index=0, text="answer text",
+            chunk_id="c1",
+            document_id="d1",
+            document_name="n",
+            user_id="u1",
+            chunk_index=0,
+            text="answer text",
         )
         rc = RetrievedChunk(chunk=chunk, similarity=0.8)
         r = RetrievalResult(query="Q", chunks=[rc], answer="The answer.")
@@ -297,6 +317,7 @@ class TestRetrievalResult:
 # ===========================================================================
 # ToolExecutionRequest
 # ===========================================================================
+
 
 class TestToolExecutionRequest:
     def test_valid_construction(self):
@@ -321,6 +342,7 @@ class TestToolExecutionRequest:
 # ToolExecutionResult
 # ===========================================================================
 
+
 class TestToolExecutionResult:
     def test_successful_result(self):
         r = ToolExecutionResult(tool_name="calc", success=True, output="42")
@@ -337,6 +359,7 @@ class TestToolExecutionResult:
 # Error types
 # ===========================================================================
 
+
 class TestErrorTypes:
     def test_document_load_error_message(self):
         err = DocumentLoadError(stage="ocr", filename="scan.pdf", detail="low confidence")
@@ -351,6 +374,7 @@ class TestErrorTypes:
 
     def test_embedding_error_attributes(self):
         from app.interfaces.core import EmbeddingError
+
         err = EmbeddingError("model crashed", model_name="all-MiniLM", retryable=True)
         assert err.model_name == "all-MiniLM"
         assert err.retryable is True
@@ -360,20 +384,24 @@ class TestErrorTypes:
 # ABC instantiation is rejected
 # ===========================================================================
 
+
 class TestAbstractnessEnforced:
     """Verify that direct instantiation of each ABC raises TypeError."""
 
-    @pytest.mark.parametrize("abc_class", [
-        IPlanner,
-        IAgentExecutor,
-        IMemoryStore,
-        IDocumentLoader,
-        IEmbeddingProvider,
-        IVectorStore,
-        IRetriever,
-        IMCPClient,
-        IToolExecutor,
-    ])
+    @pytest.mark.parametrize(
+        "abc_class",
+        [
+            IPlanner,
+            IAgentExecutor,
+            IMemoryStore,
+            IDocumentLoader,
+            IEmbeddingProvider,
+            IVectorStore,
+            IRetriever,
+            IMCPClient,
+            IToolExecutor,
+        ],
+    )
     def test_cannot_instantiate_abc(self, abc_class):
         with pytest.raises(TypeError, match="Can't instantiate abstract class"):
             abc_class()  # type: ignore[call-arg]
@@ -382,6 +410,7 @@ class TestAbstractnessEnforced:
 # ===========================================================================
 # Minimal concrete stubs satisfy the ABCs
 # ===========================================================================
+
 
 class _MinimalMemoryStore(IMemoryStore):
     async def store(self, entry: MemoryEntry) -> str:
@@ -552,8 +581,12 @@ class TestConcreteStubsAreValid:
     async def test_vector_store_upsert_and_count(self):
         store = _MinimalVectorStore()
         chunk = DocumentChunk(
-            chunk_id="c1", document_id="d1", document_name="Doc",
-            user_id="u1", chunk_index=0, text="text",
+            chunk_id="c1",
+            document_id="d1",
+            document_name="Doc",
+            user_id="u1",
+            chunk_index=0,
+            text="text",
         )
         ev = EmbeddingVector(values=[0.1, 0.2])
         sc = StoredChunk(chunk=chunk, embedding=ev)
@@ -638,19 +671,23 @@ class TestConcreteStubsAreValid:
 # Re-export integrity from __init__.py
 # ===========================================================================
 
+
 class TestInitReExports:
     """All symbols promised in __init__.py are importable."""
 
     def test_llm_provider_re_exported(self):
         from app.interfaces import LLMProvider
+
         assert LLMProvider is not None
 
     def test_agent_re_exported(self):
         from app.interfaces import Agent
+
         assert Agent is not None
 
     def test_mcp_tool_connector_re_exported(self):
         from app.interfaces import MCPToolConnector
+
         assert MCPToolConnector is not None
 
     def test_new_abcs_re_exported(self):
@@ -683,6 +720,7 @@ class TestInitReExports:
 # Dependency isolation check
 # ===========================================================================
 
+
 class TestNoInfrastructureImports:
     """Verify that interfaces/core.py does not import any infra library."""
 
@@ -707,7 +745,8 @@ class TestNoInfrastructureImports:
         with open(source_file) as f:
             # Strip comment and docstring lines — only actual import statements matter.
             import_lines = [
-                line for line in f
+                line
+                for line in f
                 if line.strip().startswith("import ") or line.strip().startswith("from ")
             ]
         source_imports = "\n".join(import_lines)

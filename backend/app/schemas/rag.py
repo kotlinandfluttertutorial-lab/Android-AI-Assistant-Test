@@ -393,9 +393,7 @@ class V1SearchSource(BaseModel):
     )
     chunk_index: int = Field(description="Zero-based chunk position within the document.")
     excerpt: str = Field(description="First 200 characters of the chunk text.")
-    similarity: float = Field(
-        description="Cosine similarity score (0.0–1.0).", ge=0.0, le=1.0
-    )
+    similarity: float = Field(description="Cosine similarity score (0.0–1.0).", ge=0.0, le=1.0)
     retrieval_path: str = Field(
         default="ann",
         description="Retrieval method: ann | pgvector | bm25 | rrf.",
@@ -466,6 +464,4 @@ class V1AskResponse(BaseModel):
     sources: list[V1AskSource] = Field(
         description="Source citations for the retrieved chunks used to ground the answer."
     )
-    has_sources: bool = Field(
-        description="True when at least one relevant chunk was retrieved."
-    )
+    has_sources: bool = Field(description="True when at least one relevant chunk was retrieved.")

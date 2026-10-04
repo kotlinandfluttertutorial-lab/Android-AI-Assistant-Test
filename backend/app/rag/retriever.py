@@ -60,8 +60,7 @@ class RetrievalConfig:
             raise ValueError(f"RetrievalConfig.top_k must be ≥ 1, got {self.top_k}.")
         if not (0.0 <= self.min_similarity <= 1.0):
             raise ValueError(
-                f"RetrievalConfig.min_similarity must be in [0.0, 1.0], "
-                f"got {self.min_similarity}."
+                f"RetrievalConfig.min_similarity must be in [0.0, 1.0], got {self.min_similarity}."
             )
 
 
@@ -96,7 +95,7 @@ class VectorRetriever(IRetriever):
         self,
         embedding_provider: IEmbeddingProvider,
         vector_store: IVectorStore,
-        llm_service=None,           # app.llm.service.LLMService — optional
+        llm_service=None,  # app.llm.service.LLMService — optional
         config: RetrievalConfig | None = None,
     ) -> None:
         self._embed = embedding_provider
@@ -273,7 +272,5 @@ class VectorRetriever(IRetriever):
         if self._context_builder is None:
             from app.rag.context_builder import ContextBuilder  # lazy
 
-            self._context_builder = ContextBuilder(
-                max_context_chars=self._config.max_context_chars
-            )
+            self._context_builder = ContextBuilder(max_context_chars=self._config.max_context_chars)
         return self._context_builder

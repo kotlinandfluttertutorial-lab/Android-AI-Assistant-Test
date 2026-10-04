@@ -45,6 +45,7 @@ from app.rag.retriever import RetrievalConfig, VectorRetriever
 
 # ── Shared fixtures ───────────────────────────────────────────────────────────
 
+
 def _chunk(
     chunk_id: str = "c1",
     document_id: str = "doc-uuid-1",
@@ -130,6 +131,7 @@ def _make_pipeline(
 
 # ── Full round-trip: retrieve → generate ──────────────────────────────────────
 
+
 class TestFullRoundTrip:
     @pytest.mark.asyncio
     async def test_ask_returns_populated_rag_answer(self):
@@ -140,9 +142,7 @@ class TestFullRoundTrip:
 
     @pytest.mark.asyncio
     async def test_answer_comes_from_llm(self):
-        pipeline, _, _, _ = _make_pipeline(
-            chunks=[_rc()], answer="Revenue was $1.2B."
-        )
+        pipeline, _, _, _ = _make_pipeline(chunks=[_rc()], answer="Revenue was $1.2B.")
         ans = await pipeline.ask("user-1", "What was the revenue?")
         assert ans.answer == "Revenue was $1.2B."
 
@@ -205,10 +205,7 @@ class TestFullRoundTrip:
 
     @pytest.mark.asyncio
     async def test_multiple_sources_returned(self):
-        chunks = [
-            _rc(_chunk(chunk_id=f"c{i}", text=f"fact {i}"))
-            for i in range(3)
-        ]
+        chunks = [_rc(_chunk(chunk_id=f"c{i}", text=f"fact {i}")) for i in range(3)]
         pipeline, _, _, _ = _make_pipeline(chunks=chunks)
         ans = await pipeline.ask("user-1", "Q?")
         assert ans.chunk_count == 3
@@ -217,10 +214,11 @@ class TestFullRoundTrip:
 
 # ── No-results scenario ───────────────────────────────────────────────────────
 
+
 class TestNoResultsScenario:
     @pytest.mark.asyncio
     async def test_empty_results_returns_graceful_answer(self):
-        pipeline, _, _, llm = _make_pipeline(chunks=[])
+        pipeline, _, _, _llm = _make_pipeline(chunks=[])
         ans = await pipeline.ask("user-1", "Q?")
         assert not ans.has_sources
         assert "could not find" in ans.answer.lower() or "no " in ans.answer.lower()
@@ -246,6 +244,7 @@ class TestNoResultsScenario:
 
 
 # ── Configuration: top-K and min_similarity ────────────────────────────────────
+
 
 class TestConfiguration:
     @pytest.mark.asyncio
@@ -287,6 +286,7 @@ class TestConfiguration:
 
 
 # ── Error handling ─────────────────────────────────────────────────────────────
+
 
 class TestErrorHandling:
     @pytest.mark.asyncio
@@ -330,7 +330,7 @@ class TestErrorHandling:
         )
         pipeline = RAGPipeline(retriever=retriever)
         ans = await pipeline.ask("user-1", "Q?")
-        assert ans.has_sources                        # chunks returned
+        assert ans.has_sources  # chunks returned
         assert "unable to generate" in ans.answer.lower()
 
     @pytest.mark.asyncio
@@ -353,10 +353,11 @@ class TestErrorHandling:
 
 # ── System prompt and context format ──────────────────────────────────────────
 
+
 class TestContextFormat:
     @pytest.mark.asyncio
     async def test_llm_called_with_non_empty_system_prompt(self):
-        _, _, _, llm = _make_pipeline(chunks=[_rc()])
+        _, _, _, _llm = _make_pipeline(chunks=[_rc()])
         pipeline, _, _, llm2 = _make_pipeline(chunks=[_rc()])
         await pipeline.ask("user-1", "Q?")
         llm2.generate.assert_awaited_once()

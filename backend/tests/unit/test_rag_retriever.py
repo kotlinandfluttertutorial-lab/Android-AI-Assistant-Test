@@ -25,6 +25,7 @@ from app.rag.pipeline import RAGAnswer, RAGPipeline
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
+
 def _chunk(
     chunk_id: str = "c1",
     document_id: str = "doc-1",
@@ -83,6 +84,7 @@ def _fake_llm_service(answer: str = "The answer is 42.") -> MagicMock:
 
 # ── RetrievalConfig ───────────────────────────────────────────────────────────
 
+
 class TestRetrievalConfig:
     def test_default_top_k(self):
         assert RetrievalConfig().top_k == 5
@@ -109,6 +111,7 @@ class TestRetrievalConfig:
 
 
 # ── VectorRetriever.retrieve ──────────────────────────────────────────────────
+
 
 class TestVectorRetrieverRetrieve:
     def _retriever(self, results=None, embed=None):
@@ -267,6 +270,7 @@ class TestVectorRetrieverRetrieve:
 
 # ── VectorRetriever.retrieve_and_generate ────────────────────────────────────
 
+
 class TestVectorRetrieverRetrieveAndGenerate:
     def _retriever(self, results=None, answer="The answer."):
         return VectorRetriever(
@@ -324,7 +328,7 @@ class TestVectorRetrieverRetrieveAndGenerate:
             config=RetrievalConfig(reraise_errors=False),
         )
         result = await r.retrieve_and_generate("u1", "Q?")
-        assert result.has_results          # chunks still returned
+        assert result.has_results  # chunks still returned
         assert "unable to generate" in result.answer.lower()
 
     @pytest.mark.asyncio
@@ -365,6 +369,7 @@ class TestVectorRetrieverRetrieveAndGenerate:
 
 
 # ── RAGPipeline.ask ───────────────────────────────────────────────────────────
+
 
 class TestRAGPipelineAsk:
     def _pipeline(self, results=None, answer="The answer."):
@@ -457,6 +462,7 @@ class TestRAGPipelineAsk:
 
 # ── RAGPipeline.retrieve_only ─────────────────────────────────────────────────
 
+
 class TestRAGPipelineRetrieveOnly:
     @pytest.mark.asyncio
     async def test_returns_rag_answer(self):
@@ -492,6 +498,7 @@ class TestRAGPipelineRetrieveOnly:
 
 
 # ── RAGAnswer ─────────────────────────────────────────────────────────────────
+
 
 class TestRAGAnswer:
     def test_from_retrieval_result_happy_path(self):

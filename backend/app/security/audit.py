@@ -47,7 +47,7 @@ Requirements: 9.8
 from __future__ import annotations
 
 import uuid
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -55,7 +55,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.models.audit_log import AuditLog
 
 
-class AuditEventType(str, Enum):
+class AuditEventType(StrEnum):
     """Canonical string identifiers for audit log event types.
 
     Requirements: 9.8

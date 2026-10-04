@@ -120,21 +120,33 @@ def auth_user_b():
 
 # ── POST /api/v1/documents/upload ─────────────────────────────────────────────
 
+
 class TestV1DocumentUpload:
     @pytest.mark.asyncio
     async def test_upload_returns_202(self, mock_db, auth_user_a):
         mock_doc = _doc()
         with (
             patch("app.api.rag.router.rag_service.validate_mime_and_upload"),
-            patch("app.repositories.document_repository.DocumentRepository.create",
-                  new_callable=AsyncMock, return_value=mock_doc),
-            patch("app.api.rag.router.rag_service.store_file_minio",
-                  new_callable=AsyncMock, return_value=_MINIO_KEY),
-            patch("app.api.rag.router.rag_service.create_ingestion_job",
-                  new_callable=AsyncMock, return_value=_JOB_ID),
+            patch(
+                "app.repositories.document_repository.DocumentRepository.create",
+                new_callable=AsyncMock,
+                return_value=mock_doc,
+            ),
+            patch(
+                "app.api.rag.router.rag_service.store_file_minio",
+                new_callable=AsyncMock,
+                return_value=_MINIO_KEY,
+            ),
+            patch(
+                "app.api.rag.router.rag_service.create_ingestion_job",
+                new_callable=AsyncMock,
+                return_value=_JOB_ID,
+            ),
             patch("app.workers.rag_worker.ingest_document_task") as mock_task,
-            patch("app.repositories.job_repository.JobRepository.update_status",
-                  new_callable=AsyncMock),
+            patch(
+                "app.repositories.job_repository.JobRepository.update_status",
+                new_callable=AsyncMock,
+            ),
         ):
             mock_task.delay.return_value = MagicMock(id="celery-task-id")
             async with AsyncClient(
@@ -153,9 +165,7 @@ class TestV1DocumentUpload:
     @pytest.mark.asyncio
     async def test_upload_requires_auth(self):
         # No auth override — real get_current_user returns 401
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             resp = await client.post(
                 "/api/v1/documents/upload",
                 files={"file": ("f.pdf", b"data", "application/pdf")},
@@ -172,8 +182,9 @@ class TestV1DocumentUpload:
                 detail="Unsupported file type '.xlsx'.",
             )
 
-        with patch("app.api.rag.router.rag_service.validate_mime_and_upload",
-                   side_effect=_raise_422):
+        with patch(
+            "app.api.rag.router.rag_service.validate_mime_and_upload", side_effect=_raise_422
+        ):
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
             ) as client:
@@ -186,18 +197,24 @@ class TestV1DocumentUpload:
         assert "xlsx" in resp.json().get("detail", "").lower() or resp.status_code == 422
 
     @pytest.mark.asyncio
-    async def test_upload_minio_failure_returns_500_not_stack_trace(
-        self, mock_db, auth_user_a
-    ):
+    async def test_upload_minio_failure_returns_500_not_stack_trace(self, mock_db, auth_user_a):
         mock_doc = _doc()
         with (
             patch("app.api.rag.router.rag_service.validate_mime_and_upload"),
-            patch("app.repositories.document_repository.DocumentRepository.create",
-                  new_callable=AsyncMock, return_value=mock_doc),
-            patch("app.api.rag.router.rag_service.store_file_minio",
-                  new_callable=AsyncMock, side_effect=RuntimeError("S3 timeout")),
-            patch("app.repositories.document_repository.DocumentRepository.delete",
-                  new_callable=AsyncMock),
+            patch(
+                "app.repositories.document_repository.DocumentRepository.create",
+                new_callable=AsyncMock,
+                return_value=mock_doc,
+            ),
+            patch(
+                "app.api.rag.router.rag_service.store_file_minio",
+                new_callable=AsyncMock,
+                side_effect=RuntimeError("S3 timeout"),
+            ),
+            patch(
+                "app.repositories.document_repository.DocumentRepository.delete",
+                new_callable=AsyncMock,
+            ),
         ):
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
@@ -215,13 +232,15 @@ class TestV1DocumentUpload:
 
 # ── GET /api/v1/documents ─────────────────────────────────────────────────────
 
+
 class TestV1ListDocuments:
     @pytest.mark.asyncio
     async def test_list_returns_200_with_documents(self, mock_db, auth_user_a):
         docs = [_doc(doc_id=uuid.uuid4()), _doc(doc_id=uuid.uuid4())]
         with patch(
             "app.repositories.document_repository.DocumentRepository.list_by_user",
-            new_callable=AsyncMock, return_value=docs,
+            new_callable=AsyncMock,
+            return_value=docs,
         ):
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
@@ -236,7 +255,8 @@ class TestV1ListDocuments:
     async def test_list_empty_returns_200_empty_list(self, mock_db, auth_user_a):
         with patch(
             "app.repositories.document_repository.DocumentRepository.list_by_user",
-            new_callable=AsyncMock, return_value=[],
+            new_callable=AsyncMock,
+            return_value=[],
         ):
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
@@ -249,9 +269,7 @@ class TestV1ListDocuments:
 
     @pytest.mark.asyncio
     async def test_list_requires_auth(self):
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             resp = await client.get("/api/v1/documents")
         assert resp.status_code == 401
 
@@ -259,6 +277,7 @@ class TestV1ListDocuments:
     async def test_list_scoped_to_authenticated_user(self, mock_db, auth_user_a):
         """Verify list_by_user is called with the token user's UUID."""
         captured = {}
+
         async def _capture_user_id(self_repo, uid):
             captured["user_id"] = uid
             return []
@@ -271,7 +290,8 @@ class TestV1ListDocuments:
 
         with patch(
             "app.repositories.document_repository.DocumentRepository.list_by_user",
-            new_callable=AsyncMock, return_value=[],
+            new_callable=AsyncMock,
+            return_value=[],
         ) as mock_list:
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
@@ -287,7 +307,8 @@ class TestV1ListDocuments:
         docs = [_doc()]
         with patch(
             "app.repositories.document_repository.DocumentRepository.list_by_user",
-            new_callable=AsyncMock, return_value=docs,
+            new_callable=AsyncMock,
+            return_value=docs,
         ):
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
@@ -296,7 +317,7 @@ class TestV1ListDocuments:
         d = resp.json()["documents"][0]
         # DocumentResponse serialises document id as "document_id" (alias="id")
         # with populate_by_name=True — the actual serialized key depends on model_config
-        assert "document_id" in d or "id" in d   # accept either alias form
+        assert "document_id" in d or "id" in d  # accept either alias form
         assert "file_name" in d
         assert "ingestion_status" in d
         assert "created_at" in d
@@ -304,12 +325,14 @@ class TestV1ListDocuments:
 
 # ── GET /api/v1/documents/{id} ────────────────────────────────────────────────
 
+
 class TestV1GetDocument:
     @pytest.mark.asyncio
     async def test_get_returns_200_for_owned_document(self, mock_db, auth_user_a):
         with patch(
             "app.repositories.document_repository.DocumentRepository.get_by_id",
-            new_callable=AsyncMock, return_value=_doc(),
+            new_callable=AsyncMock,
+            return_value=_doc(),
         ):
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
@@ -325,7 +348,8 @@ class TestV1GetDocument:
     async def test_get_returns_404_for_missing_document(self, mock_db, auth_user_a):
         with patch(
             "app.repositories.document_repository.DocumentRepository.get_by_id",
-            new_callable=AsyncMock, return_value=None,
+            new_callable=AsyncMock,
+            return_value=None,
         ):
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
@@ -334,14 +358,13 @@ class TestV1GetDocument:
         assert resp.status_code == 404
 
     @pytest.mark.asyncio
-    async def test_get_returns_404_not_403_for_other_users_document(
-        self, mock_db, auth_user_b
-    ):
+    async def test_get_returns_404_not_403_for_other_users_document(self, mock_db, auth_user_b):
         """Ownership check: returns 404 (not 403) to avoid leaking UUID existence."""
         # Repository returns None when user_id doesn't match
         with patch(
             "app.repositories.document_repository.DocumentRepository.get_by_id",
-            new_callable=AsyncMock, return_value=None,
+            new_callable=AsyncMock,
+            return_value=None,
         ):
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
@@ -352,17 +375,13 @@ class TestV1GetDocument:
 
     @pytest.mark.asyncio
     async def test_get_requires_auth(self):
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             resp = await client.get(f"/api/v1/documents/{_DOC_ID}")
         assert resp.status_code == 401
 
     @pytest.mark.asyncio
     async def test_get_invalid_uuid_returns_422(self, mock_db, auth_user_a):
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             resp = await client.get("/api/v1/documents/not-a-uuid")
         assert resp.status_code == 422
 
@@ -370,22 +389,31 @@ class TestV1GetDocument:
     async def test_get_response_has_all_detail_fields(self, mock_db, auth_user_a):
         with patch(
             "app.repositories.document_repository.DocumentRepository.get_by_id",
-            new_callable=AsyncMock, return_value=_doc(),
+            new_callable=AsyncMock,
+            return_value=_doc(),
         ):
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
             ) as client:
                 resp = await client.get(f"/api/v1/documents/{_DOC_ID}")
         body = resp.json()
-        for field in ("document_id", "file_name", "mime_type", "size_bytes",
-                      "ingestion_status", "page_count", "created_at"):
+        for field in (
+            "document_id",
+            "file_name",
+            "mime_type",
+            "size_bytes",
+            "ingestion_status",
+            "page_count",
+            "created_at",
+        ):
             assert field in body, f"Missing field: {field}"
 
     @pytest.mark.asyncio
     async def test_get_does_not_expose_minio_key(self, mock_db, auth_user_a):
         with patch(
             "app.repositories.document_repository.DocumentRepository.get_by_id",
-            new_callable=AsyncMock, return_value=_doc(),
+            new_callable=AsyncMock,
+            return_value=_doc(),
         ):
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
@@ -397,18 +425,23 @@ class TestV1GetDocument:
 
 # ── DELETE /api/v1/documents/{id} ────────────────────────────────────────────
 
+
 class TestV1DeleteDocument:
     @pytest.mark.asyncio
     async def test_delete_returns_204(self, mock_db, auth_user_a):
         with (
-            patch("app.repositories.document_repository.DocumentRepository.get_by_id",
-                  new_callable=AsyncMock, return_value=_doc()),
-            patch("app.repositories.document_repository.DocumentRepository.delete",
-                  new_callable=AsyncMock, return_value=True),
-            patch("app.api.rag.router.rag_service.delete_embeddings",
-                  new_callable=AsyncMock),
-            patch("app.api.rag.router.rag_service.delete_file_minio",
-                  new_callable=AsyncMock),
+            patch(
+                "app.repositories.document_repository.DocumentRepository.get_by_id",
+                new_callable=AsyncMock,
+                return_value=_doc(),
+            ),
+            patch(
+                "app.repositories.document_repository.DocumentRepository.delete",
+                new_callable=AsyncMock,
+                return_value=True,
+            ),
+            patch("app.api.rag.router.rag_service.delete_embeddings", new_callable=AsyncMock),
+            patch("app.api.rag.router.rag_service.delete_file_minio", new_callable=AsyncMock),
         ):
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
@@ -420,7 +453,8 @@ class TestV1DeleteDocument:
     async def test_delete_returns_404_for_missing(self, mock_db, auth_user_a):
         with patch(
             "app.repositories.document_repository.DocumentRepository.get_by_id",
-            new_callable=AsyncMock, return_value=None,
+            new_callable=AsyncMock,
+            return_value=None,
         ):
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
@@ -429,12 +463,11 @@ class TestV1DeleteDocument:
         assert resp.status_code == 404
 
     @pytest.mark.asyncio
-    async def test_delete_returns_404_not_403_for_other_user(
-        self, mock_db, auth_user_b
-    ):
+    async def test_delete_returns_404_not_403_for_other_user(self, mock_db, auth_user_b):
         with patch(
             "app.repositories.document_repository.DocumentRepository.get_by_id",
-            new_callable=AsyncMock, return_value=None,
+            new_callable=AsyncMock,
+            return_value=None,
         ):
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
@@ -445,14 +478,18 @@ class TestV1DeleteDocument:
     @pytest.mark.asyncio
     async def test_delete_calls_repo_delete(self, mock_db, auth_user_a):
         with (
-            patch("app.repositories.document_repository.DocumentRepository.get_by_id",
-                  new_callable=AsyncMock, return_value=_doc()),
-            patch("app.repositories.document_repository.DocumentRepository.delete",
-                  new_callable=AsyncMock, return_value=True) as mock_del,
-            patch("app.api.rag.router.rag_service.delete_embeddings",
-                  new_callable=AsyncMock),
-            patch("app.api.rag.router.rag_service.delete_file_minio",
-                  new_callable=AsyncMock),
+            patch(
+                "app.repositories.document_repository.DocumentRepository.get_by_id",
+                new_callable=AsyncMock,
+                return_value=_doc(),
+            ),
+            patch(
+                "app.repositories.document_repository.DocumentRepository.delete",
+                new_callable=AsyncMock,
+                return_value=True,
+            ) as mock_del,
+            patch("app.api.rag.router.rag_service.delete_embeddings", new_callable=AsyncMock),
+            patch("app.api.rag.router.rag_service.delete_file_minio", new_callable=AsyncMock),
         ):
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
@@ -461,19 +498,24 @@ class TestV1DeleteDocument:
         mock_del.assert_awaited_once()
 
     @pytest.mark.asyncio
-    async def test_delete_embedding_failure_does_not_cause_500(
-        self, mock_db, auth_user_a
-    ):
+    async def test_delete_embedding_failure_does_not_cause_500(self, mock_db, auth_user_a):
         with (
-            patch("app.repositories.document_repository.DocumentRepository.get_by_id",
-                  new_callable=AsyncMock, return_value=_doc()),
-            patch("app.repositories.document_repository.DocumentRepository.delete",
-                  new_callable=AsyncMock, return_value=True),
-            patch("app.api.rag.router.rag_service.delete_embeddings",
-                  new_callable=AsyncMock,
-                  side_effect=RuntimeError("ChromaDB down")),
-            patch("app.api.rag.router.rag_service.delete_file_minio",
-                  new_callable=AsyncMock),
+            patch(
+                "app.repositories.document_repository.DocumentRepository.get_by_id",
+                new_callable=AsyncMock,
+                return_value=_doc(),
+            ),
+            patch(
+                "app.repositories.document_repository.DocumentRepository.delete",
+                new_callable=AsyncMock,
+                return_value=True,
+            ),
+            patch(
+                "app.api.rag.router.rag_service.delete_embeddings",
+                new_callable=AsyncMock,
+                side_effect=RuntimeError("ChromaDB down"),
+            ),
+            patch("app.api.rag.router.rag_service.delete_file_minio", new_callable=AsyncMock),
         ):
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
@@ -483,19 +525,24 @@ class TestV1DeleteDocument:
         assert resp.status_code == 204
 
     @pytest.mark.asyncio
-    async def test_delete_minio_failure_does_not_cause_500(
-        self, mock_db, auth_user_a
-    ):
+    async def test_delete_minio_failure_does_not_cause_500(self, mock_db, auth_user_a):
         with (
-            patch("app.repositories.document_repository.DocumentRepository.get_by_id",
-                  new_callable=AsyncMock, return_value=_doc()),
-            patch("app.repositories.document_repository.DocumentRepository.delete",
-                  new_callable=AsyncMock, return_value=True),
-            patch("app.api.rag.router.rag_service.delete_embeddings",
-                  new_callable=AsyncMock),
-            patch("app.api.rag.router.rag_service.delete_file_minio",
-                  new_callable=AsyncMock,
-                  side_effect=RuntimeError("MinIO unreachable")),
+            patch(
+                "app.repositories.document_repository.DocumentRepository.get_by_id",
+                new_callable=AsyncMock,
+                return_value=_doc(),
+            ),
+            patch(
+                "app.repositories.document_repository.DocumentRepository.delete",
+                new_callable=AsyncMock,
+                return_value=True,
+            ),
+            patch("app.api.rag.router.rag_service.delete_embeddings", new_callable=AsyncMock),
+            patch(
+                "app.api.rag.router.rag_service.delete_file_minio",
+                new_callable=AsyncMock,
+                side_effect=RuntimeError("MinIO unreachable"),
+            ),
         ):
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
@@ -505,17 +552,14 @@ class TestV1DeleteDocument:
 
     @pytest.mark.asyncio
     async def test_delete_requires_auth(self):
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             resp = await client.delete(f"/api/v1/documents/{_DOC_ID}")
         assert resp.status_code == 401
 
     @pytest.mark.asyncio
-    async def test_delete_db_committed_before_storage_cleanup(
-        self, mock_db, auth_user_a
-    ):
+    async def test_delete_db_committed_before_storage_cleanup(self, mock_db, auth_user_a):
         call_order = []
+
         async def _fake_delete(*a, **kw):
             call_order.append("db_delete")
             return True
@@ -526,14 +570,22 @@ class TestV1DeleteDocument:
         mock_db.commit = AsyncMock(side_effect=lambda: call_order.append("commit"))
 
         with (
-            patch("app.repositories.document_repository.DocumentRepository.get_by_id",
-                  new_callable=AsyncMock, return_value=_doc()),
-            patch("app.repositories.document_repository.DocumentRepository.delete",
-                  new_callable=AsyncMock, side_effect=_fake_delete),
-            patch("app.api.rag.router.rag_service.delete_embeddings",
-                  new_callable=AsyncMock, side_effect=_fake_embed_delete),
-            patch("app.api.rag.router.rag_service.delete_file_minio",
-                  new_callable=AsyncMock),
+            patch(
+                "app.repositories.document_repository.DocumentRepository.get_by_id",
+                new_callable=AsyncMock,
+                return_value=_doc(),
+            ),
+            patch(
+                "app.repositories.document_repository.DocumentRepository.delete",
+                new_callable=AsyncMock,
+                side_effect=_fake_delete,
+            ),
+            patch(
+                "app.api.rag.router.rag_service.delete_embeddings",
+                new_callable=AsyncMock,
+                side_effect=_fake_embed_delete,
+            ),
+            patch("app.api.rag.router.rag_service.delete_file_minio", new_callable=AsyncMock),
         ):
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"

@@ -312,7 +312,7 @@ async def refresh(
             access_exp,
             new_refresh,
             refresh_exp,
-            role,
+            _role,
             user_id,
         ) = await refresh_tokens(db, body.refresh_token)
     except TokenFamilyRevokedError:

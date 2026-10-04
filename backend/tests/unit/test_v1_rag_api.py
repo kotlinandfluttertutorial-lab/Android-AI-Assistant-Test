@@ -47,7 +47,7 @@ from app.security.jwt_handler import TokenPayload
 # ── Shared fixtures ───────────────────────────────────────────────────────────
 
 _USER = uuid.UUID("aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa")
-_DOC  = uuid.UUID("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb")
+_DOC = uuid.UUID("bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb")
 
 
 def _token(user_id: uuid.UUID = _USER) -> TokenPayload:
@@ -126,15 +126,15 @@ def auth():
 
 # ── POST /api/v1/rag/search ───────────────────────────────────────────────────
 
+
 class TestV1RagSearch:
     @pytest.mark.asyncio
     async def test_search_returns_200(self):
-        result = RetrievalResult(
-            query="revenue", chunks=[_rc()], answer="", citations=[]
-        )
+        result = RetrievalResult(query="revenue", chunks=[_rc()], answer="", citations=[])
         with patch(
             "app.rag.retriever.VectorRetriever.retrieve",
-            new_callable=AsyncMock, return_value=result,
+            new_callable=AsyncMock,
+            return_value=result,
         ):
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
@@ -150,14 +150,13 @@ class TestV1RagSearch:
         result = RetrievalResult(query="q", chunks=[_rc()], answer="", citations=[])
         with patch(
             "app.rag.retriever.VectorRetriever.retrieve",
-            new_callable=AsyncMock, return_value=result,
+            new_callable=AsyncMock,
+            return_value=result,
         ):
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
             ) as client:
-                resp = await client.post(
-                    "/api/v1/rag/search", json={"query": "q"}
-                )
+                resp = await client.post("/api/v1/rag/search", json={"query": "q"})
         body = resp.json()
         assert "query" in body
         assert "sources" in body
@@ -166,19 +165,16 @@ class TestV1RagSearch:
     @pytest.mark.asyncio
     async def test_search_sources_contain_metadata(self):
         chunk = _dc(doc_name="annual.pdf", page=7)
-        result = RetrievalResult(
-            query="profit", chunks=[_rc(chunk, 0.91)], answer="", citations=[]
-        )
+        result = RetrievalResult(query="profit", chunks=[_rc(chunk, 0.91)], answer="", citations=[])
         with patch(
             "app.rag.retriever.VectorRetriever.retrieve",
-            new_callable=AsyncMock, return_value=result,
+            new_callable=AsyncMock,
+            return_value=result,
         ):
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
             ) as client:
-                resp = await client.post(
-                    "/api/v1/rag/search", json={"query": "profit"}
-                )
+                resp = await client.post("/api/v1/rag/search", json={"query": "profit"})
         src = resp.json()["sources"][0]
         assert src["document_name"] == "annual.pdf"
         assert src["page_number"] == 7
@@ -191,14 +187,13 @@ class TestV1RagSearch:
         result = RetrievalResult(query="q", chunks=chunks, answer="", citations=[])
         with patch(
             "app.rag.retriever.VectorRetriever.retrieve",
-            new_callable=AsyncMock, return_value=result,
+            new_callable=AsyncMock,
+            return_value=result,
         ):
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
             ) as client:
-                resp = await client.post(
-                    "/api/v1/rag/search", json={"query": "q"}
-                )
+                resp = await client.post("/api/v1/rag/search", json={"query": "q"})
         body = resp.json()
         assert body["total_sources"] == 3
         assert len(body["sources"]) == 3
@@ -208,14 +203,13 @@ class TestV1RagSearch:
         result = RetrievalResult(query="nothingmatches", chunks=[], answer="", citations=[])
         with patch(
             "app.rag.retriever.VectorRetriever.retrieve",
-            new_callable=AsyncMock, return_value=result,
+            new_callable=AsyncMock,
+            return_value=result,
         ):
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
             ) as client:
-                resp = await client.post(
-                    "/api/v1/rag/search", json={"query": "nothingmatches"}
-                )
+                resp = await client.post("/api/v1/rag/search", json={"query": "nothingmatches"})
         assert resp.status_code == 200
         body = resp.json()
         assert body["total_sources"] == 0
@@ -232,9 +226,7 @@ class TestV1RagSearch:
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
             ) as client:
-                resp = await client.post(
-                    "/api/v1/rag/search", json={"query": "q"}
-                )
+                resp = await client.post("/api/v1/rag/search", json={"query": "q"})
         assert resp.status_code == 200
         body = resp.json()
         assert body["total_sources"] == 0
@@ -244,51 +236,33 @@ class TestV1RagSearch:
 
     @pytest.mark.asyncio
     async def test_search_blank_query_returns_422(self):
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as client:
-            resp = await client.post(
-                "/api/v1/rag/search", json={"query": ""}
-            )
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            resp = await client.post("/api/v1/rag/search", json={"query": ""})
         assert resp.status_code == 422
 
     @pytest.mark.asyncio
     async def test_search_missing_query_returns_422(self):
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             resp = await client.post("/api/v1/rag/search", json={})
         assert resp.status_code == 422
 
     @pytest.mark.asyncio
     async def test_search_top_k_above_20_returns_422(self):
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as client:
-            resp = await client.post(
-                "/api/v1/rag/search", json={"query": "q", "top_k": 99}
-            )
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            resp = await client.post("/api/v1/rag/search", json={"query": "q", "top_k": 99})
         assert resp.status_code == 422
 
     @pytest.mark.asyncio
     async def test_search_top_k_zero_returns_422(self):
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as client:
-            resp = await client.post(
-                "/api/v1/rag/search", json={"query": "q", "top_k": 0}
-            )
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            resp = await client.post("/api/v1/rag/search", json={"query": "q", "top_k": 0})
         assert resp.status_code == 422
 
     @pytest.mark.asyncio
     async def test_search_requires_auth(self):
         app.dependency_overrides.pop(get_current_user, None)
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as client:
-            resp = await client.post(
-                "/api/v1/rag/search", json={"query": "q"}
-            )
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            resp = await client.post("/api/v1/rag/search", json={"query": "q"})
         assert resp.status_code == 401
         # Restore fixture override
         app.dependency_overrides[get_current_user] = lambda: _token()
@@ -298,7 +272,8 @@ class TestV1RagSearch:
         result = RetrievalResult(query="q", chunks=[], answer="", citations=[])
         with patch(
             "app.rag.retriever.VectorRetriever.retrieve",
-            new_callable=AsyncMock, return_value=result,
+            new_callable=AsyncMock,
+            return_value=result,
         ) as mock_retrieve:
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
@@ -319,14 +294,13 @@ class TestV1RagSearch:
         result = RetrievalResult(query="q", chunks=[_rc(chunk)], answer="", citations=[])
         with patch(
             "app.rag.retriever.VectorRetriever.retrieve",
-            new_callable=AsyncMock, return_value=result,
+            new_callable=AsyncMock,
+            return_value=result,
         ):
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
             ) as client:
-                resp = await client.post(
-                    "/api/v1/rag/search", json={"query": "q"}
-                )
+                resp = await client.post("/api/v1/rag/search", json={"query": "q"})
         excerpt = resp.json()["sources"][0]["excerpt"]
         assert len(excerpt) <= 200
 
@@ -347,28 +321,26 @@ class TestV1RagSearch:
         result = RetrievalResult(query="q", chunks=[_rc(chunk)], answer="", citations=[])
         with patch(
             "app.rag.retriever.VectorRetriever.retrieve",
-            new_callable=AsyncMock, return_value=result,
+            new_callable=AsyncMock,
+            return_value=result,
         ):
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
             ) as client:
-                resp = await client.post(
-                    "/api/v1/rag/search", json={"query": "q"}
-                )
+                resp = await client.post("/api/v1/rag/search", json={"query": "q"})
         src = resp.json()["sources"][0]
         assert src["page_number"] is None
 
 
 # ── POST /api/v1/rag/ask ──────────────────────────────────────────────────────
 
+
 class TestV1RagAsk:
     @pytest.mark.asyncio
     async def test_ask_returns_200(self):
         with patch(
             "app.api.rag.router._get_rag_pipeline",
-            return_value=MagicMock(
-                ask=AsyncMock(return_value=_rag_answer())
-            ),
+            return_value=MagicMock(ask=AsyncMock(return_value=_rag_answer())),
         ):
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
@@ -383,9 +355,7 @@ class TestV1RagAsk:
     async def test_ask_response_schema(self):
         with patch(
             "app.api.rag.router._get_rag_pipeline",
-            return_value=MagicMock(
-                ask=AsyncMock(return_value=_rag_answer())
-            ),
+            return_value=MagicMock(ask=AsyncMock(return_value=_rag_answer())),
         ):
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
@@ -421,9 +391,7 @@ class TestV1RagAsk:
     async def test_ask_sources_populated(self):
         with patch(
             "app.api.rag.router._get_rag_pipeline",
-            return_value=MagicMock(
-                ask=AsyncMock(return_value=_rag_answer())
-            ),
+            return_value=MagicMock(ask=AsyncMock(return_value=_rag_answer())),
         ):
             async with AsyncClient(
                 transport=ASGITransport(app=app), base_url="http://test"
@@ -529,31 +497,21 @@ class TestV1RagAsk:
 
     @pytest.mark.asyncio
     async def test_ask_blank_question_returns_422(self):
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as client:
-            resp = await client.post(
-                "/api/v1/rag/ask", json={"question": ""}
-            )
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            resp = await client.post("/api/v1/rag/ask", json={"question": ""})
         assert resp.status_code == 422
 
     @pytest.mark.asyncio
     async def test_ask_missing_question_returns_422(self):
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             resp = await client.post("/api/v1/rag/ask", json={})
         assert resp.status_code == 422
 
     @pytest.mark.asyncio
     async def test_ask_requires_auth(self):
         app.dependency_overrides.pop(get_current_user, None)
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as client:
-            resp = await client.post(
-                "/api/v1/rag/ask", json={"question": "q?"}
-            )
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            resp = await client.post("/api/v1/rag/ask", json={"question": "q?"})
         assert resp.status_code == 401
         app.dependency_overrides[get_current_user] = lambda: _token()
 
@@ -595,23 +553,18 @@ class TestV1RagAsk:
 
     @pytest.mark.asyncio
     async def test_ask_top_k_above_20_returns_422(self):
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as client:
-            resp = await client.post(
-                "/api/v1/rag/ask", json={"question": "q?", "top_k": 50}
-            )
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
+            resp = await client.post("/api/v1/rag/ask", json={"question": "q?", "top_k": 50})
         assert resp.status_code == 422
 
 
 # ── OpenAPI schema checks ─────────────────────────────────────────────────────
 
+
 class TestOpenAPISchema:
     @pytest.mark.asyncio
     async def test_openapi_includes_v1_documents_upload(self):
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             resp = await client.get("/openapi.json")
         assert resp.status_code == 200
         paths = resp.json()["paths"]
@@ -619,45 +572,35 @@ class TestOpenAPISchema:
 
     @pytest.mark.asyncio
     async def test_openapi_includes_v1_documents_list(self):
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             resp = await client.get("/openapi.json")
         paths = resp.json()["paths"]
         assert "/api/v1/documents" in paths
 
     @pytest.mark.asyncio
     async def test_openapi_includes_v1_documents_detail(self):
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             resp = await client.get("/openapi.json")
         paths = resp.json()["paths"]
         assert "/api/v1/documents/{document_id}" in paths
 
     @pytest.mark.asyncio
     async def test_openapi_includes_v1_rag_search(self):
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             resp = await client.get("/openapi.json")
         paths = resp.json()["paths"]
         assert "/api/v1/rag/search" in paths
 
     @pytest.mark.asyncio
     async def test_openapi_includes_v1_rag_ask(self):
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             resp = await client.get("/openapi.json")
         paths = resp.json()["paths"]
         assert "/api/v1/rag/ask" in paths
 
     @pytest.mark.asyncio
     async def test_openapi_documents_upload_requires_multipart(self):
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             resp = await client.get("/openapi.json")
         spec = resp.json()
         upload_path = spec["paths"]["/api/v1/documents/upload"]["post"]
@@ -667,9 +610,7 @@ class TestOpenAPISchema:
 
     @pytest.mark.asyncio
     async def test_openapi_rag_ask_has_summary(self):
-        async with AsyncClient(
-            transport=ASGITransport(app=app), base_url="http://test"
-        ) as client:
+        async with AsyncClient(transport=ASGITransport(app=app), base_url="http://test") as client:
             resp = await client.get("/openapi.json")
         ask_op = resp.json()["paths"]["/api/v1/rag/ask"]["post"]
         assert "summary" in ask_op

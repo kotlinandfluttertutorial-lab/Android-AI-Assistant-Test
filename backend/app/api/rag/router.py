@@ -1042,17 +1042,13 @@ async def v1_delete_document(
     try:
         await rag_service.delete_embeddings(str(document_id), str(user_id))
     except Exception:
-        logger.warning(
-            "v1: embedding deletion failed for document %s (best-effort)", document_id
-        )
+        logger.warning("v1: embedding deletion failed for document %s (best-effort)", document_id)
 
     # Remove raw file from MinIO — best-effort
     try:
         await rag_service.delete_file_minio(minio_key)
     except Exception:
-        logger.warning(
-            "v1: MinIO file deletion failed for document %s (best-effort)", document_id
-        )
+        logger.warning("v1: MinIO file deletion failed for document %s (best-effort)", document_id)
 
 
 # ===========================================================================
@@ -1167,7 +1163,9 @@ async def v1_rag_search(
     except Exception as exc:
         logger.warning(
             "v1 RAG search failed gracefully for user=%s query=%r: %s",
-            user_id, request.query[:80], exc,
+            user_id,
+            request.query[:80],
+            exc,
         )
         return V1SearchResponse(query=request.query, sources=[], total_sources=0)
 
@@ -1256,9 +1254,7 @@ async def v1_rag_ask(
     except Exception as exc:
         # Catch any unexpected pipeline-construction errors (e.g. config missing)
         # so internal details are never exposed.
-        logger.error(
-            "v1 RAG ask pipeline construction failed for user=%s: %s", user_id, exc
-        )
+        logger.error("v1 RAG ask pipeline construction failed for user=%s: %s", user_id, exc)
         return V1AskResponse(
             question=request.question,
             answer="An error occurred while processing your request. Please try again.",

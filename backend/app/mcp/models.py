@@ -90,9 +90,7 @@ class MCPToolModel:
         if not self.tool_name.strip():
             raise ValueError("MCPToolModel.tool_name must not be blank.")
         if self.timeout_ms < 0:
-            raise ValueError(
-                f"MCPToolModel.timeout_ms must be ≥ 0, got {self.timeout_ms}."
-            )
+            raise ValueError(f"MCPToolModel.timeout_ms must be ≥ 0, got {self.timeout_ms}.")
 
     @property
     def required_params(self) -> list[str]:

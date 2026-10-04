@@ -93,9 +93,7 @@ class ConversationMemoryBuffer:
 
     def __init__(self, max_turns: int = _DEFAULT_BUFFER_SIZE) -> None:
         if max_turns < 1:
-            raise ValueError(
-                f"ConversationMemoryBuffer.max_turns must be ≥ 1, got {max_turns}."
-            )
+            raise ValueError(f"ConversationMemoryBuffer.max_turns must be ≥ 1, got {max_turns}.")
         self._max_turns = max_turns
         self._turns: deque[ConversationTurn] = deque(maxlen=max_turns)
 
@@ -151,9 +149,7 @@ class ConversationMemoryBuffer:
         """
         if self.is_empty():
             return ""
-        return separator.join(
-            f"{turn.role.upper()}: {turn.content}" for turn in self._turns
-        )
+        return separator.join(f"{turn.role.upper()}: {turn.content}" for turn in self._turns)
 
     def format_as_messages(self) -> list[dict[str, str]]:
         """Render the buffer as a list of ``{"role": ..., "content": ...}`` dicts.
@@ -241,9 +237,7 @@ class AgentMemoryAdapter:
 
                 mem_type = MemoryType.fact
             except ImportError:
-                logger.warning(
-                    "AgentMemoryAdapter: could not import MemoryType; skipping store."
-                )
+                logger.warning("AgentMemoryAdapter: could not import MemoryType; skipping store.")
                 return
 
         try:

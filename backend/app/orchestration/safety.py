@@ -138,8 +138,7 @@ class AgentSafetyGuard:
             return self._safety.filter_response(output)
         except SafetyFilterError:
             logger.warning(
-                "Tool output blocked by safety filter — returning stub. "
-                "Raw length: %d chars.",
+                "Tool output blocked by safety filter — returning stub. Raw length: %d chars.",
                 len(output),
             )
             return "[tool output blocked: safety filter failed]"
@@ -168,8 +167,7 @@ class AgentSafetyGuard:
             return self._safety.filter_response(content)
         except SafetyFilterError:
             logger.warning(
-                "RAG content blocked by safety filter — returning stub. "
-                "Raw length: %d chars.",
+                "RAG content blocked by safety filter — returning stub. Raw length: %d chars.",
                 len(content),
             )
             return "[rag content blocked: safety filter failed]"

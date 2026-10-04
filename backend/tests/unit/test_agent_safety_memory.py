@@ -80,6 +80,7 @@ from app.services.safety_service import SafetyFilterError, SafetyService
 # Helpers / fixtures
 # ===========================================================================
 
+
 def _guard(safety_service: SafetyService | None = None) -> AgentSafetyGuard:
     """Return a guard backed by the given SafetyService (or a real one)."""
     return AgentSafetyGuard(safety_service=safety_service)
@@ -109,63 +110,70 @@ def _fake_settings(
 # _is_sensitive_key — pattern coverage
 # ===========================================================================
 
+
 class TestIsSensitiveKey:
     """Verify that _is_sensitive_key matches all registered credential patterns."""
 
-    @pytest.mark.parametrize("key", [
-        "password",
-        "PASSWORD",
-        "user_password",
-        "passwd",
-        "PASSWD",
-        "secret",
-        "client_secret",
-        "MY_SECRET",
-        "token",
-        "access_token",
-        "TOKEN",
-        "api_key",
-        "API_KEY",
-        "apikey",
-        "APIKEY",
-        "access_key",
-        "ACCESS_KEY",
-        "private_key",
-        "PRIVATE_KEY",
-        "credential",
-        "credentials",
-        "auth",
-        "authorization",
-        "AUTH_HEADER",
-        "bearer",
-        "BEARER_TOKEN",
-        "jwt",
-        "JWT_SECRET",
-        "ssn",
-        "SSN",
-        "card_number",
-        "cardnumber",
-        "CARD_NUMBER",
-        "cvv",
-        "CVV",
-    ])
+    @pytest.mark.parametrize(
+        "key",
+        [
+            "password",
+            "PASSWORD",
+            "user_password",
+            "passwd",
+            "PASSWD",
+            "secret",
+            "client_secret",
+            "MY_SECRET",
+            "token",
+            "access_token",
+            "TOKEN",
+            "api_key",
+            "API_KEY",
+            "apikey",
+            "APIKEY",
+            "access_key",
+            "ACCESS_KEY",
+            "private_key",
+            "PRIVATE_KEY",
+            "credential",
+            "credentials",
+            "auth",
+            "authorization",
+            "AUTH_HEADER",
+            "bearer",
+            "BEARER_TOKEN",
+            "jwt",
+            "JWT_SECRET",
+            "ssn",
+            "SSN",
+            "card_number",
+            "cardnumber",
+            "CARD_NUMBER",
+            "cvv",
+            "CVV",
+        ],
+    )
     def test_sensitive_keys_are_detected(self, key: str) -> None:
         assert _is_sensitive_key(key) is True, f"Expected '{key}' to be detected as sensitive"
 
-    @pytest.mark.parametrize("key", [
-        "username",
-        "email",
-        "first_name",
-        "query",
-        "content",
-        "message",
-        "tool_name",
-        "limit",
-        "offset",
-        "page",
-        "role",
-        "user_id",
-    ])
+    @pytest.mark.parametrize(
+        "key",
+        [
+            "username",
+            "email",
+            "first_name",
+            "query",
+            "content",
+            "message",
+            "tool_name",
+            "limit",
+            "offset",
+            "page",
+            "role",
+            "user_id",
+        ],
+    )
     def test_non_sensitive_keys_are_not_detected(self, key: str) -> None:
         assert _is_sensitive_key(key) is False, f"Expected '{key}' NOT to be detected as sensitive"
 
@@ -173,6 +181,7 @@ class TestIsSensitiveKey:
 # ===========================================================================
 # AgentSafetyGuard — sanitize_tool_output
 # ===========================================================================
+
 
 class TestSanitizeToolOutput:
     """Tool output is treated as untrusted; harmful content must be stripped."""
@@ -220,6 +229,7 @@ class TestSanitizeToolOutput:
 # AgentSafetyGuard — sanitize_rag_content
 # ===========================================================================
 
+
 class TestSanitizeRagContent:
     """RAG chunks are treated as untrusted; same contract as tool output."""
 
@@ -250,6 +260,7 @@ class TestSanitizeRagContent:
 # ===========================================================================
 # AgentSafetyGuard — redact_sensitive_args
 # ===========================================================================
+
 
 class TestRedactSensitiveArgs:
     """Sensitive keys must be redacted; non-sensitive keys must be preserved."""
@@ -282,11 +293,25 @@ class TestRedactSensitiveArgs:
         assert result["client_id"] == "abc"
         assert result["client_secret"] == _REDACTED_PLACEHOLDER
 
-    @pytest.mark.parametrize("key", [
-        "password", "passwd", "secret", "token", "api_key", "access_key",
-        "private_key", "credential", "auth", "bearer", "jwt", "ssn",
-        "card_number", "cvv",
-    ])
+    @pytest.mark.parametrize(
+        "key",
+        [
+            "password",
+            "passwd",
+            "secret",
+            "token",
+            "api_key",
+            "access_key",
+            "private_key",
+            "credential",
+            "auth",
+            "bearer",
+            "jwt",
+            "ssn",
+            "card_number",
+            "cvv",
+        ],
+    )
     def test_all_sensitive_key_patterns_are_redacted(self, key: str) -> None:
         guard = _guard()
         params = {key: "sensitive_value", "safe_key": "safe_value"}
@@ -342,6 +367,7 @@ class TestRedactSensitiveArgs:
 # ===========================================================================
 # AgentSafetyGuard — check_user_authorization
 # ===========================================================================
+
 
 class TestCheckUserAuthorization:
     """User must hold ALL required permissions; missing any → PermissionError."""
@@ -411,6 +437,7 @@ class TestCheckUserAuthorization:
 # AgentSafetyGuard — check_tool_permission
 # ===========================================================================
 
+
 class TestCheckToolPermission:
     """Tool schemas without required_permissions are always allowed."""
 
@@ -461,6 +488,7 @@ class TestCheckToolPermission:
 # ConversationTurn — dataclass contract
 # ===========================================================================
 
+
 class TestConversationTurn:
     def test_creation_with_defaults(self) -> None:
         turn = ConversationTurn(role="user", content="Hello")
@@ -482,8 +510,8 @@ class TestConversationTurn:
 # ConversationMemoryBuffer — ring buffer behaviour
 # ===========================================================================
 
-class TestConversationMemoryBuffer:
 
+class TestConversationMemoryBuffer:
     def test_default_max_turns(self) -> None:
         buf = ConversationMemoryBuffer()
         assert buf.max_turns == _DEFAULT_BUFFER_SIZE
@@ -583,6 +611,7 @@ class TestConversationMemoryBuffer:
 # AgentMemoryAdapter — store_fact
 # ===========================================================================
 
+
 class TestAgentMemoryAdapterStoreFact:
     """store_fact delegates to MemoryService; failures must not propagate."""
 
@@ -651,8 +680,8 @@ class TestAgentMemoryAdapterStoreFact:
 # AgentMemoryAdapter — retrieve_relevant
 # ===========================================================================
 
-class TestAgentMemoryAdapterRetrieveRelevant:
 
+class TestAgentMemoryAdapterRetrieveRelevant:
     @pytest.mark.asyncio
     async def test_returns_entries_on_success(self) -> None:
         entries = [
@@ -696,15 +725,19 @@ class TestAgentMemoryAdapterRetrieveRelevant:
         )
         await adapter.retrieve_relevant("query")
         _, kwargs = svc.get_relevant_memories.call_args
-        assert kwargs.get("top_k", None) == 3 or svc.get_relevant_memories.call_args[1].get("top_k") == 3 or svc.get_relevant_memories.call_args[0][2] == 3
+        assert (
+            kwargs.get("top_k", None) == 3
+            or svc.get_relevant_memories.call_args[1].get("top_k") == 3
+            or svc.get_relevant_memories.call_args[0][2] == 3
+        )
 
 
 # ===========================================================================
 # AgentMemoryAdapter — format_memories_as_text
 # ===========================================================================
 
-class TestAgentMemoryAdapterFormatMemories:
 
+class TestAgentMemoryAdapterFormatMemories:
     def _adapter(self) -> AgentMemoryAdapter:
         return AgentMemoryAdapter(
             memory_service=MagicMock(),
@@ -753,8 +786,8 @@ class TestAgentMemoryAdapterFormatMemories:
 # OrchestrationConfig.from_settings — Settings bridge
 # ===========================================================================
 
-class TestOrchestrationConfigFromSettings:
 
+class TestOrchestrationConfigFromSettings:
     def test_reads_max_agent_steps_from_settings(self) -> None:
         cfg = OrchestrationConfig.from_settings(_fake_settings(max_steps=7))
         assert cfg.max_steps == 7
@@ -805,23 +838,27 @@ class TestOrchestrationConfigFromSettings:
 # Settings fields — presence and default values
 # ===========================================================================
 
+
 class TestSettingsFields:
     """Verify the three new Settings fields exist with correct defaults/bounds."""
 
     def test_max_agent_steps_default_and_type(self) -> None:
         from app.config.settings import Settings
+
         s = Settings()
         assert isinstance(s.MAX_AGENT_STEPS, int)
         assert s.MAX_AGENT_STEPS == 10
 
     def test_max_agent_tool_calls_default_and_type(self) -> None:
         from app.config.settings import Settings
+
         s = Settings()
         assert isinstance(s.MAX_AGENT_TOOL_CALLS, int)
         assert s.MAX_AGENT_TOOL_CALLS == 20
 
     def test_agent_timeout_seconds_default_and_type(self) -> None:
         from app.config.settings import Settings
+
         s = Settings()
         assert isinstance(s.AGENT_TIMEOUT_SECONDS, float)
         assert s.AGENT_TIMEOUT_SECONDS == 120.0
@@ -829,30 +866,35 @@ class TestSettingsFields:
     def test_max_agent_steps_lower_bound(self) -> None:
         from pydantic import ValidationError
         from app.config.settings import Settings
+
         with pytest.raises((ValidationError, ValueError)):
             Settings(MAX_AGENT_STEPS=0)
 
     def test_max_agent_steps_upper_bound(self) -> None:
         from pydantic import ValidationError
         from app.config.settings import Settings
+
         with pytest.raises((ValidationError, ValueError)):
             Settings(MAX_AGENT_STEPS=51)
 
     def test_max_agent_tool_calls_upper_bound(self) -> None:
         from pydantic import ValidationError
         from app.config.settings import Settings
+
         with pytest.raises((ValidationError, ValueError)):
             Settings(MAX_AGENT_TOOL_CALLS=101)
 
     def test_agent_timeout_lower_bound(self) -> None:
         from pydantic import ValidationError
         from app.config.settings import Settings
+
         with pytest.raises((ValidationError, ValueError)):
             Settings(AGENT_TIMEOUT_SECONDS=0.0)
 
     def test_agent_timeout_upper_bound(self) -> None:
         from pydantic import ValidationError
         from app.config.settings import Settings
+
         with pytest.raises((ValidationError, ValueError)):
             Settings(AGENT_TIMEOUT_SECONDS=301.0)
 
@@ -860,6 +902,7 @@ class TestSettingsFields:
 # ===========================================================================
 # Helper used only in one test — defined here to keep imports local
 # ===========================================================================
+
 
 def _allow_all_except_db(name: str, *args: Any, **kwargs: Any) -> Any:
     """Side effect for __import__ that blocks only specific modules."""

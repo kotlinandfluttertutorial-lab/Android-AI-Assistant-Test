@@ -92,9 +92,7 @@ class AgentExecuteRequest(BaseModel):
     """
 
     message: str = Field(min_length=1, description="User instruction or question.")
-    conversation_id: str | None = Field(
-        default=None, description="Existing conversation UUID."
-    )
+    conversation_id: str | None = Field(default=None, description="Existing conversation UUID.")
     document_ids: list[str] = Field(
         default_factory=list,
         description="Restrict RAG retrieval to these document UUIDs.",
@@ -396,7 +394,7 @@ async def agent_execute(
 _SSE_CONTENT_TYPE = "text/event-stream"
 _SSE_HEADERS = {
     "Cache-Control": "no-cache",
-    "X-Accel-Buffering": "no",   # disable nginx buffering for SSE
+    "X-Accel-Buffering": "no",  # disable nginx buffering for SSE
 }
 
 
@@ -484,44 +482,65 @@ async def agent_stream(
         try:
             async for event in runner.stream(agent_request):
                 if isinstance(event, AgentStartedEvent):
-                    yield _event("started", {
-                        "request_id": request_id,
-                        "agent_name": getattr(event, "agent_name", ""),
-                    })
+                    yield _event(
+                        "started",
+                        {
+                            "request_id": request_id,
+                            "agent_name": getattr(event, "agent_name", ""),
+                        },
+                    )
 
                 elif isinstance(event, AgentThinkingEvent):
-                    yield _event("thinking", {
-                        "text": getattr(event, "thinking_text", ""),
-                    })
+                    yield _event(
+                        "thinking",
+                        {
+                            "text": getattr(event, "thinking_text", ""),
+                        },
+                    )
 
                 elif isinstance(event, AgentTokenEvent):
-                    yield _event("token", {
-                        "token": getattr(event, "token", ""),
-                    })
+                    yield _event(
+                        "token",
+                        {
+                            "token": getattr(event, "token", ""),
+                        },
+                    )
 
                 elif isinstance(event, AgentToolStartedEvent):
-                    yield _event("tool_started", {
-                        "tool_name": getattr(event, "tool_name", ""),
-                        "parameters": getattr(event, "parameters", ""),
-                    })
+                    yield _event(
+                        "tool_started",
+                        {
+                            "tool_name": getattr(event, "tool_name", ""),
+                            "parameters": getattr(event, "parameters", ""),
+                        },
+                    )
 
                 elif isinstance(event, AgentToolCompletedEvent):
-                    yield _event("tool_completed", {
-                        "tool_name": getattr(event, "tool_name", ""),
-                        "output": getattr(event, "output", ""),
-                    })
+                    yield _event(
+                        "tool_completed",
+                        {
+                            "tool_name": getattr(event, "tool_name", ""),
+                            "output": getattr(event, "output", ""),
+                        },
+                    )
 
                 elif isinstance(event, AgentToolFailedEvent):
-                    yield _event("tool_failed", {
-                        "tool_name": getattr(event, "tool_name", ""),
-                        "error": getattr(event, "error_message", ""),
-                    })
+                    yield _event(
+                        "tool_failed",
+                        {
+                            "tool_name": getattr(event, "tool_name", ""),
+                            "error": getattr(event, "error_message", ""),
+                        },
+                    )
 
                 elif isinstance(event, AgentRetrievalCompletedEvent):
-                    yield _event("retrieval_completed", {
-                        "chunk_count": getattr(event, "chunk_count", 0),
-                        "has_sources": getattr(event, "has_sources", False),
-                    })
+                    yield _event(
+                        "retrieval_completed",
+                        {
+                            "chunk_count": getattr(event, "chunk_count", 0),
+                            "has_sources": getattr(event, "has_sources", False),
+                        },
+                    )
 
                 elif isinstance(event, AgentCompletedEvent):
                     result = event.result
@@ -533,11 +552,14 @@ async def agent_stream(
                 elif isinstance(event, AgentFailedEvent):
                     result = event.result
                     error = getattr(result, "error", None)
-                    yield _event("failed", {
-                        "request_id": request_id,
-                        "error_code": error.code if error else "AGENT_FAILED",
-                        "error_message": error.message if error else "Agent execution failed.",
-                    })
+                    yield _event(
+                        "failed",
+                        {
+                            "request_id": request_id,
+                            "error_code": error.code if error else "AGENT_FAILED",
+                            "error_message": error.message if error else "Agent execution failed.",
+                        },
+                    )
 
         except Exception as exc:
             logger.exception(
@@ -546,11 +568,14 @@ async def agent_stream(
                 request_id,
                 exc,
             )
-            yield _event("failed", {
-                "request_id": request_id,
-                "error_code": "STREAM_ERROR",
-                "error_message": "An unexpected error occurred during streaming.",
-            })
+            yield _event(
+                "failed",
+                {
+                    "request_id": request_id,
+                    "error_code": "STREAM_ERROR",
+                    "error_message": "An unexpected error occurred during streaming.",
+                },
+            )
 
     return StreamingResponse(
         content=_generate(),
@@ -582,6 +607,7 @@ async def list_tools(
     """List available MCP tools for the authenticated user."""
     try:
         from app.config.settings import get_settings
+
         s = get_settings()
 
         server = MCPServer.create(db=db)
@@ -592,12 +618,17 @@ async def list_tools(
                     AtlassianMCPConfig,
                     AtlassianMCPConnector,
                 )
-                server.register(AtlassianMCPConnector(config=AtlassianMCPConfig(
-                    server_url=s.ATLASSIAN_MCP_SERVER_URL,
-                    client_id=s.ATLASSIAN_CLIENT_ID,
-                    client_secret=s.ATLASSIAN_CLIENT_SECRET,
-                    timeout_s=s.ATLASSIAN_MCP_TIMEOUT_S,
-                )))
+
+                server.register(
+                    AtlassianMCPConnector(
+                        config=AtlassianMCPConfig(
+                            server_url=s.ATLASSIAN_MCP_SERVER_URL,
+                            client_id=s.ATLASSIAN_CLIENT_ID,
+                            client_secret=s.ATLASSIAN_CLIENT_SECRET,
+                            timeout_s=s.ATLASSIAN_MCP_TIMEOUT_S,
+                        )
+                    )
+                )
             except Exception:
                 pass
 
@@ -636,9 +667,11 @@ class _OrchestrationResultAdapter:
         self.run_id = str(_uuid.uuid4())
         self.request_id = request_id
         self.agent_name = getattr(agent_result, "agent_name", "ai-assistant")
-        self.status = RunStatus.COMPLETED if getattr(
-            agent_result, "status", None
-        ) and agent_result.status.is_success else RunStatus.FAILED
+        self.status = (
+            RunStatus.COMPLETED
+            if getattr(agent_result, "status", None) and agent_result.status.is_success
+            else RunStatus.FAILED
+        )
         self.output = getattr(agent_result, "content", "") or ""
         self.citations = [
             {

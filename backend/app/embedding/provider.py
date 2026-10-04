@@ -85,7 +85,7 @@ class SentenceTransformerEmbeddingProvider(IEmbeddingProvider):
 
     def __init__(self, config: EmbeddingConfig | None = None) -> None:
         self._config = config or EmbeddingConfig()
-        self._model = None          # loaded lazily
+        self._model = None  # loaded lazily
         self._lock = threading.Lock()
 
     # ── IEmbeddingProvider properties ────────────────────────────────────────

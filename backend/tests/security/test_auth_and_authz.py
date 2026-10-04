@@ -103,10 +103,10 @@ def _admin_app() -> FastAPI:
 # 1–9: Authentication — 401 on all protected endpoints without JWT
 # ===========================================================================
 
+
 @pytest.mark.auth
 @pytest.mark.security
 class TestAuthentication:
-
     def test_agent_execute_without_jwt_returns_401(self) -> None:
         app, _ = _make_app_with_auth()
         client = TestClient(app, raise_server_exceptions=False)
@@ -189,10 +189,10 @@ class TestAuthentication:
 # 10–11: JWT expiry
 # ===========================================================================
 
+
 @pytest.mark.auth
 @pytest.mark.security
 class TestTokenExpiry:
-
     def test_expired_jwt_returns_401(self) -> None:
         """An expired JWT (exp in the past) must be rejected with 401."""
         import os
@@ -239,19 +239,17 @@ class TestTokenExpiry:
             json={"message": "Hello"},
             headers={"Authorization": f"Bearer {future_token}"},
         )
-        assert resp.status_code == 401, (
-            f"Future-nbf token must be rejected, got {resp.status_code}"
-        )
+        assert resp.status_code == 401, f"Future-nbf token must be rejected, got {resp.status_code}"
 
 
 # ===========================================================================
 # 12–13: Authorization — 403 for insufficient roles
 # ===========================================================================
 
+
 @pytest.mark.authz
 @pytest.mark.security
 class TestAuthorization:
-
     def test_valid_jwt_without_admin_role_cannot_access_admin_endpoint(self) -> None:
         """A regular user JWT must receive 403 on admin-only endpoints."""
         import os
@@ -262,7 +260,7 @@ class TestAuthorization:
             {
                 "sub": "regular-user-id",
                 "exp": int(time.time()) + 3600,
-                "roles": ["user"],         # no "admin" role
+                "roles": ["user"],  # no "admin" role
             },
             secret,
             algorithm="HS256",
@@ -349,10 +347,10 @@ class TestAuthorization:
 # 14: Valid JWT allows access
 # ===========================================================================
 
+
 @pytest.mark.auth
 @pytest.mark.security
 class TestValidTokenAccess:
-
     def test_valid_jwt_reaches_endpoint_handler(self) -> None:
         """A properly signed, non-expired JWT must not be rejected by auth middleware."""
         from app.api.agent.router import router as agent_router, get_injection_detector
@@ -402,7 +400,5 @@ class TestValidTokenAccess:
         client = TestClient(app, raise_server_exceptions=False)
         resp = client.post("/api/v1/agent/execute", json={"message": "Hi"})
         # With valid auth the handler runs — not 401
-        assert resp.status_code != 401, (
-            f"Valid JWT must not return 401, got {resp.status_code}"
-        )
+        assert resp.status_code != 401, f"Valid JWT must not return 401, got {resp.status_code}"
         assert resp.status_code == 200

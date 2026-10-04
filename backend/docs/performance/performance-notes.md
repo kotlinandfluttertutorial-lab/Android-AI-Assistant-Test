@@ -238,6 +238,7 @@ from app.embedding import SentenceTransformerEmbeddingProvider
 from app.vector import ChromaVectorStore
 from app.llm.service import get_llm_service
 
+
 async def bench():
     pipeline = RAGPipeline(
         retriever=VectorRetriever(
@@ -250,7 +251,8 @@ async def bench():
     for _ in range(5):
         t0 = time.monotonic()
         answer = await pipeline.ask(user_id="bench-user", question="What is X?")
-        print(f"{(time.monotonic()-t0)*1000:.0f} ms  chunks={answer.chunk_count}")
+        print(f"{(time.monotonic() - t0) * 1000:.0f} ms  chunks={answer.chunk_count}")
+
 
 asyncio.run(bench())
 ```

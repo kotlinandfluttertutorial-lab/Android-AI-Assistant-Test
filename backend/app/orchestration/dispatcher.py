@@ -196,7 +196,9 @@ class ActionDispatcher:
             action_type = getattr(decision, "type", "unknown")
             logger.error(
                 "ActionDispatcher: unexpected error action=%r user=%r: %s",
-                action_type, user_id, exc,
+                action_type,
+                user_id,
+                exc,
             )
             outcome = ActionOutcome(
                 action_type=action_type,
@@ -277,8 +279,7 @@ class ActionDispatcher:
             answer = getattr(rag_result, "answer", "") or ""
             sources = getattr(rag_result, "sources", []) or []
             citations = [
-                dict(s.items() if isinstance(s, dict) else vars(s).items())
-                for s in sources
+                dict(s.items() if isinstance(s, dict) else vars(s).items()) for s in sources
             ]
             return ActionOutcome(
                 action_type="retrieve",
@@ -354,9 +355,7 @@ class ActionDispatcher:
                 tool_record=tool_record,
             )
         except Exception as exc:
-            logger.warning(
-                "ActionDispatcher: MCP tool=%r failed: %s", decision.tool_name, exc
-            )
+            logger.warning("ActionDispatcher: MCP tool=%r failed: %s", decision.tool_name, exc)
             tool_record["failed"] = True
             tool_record["error_message"] = "Tool execution failed."
             return ActionOutcome(

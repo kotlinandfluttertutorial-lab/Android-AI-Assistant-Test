@@ -65,7 +65,8 @@ def _schema(
     return MCPToolSchema(
         tool_name=tool_name,
         description="Test tool.",
-        parameters=params or {
+        parameters=params
+        or {
             "type": "object",
             "properties": {"msg": {"type": "string"}},
             "required": ["msg"],
@@ -120,12 +121,15 @@ def _make_executor(
         # Wrap connector invoke in a plain async def — cancellable by asyncio.timeout
         async def _real_invoke(tool_name, params, user_id, ip_address="", user_agent=""):
             return await connector.invoke(params, user_id)
+
         broker.invoke = _real_invoke
     else:
+
         async def _default_invoke(tool_name, params, user_id, ip_address="", user_agent=""):
             return MCPToolResult(
                 tool_name=tool_name, success=True, result={"ok": True}, result_status="success"
             )
+
         broker.invoke = _default_invoke
 
     registry = MCPRegistry(broker=broker, allowed_tools=allowed)
@@ -147,10 +151,10 @@ def _make_executor(
 # 1–2: Allowlist enforcement
 # ===========================================================================
 
+
 @pytest.mark.mcp
 @pytest.mark.security
 class TestAllowlistEnforcement:
-
     @pytest.mark.asyncio
     async def test_unknown_tool_rejected(self) -> None:
         executor, _ = _make_executor()
@@ -176,11 +180,11 @@ class TestAllowlistEnforcement:
 # 3–6: Tool timeout enforcement
 # ===========================================================================
 
+
 @pytest.mark.mcp
 @pytest.mark.security
 @pytest.mark.mcp_timeout
 class TestToolTimeout:
-
     @pytest.mark.asyncio
     async def test_timeout_returns_failure_result(self) -> None:
         """When asyncio.timeout fires, executor returns success=False (never raises)."""
@@ -220,6 +224,7 @@ class TestToolTimeout:
     async def test_default_timeout_applied_when_no_model_registered(self) -> None:
         """When no MCPToolModel provides a timeout, default_timeout_ms is used."""
         import contextlib
+
         captured_timeout: list[float] = []
 
         @contextlib.asynccontextmanager
@@ -233,8 +238,12 @@ class TestToolTimeout:
         # We achieve this by patching MCPToolModel.from_schema to return a model
         # with timeout_ms=0, then checking default_timeout_ms is used.
         broker = MagicMock()
+
         async def _quick(tool_name, params, user_id, ip_address="", user_agent=""):
-            return MCPToolResult(tool_name=tool_name, success=True, result={}, result_status="success")
+            return MCPToolResult(
+                tool_name=tool_name, success=True, result={}, result_status="success"
+            )
+
         broker.invoke = _quick
 
         registry = MCPRegistry(broker=broker, allowed_tools=None)
@@ -272,10 +281,10 @@ class TestToolTimeout:
 # 7–8: Parameter validation
 # ===========================================================================
 
+
 @pytest.mark.mcp
 @pytest.mark.security
 class TestParameterValidation:
-
     @pytest.mark.asyncio
     async def test_missing_required_param_rejected(self) -> None:
         executor, _ = _make_executor()
@@ -302,11 +311,11 @@ class TestParameterValidation:
 # 9–12: Secret not in logs / structured log fields
 # ===========================================================================
 
+
 @pytest.mark.mcp
 @pytest.mark.security
 @pytest.mark.observability
 class TestMCPObservabilityAndSecretSafety:
-
     @pytest.mark.asyncio
     async def test_api_key_not_in_log_records_on_timeout(
         self, caplog: pytest.LogCaptureFixture
@@ -340,8 +349,7 @@ class TestMCPObservabilityAndSecretSafety:
             await executor.execute(_TOOL, {"msg": "check"}, USER_ID)
 
         full_log = caplog.text + " ".join(
-            str(r.getMessage()) + str(getattr(r, "__dict__", {}))
-            for r in caplog.records
+            str(r.getMessage()) + str(getattr(r, "__dict__", {})) for r in caplog.records
         )
         assert "sk-prod-ABCDEF" not in full_log
         assert secret not in full_log
@@ -374,7 +382,8 @@ class TestMCPObservabilityAndSecretSafety:
 
         # Find the completion log record and check it has 'tool_name' in extras
         completion_records = [
-            r for r in caplog.records
+            r
+            for r in caplog.records
             if "completed" in r.getMessage().lower() or "MCPExecutor: completed" in r.getMessage()
         ]
         assert completion_records, "No 'completed' log record found"
@@ -393,19 +402,14 @@ class TestMCPObservabilityAndSecretSafety:
         with caplog.at_level(logging.DEBUG, logger="app.mcp.executor"):
             await executor.execute(_TOOL, {"msg": "hi"}, USER_ID)
 
-        completion_records = [
-            r for r in caplog.records
-            if "completed" in r.getMessage().lower()
-        ]
+        completion_records = [r for r in caplog.records if "completed" in r.getMessage().lower()]
         assert completion_records
         record = completion_records[-1]
         assert hasattr(record, "elapsed_ms"), "elapsed_ms must be a structured log field"
         assert isinstance(record.elapsed_ms, int)  # type: ignore[attr-defined]
 
     @pytest.mark.asyncio
-    async def test_user_id_redacted_in_warning_logs(
-        self, caplog: pytest.LogCaptureFixture
-    ) -> None:
+    async def test_user_id_redacted_in_warning_logs(self, caplog: pytest.LogCaptureFixture) -> None:
         """user_id in warning/error logs must be truncated to 8 chars."""
         long_uid = "user-99999999-ffff-ffff-ffff-000000000002"
         executor, _ = _make_executor()
@@ -430,17 +434,19 @@ class TestMCPObservabilityAndSecretSafety:
 # 13–14: user_id handling
 # ===========================================================================
 
+
 @pytest.mark.mcp
 @pytest.mark.security
 class TestUserIdHandling:
-
     @pytest.mark.asyncio
     async def test_user_id_forwarded_to_broker(self) -> None:
         received: dict = {}
 
         async def _capture(tool_name, params, user_id, ip_address="", user_agent=""):
             received["user_id"] = user_id
-            return MCPToolResult(tool_name=tool_name, success=True, result={}, result_status="success")
+            return MCPToolResult(
+                tool_name=tool_name, success=True, result={}, result_status="success"
+            )
 
         broker = MagicMock()
         broker.invoke = _capture

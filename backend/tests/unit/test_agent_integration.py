@@ -78,6 +78,7 @@ REQUEST_ID = str(uuid.uuid4())
 # then a plain text response on subsequent calls.
 # ---------------------------------------------------------------------------
 
+
 class _FakeLLM:
     """Returns a RespondDecision JSON on first call; plain text thereafter."""
 
@@ -107,17 +108,20 @@ class _FakeLLM:
 # Fake RAG adapter
 # ---------------------------------------------------------------------------
 
+
 @dataclass
 class _FakeRAGAnswer:
     answer: str = "RAG answer about the document."
-    sources: list[dict] = field(default_factory=lambda: [
-        {
-            "document_id": "doc-1",
-            "document_name": "architecture.md",
-            "excerpt": "MCP architecture overview...",
-            "page_number": 1,
-        }
-    ])
+    sources: list[dict] = field(
+        default_factory=lambda: [
+            {
+                "document_id": "doc-1",
+                "document_name": "architecture.md",
+                "excerpt": "MCP architecture overview...",
+                "page_number": 1,
+            }
+        ]
+    )
     success: bool = True
     chunk_count: int = 1
     has_sources: bool = True
@@ -135,18 +139,21 @@ class _FakeRAG:
         top_k: int = 5,
         document_ids: list[str] | None = None,
     ) -> _FakeRAGAnswer:
-        self.ask_calls.append({
-            "user_id": user_id,
-            "question": question,
-            "top_k": top_k,
-            "document_ids": document_ids,
-        })
+        self.ask_calls.append(
+            {
+                "user_id": user_id,
+                "question": question,
+                "top_k": top_k,
+                "document_ids": document_ids,
+            }
+        )
         return self._answer
 
 
 # ---------------------------------------------------------------------------
 # Fake MCP adapter
 # ---------------------------------------------------------------------------
+
 
 @dataclass
 class _FakeMCPResult:
@@ -170,17 +177,20 @@ class _FakeMCP:
         params: dict[str, Any],
         user_id: str,
     ) -> _FakeMCPResult:
-        self.execute_calls.append({
-            "tool_name": tool_name,
-            "params": params,
-            "user_id": user_id,
-        })
+        self.execute_calls.append(
+            {
+                "tool_name": tool_name,
+                "params": params,
+                "user_id": user_id,
+            }
+        )
         return self._result
 
 
 # ---------------------------------------------------------------------------
 # Helper: build a minimal registry with a stub agent
 # ---------------------------------------------------------------------------
+
 
 def _make_registry(agent_name: str = "ai-assistant") -> AgentRegistry:
     from app.agents.base import Agent
@@ -196,12 +206,14 @@ def _make_registry(agent_name: str = "ai-assistant") -> AgentRegistry:
 
         @property
         def capabilities(self) -> frozenset[AgentCapability]:
-            return frozenset({
-                AgentCapability.TEXT_GENERATION,
-                AgentCapability.DOCUMENT_RETRIEVAL,
-                AgentCapability.TOOL_USE,
-                AgentCapability.MULTI_STEP_REASONING,
-            })
+            return frozenset(
+                {
+                    AgentCapability.TEXT_GENERATION,
+                    AgentCapability.DOCUMENT_RETRIEVAL,
+                    AgentCapability.TOOL_USE,
+                    AgentCapability.MULTI_STEP_REASONING,
+                }
+            )
 
         def execute(self, request, execution):
             raise NotImplementedError("Execution driven by AgentExecutionLoop.")
@@ -254,6 +266,7 @@ def _make_runner(
 # TestLLMServiceAdapter
 # ===========================================================================
 
+
 class TestLLMServiceAdapter:
     """LLMServiceAdapter correctly bridges LLMService → LLMAdapter protocol."""
 
@@ -262,10 +275,14 @@ class TestLLMServiceAdapter:
         from app.llm.base import LLMResponse, LLMUsage
 
         mock_svc = MagicMock()
-        mock_svc.generate = AsyncMock(return_value=LLMResponse(
-            text="Hello from LLM", provider="gemini", model="gemini-pro",
-            usage=LLMUsage(input_tokens=5, output_tokens=10, total_tokens=15),
-        ))
+        mock_svc.generate = AsyncMock(
+            return_value=LLMResponse(
+                text="Hello from LLM",
+                provider="gemini",
+                model="gemini-pro",
+                usage=LLMUsage(input_tokens=5, output_tokens=10, total_tokens=15),
+            )
+        )
         adapter = LLMServiceAdapter(mock_svc)
         result = await adapter.generate("Say hello", system_prompt="Be brief", user_id="u1")
         assert result == "Hello from LLM"
@@ -275,10 +292,14 @@ class TestLLMServiceAdapter:
         from app.llm.base import LLMRequest, LLMResponse, LLMUsage
 
         mock_svc = MagicMock()
-        mock_svc.generate = AsyncMock(return_value=LLMResponse(
-            text="ok", provider="gemini", model="m",
-            usage=LLMUsage(),
-        ))
+        mock_svc.generate = AsyncMock(
+            return_value=LLMResponse(
+                text="ok",
+                provider="gemini",
+                model="m",
+                usage=LLMUsage(),
+            )
+        )
         adapter = LLMServiceAdapter(mock_svc)
         await adapter.generate(
             "prompt",
@@ -320,11 +341,13 @@ class TestLLMServiceAdapter:
 # TestAgentServiceFactory
 # ===========================================================================
 
+
 class TestAgentServiceFactory:
     """AgentServiceFactory wires components correctly."""
 
     def _factory(self) -> Any:
         from app.agent.factory import AgentServiceFactory
+
         return AgentServiceFactory.__new__(AgentServiceFactory)
 
     def test_registry_contains_ai_assistant_agent(self) -> None:
@@ -401,15 +424,16 @@ class TestAgentServiceFactory:
 # TestUnifiedExecutionFlow  (AC 1-10)
 # ===========================================================================
 
+
 class TestUnifiedExecutionFlow:
     """Orchestration-level flow tests. Real loop + dispatcher; fake leaf adapters."""
 
     @pytest.mark.asyncio
     async def test_ac3_agent_can_call_llm(self) -> None:
         """AC-3: agent produces a response via LLM."""
-        llm = _FakeLLM([
-            json.dumps({"action": "respond", "content": "Answer from LLM.", "is_final": True})
-        ])
+        llm = _FakeLLM(
+            [json.dumps({"action": "respond", "content": "Answer from LLM.", "is_final": True})]
+        )
         runner = _make_runner(llm=llm)
         result = await runner.run(_make_request("What is Python?"))
         assert result.status == RunStatus.COMPLETED
@@ -420,16 +444,22 @@ class TestUnifiedExecutionFlow:
     async def test_ac1_agent_can_call_rag(self) -> None:
         """AC-1: agent issues a retrieve decision and RAG is consulted."""
         rag = _FakeRAG()
-        llm = _FakeLLM([
-            # Step 1: agent decides to retrieve
-            json.dumps({
-                "action": "retrieve",
-                "query": "MCP architecture",
-                "top_k": 3,
-            }),
-            # Step 2: agent responds with retrieved context
-            json.dumps({"action": "respond", "content": "Based on the docs...", "is_final": True}),
-        ])
+        llm = _FakeLLM(
+            [
+                # Step 1: agent decides to retrieve
+                json.dumps(
+                    {
+                        "action": "retrieve",
+                        "query": "MCP architecture",
+                        "top_k": 3,
+                    }
+                ),
+                # Step 2: agent responds with retrieved context
+                json.dumps(
+                    {"action": "respond", "content": "Based on the docs...", "is_final": True}
+                ),
+            ]
+        )
         runner = _make_runner(llm=llm, rag=rag)
         result = await runner.run(_make_request("Describe the MCP architecture."))
         assert result.status == RunStatus.COMPLETED
@@ -440,16 +470,22 @@ class TestUnifiedExecutionFlow:
     async def test_ac2_agent_can_call_mcp(self) -> None:
         """AC-2: agent issues a call_tool decision and MCP is invoked."""
         mcp = _FakeMCP()
-        llm = _FakeLLM([
-            # Step 1: agent calls the Jira tool
-            json.dumps({
-                "action": "call_tool",
-                "tool_name": "jira_get_issue",
-                "parameters": json.dumps({"issue_key": "AI-123"}),
-            }),
-            # Step 2: respond with tool result
-            json.dumps({"action": "respond", "content": "Issue AI-123 is...", "is_final": True}),
-        ])
+        llm = _FakeLLM(
+            [
+                # Step 1: agent calls the Jira tool
+                json.dumps(
+                    {
+                        "action": "call_tool",
+                        "tool_name": "jira_get_issue",
+                        "parameters": json.dumps({"issue_key": "AI-123"}),
+                    }
+                ),
+                # Step 2: respond with tool result
+                json.dumps(
+                    {"action": "respond", "content": "Issue AI-123 is...", "is_final": True}
+                ),
+            ]
+        )
         runner = _make_runner(llm=llm, mcp=mcp)
         result = await runner.run(_make_request("Get Jira issue AI-123"))
         assert result.status == RunStatus.COMPLETED
@@ -461,26 +497,34 @@ class TestUnifiedExecutionFlow:
         """AC-4: agent calls MCP then RAG in a single run."""
         mcp = _FakeMCP()
         rag = _FakeRAG()
-        llm = _FakeLLM([
-            # Step 1: call MCP tool
-            json.dumps({
-                "action": "call_tool",
-                "tool_name": "jira_get_issue",
-                "parameters": json.dumps({"issue_key": "AI-123"}),
-            }),
-            # Step 2: retrieve from RAG
-            json.dumps({
-                "action": "retrieve",
-                "query": "MCP architecture document",
-                "top_k": 3,
-            }),
-            # Step 3: final respond
-            json.dumps({
-                "action": "respond",
-                "content": "Comparison: Jira AI-123 vs architecture doc.",
-                "is_final": True,
-            }),
-        ])
+        llm = _FakeLLM(
+            [
+                # Step 1: call MCP tool
+                json.dumps(
+                    {
+                        "action": "call_tool",
+                        "tool_name": "jira_get_issue",
+                        "parameters": json.dumps({"issue_key": "AI-123"}),
+                    }
+                ),
+                # Step 2: retrieve from RAG
+                json.dumps(
+                    {
+                        "action": "retrieve",
+                        "query": "MCP architecture document",
+                        "top_k": 3,
+                    }
+                ),
+                # Step 3: final respond
+                json.dumps(
+                    {
+                        "action": "respond",
+                        "content": "Comparison: Jira AI-123 vs architecture doc.",
+                        "is_final": True,
+                    }
+                ),
+            ]
+        )
         runner = _make_runner(llm=llm, rag=rag, mcp=mcp, max_steps=10)
         result = await runner.run(
             _make_request("Compare Jira AI-123 with the MCP architecture document.")
@@ -492,31 +536,47 @@ class TestUnifiedExecutionFlow:
     @pytest.mark.asyncio
     async def test_ac5_agent_combines_results_from_multiple_sources(self) -> None:
         """AC-5: output includes content derived from both MCP and RAG."""
-        mcp = _FakeMCP(result=_FakeMCPResult(
-            result={"issue_key": "AI-123", "summary": "Build MCP connector"}
-        ))
-        rag = _FakeRAG(answer=_FakeRAGAnswer(
-            answer="The architecture document describes a three-layer MCP design.",
-            sources=[{"document_id": "doc-1", "document_name": "arch.md",
-                       "excerpt": "Three-layer design", "page_number": 2}],
-        ))
-        llm = _FakeLLM([
-            json.dumps({
-                "action": "call_tool",
-                "tool_name": "jira_get_issue",
-                "parameters": json.dumps({"issue_key": "AI-123"}),
-            }),
-            json.dumps({
-                "action": "retrieve",
-                "query": "MCP architecture",
-                "top_k": 3,
-            }),
-            json.dumps({
-                "action": "respond",
-                "content": "AI-123 (Build MCP connector) aligns with the three-layer architecture.",
-                "is_final": True,
-            }),
-        ])
+        mcp = _FakeMCP(
+            result=_FakeMCPResult(result={"issue_key": "AI-123", "summary": "Build MCP connector"})
+        )
+        rag = _FakeRAG(
+            answer=_FakeRAGAnswer(
+                answer="The architecture document describes a three-layer MCP design.",
+                sources=[
+                    {
+                        "document_id": "doc-1",
+                        "document_name": "arch.md",
+                        "excerpt": "Three-layer design",
+                        "page_number": 2,
+                    }
+                ],
+            )
+        )
+        llm = _FakeLLM(
+            [
+                json.dumps(
+                    {
+                        "action": "call_tool",
+                        "tool_name": "jira_get_issue",
+                        "parameters": json.dumps({"issue_key": "AI-123"}),
+                    }
+                ),
+                json.dumps(
+                    {
+                        "action": "retrieve",
+                        "query": "MCP architecture",
+                        "top_k": 3,
+                    }
+                ),
+                json.dumps(
+                    {
+                        "action": "respond",
+                        "content": "AI-123 (Build MCP connector) aligns with the three-layer architecture.",
+                        "is_final": True,
+                    }
+                ),
+            ]
+        )
         runner = _make_runner(llm=llm, rag=rag, mcp=mcp, max_steps=10)
         result = await runner.run(_make_request("Compare AI-123 with architecture"))
         assert result.status == RunStatus.COMPLETED
@@ -525,9 +585,7 @@ class TestUnifiedExecutionFlow:
     @pytest.mark.asyncio
     async def test_ac6_tool_results_passed_to_llm(self) -> None:
         """AC-6: tool output is accumulated into prior_context fed to the LLM."""
-        mcp = _FakeMCP(result=_FakeMCPResult(
-            result={"summary": "Build MCP connector"}
-        ))
+        mcp = _FakeMCP(result=_FakeMCPResult(result={"summary": "Build MCP connector"}))
         call_log: list[str] = []
 
         class _TrackingLLM(_FakeLLM):
@@ -535,18 +593,24 @@ class TestUnifiedExecutionFlow:
                 call_log.append(prompt)
                 return await super().generate(prompt, **kw)
 
-        llm = _TrackingLLM([
-            json.dumps({
-                "action": "call_tool",
-                "tool_name": "jira_get_issue",
-                "parameters": json.dumps({"issue_key": "AI-123"}),
-            }),
-            json.dumps({
-                "action": "respond",
-                "content": "Based on tool result: Build MCP connector.",
-                "is_final": True,
-            }),
-        ])
+        llm = _TrackingLLM(
+            [
+                json.dumps(
+                    {
+                        "action": "call_tool",
+                        "tool_name": "jira_get_issue",
+                        "parameters": json.dumps({"issue_key": "AI-123"}),
+                    }
+                ),
+                json.dumps(
+                    {
+                        "action": "respond",
+                        "content": "Based on tool result: Build MCP connector.",
+                        "is_final": True,
+                    }
+                ),
+            ]
+        )
         runner = _make_runner(llm=llm, mcp=mcp, max_steps=10)
         result = await runner.run(_make_request("Get AI-123"))
         assert result.status == RunStatus.COMPLETED
@@ -557,19 +621,31 @@ class TestUnifiedExecutionFlow:
     @pytest.mark.asyncio
     async def test_ac7_rag_context_passed_to_llm(self) -> None:
         """AC-7: retrieved document context is available in the loop's accumulated output."""
-        rag = _FakeRAG(answer=_FakeRAGAnswer(
-            answer="RAG: The system uses event-driven architecture.",
-            sources=[{"document_id": "d1", "document_name": "design.md",
-                       "excerpt": "event-driven", "page_number": 1}],
-        ))
-        llm = _FakeLLM([
-            json.dumps({"action": "retrieve", "query": "architecture style", "top_k": 3}),
-            json.dumps({
-                "action": "respond",
-                "content": "The system uses event-driven architecture per the design doc.",
-                "is_final": True,
-            }),
-        ])
+        rag = _FakeRAG(
+            answer=_FakeRAGAnswer(
+                answer="RAG: The system uses event-driven architecture.",
+                sources=[
+                    {
+                        "document_id": "d1",
+                        "document_name": "design.md",
+                        "excerpt": "event-driven",
+                        "page_number": 1,
+                    }
+                ],
+            )
+        )
+        llm = _FakeLLM(
+            [
+                json.dumps({"action": "retrieve", "query": "architecture style", "top_k": 3}),
+                json.dumps(
+                    {
+                        "action": "respond",
+                        "content": "The system uses event-driven architecture per the design doc.",
+                        "is_final": True,
+                    }
+                ),
+            ]
+        )
         runner = _make_runner(llm=llm, rag=rag, max_steps=10)
         result = await runner.run(_make_request("What architecture style does the system use?"))
         assert result.status == RunStatus.COMPLETED
@@ -579,23 +655,37 @@ class TestUnifiedExecutionFlow:
     async def test_ac8_final_response_includes_source_references(self) -> None:
         """AC-8: citations are populated in the result after RAG retrieval."""
         sources = [
-            {"document_id": "doc-1", "document_name": "arch.md",
-             "excerpt": "MCP design overview", "page_number": 1},
-            {"document_id": "doc-2", "document_name": "readme.md",
-             "excerpt": "Setup instructions", "page_number": 3},
+            {
+                "document_id": "doc-1",
+                "document_name": "arch.md",
+                "excerpt": "MCP design overview",
+                "page_number": 1,
+            },
+            {
+                "document_id": "doc-2",
+                "document_name": "readme.md",
+                "excerpt": "Setup instructions",
+                "page_number": 3,
+            },
         ]
-        rag = _FakeRAG(answer=_FakeRAGAnswer(
-            answer="The architecture defines three layers.",
-            sources=sources,
-        ))
-        llm = _FakeLLM([
-            json.dumps({"action": "retrieve", "query": "MCP architecture", "top_k": 5}),
-            json.dumps({
-                "action": "respond",
-                "content": "Architecture answer with citations.",
-                "is_final": True,
-            }),
-        ])
+        rag = _FakeRAG(
+            answer=_FakeRAGAnswer(
+                answer="The architecture defines three layers.",
+                sources=sources,
+            )
+        )
+        llm = _FakeLLM(
+            [
+                json.dumps({"action": "retrieve", "query": "MCP architecture", "top_k": 5}),
+                json.dumps(
+                    {
+                        "action": "respond",
+                        "content": "Architecture answer with citations.",
+                        "is_final": True,
+                    }
+                ),
+            ]
+        )
         runner = _make_runner(llm=llm, rag=rag, max_steps=10)
         result = await runner.run(_make_request("Describe the MCP architecture."))
         assert result.status == RunStatus.COMPLETED
@@ -604,10 +694,12 @@ class TestUnifiedExecutionFlow:
     @pytest.mark.asyncio
     async def test_ac9_execution_steps_are_tracked(self) -> None:
         """AC-9: each decision cycle is recorded as an ExecutionSpan."""
-        llm = _FakeLLM([
-            json.dumps({"action": "retrieve", "query": "X", "top_k": 3}),
-            json.dumps({"action": "respond", "content": "Answer.", "is_final": True}),
-        ])
+        llm = _FakeLLM(
+            [
+                json.dumps({"action": "retrieve", "query": "X", "top_k": 3}),
+                json.dumps({"action": "respond", "content": "Answer.", "is_final": True}),
+            ]
+        )
         rag = _FakeRAG()
         runner = _make_runner(llm=llm, rag=rag, max_steps=10)
         result = await runner.run(_make_request("What is X?"))
@@ -635,6 +727,7 @@ class TestUnifiedExecutionFlow:
     @pytest.mark.asyncio
     async def test_max_steps_enforced(self) -> None:
         """Infinite-loop prevention: loop terminates at max_steps."""
+
         # LLM always returns a wait decision — never finishes
         class _LoopLLM:
             async def generate(self, prompt, **kw) -> str:
@@ -663,19 +756,25 @@ class TestUnifiedExecutionFlow:
     async def test_tool_call_count_tracked(self) -> None:
         """Tool call count is incremented for every call_tool decision."""
         mcp = _FakeMCP()
-        llm = _FakeLLM([
-            json.dumps({
-                "action": "call_tool",
-                "tool_name": "tool_a",
-                "parameters": "{}",
-            }),
-            json.dumps({
-                "action": "call_tool",
-                "tool_name": "tool_b",
-                "parameters": "{}",
-            }),
-            json.dumps({"action": "respond", "content": "Done.", "is_final": True}),
-        ])
+        llm = _FakeLLM(
+            [
+                json.dumps(
+                    {
+                        "action": "call_tool",
+                        "tool_name": "tool_a",
+                        "parameters": "{}",
+                    }
+                ),
+                json.dumps(
+                    {
+                        "action": "call_tool",
+                        "tool_name": "tool_b",
+                        "parameters": "{}",
+                    }
+                ),
+                json.dumps({"action": "respond", "content": "Done.", "is_final": True}),
+            ]
+        )
         runner = _make_runner(llm=llm, mcp=mcp, max_steps=10)
         result = await runner.run(_make_request("Call two tools"))
         tool_spans = [sp for sp in result.spans if sp.action_type == "call_tool"]
@@ -687,6 +786,7 @@ class TestUnifiedExecutionFlow:
 # ===========================================================================
 # TestAcceptanceScenario — AC-12
 # ===========================================================================
+
 
 class TestAcceptanceScenario:
     """AC-12: "Compare Jira AI-123 with the MCP architecture document." """
@@ -701,43 +801,55 @@ class TestAcceptanceScenario:
             "description": "Build the MCP server layer.",
         }
         mcp = _FakeMCP(result=_FakeMCPResult(result=jira_result))
-        rag = _FakeRAG(answer=_FakeRAGAnswer(
-            answer=(
-                "The MCP architecture document describes a three-layer design: "
-                "connector, registry, and executor."
-            ),
-            sources=[{
-                "document_id": "arch-doc-1",
-                "document_name": "mcp-architecture.md",
-                "excerpt": "Three-layer design: connector, registry, executor.",
-                "page_number": 2,
-            }],
-        ))
+        rag = _FakeRAG(
+            answer=_FakeRAGAnswer(
+                answer=(
+                    "The MCP architecture document describes a three-layer design: "
+                    "connector, registry, and executor."
+                ),
+                sources=[
+                    {
+                        "document_id": "arch-doc-1",
+                        "document_name": "mcp-architecture.md",
+                        "excerpt": "Three-layer design: connector, registry, executor.",
+                        "page_number": 2,
+                    }
+                ],
+            )
+        )
         final_answer = (
             "Jira AI-123 ('Implement MCP infrastructure') is aligned with the "
             "architecture document's three-layer design. The 'connector' layer "
             "maps directly to the task scope."
         )
-        llm = _FakeLLM([
-            # Step 1: fetch Jira issue via MCP
-            json.dumps({
-                "action": "call_tool",
-                "tool_name": "jira_get_issue",
-                "parameters": json.dumps({"issue_key": "AI-123"}),
-            }),
-            # Step 2: retrieve architecture doc via RAG
-            json.dumps({
-                "action": "retrieve",
-                "query": "MCP architecture document",
-                "top_k": 5,
-            }),
-            # Step 3: synthesise comparison
-            json.dumps({
-                "action": "respond",
-                "content": final_answer,
-                "is_final": True,
-            }),
-        ])
+        llm = _FakeLLM(
+            [
+                # Step 1: fetch Jira issue via MCP
+                json.dumps(
+                    {
+                        "action": "call_tool",
+                        "tool_name": "jira_get_issue",
+                        "parameters": json.dumps({"issue_key": "AI-123"}),
+                    }
+                ),
+                # Step 2: retrieve architecture doc via RAG
+                json.dumps(
+                    {
+                        "action": "retrieve",
+                        "query": "MCP architecture document",
+                        "top_k": 5,
+                    }
+                ),
+                # Step 3: synthesise comparison
+                json.dumps(
+                    {
+                        "action": "respond",
+                        "content": final_answer,
+                        "is_final": True,
+                    }
+                ),
+            ]
+        )
         runner = _make_runner(llm=llm, rag=rag, mcp=mcp, max_steps=10)
         result = await runner.run(
             _make_request("Compare Jira AI-123 with the MCP architecture document.")
@@ -776,6 +888,7 @@ class TestAcceptanceScenario:
 # TestAgentExecuteEndpoint  — HTTP-level tests for POST /api/v1/agent/execute
 # ===========================================================================
 
+
 class TestAgentExecuteEndpoint:
     """HTTP-level tests for POST /api/v1/agent/execute."""
 
@@ -803,9 +916,9 @@ class TestAgentExecuteEndpoint:
         good_detector.check_input = AsyncMock(return_value=None)
 
         _runner = runner or _make_runner(
-            llm=_FakeLLM([
-                json.dumps({"action": "respond", "content": "Answer!", "is_final": True})
-            ])
+            llm=_FakeLLM(
+                [json.dumps({"action": "respond", "content": "Answer!", "is_final": True})]
+            )
         )
 
         class _FakeFactory:
@@ -877,16 +990,26 @@ class TestAgentExecuteEndpoint:
 
     def test_sources_populated_when_rag_runs(self) -> None:
         """AC-8 at HTTP level: sources list is non-empty after RAG retrieval."""
-        rag = _FakeRAG(answer=_FakeRAGAnswer(
-            answer="RAG answer.",
-            sources=[{"document_id": "d1", "document_name": "doc.md",
-                       "excerpt": "text", "page_number": 1}],
-        ))
+        rag = _FakeRAG(
+            answer=_FakeRAGAnswer(
+                answer="RAG answer.",
+                sources=[
+                    {
+                        "document_id": "d1",
+                        "document_name": "doc.md",
+                        "excerpt": "text",
+                        "page_number": 1,
+                    }
+                ],
+            )
+        )
         runner = _make_runner(
-            llm=_FakeLLM([
-                json.dumps({"action": "retrieve", "query": "Q", "top_k": 3}),
-                json.dumps({"action": "respond", "content": "Final.", "is_final": True}),
-            ]),
+            llm=_FakeLLM(
+                [
+                    json.dumps({"action": "retrieve", "query": "Q", "top_k": 3}),
+                    json.dumps({"action": "respond", "content": "Final.", "is_final": True}),
+                ]
+            ),
             rag=rag,
             max_steps=10,
         )
@@ -904,14 +1027,18 @@ class TestAgentExecuteEndpoint:
         """AC-6 at HTTP level: tool_calls list is non-empty after MCP call."""
         mcp = _FakeMCP()
         runner = _make_runner(
-            llm=_FakeLLM([
-                json.dumps({
-                    "action": "call_tool",
-                    "tool_name": "jira_get_issue",
-                    "parameters": "{}",
-                }),
-                json.dumps({"action": "respond", "content": "Done.", "is_final": True}),
-            ]),
+            llm=_FakeLLM(
+                [
+                    json.dumps(
+                        {
+                            "action": "call_tool",
+                            "tool_name": "jira_get_issue",
+                            "parameters": "{}",
+                        }
+                    ),
+                    json.dumps({"action": "respond", "content": "Done.", "is_final": True}),
+                ]
+            ),
             mcp=mcp,
             max_steps=10,
         )
@@ -968,9 +1095,9 @@ class TestAgentExecuteEndpoint:
             def build_runner(self, db, **kw):
                 captured.update(kw)
                 return _make_runner(
-                    llm=_FakeLLM([
-                        json.dumps({"action": "respond", "content": "OK", "is_final": True})
-                    ])
+                    llm=_FakeLLM(
+                        [json.dumps({"action": "respond", "content": "OK", "is_final": True})]
+                    )
                 )
 
         app.dependency_overrides = {
@@ -990,6 +1117,7 @@ class TestAgentExecuteEndpoint:
 # ===========================================================================
 # TestAgentStreamEndpoint
 # ===========================================================================
+
 
 class TestAgentStreamEndpoint:
     """HTTP-level tests for POST /api/v1/agent/stream (SSE)."""
@@ -1013,9 +1141,9 @@ class TestAgentStreamEndpoint:
         good_detector.check_input = AsyncMock(return_value=None)
 
         _runner = runner or _make_runner(
-            llm=_FakeLLM([
-                json.dumps({"action": "respond", "content": "Streamed!", "is_final": True})
-            ])
+            llm=_FakeLLM(
+                [json.dumps({"action": "respond", "content": "Streamed!", "is_final": True})]
+            )
         )
 
         class _FakeFactory:
@@ -1087,6 +1215,7 @@ class TestAgentStreamEndpoint:
 # TestAgentToolsEndpoint
 # ===========================================================================
 
+
 class TestAgentToolsEndpoint:
     """GET /api/v1/agent/tools — tool discovery."""
 
@@ -1145,6 +1274,7 @@ class TestAgentToolsEndpoint:
 # TestChatRouterUnchanged  — AC-11
 # ===========================================================================
 
+
 class TestChatRouterUnchanged:
     """AC-11: existing POST /chat/message and POST /api/v1/chat are unaffected."""
 
@@ -1169,14 +1299,17 @@ class TestChatRouterUnchanged:
         good_detector.check_input = AsyncMock(return_value=None)
 
         from app.llm.base import LLMResponse, LLMUsage
+
         mock_svc = llm_svc or MagicMock()
         if llm_svc is None:
-            mock_svc.generate = AsyncMock(return_value=LLMResponse(
-                text="Chat answer",
-                provider="gemini",
-                model="gemini-3.6-flash",
-                usage=LLMUsage(input_tokens=5, output_tokens=10, total_tokens=15),
-            ))
+            mock_svc.generate = AsyncMock(
+                return_value=LLMResponse(
+                    text="Chat answer",
+                    provider="gemini",
+                    model="gemini-3.6-flash",
+                    usage=LLMUsage(input_tokens=5, output_tokens=10, total_tokens=15),
+                )
+            )
 
         app.dependency_overrides = {
             get_current_user: lambda: jwt_user,
@@ -1230,13 +1363,16 @@ class TestChatRouterUnchanged:
         good_detector.check_input = AsyncMock(return_value=None)
 
         from app.llm.base import LLMResponse, LLMUsage
+
         mock_svc = MagicMock()
-        mock_svc.generate = AsyncMock(return_value=LLMResponse(
-            text="Chat answer",
-            provider="gemini",
-            model="g",
-            usage=LLMUsage(input_tokens=1, output_tokens=2, total_tokens=3),
-        ))
+        mock_svc.generate = AsyncMock(
+            return_value=LLMResponse(
+                text="Chat answer",
+                provider="gemini",
+                model="g",
+                usage=LLMUsage(input_tokens=1, output_tokens=2, total_tokens=3),
+            )
+        )
 
         app.dependency_overrides = {
             get_current_user: lambda: jwt_user,
@@ -1259,6 +1395,7 @@ class TestChatRouterUnchanged:
 # TestAgentExecuteResponseModel
 # ===========================================================================
 
+
 class TestAgentExecuteResponseModel:
     """Unit tests for AgentExecuteResponse schema helpers."""
 
@@ -1273,17 +1410,32 @@ class TestAgentExecuteResponseModel:
             status=RunStatus.COMPLETED,
             output="Final answer",
             citations=[
-                {"document_id": "d1", "document_name": "doc.md",
-                 "excerpt": "text", "page_number": 1}
+                {
+                    "document_id": "d1",
+                    "document_name": "doc.md",
+                    "excerpt": "text",
+                    "page_number": 1,
+                }
             ],
             tool_calls=[
-                {"tool_name": "jira", "input": "{}", "output": '{"key":"AI-1"}',
-                 "failed": False, "error_message": None}
+                {
+                    "tool_name": "jira",
+                    "input": "{}",
+                    "output": '{"key":"AI-1"}',
+                    "failed": False,
+                    "error_message": None,
+                }
             ],
             spans=[
-                ExecutionSpan(step_index=0, action_type="call_tool",
-                              input_summary="jira_get_issue", output_summary="ok",
-                              duration_ms=120, tokens_used=0, success=True)
+                ExecutionSpan(
+                    step_index=0,
+                    action_type="call_tool",
+                    input_summary="jira_get_issue",
+                    output_summary="ok",
+                    duration_ms=120,
+                    tokens_used=0,
+                    success=True,
+                )
             ],
             total_tokens=100,
             step_count=2,

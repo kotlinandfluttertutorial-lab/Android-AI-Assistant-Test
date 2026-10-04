@@ -49,14 +49,14 @@ logger = logging.getLogger(__name__)
 _COLLECTION_PREFIX = "docs_"
 
 # Metadata key names stored alongside each ChromaDB vector.
-_META_DOCUMENT_ID    = "document_id"
-_META_DOCUMENT_NAME  = "document_name"
-_META_USER_ID        = "user_id"
-_META_CHUNK_INDEX    = "chunk_index"
-_META_PAGE_NUMBER    = "page_number"    # stored as int; -1 means None
-_META_CHAR_START     = "char_start"
-_META_CHAR_END       = "char_end"
-_META_TEXT           = "text"           # stored in ChromaDB documents field
+_META_DOCUMENT_ID = "document_id"
+_META_DOCUMENT_NAME = "document_name"
+_META_USER_ID = "user_id"
+_META_CHUNK_INDEX = "chunk_index"
+_META_PAGE_NUMBER = "page_number"  # stored as int; -1 means None
+_META_CHAR_START = "char_start"
+_META_CHAR_END = "char_end"
+_META_TEXT = "text"  # stored in ChromaDB documents field
 
 _NO_PAGE = -1  # sentinel for NULL page_number
 
@@ -77,10 +77,8 @@ class ChromaConfig:
         retry_base_delay_s: Base sleep interval for exponential backoff.
     """
 
-    mode: str = "persistent"   # "persistent" | "http"
-    persist_dir: str = field(
-        default_factory=lambda: os.path.join(tempfile.gettempdir(), "chroma")
-    )
+    mode: str = "persistent"  # "persistent" | "http"
+    persist_dir: str = field(default_factory=lambda: os.path.join(tempfile.gettempdir(), "chroma"))
     host: str = "chromadb"
     port: int = 8000
     ssl: bool = False
@@ -149,7 +147,7 @@ class ChromaVectorStore(IVectorStore):
 
     def __init__(self, config: ChromaConfig | None = None) -> None:
         self._config = config or ChromaConfig()
-        self._client = None   # lazy-initialised
+        self._client = None  # lazy-initialised
 
     # ── IVectorStore ──────────────────────────────────────────────────────────
 
@@ -162,6 +160,7 @@ class ChromaVectorStore(IVectorStore):
         Args:
             chunk: The chunk and its dense embedding.
         """
+
         def _do() -> None:
             collection = self._get_collection(chunk.chunk.user_id)
             metadata = _chunk_to_metadata(chunk.chunk)
@@ -202,6 +201,7 @@ class ChromaVectorStore(IVectorStore):
             List of :class:`~app.interfaces.core.RetrievedChunk` ordered
             by similarity descending.
         """
+
         def _do() -> list[dict[str, Any]]:
             collection = self._get_collection(user_id)
             n = collection.count()
@@ -222,7 +222,7 @@ class ChromaVectorStore(IVectorStore):
             return []
 
         results: list[RetrievedChunk] = []
-        ids       = raw.get("ids",       [[]])[0]
+        ids = raw.get("ids", [[]])[0]
         metadatas = raw.get("metadatas", [[]])[0]
         distances = raw.get("distances", [[]])[0]
         documents = raw.get("documents", [[]])[0]
@@ -251,13 +251,12 @@ class ChromaVectorStore(IVectorStore):
             user_id:     Collection owner.
             document_id: Document whose chunks should be removed.
         """
+
         def _do() -> None:
             collection = self._get_collection(user_id)
             self._with_retry(
                 "delete_by_document",
-                lambda: collection.delete(
-                    where={_META_DOCUMENT_ID: {"$eq": document_id}}
-                ),
+                lambda: collection.delete(where={_META_DOCUMENT_ID: {"$eq": document_id}}),
             )
 
         await asyncio.to_thread(_do)
@@ -271,6 +270,7 @@ class ChromaVectorStore(IVectorStore):
         Args:
             user_id: Owner whose collection should be purged.
         """
+
         def _do() -> None:
             client = self._get_client()
             collection_name = _collection_name(user_id)
@@ -282,9 +282,7 @@ class ChromaVectorStore(IVectorStore):
                 logger.info("Deleted ChromaDB collection %r", collection_name)
             except Exception as exc:
                 # Collection may not exist; silently ignore that case.
-                logger.debug(
-                    "delete_all: delete_collection failed (may not exist): %s", exc
-                )
+                logger.debug("delete_all: delete_collection failed (may not exist): %s", exc)
 
         await asyncio.to_thread(_do)
 
@@ -297,6 +295,7 @@ class ChromaVectorStore(IVectorStore):
         Returns:
             Non-negative chunk count.
         """
+
         def _do() -> int:
             collection = self._get_collection(user_id)
             return collection.count()
@@ -316,7 +315,9 @@ class ChromaVectorStore(IVectorStore):
         if cfg.mode == "http":
             logger.info(
                 "Creating ChromaDB HttpClient host=%r port=%d ssl=%s",
-                cfg.host, cfg.port, cfg.ssl,
+                cfg.host,
+                cfg.port,
+                cfg.ssl,
             )
             self._client = chromadb.HttpClient(
                 host=cfg.host,
@@ -358,7 +359,10 @@ class ChromaVectorStore(IVectorStore):
             except Exception as exc:
                 logger.warning(
                     "ChromaDB %s attempt %d/%d failed: %s",
-                    op_name, attempt, self._config.max_retries, exc,
+                    op_name,
+                    attempt,
+                    self._config.max_retries,
+                    exc,
                 )
                 if attempt < self._config.max_retries:
                     time.sleep(delay)
@@ -372,6 +376,7 @@ class ChromaVectorStore(IVectorStore):
 # ---------------------------------------------------------------------------
 # Module-level helpers
 # ---------------------------------------------------------------------------
+
 
 def _collection_name(user_id: str) -> str:
     """Return the ChromaDB collection name for *user_id*.
@@ -387,13 +392,13 @@ def _chunk_to_metadata(chunk: DocumentChunk) -> dict[str, Any]:
     ChromaDB metadata dict (all values must be str, int, float, or bool).
     """
     return {
-        _META_DOCUMENT_ID:   chunk.document_id,
+        _META_DOCUMENT_ID: chunk.document_id,
         _META_DOCUMENT_NAME: chunk.document_name,
-        _META_USER_ID:       chunk.user_id,
-        _META_CHUNK_INDEX:   chunk.chunk_index,
-        _META_PAGE_NUMBER:   chunk.page_number if chunk.page_number is not None else _NO_PAGE,
-        _META_CHAR_START:    chunk.char_start,
-        _META_CHAR_END:      chunk.char_end,
+        _META_USER_ID: chunk.user_id,
+        _META_CHUNK_INDEX: chunk.chunk_index,
+        _META_PAGE_NUMBER: chunk.page_number if chunk.page_number is not None else _NO_PAGE,
+        _META_CHAR_START: chunk.char_start,
+        _META_CHAR_END: chunk.char_end,
     }
 
 

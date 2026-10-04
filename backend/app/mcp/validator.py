@@ -123,8 +123,7 @@ class MCPValidator:
                 tool_name=tool_name,
                 param_name="result_status",
                 reason=(
-                    f"Unknown result_status {status!r}. "
-                    f"Expected one of {sorted(valid_statuses)}."
+                    f"Unknown result_status {status!r}. Expected one of {sorted(valid_statuses)}."
                 ),
             )
 
@@ -157,10 +156,7 @@ class MCPValidator:
             raise MCPValidationError(
                 tool_name=tool_name,
                 param_name=name,
-                reason=(
-                    f"expected type '{descriptor.type}' "
-                    f"but got {type(value).__name__!r}."
-                ),
+                reason=(f"expected type '{descriptor.type}' but got {type(value).__name__!r}."),
             )
 
         # 3. Enum check
@@ -168,8 +164,5 @@ class MCPValidator:
             raise MCPValidationError(
                 tool_name=tool_name,
                 param_name=name,
-                reason=(
-                    f"value {value!r} is not in the allowed set "
-                    f"{list(descriptor.enum)}."
-                ),
+                reason=(f"value {value!r} is not in the allowed set {list(descriptor.enum)}."),
             )

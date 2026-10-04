@@ -21,6 +21,7 @@ from app.interfaces.core import EmbeddingError, EmbeddingVector
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
+
 def _make_provider(model_name: str = "all-MiniLM-L6-v2") -> SentenceTransformerEmbeddingProvider:
     return SentenceTransformerEmbeddingProvider(EmbeddingConfig(model_name=model_name))
 
@@ -42,6 +43,7 @@ def _fake_model(dim: int = 4, vectors: list[list[float]] | None = None):
 
 
 # ── EmbeddingConfig ────────────────────────────────────────────────────────────
+
 
 class TestEmbeddingConfig:
     def test_default_model_name(self):
@@ -67,6 +69,7 @@ class TestEmbeddingConfig:
 
 # ── Properties ────────────────────────────────────────────────────────────────
 
+
 class TestProviderProperties:
     def test_model_name_from_config(self):
         p = _make_provider("my-model")
@@ -87,10 +90,12 @@ class TestProviderProperties:
 
     def test_is_not_abstract(self):
         from app.interfaces.core import IEmbeddingProvider
+
         assert isinstance(_make_provider(), IEmbeddingProvider)
 
 
 # ── embed() ───────────────────────────────────────────────────────────────────
+
 
 class TestEmbed:
     @pytest.mark.asyncio
@@ -136,6 +141,7 @@ class TestEmbed:
 
 
 # ── embed_batch() ─────────────────────────────────────────────────────────────
+
 
 class TestEmbedBatch:
     @pytest.mark.asyncio
@@ -192,6 +198,7 @@ class TestEmbedBatch:
 
 # ── Lazy model loading ────────────────────────────────────────────────────────
 
+
 class TestLazyModelLoading:
     def test_model_not_loaded_at_construction(self):
         p = _make_provider()
@@ -223,6 +230,7 @@ class TestLazyModelLoading:
 
 
 # ── Thread safety ─────────────────────────────────────────────────────────────
+
 
 class TestThreadSafety:
     @pytest.mark.asyncio

@@ -98,13 +98,15 @@ class AtlassianMCPConfig:
     client_id: str
     client_secret: str
     timeout_s: float = _DEFAULT_TIMEOUT_S
-    scopes: list[str] = field(default_factory=lambda: [
-        "read:jira-work",
-        "write:jira-work",
-        "read:confluence-content.all",
-        "write:confluence-content",
-        "offline_access",
-    ])
+    scopes: list[str] = field(
+        default_factory=lambda: [
+            "read:jira-work",
+            "write:jira-work",
+            "read:confluence-content.all",
+            "write:confluence-content",
+            "offline_access",
+        ]
+    )
 
     def __post_init__(self) -> None:
         if not self.server_url.strip():
@@ -215,9 +217,7 @@ class AtlassianMCPConnector(MCPToolConnector):
             requires_confirmation=False,
         )
 
-    async def invoke(
-        self, params: dict[str, Any], user_id: str
-    ) -> MCPToolResult:
+    async def invoke(self, params: dict[str, Any], user_id: str) -> MCPToolResult:
         """Forward a tool invocation to the Atlassian MCP server.
 
         Args:
@@ -252,7 +252,8 @@ class AtlassianMCPConnector(MCPToolConnector):
         except asyncio.TimeoutError:
             logger.warning(
                 "AtlassianMCP: timeout invoking tool=%r server=%r",
-                remote_tool, self._config.server_url,
+                remote_tool,
+                self._config.server_url,
             )
             return MCPToolResult(
                 tool_name=_TOOL_NAME,
@@ -266,14 +267,14 @@ class AtlassianMCPConnector(MCPToolConnector):
         except httpx.ConnectError:
             logger.warning(
                 "AtlassianMCP: connection error server=%r tool=%r",
-                self._config.server_url, remote_tool,
+                self._config.server_url,
+                remote_tool,
             )
             return MCPToolResult(
                 tool_name=_TOOL_NAME,
                 success=False,
                 error=(
-                    "Could not connect to the Atlassian MCP server. "
-                    "Check ATLASSIAN_MCP_SERVER_URL."
+                    "Could not connect to the Atlassian MCP server. Check ATLASSIAN_MCP_SERVER_URL."
                 ),
                 result_status="error",
             )
@@ -283,7 +284,8 @@ class AtlassianMCPConnector(MCPToolConnector):
             safe_msg = _redact(str(exc))
             logger.error(
                 "AtlassianMCP: unexpected error tool=%r: %s",
-                remote_tool, safe_msg,
+                remote_tool,
+                safe_msg,
             )
             return MCPToolResult(
                 tool_name=_TOOL_NAME,
@@ -326,9 +328,7 @@ class AtlassianMCPConnector(MCPToolConnector):
             )
             return []
         except Exception as exc:
-            logger.warning(
-                "AtlassianMCP: discovery failed: %s", _redact(str(exc))
-            )
+            logger.warning("AtlassianMCP: discovery failed: %s", _redact(str(exc)))
             return []
 
     # ── Private helpers ───────────────────────────────────────────────────────
@@ -357,9 +357,7 @@ class AtlassianMCPConnector(MCPToolConnector):
             resp = await client.post(_TOKEN_URL, data=payload)
             # Never log the full response — it contains the access token
             if resp.status_code != 200:
-                logger.warning(
-                    "AtlassianMCP: token request failed status=%d", resp.status_code
-                )
+                logger.warning("AtlassianMCP: token request failed status=%d", resp.status_code)
                 resp.raise_for_status()
 
             data = resp.json()
@@ -431,9 +429,7 @@ class AtlassianMCPConnector(MCPToolConnector):
             )
 
         if resp.status_code >= 400:
-            logger.warning(
-                "AtlassianMCP: HTTP %d for tool=%r", resp.status_code, remote_tool
-            )
+            logger.warning("AtlassianMCP: HTTP %d for tool=%r", resp.status_code, remote_tool)
             return MCPToolResult(
                 tool_name=_TOOL_NAME,
                 success=False,
@@ -493,9 +489,7 @@ class AtlassianMCPConnector(MCPToolConnector):
         resp.raise_for_status()
         data = resp.json()
         tools_raw: list[dict[str, Any]] = (
-            data.get("result", {}).get("tools", [])
-            if isinstance(data.get("result"), dict)
-            else []
+            data.get("result", {}).get("tools", []) if isinstance(data.get("result"), dict) else []
         )
 
         schemas: list[MCPToolSchema] = []
@@ -542,9 +536,7 @@ def atlassian_connector_from_settings() -> AtlassianMCPConnector | None:
     server_url = s.ATLASSIAN_MCP_SERVER_URL.strip()
 
     if not server_url:
-        logger.info(
-            "AtlassianMCP: ATLASSIAN_MCP_SERVER_URL is not set — connector disabled."
-        )
+        logger.info("AtlassianMCP: ATLASSIAN_MCP_SERVER_URL is not set — connector disabled.")
         return None
 
     try:

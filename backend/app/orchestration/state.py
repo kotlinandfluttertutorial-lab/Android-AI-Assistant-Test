@@ -27,15 +27,15 @@ from typing import Any
 # ---------------------------------------------------------------------------
 
 
-class RunStatus(str, enum.Enum):
+class RunStatus(enum.StrEnum):
     """Lifecycle state of one :class:`OrchestrationState` run."""
 
-    PENDING = "pending"       # created, not yet started
-    RUNNING = "running"       # currently executing the loop
-    COMPLETED = "completed"   # finished successfully
-    FAILED = "failed"         # terminated with error
-    TIMED_OUT = "timed_out"   # wall-clock timeout exceeded
-    CANCELLED = "cancelled"   # cancelled by caller
+    PENDING = "pending"  # created, not yet started
+    RUNNING = "running"  # currently executing the loop
+    COMPLETED = "completed"  # finished successfully
+    FAILED = "failed"  # terminated with error
+    TIMED_OUT = "timed_out"  # wall-clock timeout exceeded
+    CANCELLED = "cancelled"  # cancelled by caller
 
     @property
     def is_terminal(self) -> bool:

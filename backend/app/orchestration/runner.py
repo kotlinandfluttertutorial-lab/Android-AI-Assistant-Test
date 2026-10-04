@@ -90,9 +90,7 @@ class SingleAgentRunner:
             config=self._config,
         )
 
-        self._observer = ObservabilityTracker(
-            extra_callbacks=span_callbacks or []
-        )
+        self._observer = ObservabilityTracker(extra_callbacks=span_callbacks or [])
 
         self._loop = AgentExecutionLoop(
             registry=registry,

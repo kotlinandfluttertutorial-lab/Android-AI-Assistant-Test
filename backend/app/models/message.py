@@ -47,7 +47,7 @@ if TYPE_CHECKING:
     from app.models.token_usage import TokenUsage
 
 
-class MessageRole(str, enum.Enum):
+class MessageRole(enum.StrEnum):
     """The originator role of a message, matching OpenAI's convention."""
 
     user = "user"

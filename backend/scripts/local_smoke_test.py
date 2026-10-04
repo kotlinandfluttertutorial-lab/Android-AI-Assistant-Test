@@ -89,6 +89,7 @@ def _skip(name: str, reason: str) -> None:
 # HTTP helpers (stdlib only — no third-party deps beyond what's in the venv)
 # ---------------------------------------------------------------------------
 
+
 def _http(
     method: str,
     path: str,
@@ -168,6 +169,7 @@ def _delete(path: str, *, headers: dict | None = None, timeout: int = 20) -> tup
 # 1. FastAPI — health and ready endpoints
 # ---------------------------------------------------------------------------
 
+
 def check_fastapi() -> None:
     _print_header("1. FastAPI")
 
@@ -201,6 +203,7 @@ def check_fastapi() -> None:
 # 2. PostgreSQL — via SQLAlchemy sync ping inside container
 # ---------------------------------------------------------------------------
 
+
 def check_postgres() -> None:
     _print_header("2. PostgreSQL")
     try:
@@ -232,6 +235,7 @@ def check_postgres() -> None:
 # 3. Redis — PING via redis-py
 # ---------------------------------------------------------------------------
 
+
 def check_redis() -> None:
     _print_header("3. Redis")
     try:
@@ -253,6 +257,7 @@ def check_redis() -> None:
 # ---------------------------------------------------------------------------
 # 4. ChromaDB — heartbeat via chromadb HTTP client
 # ---------------------------------------------------------------------------
+
 
 def check_chromadb() -> None:
     _print_header("4. ChromaDB")
@@ -276,6 +281,7 @@ def check_chromadb() -> None:
 # 5. Celery — inspect ping via subprocess inside the container
 # ---------------------------------------------------------------------------
 
+
 def check_celery() -> None:
     _print_header("5. Celery Worker")
     import subprocess
@@ -283,9 +289,13 @@ def check_celery() -> None:
     try:
         result = subprocess.run(
             [
-                sys.executable, "-m", "celery",
-                "-A", "app.workers.celery_app",
-                "inspect", "ping",
+                sys.executable,
+                "-m",
+                "celery",
+                "-A",
+                "app.workers.celery_app",
+                "inspect",
+                "ping",
                 "--timeout=10",
                 "--json",
             ],
@@ -592,8 +602,10 @@ def check_env_vars() -> None:
 
     for var in required:
         val = os.environ.get(var, "")
-        if val and val not in ("REPLACE_ME_generate_with_python_secrets_token_hex_32",
-                               "REPLACE_ME_generate_with_python_base64_os_urandom_32"):
+        if val and val not in (
+            "REPLACE_ME_generate_with_python_secrets_token_hex_32",
+            "REPLACE_ME_generate_with_python_base64_os_urandom_32",
+        ):
             _pass(f"${var}", "set")
         else:
             _fail(f"${var}", "not set or still contains placeholder value")
@@ -610,6 +622,7 @@ def check_env_vars() -> None:
 # Document cleanup (best-effort, non-fatal)
 # ---------------------------------------------------------------------------
 
+
 def _cleanup() -> None:
     if _TEST_DOC_ID and _AUTH_HEADERS:
         try:
@@ -621,6 +634,7 @@ def _cleanup() -> None:
 # ---------------------------------------------------------------------------
 # Entry point
 # ---------------------------------------------------------------------------
+
 
 def main() -> int:
     print(f"\n{BOLD}Android AI Assistant — Local Smoke Test{RESET}")
@@ -653,10 +667,12 @@ def main() -> int:
     total = len(_results)
 
     print(f"\n{BOLD}{'═' * 60}{RESET}")
-    print(f"{BOLD}Summary{RESET}  {GREEN}{passed} passed{RESET}  "
-          f"{YELLOW}{skipped} skipped{RESET}  "
-          f"{RED if failed else GREEN}{failed} failed{RESET}  "
-          f"/ {total} total")
+    print(
+        f"{BOLD}Summary{RESET}  {GREEN}{passed} passed{RESET}  "
+        f"{YELLOW}{skipped} skipped{RESET}  "
+        f"{RED if failed else GREEN}{failed} failed{RESET}  "
+        f"/ {total} total"
+    )
     print(f"{BOLD}{'═' * 60}{RESET}")
 
     if failed:

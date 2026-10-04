@@ -59,7 +59,7 @@ from app.schemas.mcp import MCPToolResult, MCPToolSchema
 # ============================================================
 
 
-class MemoryType(str, enum.Enum):
+class MemoryType(enum.StrEnum):
     """Category of a stored memory entry.
 
     Mirrors the backend ``MemoryType`` ORM enum without importing SQLAlchemy.
@@ -102,8 +102,7 @@ class MemoryEntry:
             raise ValueError("MemoryEntry.content must not be blank.")
         if not (0.0 <= self.relevance_score <= 1.0):
             raise ValueError(
-                f"MemoryEntry.relevance_score must be in [0.0, 1.0], "
-                f"got {self.relevance_score}."
+                f"MemoryEntry.relevance_score must be in [0.0, 1.0], got {self.relevance_score}."
             )
 
 
@@ -652,9 +651,7 @@ class EmbeddingError(Exception):
         retryable:  True when a retry may succeed (transient failure).
     """
 
-    def __init__(
-        self, message: str, model_name: str = "", retryable: bool = False
-    ) -> None:
+    def __init__(self, message: str, model_name: str = "", retryable: bool = False) -> None:
         super().__init__(message)
         self.model_name = model_name
         self.retryable = retryable

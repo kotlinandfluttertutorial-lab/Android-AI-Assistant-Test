@@ -125,6 +125,7 @@ def _fake_registry(agent_name: str = "conversational") -> AgentRegistry:
                         content="stub answer",
                     )
                 )
+
             return _gen()
 
     registry = AgentRegistry()
@@ -208,9 +209,7 @@ class TestOrchestrationConfig:
         assert c.llm_temperature is None
 
     def test_valid_custom_config(self):
-        c = OrchestrationConfig(
-            max_steps=3, timeout_s=30.0, enable_rag=False, enable_mcp=False
-        )
+        c = OrchestrationConfig(max_steps=3, timeout_s=30.0, enable_rag=False, enable_mcp=False)
         assert c.max_steps == 3
         assert not c.enable_rag
 
@@ -242,9 +241,7 @@ class TestRunStatus:
 
 class TestExecutionSpan:
     def test_construction(self):
-        span = ExecutionSpan(
-            step_index=0, action_type="respond", output_summary="ok", success=True
-        )
+        span = ExecutionSpan(step_index=0, action_type="respond", output_summary="ok", success=True)
         assert span.step_index == 0
         assert span.success
 
@@ -622,6 +619,7 @@ class TestActionDispatcherWaitFinish:
     async def test_unknown_decision_type_returns_failure(self):
         class _FakeDecision:
             type = "unknown_xyz"
+
         d = ActionDispatcher(config=OrchestrationConfig())
         outcome = await d.dispatch(_FakeDecision(), user_id=USER)
         assert not outcome.success
@@ -630,9 +628,11 @@ class TestActionDispatcherWaitFinish:
     async def test_dispatcher_never_raises(self):
         """Even with all adapters absent and malformed decision, no exception."""
         d = ActionDispatcher(config=OrchestrationConfig())
+
         # Simulate an adapter that crashes unexpectedly
         class _CrashDecision(RespondDecision):
             pass
+
         d._llm = MagicMock()
         d._llm.generate = AsyncMock(side_effect=Exception("crash!"))
         outcome = await d.dispatch(RespondDecision(content="Q?"), user_id=USER)
@@ -782,11 +782,14 @@ class TestParseDecision:
     def test_call_tool_params_as_string(self):
         # Parameters as a JSON-encoded string (properly escaped)
         import json
-        raw = json.dumps({
-            "action": "call_tool",
-            "tool_name": "t",
-            "parameters": '{"k":"v"}',
-        })
+
+        raw = json.dumps(
+            {
+                "action": "call_tool",
+                "tool_name": "t",
+                "parameters": '{"k":"v"}',
+            }
+        )
         d = _parse_decision(raw, self._req())
         assert isinstance(d, CallToolDecision)
         assert d.parameters  # non-empty
@@ -869,9 +872,7 @@ class TestAgentExecutionLoop:
 
     @pytest.mark.asyncio
     async def test_finish_decision_terminates_loop(self):
-        loop, _ = self._loop(
-            llm_text='{"action":"finish","content":"All done."}'
-        )
+        loop, _ = self._loop(llm_text='{"action":"finish","content":"All done."}')
         state = _state()
         events = await _collect(loop.run(_request(), state))
         types = [e.type for e in events]
@@ -896,6 +897,7 @@ class TestAgentExecutionLoop:
     async def test_max_tool_calls_exceeded_yields_failed(self):
         # LLM always returns a tool call
         call_count = 0
+
         async def _tool_execute(tool_name, params, user_id):
             nonlocal call_count
             call_count += 1

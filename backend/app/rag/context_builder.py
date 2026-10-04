@@ -139,13 +139,13 @@ class ContextBuilder:
             c = rc.chunk
             cit: dict[str, Any] = {
                 "document_name": c.document_name,
-                "document_id":   c.document_id,
-                "page_number":   c.page_number,
-                "chunk_index":   c.chunk_index,
-                "char_start":    c.char_start,
-                "char_end":      c.char_end,
+                "document_id": c.document_id,
+                "page_number": c.page_number,
+                "chunk_index": c.chunk_index,
+                "char_start": c.char_start,
+                "char_end": c.char_end,
                 "retrieval_path": rc.retrieval_path,
-                "excerpt":       c.text[:200],
+                "excerpt": c.text[:200],
             }
             if self._include_similarity:
                 cit["similarity"] = rc.similarity

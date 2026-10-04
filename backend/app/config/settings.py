@@ -766,8 +766,7 @@ class Settings(BaseSettings):
     ATLASSIAN_CLIENT_SECRET: str = Field(
         default="",
         description=(
-            "OAuth 2.0 client secret.  Keep this value secret — "
-            "never commit it to source control."
+            "OAuth 2.0 client secret.  Keep this value secret — never commit it to source control."
         ),
     )
 

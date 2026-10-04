@@ -159,8 +159,7 @@ class DocumentLoader(IDocumentLoader):
         if norm_mime == "application/pdf" or ext == ".pdf":
             text, page_count, meta = await self._load_pdf(file_bytes, filename)
         elif (
-            norm_mime
-            == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+            norm_mime == "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
             or ext == ".docx"
         ):
             text, page_count, meta = await self._load_docx(file_bytes, filename)
@@ -194,17 +193,14 @@ class DocumentLoader(IDocumentLoader):
         if len(file_bytes) > self._max_bytes:
             mb = self._max_bytes // (1024 * 1024)
             raise ValueError(
-                f"File '{filename}' is {len(file_bytes)} bytes, "
-                f"which exceeds the {mb} MB limit."
+                f"File '{filename}' is {len(file_bytes)} bytes, which exceeds the {mb} MB limit."
             )
         if not self.supports(mime_type, filename):
             raise UnsupportedFormatError(filename, mime_type)
 
     # ── Per-format extractors ─────────────────────────────────────────────────
 
-    async def _load_pdf(
-        self, file_bytes: bytes, filename: str
-    ) -> tuple[str, int, dict[str, Any]]:
+    async def _load_pdf(self, file_bytes: bytes, filename: str) -> tuple[str, int, dict[str, Any]]:
         def _extract() -> tuple[str, int, dict[str, Any]]:
             try:
                 import pypdf  # lazy import — not required for non-PDF paths
@@ -233,10 +229,14 @@ class DocumentLoader(IDocumentLoader):
                     # Rebuild page_spans as a single span covering the whole OCR text
                     page_spans = [PageSpan(1, 0, len(full_text))]
 
-                return full_text, page_count, {
-                    "page_spans": page_spans,
-                    "ocr_used": str(ocr_used).lower(),
-                }
+                return (
+                    full_text,
+                    page_count,
+                    {
+                        "page_spans": page_spans,
+                        "ocr_used": str(ocr_used).lower(),
+                    },
+                )
 
             except (UnsupportedFormatError, DocumentLoadError):
                 raise
@@ -247,9 +247,7 @@ class DocumentLoader(IDocumentLoader):
 
         return await asyncio.to_thread(_extract)
 
-    async def _load_docx(
-        self, file_bytes: bytes, filename: str
-    ) -> tuple[str, int, dict[str, Any]]:
+    async def _load_docx(self, file_bytes: bytes, filename: str) -> tuple[str, int, dict[str, Any]]:
         def _extract() -> tuple[str, int, dict[str, Any]]:
             try:
                 import docx  # lazy import
@@ -275,9 +273,7 @@ class DocumentLoader(IDocumentLoader):
 
         return await asyncio.to_thread(_extract)
 
-    async def _load_text(
-        self, file_bytes: bytes, filename: str
-    ) -> tuple[str, int, dict[str, Any]]:
+    async def _load_text(self, file_bytes: bytes, filename: str) -> tuple[str, int, dict[str, Any]]:
         """Decode plain-text or Markdown; detect encoding automatically."""
         for encoding in ("utf-8", "utf-8-sig", "latin-1"):
             try:

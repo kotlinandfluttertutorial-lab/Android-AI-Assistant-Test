@@ -150,9 +150,7 @@ class ObservabilityTracker:
             try:
                 cb(span)
             except Exception as exc:
-                logger.warning(
-                    "orchestration.observer_callback_error: %s", exc
-                )
+                logger.warning("orchestration.observer_callback_error: %s", exc)
 
         return span
 

@@ -13,6 +13,7 @@ from app.rag.context_builder import ContextBuilder, _citation_tag
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
+
 def _chunk(
     chunk_id: str = "c1",
     document_id: str = "doc-1",
@@ -51,6 +52,7 @@ def _rc(
 
 # ── _citation_tag ─────────────────────────────────────────────────────────────
 
+
 class TestCitationTag:
     def test_page_number_present(self):
         c = _chunk(document_name="report.pdf", page_number=3)
@@ -78,6 +80,7 @@ class TestCitationTag:
 
 
 # ── ContextBuilder.build_context ─────────────────────────────────────────────
+
 
 class TestBuildContext:
     def test_empty_chunks_returns_empty_string(self):
@@ -130,6 +133,7 @@ class TestBuildContext:
 
 
 # ── ContextBuilder.build_citations ───────────────────────────────────────────
+
 
 class TestBuildCitations:
     def test_empty_returns_empty_list(self):
@@ -198,6 +202,7 @@ class TestBuildCitations:
 
 # ── ContextBuilder.build_rag_system_prompt ───────────────────────────────────
 
+
 class TestBuildRagSystemPrompt:
     def test_returns_non_empty_string(self):
         prompt = ContextBuilder().build_rag_system_prompt()
@@ -216,6 +221,7 @@ class TestBuildRagSystemPrompt:
 
 
 # ── ContextBuilder.build_prompt ──────────────────────────────────────────────
+
 
 class TestBuildPrompt:
     def test_contains_question(self):

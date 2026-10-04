@@ -70,6 +70,7 @@ logger = logging.getLogger(__name__)
 # duplicating any business logic — the real work happens in ActionDispatcher
 # (LLM/RAG/MCP). The agent simply acts as a named target for the router.
 
+
 def _build_default_registry() -> AgentRegistry:
     """Return a registry with the built-in AI-assistant agent registered."""
     from app.agents.base import Agent
@@ -121,6 +122,7 @@ def _build_default_registry() -> AgentRegistry:
 # RAG pipeline factory helper
 # ---------------------------------------------------------------------------
 
+
 def _build_rag_pipeline():
     """Return a ready-to-use :class:`~app.rag.RAGPipeline`, or ``None`` on failure.
 
@@ -142,15 +144,14 @@ def _build_rag_pipeline():
         )
         return RAGPipeline(retriever=retriever)
     except Exception as exc:
-        logger.warning(
-            "AgentServiceFactory: RAG pipeline unavailable (RAG disabled): %s", exc
-        )
+        logger.warning("AgentServiceFactory: RAG pipeline unavailable (RAG disabled): %s", exc)
         return None
 
 
 # ---------------------------------------------------------------------------
 # MCP server factory helper
 # ---------------------------------------------------------------------------
+
 
 def _build_mcp_server(db: AsyncSession):
     """Return a wired :class:`~app.mcp.MCPServer` with available connectors registered.
@@ -190,21 +191,18 @@ def _build_mcp_server(db: AsyncSession):
                     "AgentServiceFactory: Atlassian connector failed to register: %s", exc
                 )
         else:
-            logger.debug(
-                "AgentServiceFactory: Atlassian credentials absent — connector skipped."
-            )
+            logger.debug("AgentServiceFactory: Atlassian credentials absent — connector skipped.")
 
         return server
     except Exception as exc:
-        logger.warning(
-            "AgentServiceFactory: MCP server unavailable (MCP disabled): %s", exc
-        )
+        logger.warning("AgentServiceFactory: MCP server unavailable (MCP disabled): %s", exc)
         return None
 
 
 # ---------------------------------------------------------------------------
 # AgentServiceFactory
 # ---------------------------------------------------------------------------
+
 
 class AgentServiceFactory:
     """Assembles a :class:`~app.orchestration.SingleAgentRunner` per request.

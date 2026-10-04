@@ -163,18 +163,12 @@ class AgentExecutionLoop:
                 while True:
                     # ── Limit checks ─────────────────────────────────────────
                     if state.step_count >= self._config.max_steps:
-                        state.fail(
-                            f"Max steps ({self._config.max_steps}) reached."
-                        )
-                        self._observer.on_limit_exceeded(
-                            state, "max_steps", state.error_message
-                        )
+                        state.fail(f"Max steps ({self._config.max_steps}) reached.")
+                        self._observer.on_limit_exceeded(state, "max_steps", state.error_message)
                         break
 
                     if state.tool_call_count >= self._config.max_tool_calls:
-                        state.fail(
-                            f"Max tool calls ({self._config.max_tool_calls}) reached."
-                        )
+                        state.fail(f"Max tool calls ({self._config.max_tool_calls}) reached.")
                         self._observer.on_limit_exceeded(
                             state, "max_tool_calls", state.error_message
                         )
@@ -332,9 +326,7 @@ class AgentExecutionLoop:
                 agent_name=state.agent_name,
                 status=AgentStatus.COMPLETED,
                 content=state.accumulated_output,
-                citations=[
-                    _dict_to_citation(c) for c in state.citations
-                ],
+                citations=[_dict_to_citation(c) for c in state.citations],
                 metadata={"step_count": str(state.step_count)},
             )
             yield AgentCompletedEvent(result=result)
@@ -376,9 +368,7 @@ class AgentExecutionLoop:
         # for RespondDecision so the prompt actually reaches the model).
         llm = self._dispatcher._llm
         if llm is None:
-            logger.warning(
-                "AgentExecutionLoop: no LLM adapter — finishing immediately."
-            )
+            logger.warning("AgentExecutionLoop: no LLM adapter — finishing immediately.")
             return FinishDecision(reason="No LLM adapter configured."), ""
 
         try:
@@ -390,7 +380,8 @@ class AgentExecutionLoop:
         except Exception as exc:
             logger.warning(
                 "AgentExecutionLoop: _decide LLM failed step=%d; finishing: %s",
-                state.step_count, exc,
+                state.step_count,
+                exc,
             )
             return FinishDecision(reason=f"LLM unavailable: {exc}"), ""
 
@@ -471,6 +462,7 @@ def _parse_decision(llm_output: str, request: AgentRequest) -> AgentDecision:
 
     if action == "call_tool":
         import json as _j
+
         params = data.get("parameters", "{}")
         if isinstance(params, dict):
             params = _j.dumps(params)

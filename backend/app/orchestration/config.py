@@ -84,17 +84,13 @@ class OrchestrationConfig:
             )
         if not (0.0 <= self.min_similarity <= 1.0):
             raise ValueError(
-                f"OrchestrationConfig.min_similarity must be 0.0–1.0, "
-                f"got {self.min_similarity}."
+                f"OrchestrationConfig.min_similarity must be 0.0–1.0, got {self.min_similarity}."
             )
         if self.rag_top_k < 1:
-            raise ValueError(
-                f"OrchestrationConfig.rag_top_k must be ≥ 1, got {self.rag_top_k}."
-            )
+            raise ValueError(f"OrchestrationConfig.rag_top_k must be ≥ 1, got {self.rag_top_k}.")
         if self.llm_temperature is not None and not (0.0 <= self.llm_temperature <= 2.0):
             raise ValueError(
-                f"OrchestrationConfig.llm_temperature must be 0.0–2.0, "
-                f"got {self.llm_temperature}."
+                f"OrchestrationConfig.llm_temperature must be 0.0–2.0, got {self.llm_temperature}."
             )
 
     @classmethod

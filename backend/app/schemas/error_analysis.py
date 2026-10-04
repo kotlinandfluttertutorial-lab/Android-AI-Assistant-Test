@@ -14,7 +14,7 @@ Phase 10 — AI Error Analysis
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -22,7 +22,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 # ── Enums ─────────────────────────────────────────────────────────────────────
 
 
-class ErrorSeverity(str, Enum):
+class ErrorSeverity(StrEnum):
     """Severity of the detected error condition."""
 
     CRITICAL = "CRITICAL"
