@@ -49,6 +49,9 @@ ignore = [
     #    production code path analysis.
     "S101",
 
+    # ── S603 — subprocess call in local smoke test script ──
+    "S603",
+
     # ── S105 / S106 — test fixtures use intentional hardcoded credential strings ──
     "S105",    # Possible hardcoded password assigned to variable
     "S106",    # Possible hardcoded password in function argument
