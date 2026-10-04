@@ -170,7 +170,7 @@ class RAGPipeline:
             "RAG pipeline ask start",
             extra={
                 "request_id": request_id,
-                "user_id": user_id,
+                "user_id": _redact_uid(user_id),
                 "question_length": len(question),
                 "top_k": top_k or self._config.top_k,
             },
@@ -189,7 +189,7 @@ class RAGPipeline:
                 "RAG pipeline ask failed",
                 extra={
                     "request_id": request_id,
-                    "user_id": user_id,
+                    "user_id": _redact_uid(user_id),
                     "error": str(exc),
                     "latency_ms": latency_ms,
                 },
@@ -213,7 +213,7 @@ class RAGPipeline:
             "RAG pipeline ask complete",
             extra={
                 "request_id": request_id,
-                "user_id": user_id,
+                "user_id": _redact_uid(user_id),
                 "chunk_count": answer.chunk_count,
                 "has_sources": answer.has_sources,
                 "answer_length": len(answer.answer),
@@ -285,3 +285,17 @@ class RAGPipeline:
             latency_ms=latency_ms,
             request_id=request_id,
         )
+
+# ---------------------------------------------------------------------------
+# Private helpers
+# ---------------------------------------------------------------------------
+
+
+def _redact_uid(uid: str) -> str:
+    """Keep only the first 8 chars of a user ID to reduce PII in structured logs.
+
+    Matches the same redaction used in :func:`app.orchestration.observer._redact_uid`.
+    The truncated prefix is sufficient for log correlation while preventing
+    full UUIDs from appearing in Loki / Cloud Logging queries.
+    """
+    return uid[:8] + "…" if len(uid) > 8 else uid

@@ -121,7 +121,10 @@ class MCPExecutor:
             msg = (
                 f"Tool '{tool_name}' is not registered or not on the allowlist."
             )
-            logger.warning("MCPExecutor: allowlist rejection tool=%r user=%r", tool_name, user_id)
+            logger.warning(
+                "MCPExecutor: allowlist rejection",
+                extra={"tool_name": tool_name, "user_id": user_id[:8] + "…" if len(user_id) > 8 else user_id},
+            )
             if self._reraise_errors:
                 raise MCPExecutionError(tool_name=tool_name, safe_message=msg)
             return MCPToolResult(
@@ -138,8 +141,12 @@ class MCPExecutor:
                 self._validator.validate(params, model)
             except MCPValidationError as exc:
                 logger.info(
-                    "MCPExecutor: validation failed tool=%r param=%r reason=%s",
-                    tool_name, exc.param_name, exc.reason,
+                    "MCPExecutor: validation failed",
+                    extra={
+                        "tool_name": tool_name,
+                        "param_name": exc.param_name,
+                        "reason": exc.reason,
+                    },
                 )
                 if self._reraise_errors:
                     raise
@@ -173,8 +180,14 @@ class MCPExecutor:
         except TimeoutError:
             elapsed = int(time.monotonic() * 1000 - start_ms)
             logger.warning(
-                "MCPExecutor: timeout tool=%r timeout_ms=%d elapsed_ms=%d",
-                tool_name, timeout_ms, elapsed,
+                "MCPExecutor: timeout",
+                extra={
+                    "tool_name": tool_name,
+                    "timeout_ms": timeout_ms,
+                    "elapsed_ms": elapsed,
+                    # user_id is redacted — never log a full token or UUID
+                    "user_id": user_id[:8] + "…" if len(user_id) > 8 else user_id,
+                },
             )
             exc = MCPTimeoutError(tool_name=tool_name, timeout_ms=timeout_ms)
             if self._reraise_errors:
@@ -186,9 +199,15 @@ class MCPExecutor:
                 result_status="error",
             )
         except Exception as exc:
+            elapsed = int(time.monotonic() * 1000 - start_ms)
             logger.error(
-                "MCPExecutor: unexpected error tool=%r: %s",
-                tool_name, exc,
+                "MCPExecutor: unexpected error",
+                extra={
+                    "tool_name": tool_name,
+                    "elapsed_ms": elapsed,
+                    # exc type only — never the message, which may contain secrets
+                    "exc_type": type(exc).__name__,
+                },
             )
             if self._reraise_errors:
                 raise MCPExecutionError(
@@ -207,8 +226,8 @@ class MCPExecutor:
             self._validator.validate_result(result, tool_name)
         except MCPValidationError as exc:
             logger.warning(
-                "MCPExecutor: result validation failed tool=%r: %s",
-                tool_name, exc,
+                "MCPExecutor: result validation failed",
+                extra={"tool_name": tool_name, "reason": str(exc)},
             )
             if self._reraise_errors:
                 raise
@@ -217,7 +236,11 @@ class MCPExecutor:
 
         elapsed = int(time.monotonic() * 1000 - start_ms)
         logger.debug(
-            "MCPExecutor: completed tool=%r success=%s elapsed_ms=%d",
-            tool_name, result.success, elapsed,
+            "MCPExecutor: completed",
+            extra={
+                "tool_name": tool_name,
+                "success": result.success,
+                "elapsed_ms": elapsed,
+            },
         )
         return result

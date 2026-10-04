@@ -1,49 +1,97 @@
 # ============================================================================
-# Android AI Assistant — Docker Compose (Windows Dev)
+# Android AI Assistant — Docker Compose (local development, Windows host)
 # ============================================================================
-# Core services only: postgres, redis, minio
-# Linux-only services (chromadb, prometheus, loki, grafana) are disabled
+#
+# Services:
+#   postgres      — PostgreSQL 16 with pgvector extension
+#   redis         — Redis 7 for caching, rate limiting, Celery broker
+#   chromadb      — ChromaDB vector store (document embeddings for RAG)
+#   minio         — S3-compatible object storage for uploaded documents
+#   backend       — FastAPI application (uvicorn, hot-reload)
+#   celery_worker — Celery worker for async document ingestion tasks
+#
+# Usage:
+#   Start:   docker compose up -d
+#   Logs:    docker compose logs -f
+#   Stop:    docker compose down
+#   Nuke:    docker compose down -v   ⚠ deletes all data volumes
+#
+# Environment variables:
+#   Copy backend/.env.docker.example → backend/.env.docker and fill in the
+#   two [REQUIRED] values: SECRET_KEY and AES_ENCRYPTION_KEY.
+#   All other variables have safe local-only defaults.
+#   Never commit .env.docker — it is git-ignored.
+#
+# First-run migrations (run once after `up -d`):
+#   docker compose exec backend alembic upgrade head
+#
+# Quick health check:
+#   curl http://localhost:8000/health  →  {"status": "ok"}
+#   curl http://localhost:8000/ready   →  {"status": "ready", ...}
+#
+# Automated smoke test (covers all services + RAG + Agent + MCP):
+#   docker compose exec backend python scripts/local_smoke_test.py
+#
+# Port map (host → container):
+#   8000  FastAPI (direct)
+#   5432  PostgreSQL
+#   6379  Redis
+#   8001  ChromaDB HTTP API
+#   9000  MinIO S3 API
+#   9001  MinIO Console UI  → http://localhost:9001
 # ============================================================================
 
+# ---------------------------------------------------------------------------
+# Named volumes — all persistent data stored in Docker-managed volumes
+# ---------------------------------------------------------------------------
 volumes:
   postgres_data:
   redis_data:
+  chromadb_data:
   minio_data:
 
+# ---------------------------------------------------------------------------
+# Shared network — all containers communicate by service name, never localhost
+# ---------------------------------------------------------------------------
 networks:
-  ai_assistant_net:
+  ai_net:
     driver: bridge
 
+# ===========================================================================
+# Services
+# ===========================================================================
 services:
 
+  # ─── PostgreSQL ────────────────────────────────────────────────────────────
   postgres:
     image: pgvector/pgvector:pg16
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-aiassistant}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-changeme}
-      POSTGRES_DB: ${POSTGRES_DB:-aiassistant}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-local_dev_password}
+      POSTGRES_DB: ${POSTGRES_DB:-aiassistant_local}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
-      - ai_assistant_net
+      - ai_net
     ports:
       - "5432:5432"
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-aiassistant} -d ${POSTGRES_DB:-aiassistant}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-aiassistant} -d ${POSTGRES_DB:-aiassistant_local}"]
       interval: 10s
       timeout: 5s
       retries: 5
       start_period: 15s
 
+  # ─── Redis ─────────────────────────────────────────────────────────────────
   redis:
     image: redis:7-alpine
     restart: unless-stopped
-    command: redis-server
+    command: redis-server --save 60 1 --loglevel warning
     volumes:
       - redis_data:/data
     networks:
-      - ai_assistant_net
+      - ai_net
     ports:
       - "6379:6379"
     healthcheck:
@@ -53,6 +101,36 @@ services:
       retries: 5
       start_period: 10s
 
+  # ─── ChromaDB ──────────────────────────────────────────────────────────────
+  # Vector store for RAG document embeddings.
+  # Bound to 127.0.0.1 on the host — only accessible from this machine and
+  # from other containers via the Docker network (chromadb:8000).
+  # CVE-2026-45829/45830/45831/45833: no patch available; localhost-only
+  # binding mitigates remote exposure on multi-user developer machines.
+  chromadb:
+    image: chromadb/chroma:0.5.20
+    restart: unless-stopped
+    environment:
+      CHROMA_SERVER_HTTP_PORT: "8000"
+      ANONYMIZED_TELEMETRY: "false"
+    volumes:
+      - chromadb_data:/chroma/chroma
+    networks:
+      - ai_net
+    ports:
+      - "127.0.0.1:8001:8000"
+    healthcheck:
+      test:
+        - "CMD-SHELL"
+        - >
+          python -c "import urllib.request;
+          urllib.request.urlopen('http://localhost:8000/api/v1/heartbeat')" || exit 1
+      interval: 15s
+      timeout: 10s
+      retries: 5
+      start_period: 20s
+
+  # ─── MinIO ─────────────────────────────────────────────────────────────────
   minio:
     image: quay.io/minio/minio:RELEASE.2024-09-13T20-26-02Z
     restart: unless-stopped
@@ -63,30 +141,18 @@ services:
     volumes:
       - minio_data:/data
     networks:
-      - ai_assistant_net
+      - ai_net
     ports:
       - "9000:9000"
       - "9001:9001"
     healthcheck:
-      test: ["CMD-SHELL", "curl -f http://localhost:9000/minio/health/live || exit 1"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:9000/minio/health/live || exit 1"]
       interval: 15s
       timeout: 10s
       retries: 5
       start_period: 20s
 
-  chromadb:
-    image: chromadb/chroma:1.5.9
-    restart: unless-stopped
-    networks:
-      - ai_assistant_net
-    # CVE-2026-45829: no patch available — bound to localhost only (127.0.0.1)
-    # so it is NOT reachable from the network, only from this local machine.
-    # For production/shared environments remove this port binding entirely and
-    # let only the backend/celery_worker containers reach it via the internal
-    # Docker network (chromadb:8000). Re-audit when a patched image is available.
-    ports:
-      - "127.0.0.1:8001:8000"
-
+  # ─── FastAPI backend ────────────────────────────────────────────────────────
   backend:
     build:
       context: ./backend
@@ -94,36 +160,68 @@ services:
       target: production
     restart: unless-stopped
     env_file:
-      - ${COMPOSE_ENV_FILE:-.env.local}
+      # Prefer backend/.env.docker when it exists; fall back to backend/.env
+      - ${COMPOSE_ENV_FILE:-./backend/.env.docker}
     environment:
-      # These overrides ensure containers always use Docker service names,
-      # never localhost — regardless of what the env file contains.
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-aiassistant}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-aiassistant}
-      REDIS_URL: redis://redis:6379/0
-      CELERY_BROKER_URL: redis://redis:6379/0
-      CELERY_RESULT_BACKEND: redis://redis:6379/0
-      MINIO_ENDPOINT: minio:9000
-      STORAGE_BACKEND: minio
-      # ChromaDB runs embedded in-process (PersistentClient) — no separate service
-      CHROMA_PERSIST_DIR: /tmp/chroma
-      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.1-flash-lite}
+      # These overrides ensure all containers always use Docker service names
+      # (never localhost), regardless of what the env file says.
+      DATABASE_URL: "postgresql+asyncpg://${POSTGRES_USER:-aiassistant}:${POSTGRES_PASSWORD:-local_dev_password}@postgres:5432/${POSTGRES_DB:-aiassistant_local}"
+      REDIS_URL: "redis://redis:6379/0"
+      CELERY_BROKER_URL: "redis://redis:6379/0"
+      CELERY_RESULT_BACKEND: "redis://redis:6379/0"
+      MINIO_ENDPOINT: "minio:9000"
+      MINIO_ACCESS_KEY: "${MINIO_ROOT_USER:-minioadmin}"
+      MINIO_SECRET_KEY: "${MINIO_ROOT_PASSWORD:-minioadmin123}"
+      MINIO_BUCKET_NAME: "${MINIO_BUCKET_NAME:-aiassistant-local}"
+      STORAGE_BACKEND: "minio"
+      # ChromaDB: connect to the chromadb service over HTTP
+      CHROMA_HOST: "chromadb"
+      CHROMA_PORT: "8000"
+      CHROMA_SSL: "false"
+      ENVIRONMENT: "development"
+      LOG_LEVEL: "${LOG_LEVEL:-DEBUG}"
+      OTEL_ENABLED: "false"
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+      chromadb:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
     networks:
-      - ai_assistant_net
-    expose:
-      - "8000"
+      - ai_net
     ports:
       - "8000:8000"
     volumes:
-      - ./backend/app:/app/app
-      - ./backend/alembic:/app/alembic
-      - ./backend/alembic.ini:/app/alembic.ini
-    command: python -m uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+      # Hot-reload: source code mounted so changes take effect without rebuild
+      - ./backend/app:/app/app:ro
+      - ./backend/alembic:/app/alembic:ro
+      - ./backend/alembic.ini:/app/alembic.ini:ro
+      - ./backend/scripts:/app/scripts:ro
+    command: >
+      python -m uvicorn app.main:app
+        --host 0.0.0.0
+        --port 8000
+        --reload
+        --reload-dir /app/app
+        --log-level debug
+    healthcheck:
+      test:
+        - "CMD"
+        - "python"
+        - "-c"
+        - "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
+  # ─── Celery worker ──────────────────────────────────────────────────────────
+  # Handles async document ingestion tasks (RAG pipeline).
+  # Shares the same build as backend; APP_MODE=worker is not used here because
+  # docker compose provides its own `command` override.
   celery_worker:
     build:
       context: ./backend
@@ -131,25 +229,53 @@ services:
       target: production
     restart: unless-stopped
     env_file:
-      - ${COMPOSE_ENV_FILE:-.env.local}
+      - ${COMPOSE_ENV_FILE:-./backend/.env.docker}
     environment:
-      # These overrides ensure containers always use Docker service names,
-      # never localhost — regardless of what the env file contains.
-      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-aiassistant}:${POSTGRES_PASSWORD:-changeme}@postgres:5432/${POSTGRES_DB:-aiassistant}
-      REDIS_URL: redis://redis:6379/0
-      CELERY_BROKER_URL: redis://redis:6379/0
-      CELERY_RESULT_BACKEND: redis://redis:6379/0
-      MINIO_ENDPOINT: minio:9000
-      STORAGE_BACKEND: minio
-      CHROMA_PERSIST_DIR: /tmp/chroma
-      GEMINI_MODEL: ${GEMINI_MODEL:-gemini-3.1-flash-lite}
+      DATABASE_URL: "postgresql+asyncpg://${POSTGRES_USER:-aiassistant}:${POSTGRES_PASSWORD:-local_dev_password}@postgres:5432/${POSTGRES_DB:-aiassistant_local}"
+      REDIS_URL: "redis://redis:6379/0"
+      CELERY_BROKER_URL: "redis://redis:6379/0"
+      CELERY_RESULT_BACKEND: "redis://redis:6379/0"
+      MINIO_ENDPOINT: "minio:9000"
+      MINIO_ACCESS_KEY: "${MINIO_ROOT_USER:-minioadmin}"
+      MINIO_SECRET_KEY: "${MINIO_ROOT_PASSWORD:-minioadmin123}"
+      MINIO_BUCKET_NAME: "${MINIO_BUCKET_NAME:-aiassistant-local}"
+      STORAGE_BACKEND: "minio"
+      CHROMA_HOST: "chromadb"
+      CHROMA_PORT: "8000"
+      CHROMA_SSL: "false"
+      ENVIRONMENT: "development"
+      LOG_LEVEL: "${LOG_LEVEL:-DEBUG}"
+      OTEL_ENABLED: "false"
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
+      chromadb:
+        condition: service_healthy
     networks:
-      - ai_assistant_net
+      - ai_net
     volumes:
-      - ./backend/app:/app/app
-    command: python -m celery -A app.workers.celery_app worker --loglevel=info --pool=solo -Q celery,ingestion,notifications,gdpr,alerts
+      - ./backend/app:/app/app:ro
+      - ./backend/scripts:/app/scripts:ro
+    command: >
+      python -m celery -A app.workers.celery_app worker
+        --loglevel=debug
+        --pool=solo
+        --concurrency=1
+        -Q celery,ingestion,notifications,gdpr,alerts
+    healthcheck:
+      test:
+        - "CMD"
+        - "python"
+        - "-m"
+        - "celery"
+        - "-A"
+        - "app.workers.celery_app"
+        - "inspect"
+        - "ping"
+        - "--timeout=5"
+      interval: 30s
+      timeout: 15s
+      retries: 3
+      start_period: 30s
