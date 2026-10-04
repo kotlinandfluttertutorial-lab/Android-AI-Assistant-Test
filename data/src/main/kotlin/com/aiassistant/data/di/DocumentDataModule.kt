@@ -53,8 +53,13 @@
  */
 package com.aiassistant.data.di
 
+import com.aiassistant.data.document.chunker.ChunkerConfig
+import com.aiassistant.data.document.chunker.DocumentChunkerImpl
+import com.aiassistant.data.document.loader.CompositeDocumentLoader
+import com.aiassistant.data.document.loader.PlainTextDocumentLoader
 import com.aiassistant.data.remote.document.DocumentApiService
 import com.aiassistant.data.repository.DocumentRepositoryImpl
+import com.aiassistant.domain.agent.DocumentLoader
 import com.aiassistant.domain.repository.DocumentRepository
 import dagger.Binds
 import dagger.Module
@@ -75,6 +80,16 @@ abstract class DocumentDataModule {
     @Singleton
     abstract fun bindDocumentRepository(impl: DocumentRepositoryImpl): DocumentRepository
 
+    /**
+     * Binds [CompositeDocumentLoader] to the [DocumentLoader] domain interface.
+     *
+     * The composite loader currently handles TXT and Markdown on-device.
+     * PDF and DOCX are delegated to the cloud pipeline (POST /documents).
+     */
+    @Binds
+    @Singleton
+    abstract fun bindDocumentLoader(impl: CompositeDocumentLoader): DocumentLoader
+
     companion object {
 
         /**
@@ -85,5 +100,17 @@ abstract class DocumentDataModule {
         @Singleton
         fun provideDocumentApiService(retrofit: Retrofit): DocumentApiService =
             retrofit.create(DocumentApiService::class.java)
+
+        /** Provides a default [PlainTextDocumentLoader] (10 MB limit). */
+        @Provides
+        @Singleton
+        fun providePlainTextDocumentLoader(): PlainTextDocumentLoader =
+            PlainTextDocumentLoader()
+
+        /** Provides default [DocumentChunkerImpl] with production chunking config. */
+        @Provides
+        @Singleton
+        fun provideDocumentChunker(): DocumentChunkerImpl =
+            DocumentChunkerImpl(config = ChunkerConfig())
     }
 }

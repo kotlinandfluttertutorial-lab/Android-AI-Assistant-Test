@@ -140,6 +140,59 @@ data class CitationDto(
     @SerialName("chunk_index") val chunkIndex: Int
 )
 
+// ─── Spec-contract DTOs for POST /api/v1/rag/query ───────────────────────────
+
+/**
+ * Request body for `POST /api/v1/rag/query`.
+ *
+ * Matches the backend spec exactly:
+ * ```json
+ * { "question": "…", "document_ids": ["…"], "top_k": 5 }
+ * ```
+ */
+@Serializable
+data class RagQueryRequest(
+    @SerialName("question") val question: String,
+    @SerialName("document_ids") val documentIds: List<String>? = null,
+    @SerialName("top_k") val topK: Int = 5
+)
+
+/**
+ * One source reference returned by `POST /api/v1/rag/query`.
+ */
+@Serializable
+data class RagQuerySourceDto(
+    @SerialName("document_name") val documentName: String,
+    @SerialName("page_number") val pageNumber: Int,
+    @SerialName("excerpt") val excerpt: String,
+    @SerialName("score") val score: Float
+)
+
+/**
+ * Response from `POST /api/v1/rag/query`.
+ */
+@Serializable
+data class RagQueryResponseDto(
+    @SerialName("answer") val answer: String,
+    @SerialName("sources") val sources: List<RagQuerySourceDto>,
+    @SerialName("request_id") val requestId: String
+)
+
+// ─── Spec-contract DTO for GET /api/v1/documents/{id}/status ─────────────────
+
+/**
+ * Response from `GET /api/v1/documents/{id}/status`.
+ */
+@Serializable
+data class DocumentStatusDto(
+    @SerialName("document_id") val documentId: String,
+    /** "pending" | "processing" | "ready" | "failed" */
+    @SerialName("status") val status: String,
+    /** 0.0–1.0 progress fraction; null when not applicable. */
+    @SerialName("progress") val progress: Float? = null,
+    @SerialName("error_message") val errorMessage: String? = null
+)
+
 // ─── Retrofit service interface ───────────────────────────────────────────────
 
 /**
@@ -191,4 +244,28 @@ interface DocumentApiService {
      */
     @DELETE("documents/{documentId}")
     suspend fun deleteDocument(@Path("documentId") documentId: String): Unit
+
+    // ─── Spec-contract endpoints ──────────────────────────────────────────────
+
+    /**
+     * Submits a RAG query against the `/api/v1/rag/query` endpoint.
+     *
+     * Returns structured [RagQueryResponseDto] with an `answer`, `sources` list
+     * (each carrying `document_name`, `page_number`, `excerpt`, `score`), and a
+     * `request_id` for correlation.
+     *
+     * This is the spec-preferred endpoint; `POST /documents/query` is kept for
+     * backward compatibility with older backend deployments.
+     */
+    @POST("rag/query")
+    suspend fun ragQuery(@Body body: RagQueryRequest): RagQueryResponseDto
+
+    /**
+     * Returns the per-document ingestion status from `GET /api/v1/documents/{id}/status`.
+     *
+     * Provides richer information than `GET /jobs/{jobId}`: includes a `progress`
+     * fraction and a structured `error_message`.
+     */
+    @GET("documents/{id}/status")
+    suspend fun getDocumentStatus(@Path("id") documentId: String): DocumentStatusDto
 }

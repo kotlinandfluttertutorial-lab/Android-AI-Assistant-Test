@@ -1,0 +1,103 @@
+# ============================================================================
+# Android AI Assistant — Docker Compose DEV override
+# ============================================================================
+#
+# Extends docker-compose.yml with developer-ergonomics:
+#   - Backend: DEBUG logging, hot-reload already on (inherited)
+#   - Celery: verbose output, watchdog auto-restart on code change
+#   - Flower: Celery task monitoring UI at http://localhost:5555
+#   - Mailhog: local SMTP catcher at http://localhost:8025
+#
+# Usage:
+#   Start full dev stack:
+#     docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+#
+#   Short alias in PowerShell (save in profile or run in session):
+#     function dev { docker compose -f docker-compose.yml -f docker-compose.dev.yml @args }
+#     dev up -d
+#     dev logs -f
+#     dev down
+#
+#   Run smoke test:
+#     docker compose -f docker-compose.yml -f docker-compose.dev.yml \
+#       exec backend python scripts/local_smoke_test.py
+#
+# This file ONLY overrides or adds to docker-compose.yml.
+# Services not listed here inherit their configuration unchanged.
+# ============================================================================
+
+services:
+
+  # ─── Backend (dev overrides) ────────────────────────────────────────────────
+  backend:
+    environment:
+      LOG_LEVEL: "DEBUG"
+      # Surface Python tracebacks in responses (never enable in production)
+      ENVIRONMENT: "development"
+      # Enable detailed LLM prompt logging for local debugging
+      LLM_LOG_PROMPTS: "true"
+      # Relax rate limits so manual testing isn't throttled
+      RATE_LIMIT_REQUESTS_PER_MINUTE: "600"
+      RATE_LIMIT_UNAUTH_REQUESTS_PER_MINUTE: "200"
+      # Disable OTel to avoid gRPC noise in local logs
+      OTEL_ENABLED: "false"
+
+  # ─── Celery worker (dev overrides) ─────────────────────────────────────────
+  celery_worker:
+    environment:
+      LOG_LEVEL: "DEBUG"
+      ENVIRONMENT: "development"
+      OTEL_ENABLED: "false"
+    command: >
+      python -m celery -A app.workers.celery_app worker
+        --loglevel=debug
+        --pool=solo
+        --concurrency=1
+        -Q celery,ingestion,notifications,gdpr,alerts
+
+  # ─── Flower — Celery monitoring UI ─────────────────────────────────────────
+  # Accessible at http://localhost:5555
+  # Shows real-time task queues, worker state, and task history.
+  flower:
+    image: mher/flower:2.0.1
+    restart: unless-stopped
+    command: >
+      celery
+        --broker=redis://redis:6379/0
+        flower
+        --port=5555
+        --url_prefix=
+    environment:
+      CELERY_BROKER_URL: "redis://redis:6379/0"
+      FLOWER_UNAUTHENTICATED_API: "true"
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - ai_net
+    ports:
+      - "5555:5555"
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:5555')\""]
+      interval: 20s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+  # ─── Mailhog — local SMTP catcher ──────────────────────────────────────────
+  # Captures all outgoing email from the backend so you can inspect them
+  # without a real SMTP server.  Web UI: http://localhost:8025
+  mailhog:
+    image: mailhog/mailhog:v1.0.1
+    restart: unless-stopped
+    networks:
+      - ai_net
+    ports:
+      - "1025:1025"   # SMTP — set SMTP_HOST=mailhog SMTP_PORT=1025 in .env.docker
+      - "8025:8025"   # Web UI → http://localhost:8025
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://localhost:8025')\""]
+      interval: 20s
+      timeout: 10s
+      retries: 3
+      start_period: 10s

@@ -124,7 +124,7 @@ def _estimate_tokens(text: str) -> int:
 # ---------------------------------------------------------------------------
 
 
-class LLMProvider(str, enum.Enum):
+class LLMProvider(enum.StrEnum):
     """Supported LLM providers.
 
     Requirements: 3.1

@@ -4,50 +4,16 @@
  * ============================================================
  * Module     : feature-rag
  * File       : DocumentChatViewModel.kt
- * Purpose    : Manages UI state and delegates actions to domain use cases for the DocumentChat feature
+ * Purpose    : Manages UI state for the DocumentChat screen.
+ *              Uses QueryDocumentWithSourcesUseCase (POST /api/v1/rag/query)
+ *              for structured citations; falls back to QueryDocumentUseCase
+ *              (text parsing) when the structured endpoint is unavailable.
  *
- * Architecture Layer : Feature (feature-rag)
- * Pattern Used       : MVVM ViewModel
- *
- * Key Concepts:
- *   - Clean Architecture with strict layer separation
- *   - Hilt dependency injection
- *
- * Dependencies:
- *   - See import statements below
+ * Architecture Layer : Feature (feature-rag) — MVVM ViewModel
+ * Requirements       : 4.6, 4.7
  * ============================================================
  */
 
-/*
- * ============================================================
- * Android AI Assistant (Enterprise Edition)
- * ============================================================
- * Module     : feature-rag
- * File       : DocumentChatViewModel.kt
- * Purpose    : Manages UI state and delegates actions to domain use cases for the DocumentChat feature
- *
- * Architecture Layer : Feature (feature-rag)
- * Pattern Used       : MVVM ViewModel
- *
- * Key Concepts:
- *   - Clean Architecture with strict layer separation
- *   - Hilt dependency injection
- *
- * Dependencies:
- *   - See import statements below
- * ============================================================
- */
-/**
- * DocumentChatViewModel.kt
- *
- * Purpose: Manages all UI state for the DocumentChat screen, including query submission,
- *          RAG response with citations, and error handling.
- * Architecture: feature-rag â€” MVVM ViewModel; injected via Hilt assisted injection.
- * Dependencies: domain (QueryDocumentUseCase, DocumentRepository),
- *               core-common (ApiResult, DispatcherProvider)
- *
- * Requirements: 4.6, 4.7
- */
 package com.aiassistant.feature.rag
 
 import androidx.lifecycle.SavedStateHandle
@@ -55,8 +21,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.aiassistant.core.common.ApiResult
 import com.aiassistant.core.common.DispatcherProvider
+import com.aiassistant.domain.model.RagCitationSource
 import com.aiassistant.domain.repository.DocumentRepository
 import com.aiassistant.domain.usecase.document.QueryDocumentUseCase
+import com.aiassistant.domain.usecase.document.QueryDocumentWithSourcesUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import javax.inject.Inject
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -69,34 +37,31 @@ import kotlinx.coroutines.withContext
 /**
  * ViewModel for the DocumentChat screen.
  *
- * Exposes a [StateFlow] of [DocumentChatUiState] for Compose screens to observe.
- * The [documentId] is read from [SavedStateHandle] (injected by Hilt / Navigation).
+ * ## Query strategy
+ * [submitQuery] first calls [QueryDocumentWithSourcesUseCase] which posts to
+ * `POST /api/v1/rag/query` and returns a structured [com.aiassistant.domain.model.RagAnswer]
+ * with per-source excerpts and similarity scores.
  *
- * Citation parsing:
- * The backend embeds citation markers in the response text (e.g. "[1]", "[2]") and
- * appends a references section at the end in the format:
- * ```
- * [1] annual_report.pdf, page 5
- * [2] product_spec.docx, page 12
- * ```
- * [parseCitations] extracts these references and maps them to [Citation] objects.
- * If the response does not contain a references section the citations list is empty
- * (the response text is shown as-is).
+ * If the structured endpoint fails (e.g. older backend without `/rag/query`), the ViewModel
+ * automatically falls back to [QueryDocumentUseCase] and parses citations from the response
+ * text using [parseResponse].
  *
- * @param queryDocumentUseCase Use case wrapping the RAG query repository call.
- * @param documentRepository   Used to resolve the document file name from its ID.
- * @param dispatchers          Coroutine dispatcher provider for background IO.
- * @param savedStateHandle     Provides the "documentId" navigation argument.
+ * ## Citation rendering
+ * `DocumentChatUiState.Success.ragAnswer.sources` carries [RagCitationSource] objects
+ * suitable for rendering excerpt previews and score badges.
+ * `DocumentChatUiState.Success.exchange.sources` mirrors the same list for
+ * `SourcesPanel` in the Compose layer.
  */
 @HiltViewModel
 class DocumentChatViewModel @Inject constructor(
+    private val queryDocumentWithSourcesUseCase: QueryDocumentWithSourcesUseCase,
     private val queryDocumentUseCase: QueryDocumentUseCase,
     private val documentRepository: DocumentRepository,
     private val dispatchers: DispatcherProvider,
-    savedStateHandle: SavedStateHandle
+    savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
-    /** The document ID extracted from the navigation back-stack entry. */
+    /** Document ID extracted from the navigation back-stack entry. */
     private val documentId: String = checkNotNull(savedStateHandle["documentId"]) {
         "DocumentChatViewModel requires a 'documentId' navigation argument."
     }
@@ -108,65 +73,84 @@ class DocumentChatViewModel @Inject constructor(
         loadDocumentFileName()
     }
 
-    // â”€â”€â”€ Public actions â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Public actions ────────────────────────────────────────────────────────
 
     /**
-     * Submits a natural language query to the RAG pipeline for [documentId].
+     * Submits a natural language question to the RAG pipeline.
      *
-     * On success the state transitions to [DocumentChatUiState.Success] with the AI
-     * response and parsed [Citation] list. On failure it transitions to
-     * [DocumentChatUiState.Error] so the user can retry.
+     * Strategy:
+     * 1. Try [QueryDocumentWithSourcesUseCase] → structured [RagAnswer] with excerpts + scores.
+     * 2. On any error, fall back to [QueryDocumentUseCase] + [parseResponse] for legacy backends.
      *
-     * @param query The user's natural language question. Blank queries are silently ignored.
+     * @param query The user's question.  Blank values are silently ignored.
      */
     fun submitQuery(query: String) {
-        val trimmedQuery = query.trim()
-        if (trimmedQuery.isBlank()) return
+        val trimmed = query.trim()
+        if (trimmed.isBlank()) return
 
         val currentFileName = currentDocumentFileName()
-
         _uiState.value = DocumentChatUiState.Loading(
-            query = trimmedQuery,
-            documentFileName = currentFileName
+            query = trimmed,
+            documentFileName = currentFileName,
         )
 
         viewModelScope.launch {
-            val result = withContext(dispatchers.io) {
-                queryDocumentUseCase(documentId = documentId, query = trimmedQuery)
+            // ── Strategy 1: structured /rag/query ────────────────────────────
+            val structuredResult = withContext(dispatchers.io) {
+                queryDocumentWithSourcesUseCase(
+                    question = trimmed,
+                    documentIds = listOf(documentId),
+                )
             }
 
-            _uiState.value = when (result) {
+            if (structuredResult is ApiResult.Success) {
+                val ragAnswer = structuredResult.data
+                _uiState.value = DocumentChatUiState.Success(
+                    exchange = RAGExchange(
+                        userQuery = trimmed,
+                        aiResponse = ragAnswer.answer,
+                        sources = ragAnswer.sources,
+                    ),
+                    documentFileName = currentFileName,
+                    ragAnswer = ragAnswer,
+                )
+                return@launch
+            }
+
+            // ── Strategy 2: legacy /documents/query + text parsing ────────────
+            val legacyResult = withContext(dispatchers.io) {
+                queryDocumentUseCase(documentId = documentId, query = trimmed)
+            }
+
+            _uiState.value = when (legacyResult) {
                 is ApiResult.Success -> {
-                    val (responseText, citations) = parseResponse(result.data)
+                    val (responseText, citations) = parseResponse(legacyResult.data)
                     DocumentChatUiState.Success(
                         exchange = RAGExchange(
-                            userQuery = trimmedQuery,
+                            userQuery = trimmed,
                             aiResponse = responseText,
-                            citations = citations
+                            citations = citations,
                         ),
-                        documentFileName = currentFileName
+                        documentFileName = currentFileName,
                     )
                 }
 
                 is ApiResult.Error -> DocumentChatUiState.Error(
-                    message = result.error.message,
-                    lastQuery = trimmedQuery,
-                    documentFileName = currentFileName
+                    message = legacyResult.error.message,
+                    lastQuery = trimmed,
+                    documentFileName = currentFileName,
                 )
 
                 is ApiResult.NetworkUnavailable -> DocumentChatUiState.Error(
                     message = "No network connection. Please check your connectivity and try again.",
-                    lastQuery = trimmedQuery,
-                    documentFileName = currentFileName
+                    lastQuery = trimmed,
+                    documentFileName = currentFileName,
                 )
 
-                is ApiResult.Loading -> {
-                    // Stays in Loading state â€” shouldn't happen for a suspend call but handle defensively.
-                    DocumentChatUiState.Loading(
-                        query = trimmedQuery,
-                        documentFileName = currentFileName
-                    )
-                }
+                is ApiResult.Loading -> DocumentChatUiState.Loading(
+                    query = trimmed,
+                    documentFileName = currentFileName,
+                )
             }
         }
     }
@@ -181,18 +165,12 @@ class DocumentChatViewModel @Inject constructor(
         )
     }
 
-    // â”€â”€â”€ Private helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // ── Private helpers ───────────────────────────────────────────────────────
 
-    /**
-     * Loads the document file name from the repository to display in the top bar.
-     * Falls back to the raw [documentId] if the fetch fails.
-     */
+    /** Loads the document's display name for the TopAppBar title. */
     private fun loadDocumentFileName() {
         viewModelScope.launch {
             try {
-                // .first() takes a single snapshot — avoids a persistent subscription
-                // that re-emits on every background refresh and causes duplicate
-                // GET /documents requests while the chat screen is open.
                 val result = withContext(dispatchers.io) {
                     documentRepository.getDocuments().first()
                 }
@@ -207,45 +185,35 @@ class DocumentChatViewModel @Inject constructor(
         }
     }
 
-    /** Returns the document file name from the current UI state, falling back to the ID. */
     private fun currentDocumentFileName(): String = when (val s = _uiState.value) {
-        is DocumentChatUiState.Idle -> s.documentFileName.ifEmpty { documentId }
+        is DocumentChatUiState.Idle    -> s.documentFileName.ifEmpty { documentId }
         is DocumentChatUiState.Loading -> s.documentFileName.ifEmpty { documentId }
         is DocumentChatUiState.Success -> s.documentFileName.ifEmpty { documentId }
-        is DocumentChatUiState.Error -> s.documentFileName.ifEmpty { documentId }
+        is DocumentChatUiState.Error   -> s.documentFileName.ifEmpty { documentId }
     }
 
-    /** Updates the [documentFileName] field in whatever state we are currently in. */
     private fun updateDocumentFileName(name: String) {
         _uiState.value = when (val s = _uiState.value) {
-            is DocumentChatUiState.Idle -> s.copy(documentFileName = name)
+            is DocumentChatUiState.Idle    -> s.copy(documentFileName = name)
             is DocumentChatUiState.Loading -> s.copy(documentFileName = name)
             is DocumentChatUiState.Success -> s.copy(documentFileName = name)
-            is DocumentChatUiState.Error -> s.copy(documentFileName = name)
+            is DocumentChatUiState.Error   -> s.copy(documentFileName = name)
         }
     }
 
     /**
-     * Parses the raw response string returned by the backend.
+     * Parses legacy response text for embedded citation markers.
      *
-     * The backend may append a "References" or "Sources" section in one of two formats:
+     * Handles two formats:
+     * - **Format A** — "Sources:" / "References:" section at the end with numbered entries.
+     * - **Format B** — bare numbered list at the end without a section header.
      *
-     * Format A (newline-separated markers):
-     * ```
-     * [1] annual_report.pdf, page 5
-     * [2] product_spec.docx, page 12
-     * ```
+     * Returns the clean response text plus a [Citation] list.  When no pattern
+     * is detected, returns the full text with an empty list.
      *
-     * Format B (compact inline, no section header):
-     * The response text contains `[docName, page N]` markers inline.
-     *
-     * If neither pattern is detected the full response is returned as-is with no citations.
-     *
-     * @return A [Pair] of the cleaned response text and the parsed [Citation] list.
+     * @internal Visible for testing.
      */
     internal fun parseResponse(raw: String): Pair<String, List<Citation>> {
-        // â”€â”€ Format A: numbered reference list at the end â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
-        // Look for a "Sources:" / "References:" section or a line matching "[N] name, page P".
         val referencesSectionRegex = Regex(
             """(?:^|\n)(?:Sources|References|Citations):\s*\n((?:\[\d+\][^\n]+\n?)+)""",
             RegexOption.IGNORE_CASE
@@ -255,6 +223,7 @@ class DocumentChatViewModel @Inject constructor(
             setOf(RegexOption.IGNORE_CASE, RegexOption.MULTILINE)
         )
 
+        // Format A
         val sectionMatch = referencesSectionRegex.find(raw)
         if (sectionMatch != null) {
             val responseText = raw.substring(0, sectionMatch.range.first).trimEnd()
@@ -268,11 +237,10 @@ class DocumentChatViewModel @Inject constructor(
             return Pair(responseText, citations)
         }
 
-        // â”€â”€ Format B: bare numbered lines at the end (no section header) â”€â”€â”€â”€â”€
+        // Format B
         val lines = raw.trimEnd().lines()
         val lastRefIndex = lines.indexOfLast { refLineRegex.matches(it.trim()) }
         if (lastRefIndex != -1) {
-            // Walk backwards from the last ref line to find where refs begin.
             var firstRefIndex = lastRefIndex
             while (firstRefIndex > 0 && refLineRegex.matches(lines[firstRefIndex - 1].trim())) {
                 firstRefIndex--
@@ -285,12 +253,9 @@ class DocumentChatViewModel @Inject constructor(
                     pageNumber = m.groupValues[3].toIntOrNull()
                 )
             }
-            if (citations.isNotEmpty()) {
-                return Pair(responseText, citations)
-            }
+            if (citations.isNotEmpty()) return Pair(responseText, citations)
         }
 
-        // No parseable citation block found â€” return as-is with empty list.
         return Pair(raw, emptyList())
     }
 }

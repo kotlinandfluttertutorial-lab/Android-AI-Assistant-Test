@@ -49,7 +49,7 @@ if TYPE_CHECKING:
     from app.models.user import User
 
 
-class PersonaTone(str, enum.Enum):
+class PersonaTone(enum.StrEnum):
     """Tone options for persona behavior."""
 
     professional = "professional"

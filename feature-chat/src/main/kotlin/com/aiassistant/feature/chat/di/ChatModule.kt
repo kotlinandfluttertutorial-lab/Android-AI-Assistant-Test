@@ -63,6 +63,7 @@
  */
 package com.aiassistant.feature.chat.di
 
+import com.aiassistant.domain.agent.AgentGatewayRepository
 import com.aiassistant.domain.repository.ConversationRepository
 import com.aiassistant.domain.repository.MessageRepository
 import com.aiassistant.domain.usecase.conversation.CreateConversationUseCase
@@ -81,52 +82,45 @@ import dagger.hilt.android.components.ViewModelComponent
 @InstallIn(ViewModelComponent::class)
 object ChatModule {
 
-    /**
-     * Provides [GetConversationsUseCase] backed by the singleton [ConversationRepository].
-     */
     @Provides
     fun provideGetConversationsUseCase(conversationRepository: ConversationRepository): GetConversationsUseCase =
         GetConversationsUseCase(conversationRepository)
 
-    /**
-     * Provides [CreateConversationUseCase] backed by the singleton [ConversationRepository].
-     */
     @Provides
     fun provideCreateConversationUseCase(conversationRepository: ConversationRepository): CreateConversationUseCase =
         CreateConversationUseCase(conversationRepository)
 
-    /**
-     * Provides [DeleteConversationUseCase] backed by the singleton [ConversationRepository].
-     */
     @Provides
     fun provideDeleteConversationUseCase(conversationRepository: ConversationRepository): DeleteConversationUseCase =
         DeleteConversationUseCase(conversationRepository)
 
-    /**
-     * Provides [SearchConversationsUseCase] backed by the singleton [ConversationRepository].
-     */
     @Provides
     fun provideSearchConversationsUseCase(conversationRepository: ConversationRepository): SearchConversationsUseCase =
         SearchConversationsUseCase(conversationRepository)
 
-    /**
-     * Provides [SendMessageUseCase] backed by the singleton [MessageRepository].
-     */
     @Provides
     fun provideSendMessageUseCase(messageRepository: MessageRepository): SendMessageUseCase =
         SendMessageUseCase(messageRepository)
 
-    /**
-     * Provides [RegenerateMessageUseCase] backed by the singleton [MessageRepository].
-     */
     @Provides
     fun provideRegenerateMessageUseCase(messageRepository: MessageRepository): RegenerateMessageUseCase =
         RegenerateMessageUseCase(messageRepository)
 
-    /**
-     * Provides [ExportConversationUseCase] backed by the singleton [ConversationRepository].
-     */
     @Provides
     fun provideExportConversationUseCase(conversationRepository: ConversationRepository): ExportConversationUseCase =
         ExportConversationUseCase(conversationRepository)
+
+    /**
+     * Exposes [AgentGatewayRepository] to the ViewModel component so
+     * [com.aiassistant.feature.chat.ChatDetailViewModel] can inject it for
+     * multi-mode execution (DIRECT_LLM / RAG / AGENT).
+     *
+     * The concrete implementation is bound in [com.aiassistant.data.di.AgentDataModule]
+     * at the [dagger.hilt.components.SingletonComponent] scope — this @Provides just
+     * makes the singleton available inside the ViewModel component.
+     */
+    @Provides
+    fun provideAgentGatewayRepository(
+        agentGatewayRepository: AgentGatewayRepository,
+    ): AgentGatewayRepository = agentGatewayRepository
 }

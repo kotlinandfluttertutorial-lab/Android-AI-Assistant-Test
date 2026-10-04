@@ -33,6 +33,7 @@ package com.aiassistant.domain.repository
 import com.aiassistant.core.common.ApiResult
 import com.aiassistant.domain.model.Document
 import com.aiassistant.domain.model.IngestionStatus
+import com.aiassistant.domain.model.RagAnswer
 import kotlinx.coroutines.flow.Flow
 
 /**
@@ -97,4 +98,25 @@ interface DocumentRepository {
      * @return [ApiResult.Success] with [Unit] on success.
      */
     suspend fun deleteDocument(documentId: String): ApiResult<Unit>
+
+    /**
+     * Submits a natural language question to the `/api/v1/rag/query` endpoint and
+     * returns a structured [RagAnswer] with answer text, source excerpts, and similarity
+     * scores (Requirements 4.6, 4.7).
+     *
+     * Unlike [queryDocument] (which returns a raw string), this method returns typed
+     * citations so the UI can render each source's excerpt and relevance score without
+     * text-parsing heuristics.
+     *
+     * @param question    The user's natural language question.
+     * @param documentIds Optional list of document IDs to restrict retrieval scope.
+     *                    Pass `null` or an empty list to query across all user documents.
+     * @param topK        Maximum number of chunks to retrieve (default 5).
+     * @return [ApiResult.Success] with a [RagAnswer] on success.
+     */
+    suspend fun ragQuery(
+        question: String,
+        documentIds: List<String>? = null,
+        topK: Int = 5,
+    ): ApiResult<RagAnswer>
 }

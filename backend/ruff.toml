@@ -49,6 +49,9 @@ ignore = [
     #    production code path analysis.
     "S101",
 
+    # ── S603 — subprocess call in local smoke test script ──
+    "S603",
+
     # ── S105 / S106 — test fixtures use intentional hardcoded credential strings ──
     "S105",    # Possible hardcoded password assigned to variable
     "S106",    # Possible hardcoded password in function argument
@@ -78,8 +81,8 @@ unfixable = []
 # I001 suppressed — the __future__ + stdlib + third-party layout in test files
 # triggers a ruff 0.11.6 false-positive on structurally correct import blocks.
 # Both glob forms used for ruff version compatibility.
-"tests/**" = ["S101", "S105", "S106", "E402", "E501", "F841", "UP017", "B905", "UP038", "C401", "I001", "RUF012", "RUF001", "RUF002", "RUF003", "B017"]
-"tests/**/*.py" = ["S101", "S105", "S106", "E402", "E501", "F841", "UP017", "B905", "UP038", "C401", "I001"]
+"tests/**" = ["S101", "S105", "S106", "E402", "E501", "F841", "UP017", "B905", "UP038", "C401", "I001", "RUF012", "RUF001", "RUF002", "RUF003", "B017", "RUF059"]
+"tests/**/*.py" = ["S101", "S105", "S106", "E402", "E501", "F841", "UP017", "B905", "UP038", "C401", "I001", "RUF059"]
 "tests/conftest.py" = ["I001"]
 
 # Workers — deferred imports inside task functions are intentional (E402),
