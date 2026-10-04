@@ -42,6 +42,7 @@ backend/coverage_fresh.json
 backend/**/.env
 backend/.env.*
 !backend/.env.example
+!backend/.env.docker.example
 # Keep the example/template files — these ARE committed
 !.env.local.example
 !.env.stage.example
@@ -66,3 +67,4 @@ Thumbs.db
 android-release.jks
 /.env.stage.example
 /.env.production.example
+/backend/.env.docker.example

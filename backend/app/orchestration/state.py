@@ -27,7 +27,7 @@ from typing import Any
 # ---------------------------------------------------------------------------
 
 
-class RunStatus(str, enum.Enum):  # noqa: UP042
+class RunStatus(str, enum.Enum):
     """Lifecycle state of one :class:`OrchestrationState` run."""
 
     PENDING = "pending"       # created, not yet started
